@@ -26,12 +26,13 @@ async function writeAnnouncements(announcements: Announcement[]): Promise<void> 
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const body = await request.json()
     const announcements = await readAnnouncements()
-    const index = announcements.findIndex(a => a.id === params.id)
+    const index = announcements.findIndex(a => a.id === id)
 
     if (index === -1) {
       return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })
@@ -53,11 +54,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const announcements = await readAnnouncements()
-    const index = announcements.findIndex(a => a.id === params.id)
+    const index = announcements.findIndex(a => a.id === id)
 
     if (index === -1) {
       return NextResponse.json({ error: 'Announcement not found' }, { status: 404 })

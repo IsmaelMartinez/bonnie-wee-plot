@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Link from 'next/link'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -22,11 +23,11 @@ export default function RootLayout({
             <nav className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">🌱 Community Allotment</h1>
               <div className="space-x-4">
-                <a href="/" className="hover:text-primary-200">Home</a>
-                <a href="/announcements" className="hover:text-primary-200">Announcements</a>
-                <a href="/calendar" className="hover:text-primary-200">Calendar</a>
-                <a href="/ai-advisor" className="hover:text-primary-200">Plant Advisor</a>
-                <a href="/admin" className="hover:text-primary-200">Admin</a>
+                <Link href="/" className="hover:text-primary-200">Home</Link>
+                <Link href="/announcements" className="hover:text-primary-200">Announcements</Link>
+                <Link href="/calendar" className="hover:text-primary-200">Calendar</Link>
+                <Link href="/ai-advisor" className="hover:text-primary-200">Plant Advisor</Link>
+                <Link href="/admin" className="hover:text-primary-200">Admin</Link>
               </div>
             </nav>
           </div>
