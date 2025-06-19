@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2 } from 'lucide-react'
 
-const announcements = [
+// Static announcements data - will be replaced with API data
+const staticAnnouncements = [
   {
     id: 1,
     title: 'Bark Mulch Delivery - This Saturday',
@@ -58,6 +59,34 @@ const statusColors = {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('announcements')
+  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch announcements from API
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch('/api/admin/announcements')
+      if (!response.ok) {
+        throw new Error('Failed to fetch announcements')
+      }
+      const data = await response.json()
+      setAnnouncements(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      // Fallback to static data if API fails
+      setAnnouncements(staticAnnouncements)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAnnouncements()
+  }, [])
 
   const renderAnnouncementsTab = () => (
     <div>
@@ -98,7 +127,37 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {announcements.map((announcement) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                      <span className="text-gray-500">Loading announcements...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center">
+                    <div className="text-red-500">
+                      <p>Error loading announcements: {error}</p>
+                      <button 
+                        onClick={fetchAnnouncements}
+                        className="mt-2 text-primary-600 hover:text-primary-700 underline"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : announcements.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    No announcements found
+                  </td>
+                </tr>
+              ) : (
+                announcements.map((announcement) => (
                 <tr key={announcement.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{announcement.title}</div>
@@ -109,8 +168,8 @@ export default function AdminPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span data-testid={`status-badge-${announcement.status}`} className={`px-2 py-1 text-xs font-medium rounded-full border ${statusColors[announcement.status as keyof typeof statusColors]}`}>
-                      {announcement.status}
+                    <span data-testid={`status-badge-${announcement.isActive ? 'published' : 'draft'}`} className={`px-2 py-1 text-xs font-medium rounded-full border ${statusColors[announcement.isActive ? 'published' : 'draft' as keyof typeof statusColors]}`}>
+                      {announcement.isActive ? 'published' : 'draft'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -123,10 +182,10 @@ export default function AdminPage() {
                     <div className="flex items-center space-x-2">
                       <span className="flex items-center">
                         <Eye className="w-4 h-4 mr-1" data-lucide="eye" />
-                        {announcement.views}
+                        {announcement.views || 0}
                       </span>
                       <span className="flex items-center">
-                        👍 {announcement.reactions}
+                        👍 {announcement.reactions || 0}
                       </span>
                     </div>
                   </td>
@@ -141,7 +200,8 @@ export default function AdminPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>

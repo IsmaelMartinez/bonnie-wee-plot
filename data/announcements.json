@@ -1,50 +1,50 @@
 [
   {
-    "id": "1750349593227",
-    "type": "order",
-    "title": "To Be Deleted",
-    "content": "This announcement will be deleted",
-    "author": "Test User",
-    "date": "2025-06-19",
-    "priority": "low",
-    "isActive": false,
-    "createdAt": "2025-06-19T16:13:13.227Z",
-    "updatedAt": "2025-06-19T16:13:13.422Z"
+    "id": "demo-1",
+    "type": "delivery",
+    "title": "Bark Mulch Delivery - This Saturday",
+    "content": "Fresh bark mulch will be delivered this Saturday at 9 AM. Please ensure your plot area is accessible for the delivery truck.",
+    "author": "Admin",
+    "date": "2025-06-16",
+    "priority": "high",
+    "isActive": true,
+    "createdAt": "2025-06-19T12:00:00.000Z",
+    "updatedAt": "2025-06-19T12:00:00.000Z"
   },
   {
-    "id": "1750349601221",
-    "type": "tip",
-    "title": "Test Announcement",
-    "content": "This is a test announcement created by Playwright",
-    "author": "Test User",
-    "date": "2025-06-19",
+    "id": "demo-2",
+    "type": "order",
+    "title": "Summer Seed Order Deadline",
+    "content": "Last chance to submit your orders for summer vegetable seeds. Order deadline is June 20th.",
+    "author": "Plot Manager",
+    "date": "2025-06-15",
     "priority": "medium",
     "isActive": true,
-    "createdAt": "2025-06-19T16:13:21.222Z",
-    "updatedAt": "2025-06-19T16:13:21.222Z"
+    "createdAt": "2025-06-19T11:00:00.000Z",
+    "updatedAt": "2025-06-19T11:00:00.000Z"
   },
   {
-    "id": "1750349601291",
+    "id": "demo-3",
     "type": "event",
-    "title": "Updated Title",
-    "content": "Updated content",
-    "author": "Test User",
-    "date": "2024-01-15",
-    "priority": "medium",
-    "isActive": true,
-    "createdAt": "2025-06-19T16:13:21.291Z",
-    "updatedAt": "2025-06-19T16:13:21.439Z"
-  },
-  {
-    "id": "1750349601398",
-    "type": "order",
-    "title": "To Be Deleted",
-    "content": "This announcement will be deleted",
-    "author": "Test User",
-    "date": "2025-06-19",
+    "title": "Water Conservation Workshop",
+    "content": "Join us for a workshop on water-saving techniques for your allotment garden.",
+    "author": "Admin",
+    "date": "2025-06-18",
     "priority": "low",
     "isActive": false,
-    "createdAt": "2025-06-19T16:13:21.398Z",
-    "updatedAt": "2025-06-19T16:13:21.507Z"
+    "createdAt": "2025-06-19T10:00:00.000Z",
+    "updatedAt": "2025-06-19T10:00:00.000Z"
+  },
+  {
+    "id": "demo-4",
+    "type": "tip",
+    "title": "Tomato Growing Tips",
+    "content": "Essential tips for growing healthy tomatoes in your allotment this season.",
+    "author": "Gardening Expert",
+    "date": "2025-06-10",
+    "priority": "low",
+    "isActive": true,
+    "createdAt": "2025-06-19T09:00:00.000Z",
+    "updatedAt": "2025-06-19T09:00:00.000Z"
   }
 ]
