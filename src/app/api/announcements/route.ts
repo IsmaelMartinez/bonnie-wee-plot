@@ -57,10 +57,21 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST request received')
+    const contentType = request.headers.get('content-type')
+    console.log('Content-Type:', contentType)
+    
+    if (!contentType?.includes('application/json')) {
+      console.error('Invalid content type:', contentType)
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 400 })
+    }
+    
     const body = await request.json()
+    console.log('Request body:', body)
     const { type, title, content, author, priority } = body
 
     if (!type || !title || !content || !author) {
+      console.error('Missing required fields:', { type, title, content, author })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 

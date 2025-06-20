@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2 } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2, X } from 'lucide-react'
 
 // Static announcements data - will be replaced with API data
 const staticAnnouncements = [
@@ -62,6 +62,18 @@ export default function AdminPage() {
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Modal state
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    type: 'tip',
+    priority: 'low',
+    date: new Date().toISOString().split('T')[0]
+  })
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState(false)
 
   // Fetch announcements from API
   const fetchAnnouncements = async () => {
@@ -88,11 +100,87 @@ export default function AdminPage() {
     fetchAnnouncements()
   }, [])
 
+  // Form validation
+  const validateForm = () => {
+    const errors: Record<string, string> = {}
+    
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required'
+    } else if (formData.title.length > 100) {
+      errors.title = 'Title must be less than 100 characters'
+    }
+    
+    if (!formData.content.trim()) {
+      errors.content = 'Content is required'
+    } else if (formData.content.length > 1000) {
+      errors.content = 'Content must be less than 1000 characters'
+    }
+    
+    if (!formData.date) {
+      errors.date = 'Date is required'
+    }
+    
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  // Handle form submission
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
+    setSubmitting(true)
+    try {
+      const response = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          author: 'Admin', // TODO: Get from user session
+          isActive: true
+        })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create announcement')
+      }
+      
+      // Reset form and close modal
+      setFormData({
+        title: '',
+        content: '',
+        type: 'tip',
+        priority: 'low',
+        date: new Date().toISOString().split('T')[0]
+      })
+      setFormErrors({})
+      setShowCreateModal(false)
+      
+      // Refresh announcements list
+      await fetchAnnouncements()
+      
+    } catch (err) {
+      setFormErrors({ submit: err instanceof Error ? err.message : 'An error occurred' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const renderAnnouncementsTab = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Manage Announcements</h2>
-        <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition flex items-center">
+        <button 
+          onClick={() => setShowCreateModal(true)}
+          className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition flex items-center"
+          data-testid="new-announcement-button"
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Announcement
         </button>
@@ -582,6 +670,182 @@ export default function AdminPage() {
         {activeTab === 'users' && renderUsersTab()}
         {activeTab === 'settings' && renderSettingsTab()}
       </div>
+
+      {/* Create Announcement Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="create-modal">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold">Create New Announcement</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false)
+                    setFormErrors({})
+                    setFormData({
+                      title: '',
+                      content: '',
+                      type: 'tip',
+                      priority: 'low',
+                      date: new Date().toISOString().split('T')[0]
+                    })
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition"
+                  data-testid="close-modal-button"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateAnnouncement} className="space-y-6" data-testid="create-announcement-form">
+                {formErrors.submit && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                    {formErrors.submit}
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    id="title"
+                    data-testid="title-input"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      formErrors.title ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter announcement title"
+                    maxLength={100}
+                  />
+                  {formErrors.title && (
+                    <p className="text-red-600 text-sm mt-1">{formErrors.title}</p>
+                  )}
+                  <p className="text-gray-500 text-sm mt-1">{formData.title.length}/100 characters</p>
+                </div>
+
+                <div>
+                  <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+                    Content *
+                  </label>
+                  <textarea
+                    id="content"
+                    data-testid="content-input"
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    rows={6}
+                    className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      formErrors.content ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter announcement content"
+                    maxLength={1000}
+                  />
+                  {formErrors.content && (
+                    <p className="text-red-600 text-sm mt-1">{formErrors.content}</p>
+                  )}
+                  <p className="text-gray-500 text-sm mt-1">{formData.content.length}/1000 characters</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                      Type
+                    </label>
+                    <select
+                      id="type"
+                      data-testid="type-select"
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="tip">Tip</option>
+                      <option value="delivery">Delivery</option>
+                      <option value="order">Order</option>
+                      <option value="event">Event</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      id="priority"
+                      data-testid="priority-select"
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+                    Publish Date *
+                  </label>
+                  <input
+                    type="date"
+                    id="date"
+                    data-testid="date-input"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      formErrors.date ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  />
+                  {formErrors.date && (
+                    <p className="text-red-600 text-sm mt-1">{formErrors.date}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end space-x-4 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false)
+                      setFormErrors({})
+                      setFormData({
+                        title: '',
+                        content: '',
+                        type: 'tip',
+                        priority: 'low',
+                        date: new Date().toISOString().split('T')[0]
+                      })
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                    disabled={submitting}
+                    data-testid="cancel-button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-testid="submit-button"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      'Create Announcement'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
