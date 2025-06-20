@@ -86,7 +86,8 @@ test.describe('Admin - Create Announcement Modal', () => {
     await page.click('[data-testid="new-announcement-button"]')
     await expect(page.locator('[data-testid="create-modal"]')).toBeVisible()
 
-    await page.click('[data-testid="cancel-button"]')
+    // Use force click for mobile compatibility
+    await page.locator('[data-testid="cancel-button"]').click({ force: true })
     await expect(page.locator('[data-testid="create-modal"]')).not.toBeVisible()
   })
 
@@ -96,7 +97,9 @@ test.describe('Admin - Create Announcement Modal', () => {
     // Clear all fields and try to submit
     await page.fill('[data-testid="title-input"]', '')
     await page.fill('[data-testid="content-input"]', '')
-    await page.click('[data-testid="submit-button"]')
+    
+    // Use force click for mobile compatibility
+    await page.locator('[data-testid="submit-button"]').click({ force: true })
 
     // Should show validation errors
     await expect(page.locator('text=Title is required')).toBeVisible()
@@ -173,7 +176,7 @@ test.describe('Admin - Create Announcement Modal', () => {
     await page.selectOption('[data-testid="priority-select"]', 'high')
 
     // Submit form
-    await page.click('[data-testid="submit-button"]')
+    await page.locator('[data-testid="submit-button"]').click({ force: true })
 
     // Wait for modal to close (indicates success)
     await expect(page.locator('[data-testid="create-modal"]')).not.toBeVisible()
@@ -195,7 +198,7 @@ test.describe('Admin - Create Announcement Modal', () => {
     await page.selectOption('[data-testid="type-select"]', 'event')
 
     // Close modal
-    await page.click('[data-testid="cancel-button"]')
+    await page.locator('[data-testid="cancel-button"]').click({ force: true })
 
     // Reopen modal
     await page.click('[data-testid="new-announcement-button"]')

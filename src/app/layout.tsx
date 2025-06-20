@@ -26,7 +26,7 @@ export default function RootLayout({
                 <Link href="/" className="hover:text-primary-200">Home</Link>
                 <Link href="/announcements" className="hover:text-primary-200">Announcements</Link>
                 <Link href="/calendar" className="hover:text-primary-200">Calendar</Link>
-                <Link href="/ai-advisor" className="hover:text-primary-200">Plant Advisor</Link>
+                <Link href="/ai-advisor" className="hover:text-primary-200">Aitor</Link>
                 <Link href="/admin" className="hover:text-primary-200">Admin</Link>
               </div>
             </nav>

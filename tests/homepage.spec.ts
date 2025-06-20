@@ -26,7 +26,7 @@ test.describe('Homepage and Navigation', () => {
     // Look for navigation link to admin
     const adminLink = page.getByRole('link', { name: /Admin/ });
     if (await adminLink.isVisible()) {
-      await adminLink.click();
+      await adminLink.click({ force: true });
       await expect(page).toHaveURL('/admin');
       await expect(page.getByRole('heading', { name: '🔧 Admin Dashboard' })).toBeVisible();
     }

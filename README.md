@@ -21,7 +21,7 @@ Think of it as having a horticultural genius in your pocket, except this one won
 - "What's this green fuzzy stuff, and should I be worried?"
 
 ### 📅 Calendar of Garden Chaos
-Never again forget that it's "Prune The Roses Week" or miss the legendary community potluck where Margaret brings her award-winning beetroot cake (trust us, it's better than it sounds).
+Never again forget that it's "Prune The Roses Week" or miss the legendary community potluck where someone always brings that surprisingly delicious beetroot cake (trust us, it's better than it sounds).
 
 ## 🛠️ Built With Love (And Probably Too Much Coffee)
 
@@ -102,7 +102,7 @@ Your personal garden guru that never sleeps, judges, or asks for payment in home
 Never again miss the Great Slug Hunt of 2025 or forget it's National Compost Appreciation Day.
 
 ### The Control Room (`/admin`)
-Where the magic happens and the announcements get born. Admin access required (sorry, Dave from Plot 7).
+Where the magic happens and the announcements get born. Admin access required (sorry, regular plot holders).
 
 ## 🔮 Future Dreams and Schemes
 
@@ -125,7 +125,7 @@ Where the magic happens and the announcements get born. Admin access required (s
 - Sometimes the icons have commitment issues with the latest libraries
 - A few forms are having an identity crisis about labels
 - The linter occasionally throws temper tantrums about array keys
-- Dave from Plot 7 still doesn't understand how to use the internet
+- Some community members still need help navigating the digital world
 
 ## 🤝 Want to Help Make This Less Ridiculous?
 
