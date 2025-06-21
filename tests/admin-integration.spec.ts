@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Admin Dashboard Integration', () => {
   test('should display real announcements from API', async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
 
     // Wait for data to load
     await page.waitForLoadState('networkidle');
@@ -22,7 +22,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should show loading state initially', async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
 
     // Should show loading state briefly (may be too fast to catch)
     // This validates that the loading component exists in the code
@@ -36,7 +36,7 @@ test.describe('Admin Dashboard Integration', () => {
       route.fulfill({ status: 500, body: 'Server Error' });
     });
 
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
     await page.waitForLoadState('networkidle');
 
     // Should show error message and fallback to static data
@@ -46,7 +46,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should display correct status indicators', async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
     await page.waitForLoadState('networkidle');
 
     // Check that both active and inactive announcements are handled
@@ -57,7 +57,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should display engagement metrics correctly', async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
     await page.waitForLoadState('networkidle');
 
     // Check for engagement metrics structure

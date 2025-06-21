@@ -70,5 +70,9 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
+    env: {
+      NODE_ENV: 'development', // Changed from 'test' to 'development'
+      NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE: 'true'
+    }
   },
 });

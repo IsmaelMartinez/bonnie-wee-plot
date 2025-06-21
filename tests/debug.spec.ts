@@ -6,7 +6,7 @@ test.describe('Admin Debug', () => {
     page.on('console', msg => console.log(`[${msg.type()}] ${msg.text()}`));
     page.on('pageerror', error => console.log(`Page error: ${error.message}`));
 
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
   });
 
   test('debug tab switching', async ({ page }) => {

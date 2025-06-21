@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2, X } from 'lucide-react'
 
 // Static announcements data - will be replaced with API data
@@ -58,6 +60,9 @@ const statusColors = {
 }
 
 export default function AdminPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  
   const [activeTab, setActiveTab] = useState('announcements')
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -77,6 +82,47 @@ export default function AdminPage() {
   })
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
+
+  // Authentication check - redirect if not admin
+  useEffect(() => {
+    // Only allow test mode bypass in development and with explicit test environment
+    const isTestMode = process.env.NODE_ENV === 'development' && 
+                      process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true' &&
+                      typeof window !== 'undefined' && 
+                      window.location.search.includes('test-mode=true')
+    
+    if (isTestMode) {
+      console.warn('⚠️  SECURITY BYPASS ACTIVE - Admin page accessible without authentication in test mode')
+      return // Skip authentication in test mode
+    }
+
+    if (status === 'loading') return // Still loading session
+    
+    if (status === 'unauthenticated' || !session?.user?.isAdmin) {
+      router.push('/auth/signin')
+    }
+  }, [status, session, router])
+
+  // Add a timeout for session loading to prevent infinite loading in tests
+  useEffect(() => {
+    const isTestMode = process.env.NODE_ENV === 'development' && 
+                      process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true' &&
+                      typeof window !== 'undefined' && 
+                      window.location.search.includes('test-mode=true')
+    
+    if (isTestMode) {
+      return // Skip in test mode
+    }
+
+    const timeout = setTimeout(() => {
+      if (status === 'loading') {
+        // Force redirect if session loading takes too long
+        router.push('/auth/signin')
+      }
+    }, 10000) // 10 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [status, router])
 
   // Fetch announcements from API
   const fetchAnnouncements = async () => {
@@ -144,7 +190,7 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           ...formData,
-          author: 'Admin', // TODO: Get from user session
+          author: session?.user?.name ?? session?.user?.githubUsername ?? 'Admin',
           isActive: true
         })
       })
@@ -725,6 +771,31 @@ export default function AdminPage() {
       </div>
     </div>
   )
+
+  // Show loading spinner while checking authentication (unless in test mode)
+  const isTestMode = process.env.NODE_ENV === 'development' && 
+                    process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true' &&
+                    typeof window !== 'undefined' && 
+                    window.location.search.includes('test-mode=true')
+  
+  if (status === 'loading' && !isTestMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+        <span className="ml-2 text-gray-600">Loading...</span>
+      </div>
+    )
+  }
+
+  // If not authenticated or not admin, show loading while redirecting (unless in test mode)
+  if ((status === 'unauthenticated' || !session?.user?.isAdmin) && !isTestMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+        <span className="ml-2 text-gray-600">Redirecting...</span>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

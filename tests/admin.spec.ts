@@ -46,7 +46,7 @@ test.describe('Admin Dashboard', () => {
     // Reset data for this test
     await resetAnnouncementsData(testDataFile)
 
-    await page.goto('/admin');
+    await page.goto('/admin?test-mode=true');
     await page.waitForLoadState('networkidle');
   });
 
