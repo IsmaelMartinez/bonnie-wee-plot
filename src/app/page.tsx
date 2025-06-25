@@ -83,7 +83,7 @@ export default function Home() {
       </section>
 
       {/* Quick Actions */}
-      <section className="grid md:grid-cols-3 gap-6">
+      <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-primary-50 rounded-lg p-6 text-center">
           <h3 className="text-xl font-semibold mb-4">Get Plant Advice</h3>
           <p className="text-gray-600 mb-4">Ask our AI advisor about plant care, pest control, or seasonal tasks.</p>
@@ -100,12 +100,20 @@ export default function Home() {
           </a>
         </div>
 
+        <div className="bg-amber-50 rounded-lg p-6 text-center">
+          <h3 className="text-xl font-semibold mb-4">Composting Guide</h3>
+          <p className="text-gray-600 mb-4">Learn how to turn garden waste into black gold for your plants.</p>
+          <a href="/composting" className="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 transition">
+            Start Composting
+          </a>
+        </div>
+
         <div className="bg-green-50 rounded-lg p-6 text-center">
-          <h3 className="text-xl font-semibold mb-4">Subscribe to Updates</h3>
-          <p className="text-gray-600 mb-4">Never miss important announcements and community updates.</p>
-          <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-            Subscribe Now
-          </button>
+          <h3 className="text-xl font-semibold mb-4">Companion Planting</h3>
+          <p className="text-gray-600 mb-4">Discover which plants grow better together for a thriving garden.</p>
+          <a href="/companion-planting" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+            Learn More
+          </a>
         </div>
       </section>
     </div>

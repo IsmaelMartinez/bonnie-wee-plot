@@ -1,46 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2, X } from 'lucide-react'
-
-// Static announcements data - will be replaced with API data
-const staticAnnouncements = [
-  {
-    id: 1,
-    title: 'Bark Mulch Delivery - This Saturday',
-    type: 'delivery',
-    status: 'published',
-    author: 'Admin',
-    date: '2025-06-16',
-    priority: 'high',
-    views: 45,
-    reactions: 12
-  },
-  {
-    id: 2,
-    title: 'Summer Seed Order Deadline',
-    type: 'order',
-    status: 'published',
-    author: 'Plot Manager',
-    date: '2025-06-15',
-    priority: 'medium',
-    views: 32,
-    reactions: 8
-  },
-  {
-    id: 3,
-    title: 'Water Conservation Workshop',
-    type: 'event',
-    status: 'draft',
-    author: 'Admin',
-    date: '2025-06-18',
-    priority: 'low',
-    views: 0,
-    reactions: 0
-  }
-]
 
 const stats = [
   { label: 'Total Users', value: '156', icon: Users, color: 'bg-blue-500' },
@@ -69,8 +30,6 @@ const priorityColors = {
 }
 
 export default function AdminPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
   
   const [activeTab, setActiveTab] = useState('announcements')
   const [announcements, setAnnouncements] = useState<any[]>([])
@@ -98,50 +57,6 @@ export default function AdminPage() {
     setIsMounted(true)
   }, [])
 
-  // Debug logging for test mode
-  useEffect(() => {
-    if (isMounted) {
-      console.log('Admin page debug:', {
-        isMounted,
-        nodeEnv: process.env.NODE_ENV,
-        playwrightTestMode: process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE,
-        windowSearch: typeof window !== 'undefined' ? window.location.search : 'N/A'
-      })
-    }
-  }, [isMounted])
-
-  // Authentication check - redirect if not admin
-  useEffect(() => {
-    // Temporarily disable auth in all dev environments for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  SECURITY BYPASS ACTIVE - Admin page accessible without authentication in development')
-      return // Skip authentication in development
-    }
-
-    if (status === 'loading') return // Still loading session
-    
-    if (status === 'unauthenticated' || !session?.user?.isAdmin) {
-      router.push('/auth/signin')
-    }
-  }, [status, session, router])
-
-  // Add a timeout for session loading to prevent infinite loading in tests
-  useEffect(() => {
-    // Skip timeout in development
-    if (process.env.NODE_ENV === 'development') {
-      return
-    }
-
-    const timeout = setTimeout(() => {
-      if (status === 'loading') {
-        // Force redirect if session loading takes too long
-        router.push('/auth/signin')
-      }
-    }, 10000) // 10 second timeout
-
-    return () => clearTimeout(timeout)
-  }, [status, router])
-
   // Fetch announcements from API
   const fetchAnnouncements = async () => {
     try {
@@ -155,8 +70,8 @@ export default function AdminPage() {
       setAnnouncements(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-      // Fallback to static data if API fails
-      setAnnouncements(staticAnnouncements)
+      // No fallback data - will show error state
+      setAnnouncements([])
     } finally {
       setLoading(false)
     }
@@ -208,7 +123,7 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           ...formData,
-          author: session?.user?.name ?? session?.user?.githubUsername ?? 'Test Admin',
+          author: 'Admin',
           isActive: true
         })
       })
@@ -805,26 +720,6 @@ export default function AdminPage() {
       </div>
     </div>
   )
-
-  // Show loading spinner while checking authentication (unless in test mode)
-  if (status === 'loading' && process.env.NODE_ENV !== 'development') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        <span className="ml-2 text-gray-600">Loading...</span>
-      </div>
-    )
-  }
-
-  // If not authenticated or not admin, show loading while redirecting (unless in development)
-  if ((status === 'unauthenticated' || !session?.user?.isAdmin) && process.env.NODE_ENV !== 'development') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        <span className="ml-2 text-gray-600">Redirecting...</span>
-      </div>
-    )
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">

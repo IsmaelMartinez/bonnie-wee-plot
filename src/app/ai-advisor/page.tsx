@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Send, Leaf, Sun, Cloud, Bug, Sprout, Calendar, Settings, Eye, EyeOff, Shield, Camera, X } from 'lucide-react'
+import { Send, Leaf, Sun, Cloud, Bug, Sprout, Calendar, Settings, Eye, EyeOff, Shield, Camera, X, Recycle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Image from 'next/image'
@@ -12,6 +12,7 @@ const quickTopics = [
   { icon: Sun, title: 'Summer Care', query: 'How should I care for my plants during hot summer weather?' },
   { icon: Cloud, title: 'Watering Tips', query: 'What are the best watering practices for vegetables?' },
   { icon: Calendar, title: 'Seasonal Tasks', query: 'What are the most important gardening tasks for June?' },
+  { icon: Recycle, title: 'Composting Help', query: 'How do I start composting? What materials should I use?' },
   { icon: Camera, title: 'Plant Diagnosis', query: 'I\'ve uploaded a photo of my plant. Can you tell me what might be wrong with it?' },
   { icon: Leaf, title: 'Plant Health', query: 'My tomato leaves are turning yellow, what could be wrong?' }
 ]
@@ -354,7 +355,7 @@ export default function AIAdvisorPage() {
         id: (Date.now() + 2).toString(),
         role: 'assistant' as const,
         content: isConfigError 
-          ? `🌱 **Getting Started** 🌱\n\nHi there! I'm Aitor, your gardening companion. I'd love to help you with your allotment questions, but I need an API key to get started.\n\n**How to set me up:**\n• Click the settings icon (⚙️) above to add your OpenAI API token\n• Get your token from the OpenAI dashboard\n• Once configured, I'll be ready to help with all your gardening needs!\n\n**What I can help with:**\n• Plant selection and planting schedules\n• Pest and disease management\n• Seasonal gardening tasks\n• Soil health and composting advice\n• Weather-specific care tips\n\nLet's get growing together! 🌿`
+          ? `🌱 **Getting Started** 🌱\n\nHi there! I'm Aitor, your gardening companion. I'd love to help you with your allotment questions, but I need an API key to get started.\n\n**How to set me up:**\n• Click the settings icon (⚙️) above to add your OpenAI API token\n• Get your token from the OpenAI dashboard\n• Once configured, I'll be ready to help with all your gardening needs!\n\n**What I can help with:**\n• Plant selection and planting schedules\n• Pest and disease management\n• Seasonal gardening tasks\n• Composting systems and troubleshooting\n• Soil health and organic fertilizers\n• Weather-specific care tips\n\nLet's get growing together! 🌿`
           : `🌿 **Temporary Connection Issue** 🌿\n\nOops! I'm having trouble connecting to my knowledge base right now. This happens sometimes and usually resolves quickly.\n\n**What you can try:**\n• Wait a moment and ask your question again\n• Check your internet connection\n• Verify your API token is still valid in settings\n\n**While you wait, here are some quick tips:**\n• Water early morning or evening to reduce evaporation\n• Mulch around plants to retain moisture and suppress weeds\n• Check your local frost dates before planting tender crops\n• Companion plant basil near tomatoes for better flavor\n\n**Alternative resources:**\n• Your local gardening community\n• Agricultural extension services\n• Fellow allotment gardeners\n\nI'll be back to help soon! 🌱`
       }
       
@@ -452,7 +453,7 @@ export default function AIAdvisorPage() {
           </div>
           <p className="text-green-700 text-sm">
             Aitor provides expert guidance specifically for allotment gardening, vegetable cultivation,
-            and seasonal care tailored to your local climate and growing conditions.
+            composting systems, and seasonal care tailored to your local climate and growing conditions.
           </p>
         </div>
       </div>

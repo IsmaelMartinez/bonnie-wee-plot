@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Admin Dashboard Integration', () => {
   test('should display real announcements from API', async ({ page }) => {
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
 
     // Wait for content to load instead of networkidle
     await page.waitForSelector('[data-testid="new-announcement-button"]', { timeout: 45000 });
@@ -22,7 +22,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should show loading state initially', async ({ page }) => {
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
 
     // Should show loading state briefly (may be too fast to catch)
     // This validates that the loading component exists in the code
@@ -36,7 +36,7 @@ test.describe('Admin Dashboard Integration', () => {
       route.fulfill({ status: 500, body: 'Server Error' });
     });
 
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
     // Wait for content to load instead of networkidle
     await page.waitForSelector('[data-testid="new-announcement-button"]', { timeout: 45000 });
 
@@ -47,7 +47,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should display correct status indicators', async ({ page }) => {
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
     await page.waitForSelector('[data-testid="new-announcement-button"]', { timeout: 45000 });
 
     // Check that both active and inactive announcements are handled
@@ -58,7 +58,7 @@ test.describe('Admin Dashboard Integration', () => {
   });
 
   test('should display engagement metrics correctly', async ({ page }) => {
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
     await page.waitForSelector('[data-testid="new-announcement-button"]', { timeout: 45000 });
 
     // Check for engagement metrics structure

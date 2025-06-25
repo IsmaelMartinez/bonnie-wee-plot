@@ -46,7 +46,7 @@ test.describe('Admin Dashboard', () => {
     // Reset data for this test
     await resetAnnouncementsData(testDataFile)
 
-    await page.goto('/admin?test-mode=true');
+    await page.goto('/admin');
     // Instead of waiting for networkidle, wait for specific content to load
     await page.waitForSelector('[data-testid="new-announcement-button"]', { timeout: 45000 });
     // Give a small buffer for any remaining async operations

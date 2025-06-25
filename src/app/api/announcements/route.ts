@@ -57,9 +57,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('POST request received')
     const contentType = request.headers.get('content-type')
-    console.log('Content-Type:', contentType)
     
     if (!contentType?.includes('application/json')) {
       console.error('Invalid content type:', contentType)
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       const rawBody = await request.text()
-      console.log('Raw request body:', rawBody)
       
       if (!rawBody || rawBody.trim() === '') {
         console.error('Empty request body')
@@ -82,7 +79,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
     
-    console.log('Request body:', body)
     const { type, title, content, author, priority } = body
 
     if (!type || !title || !content || !author) {

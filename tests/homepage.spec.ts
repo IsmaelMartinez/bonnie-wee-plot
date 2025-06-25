@@ -5,7 +5,7 @@ test.describe('Homepage and Navigation', () => {
     await page.goto('/');
 
     await expect(page).toHaveTitle(/Community Allotment/);
-    await expect(page.getByRole('heading', { name: /Welcome to Community Allotment/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Welcome to Community Allotment Association/ })).toBeVisible();
   });
 
   test('should navigate to announcements page', async ({ page }) => {
@@ -27,8 +27,8 @@ test.describe('Homepage and Navigation', () => {
     const adminLink = page.getByRole('link', { name: /Admin/ });
     if (await adminLink.isVisible()) {
       // Directly navigate to test mode instead of clicking first
-      await page.goto('/admin?test-mode=true');
-      await expect(page).toHaveURL('/admin?test-mode=true');
+      await page.goto('/admin');
+      await expect(page).toHaveURL('/admin');
       await expect(page.getByRole('heading', { name: '🔧 Admin Dashboard' })).toBeVisible();
     }
   });
@@ -36,8 +36,8 @@ test.describe('Homepage and Navigation', () => {
   test('should navigate to AI advisor page', async ({ page }) => {
     await page.goto('/');
 
-    // Look for navigation link to AI advisor
-    const aiAdvisorLink = page.getByRole('link', { name: /AI Advisor/ });
+    // Look for navigation link to AI advisor (labeled as "Aitor")
+    const aiAdvisorLink = page.getByRole('link', { name: 'Aitor', exact: true });
     if (await aiAdvisorLink.isVisible()) {
       await aiAdvisorLink.click();
       await expect(page).toHaveURL('/ai-advisor');
