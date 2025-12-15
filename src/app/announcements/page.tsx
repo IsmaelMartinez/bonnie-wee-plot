@@ -2,19 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Truck, Package, Lightbulb, Calendar, Bell } from 'lucide-react'
-
-interface Announcement {
-  id: string
-  type: 'delivery' | 'order' | 'tip' | 'event'
-  title: string
-  content: string
-  author: string
-  date: string
-  priority: 'high' | 'medium' | 'low'
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
+import type { Announcement } from '@/types'
 
 const typeIcons = {
   delivery: Truck,

@@ -31,11 +31,12 @@ Never again forget that it's "Prune The Roses Week" or miss the legendary commun
 
 ## 🛠️ Built With Love (And Probably Too Much Coffee)
 
-- **Next.js 14**: Because we're fancy like that
+- **Next.js 15**: The latest and greatest from the Next.js team
+- **React 19**: Cutting-edge React with all the new features
 - **TypeScript**: For when JavaScript just isn't confusing enough
 - **Tailwind CSS**: Making things pretty without the existential CSS crisis
 - **Lucide Icons**: Tiny pictures that somehow make everything better
-- **AI Integration**: The robot overlords, but for plants
+- **AI Integration**: The robot overlords, but for plants (powered by OpenAI)
 
 ## � Getting This Garden Party Started
 

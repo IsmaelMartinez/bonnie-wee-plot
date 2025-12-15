@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Eye, Users, Bell, BarChart3, Settings, Loader2, X } from 'lucide-react'
+import type { Announcement, AnnouncementFormData } from '@/types'
 
 const stats = [
   { label: 'Total Users', value: '156', icon: Users, color: 'bg-blue-500' },
@@ -32,17 +33,16 @@ const priorityColors = {
 export default function AdminPage() {
   
   const [activeTab, setActiveTab] = useState('announcements')
-  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
   
   // Modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
-  const [formData, setFormData] = useState({
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null)
+  const [formData, setFormData] = useState<AnnouncementFormData>({
     title: '',
     content: '',
     type: 'tip',
@@ -51,11 +51,6 @@ export default function AdminPage() {
   })
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
-
-  // Track if component is mounted to prevent hydration mismatches
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   // Fetch announcements from API
   const fetchAnnouncements = async () => {
@@ -733,7 +728,7 @@ export default function AdminPage() {
 
       {/* Stats Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const IconComponent = stat.icon
           return (
             <div key={`stat-${stat.label.replace(/\s+/g, '-').toLowerCase()}`} className="bg-white rounded-lg shadow-md p-6">

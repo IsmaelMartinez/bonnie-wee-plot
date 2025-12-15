@@ -1,37 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
-import { Announcement } from '../route'
-
-function getDataFile(request?: NextRequest): string {
-  // Check if we're in test mode and have a worker ID header
-  if (process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true' && request) {
-    const workerHeader = request.headers.get('x-playwright-worker-id')
-    if (workerHeader) {
-      return path.join(process.cwd(), 'data', `announcements-test-${workerHeader}.json`)
-    }
-  }
-  return path.join(process.cwd(), 'data', 'announcements.json')
-}
-
-async function readAnnouncements(dataFile: string): Promise<Announcement[]> {
-  try {
-    const data = await fs.readFile(dataFile, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    return []
-  }
-}
-
-async function writeAnnouncements(dataFile: string, announcements: Announcement[]): Promise<void> {
-  const dataDir = path.dirname(dataFile)
-  try {
-    await fs.access(dataDir)
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true })
-  }
-  await fs.writeFile(dataFile, JSON.stringify(announcements, null, 2))
-}
+import {
+  getDataFile,
+  readAnnouncements,
+  writeAnnouncements
+} from '@/lib/announcements'
 
 export async function PUT(
   request: NextRequest,

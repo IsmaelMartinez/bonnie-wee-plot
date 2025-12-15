@@ -1,5 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Types for OpenAI API messages
+interface OpenAIMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string | OpenAIMessageContent[]
+}
+
+interface OpenAIMessageContent {
+  type: 'text' | 'image_url'
+  text?: string
+  image_url?: {
+    url: string
+    detail: 'low' | 'high' | 'auto'
+  }
+}
+
+interface IncomingMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 // System prompt to make Aitor a specialized gardening assistant
 const AITOR_SYSTEM_PROMPT = `You are Aitor, an expert gardening assistant specializing in allotment and community garden cultivation. Your mission is to help gardeners achieve healthy, productive gardens through practical, season-appropriate advice.
 
@@ -141,16 +161,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare messages for AI API
-    const apiMessages = [
+    const apiMessages: OpenAIMessage[] = [
       { role: 'system', content: AITOR_SYSTEM_PROMPT },
-      ...messages.map((msg: any) => ({
+      ...messages.map((msg: IncomingMessage) => ({
         role: msg.role,
         content: msg.content
       }))
     ]
 
     // Handle image in the user message if provided
-    const userMessage: any = { role: 'user', content: message }
+    const userMessage: OpenAIMessage = { role: 'user', content: message }
     
     if (image && image.data) {
       // For vision API, content needs to be an array with text and image

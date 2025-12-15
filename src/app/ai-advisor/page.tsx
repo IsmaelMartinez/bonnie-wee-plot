@@ -5,6 +5,7 @@ import { Send, Leaf, Sun, Cloud, Bug, Sprout, Calendar, Settings, Eye, EyeOff, S
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Image from 'next/image'
+import type { ChatMessage, UserLocation, MarkdownComponentProps } from '@/types'
 
 const quickTopics = [
   { icon: Sprout, title: 'Planting Guide', query: 'What should I plant in my allotment this month?' },
@@ -20,22 +21,22 @@ const quickTopics = [
 // Markdown components for styling
 const markdownComponents = {
   // Headers
-  h1: ({ children }: any) => <h1 className="text-xl font-bold mb-2 text-gray-800">{children}</h1>,
-  h2: ({ children }: any) => <h2 className="text-lg font-semibold mb-2 text-gray-800">{children}</h2>,
-  h3: ({ children }: any) => <h3 className="text-md font-semibold mb-1 text-gray-800">{children}</h3>,
+  h1: ({ children }: MarkdownComponentProps) => <h1 className="text-xl font-bold mb-2 text-gray-800">{children}</h1>,
+  h2: ({ children }: MarkdownComponentProps) => <h2 className="text-lg font-semibold mb-2 text-gray-800">{children}</h2>,
+  h3: ({ children }: MarkdownComponentProps) => <h3 className="text-md font-semibold mb-1 text-gray-800">{children}</h3>,
   
   // Text formatting
-  p: ({ children }: any) => <p className="mb-2 leading-relaxed">{children}</p>,
-  strong: ({ children }: any) => <strong className="font-semibold text-gray-900">{children}</strong>,
-  em: ({ children }: any) => <em className="italic">{children}</em>,
+  p: ({ children }: MarkdownComponentProps) => <p className="mb-2 leading-relaxed">{children}</p>,
+  strong: ({ children }: MarkdownComponentProps) => <strong className="font-semibold text-gray-900">{children}</strong>,
+  em: ({ children }: MarkdownComponentProps) => <em className="italic">{children}</em>,
   
   // Lists
-  ul: ({ children }: any) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-  ol: ({ children }: any) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
-  li: ({ children }: any) => <li className="leading-relaxed">{children}</li>,
+  ul: ({ children }: MarkdownComponentProps) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+  ol: ({ children }: MarkdownComponentProps) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+  li: ({ children }: MarkdownComponentProps) => <li className="leading-relaxed">{children}</li>,
   
   // Code
-  code: ({ children, className }: any) => {
+  code: ({ children, className }: MarkdownComponentProps) => {
     const isInline = !className
     return isInline ? (
       <code className="bg-gray-200 px-1 py-0.5 rounded text-sm font-mono text-gray-800">{children}</code>
@@ -47,14 +48,14 @@ const markdownComponents = {
   },
   
   // Blockquotes
-  blockquote: ({ children }: any) => (
+  blockquote: ({ children }: MarkdownComponentProps) => (
     <blockquote className="border-l-4 border-green-500 pl-3 italic text-gray-700 mb-2">
       {children}
     </blockquote>
   ),
   
   // Links
-  a: ({ href, children }: any) => (
+  a: ({ href, children }: MarkdownComponentProps) => (
     <a href={href} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">
       {children}
     </a>
@@ -64,7 +65,7 @@ const markdownComponents = {
   hr: () => <hr className="my-3 border-gray-300" />,
 }
 
-const sampleConversation = [
+const sampleConversation: ChatMessage[] = [
   {
     id: '1',
     role: 'user',
@@ -78,7 +79,7 @@ const sampleConversation = [
 ]
 
 export default function AIAdvisorPage() {
-  const [messages, setMessages] = useState(sampleConversation)
+  const [messages, setMessages] = useState<ChatMessage[]>(sampleConversation)
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -86,13 +87,7 @@ export default function AIAdvisorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Location and time detection state
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number
-    longitude: number
-    city?: string
-    country?: string
-    timezone?: string
-  } | null>(null)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
   
   // Token configuration state
