@@ -27,24 +27,18 @@ src/
 │   ├── layout.tsx         # Root layout with Navigation
 │   ├── page.tsx           # Home page
 │   ├── globals.css        # Global styles
-│   ├── admin/
-│   │   └── page.tsx
 │   ├── ai-advisor/
-│   │   └── page.tsx
-│   ├── announcements/
-│   │   └── page.tsx
-│   ├── calendar/
 │   │   └── page.tsx
 │   ├── companion-planting/
 │   │   └── page.tsx
 │   ├── composting/
 │   │   └── page.tsx
+│   ├── crop-rotation/
+│   │   └── page.tsx
 │   ├── garden-planner/
 │   │   └── page.tsx
 │   └── api/               # API Route Handlers
-│       ├── admin/
-│       ├── ai-advisor/
-│       └── announcements/
+│       └── ai-advisor/
 ```
 
 ### Pattern Usage

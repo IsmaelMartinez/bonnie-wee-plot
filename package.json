@@ -1,7 +1,7 @@
 {
   "name": "community-allotment",
   "version": "0.1.0",
-  "description": "A Next.js application for managing allotment community announcements, events, and AI-powered gardening advice. Built entirely using Claude Sonnet AI via VS Code agent mode. Free for personal and educational use.",
+  "description": "A Next.js application for garden planning and AI-powered gardening advice. Built entirely using Claude Sonnet AI via VS Code agent mode. Free for personal and educational use.",
   "license": "SEE LICENSE FILE - Creator retains commercial rights, others non-commercial use only",
   "author": "Created by Ismael Martinez with the asistance of Claude Sonnet (Anthropic AI)",
   "repository": {
@@ -24,13 +24,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node reset-test-data.js && playwright test",
-    "test:ui": "node reset-test-data.js && playwright test --ui",
-    "test:debug": "node reset-test-data.js && playwright test --debug",
-    "test:headed": "node reset-test-data.js && playwright test --headed",
-    "test:chrome": "node reset-test-data.js && playwright test --project=chromium",
-    "test:firefox": "node reset-test-data.js && playwright test --project=firefox",
-    "test:webkit": "node reset-test-data.js && playwright test --project=webkit"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit"
   },
   "dependencies": {
     "clsx": "^2.0.0",

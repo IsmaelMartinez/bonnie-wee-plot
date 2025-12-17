@@ -22,10 +22,9 @@ Every aspect of this project was created through AI assistance:
 - ✅ Image optimization and performance considerations
 
 ### Features & Functionality
-- ✅ Community announcement system with filtering
+- ✅ Interactive garden planner with grid layout
 - ✅ AI-powered gardening advisor with photo analysis
-- ✅ Interactive calendar with seasonal events
-- ✅ Admin dashboard with CRUD operations
+- ✅ Comprehensive growing guides (companion planting, composting, crop rotation)
 - ✅ Location detection and timezone awareness
 - ✅ Markdown rendering and rich text support
 - ✅ Mobile-responsive design

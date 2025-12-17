@@ -45,39 +45,15 @@ export default defineConfig({
 })
 ```
 
-### Test Data Isolation
-
-Each parallel worker gets its own data file to avoid conflicts:
-
-```typescript
-// src/lib/announcements.ts
-export function getDataFile(request?: NextRequest): string {
-  if (process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true' && request) {
-    const workerHeader = request.headers.get('x-playwright-worker-id')
-    if (workerHeader) {
-      return path.join(process.cwd(), 'data', `announcements-test-${workerHeader}.json`)
-    }
-  }
-  return path.join(process.cwd(), 'data', 'announcements.json')
-}
-```
-
-### Test Reset Script
-
-```javascript
-// reset-test-data.js
-// Cleans up test data files before each run
-```
-
 ### NPM Scripts
 
 ```json
 {
   "scripts": {
-    "test": "node reset-test-data.js && playwright test",
-    "test:ui": "node reset-test-data.js && playwright test --ui",
-    "test:debug": "node reset-test-data.js && playwright test --debug",
-    "test:headed": "node reset-test-data.js && playwright test --headed"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed"
   }
 }
 ```
@@ -86,12 +62,10 @@ export function getDataFile(request?: NextRequest): string {
 
 ```
 tests/
-├── homepage.spec.ts          # Home page tests
-├── announcements.spec.ts     # Announcements feature
-├── admin.spec.ts             # Admin panel
-├── admin-create-modal.spec.ts
-├── admin-integration.spec.ts
-└── api.spec.ts               # API route tests
+├── homepage.spec.ts          # Home page and navigation tests
+├── grid-plotter.spec.ts      # Garden planner grid functionality
+├── ai-advisor.spec.ts        # AI advisor page tests
+└── growing-guides.spec.ts    # Static content pages tests
 ```
 
 ### Example Test
@@ -107,8 +81,8 @@ test('homepage has correct title', async ({ page }) => {
 
 test('navigation works', async ({ page }) => {
   await page.goto('/')
-  await page.click('text=Announcements')
-  await expect(page).toHaveURL('/announcements')
+  await page.click('text=Garden Planner')
+  await expect(page).toHaveURL('/garden-planner')
 })
 ```
 
@@ -130,31 +104,23 @@ test('navigation works', async ({ page }) => {
 
 ### Test Isolation Strategy
 
-The worker-based file isolation approach:
-
-1. Each Playwright worker gets unique ID
-2. Worker ID sent in `x-playwright-worker-id` header
-3. Server creates separate data file per worker
-4. Tests don't interfere with each other
-5. `reset-test-data.js` cleans up before runs
+Tests use localStorage for garden planner data, which is naturally isolated per browser context. Each test clears localStorage in `beforeEach` to ensure clean state.
 
 ### Current Coverage
 
 | Area | Tested |
 |------|--------|
 | Homepage | ✅ |
-| Announcements | ✅ |
-| Admin CRUD | ✅ |
-| API Routes | ✅ |
-| Garden Planner | ❌ (needs tests) |
-| AI Advisor | ❌ (requires API mocking) |
+| Navigation | ✅ |
+| Garden Planner Grid | ✅ |
+| Growing Guides | ✅ |
+| AI Advisor | ✅ (UI tests) |
 
 ### Future Improvements
 
 - Add component tests with Vitest or Testing Library
 - Add visual regression tests
-- Mock AI API for advisor tests
-- Add garden planner E2E tests
+- Expand AI advisor tests with response mocking
 
 
 

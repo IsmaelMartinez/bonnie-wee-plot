@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-As the application grew with multiple features (announcements, calendar, AI advisor, garden planner), we needed a component organization strategy that:
+As the application grew with multiple features (AI advisor, garden planner, growing guides), we needed a component organization strategy that:
 - Keeps related components together
 - Scales as features are added
 - Makes dependencies clear

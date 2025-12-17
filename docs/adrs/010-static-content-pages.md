@@ -11,7 +11,7 @@ Accepted
 Several pages in the application are primarily informational:
 - Companion Planting guide
 - Composting guide
-- Calendar (with static event data)
+- Crop Rotation guide
 
 These pages have:
 - Rich content with structured data
@@ -109,7 +109,7 @@ Even static pages use `'use client'` because:
 Route (app)                     Size    First Load JS
 ├ ○ /companion-planting        3.95 kB    110 kB
 ├ ○ /composting                5.5 kB     112 kB
-└ ○ /calendar                  3.7 kB     106 kB
+└ ○ /crop-rotation             3.7 kB     106 kB
 
 ○ (Static) prerendered as static content
 ```
@@ -135,7 +135,7 @@ Route (app)                     Size    First Load JS
 |------|------------|---------------|
 | Companion Planting | 6 pairs, 4 principles, 3 seasonal tips | ~250 |
 | Composting | 3 methods, 16 ingredients, 4 troubleshooting | ~450 |
-| Calendar | 8 events, 4 event types | ~275 |
+| Crop Rotation | Plant families, rotation plans, soil benefits | ~300 |
 
 ### When to Extract Data
 

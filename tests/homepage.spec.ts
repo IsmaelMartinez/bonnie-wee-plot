@@ -9,25 +9,23 @@ test.describe('Homepage and Navigation', () => {
   });
 
   test('should navigate to AI advisor page', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Look for navigation link to AI advisor (labeled as "Aitor")
-    const aiAdvisorLink = page.getByRole('link', { name: 'Aitor', exact: true });
-    if (await aiAdvisorLink.isVisible()) {
-      await aiAdvisorLink.click();
-      await expect(page).toHaveURL('/ai-advisor');
-    }
+    // Look for navigation link to AI advisor in header (labeled as "Aitor")
+    const aiAdvisorLink = page.locator('header').getByRole('link', { name: 'Aitor' });
+    await aiAdvisorLink.click();
+    await expect(page).toHaveURL(/ai-advisor/);
   });
 
   test('should navigate to garden planner page', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Look for navigation link to garden planner
-    const gardenPlannerLink = page.getByRole('link', { name: 'Garden Planner', exact: true });
-    if (await gardenPlannerLink.isVisible()) {
-      await gardenPlannerLink.click();
-      await expect(page).toHaveURL('/garden-planner');
-    }
+    // Look for navigation link to garden planner in header
+    const gardenPlannerLink = page.locator('header').getByRole('link', { name: 'Garden Planner' });
+    await gardenPlannerLink.click();
+    await expect(page).toHaveURL(/garden-planner/);
   });
 
   test('should be responsive on mobile', async ({ page }) => {
@@ -72,5 +70,101 @@ test.describe('Homepage and Navigation', () => {
     );
 
     expect(criticalErrors).toHaveLength(0);
+  });
+});
+
+test.describe('Growing Guides Navigation', () => {
+  test('should display Growing Guides dropdown on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+
+    // Look for Growing Guides button in navigation header
+    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
+    await expect(growingGuidesButton).toBeVisible();
+  });
+
+  test('should open Growing Guides dropdown and show links', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+
+    // Click on Growing Guides to open dropdown
+    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
+    await growingGuidesButton.click();
+
+    // Wait for dropdown to appear and check links
+    await page.waitForTimeout(300); // Allow dropdown animation
+    
+    // Check dropdown links are visible
+    const companionLink = page.locator('a[href="/companion-planting"]');
+    await expect(companionLink).toBeVisible();
+  });
+
+  test('should navigate to Companion Planting from dropdown', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+
+    // Open dropdown
+    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
+    await growingGuidesButton.click();
+    await page.waitForTimeout(300);
+
+    // Click on Companion Planting
+    await page.locator('a[href="/companion-planting"]').click();
+
+    await expect(page).toHaveURL(/companion-planting/);
+  });
+
+  test('should navigate to Composting from dropdown', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+
+    // Open dropdown
+    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
+    await growingGuidesButton.click();
+    await page.waitForTimeout(300);
+
+    // Click on Composting
+    await page.locator('a[href="/composting"]').click();
+
+    await expect(page).toHaveURL(/composting/);
+  });
+
+  test('should navigate to Crop Rotation from dropdown', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+
+    // Open dropdown
+    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
+    await growingGuidesButton.click();
+    await page.waitForTimeout(300);
+
+    // Click on Crop Rotation
+    await page.locator('a[href="/crop-rotation"]').click();
+
+    await expect(page).toHaveURL(/crop-rotation/);
+  });
+
+  test('should show mobile menu button on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+
+    // Look for mobile menu button in header (the lg:hidden button)
+    const mobileMenuButton = page.locator('header button.lg\\:hidden');
+    await expect(mobileMenuButton).toBeVisible();
+  });
+
+  test('should open mobile menu and show navigation links', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+
+    // Open mobile menu using the hamburger button
+    const mobileMenuButton = page.locator('header button.lg\\:hidden');
+    await mobileMenuButton.click();
+    await page.waitForTimeout(500);
+
+    // Verify the mobile menu opened by checking for visible navigation links
+    // Look for the Garden Planner link in the mobile menu
+    const gardenPlannerLink = page.locator('a[href="/garden-planner"]').first();
+    await expect(gardenPlannerLink).toBeVisible();
   });
 });

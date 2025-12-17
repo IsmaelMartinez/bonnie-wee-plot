@@ -10,7 +10,7 @@ Accepted
 
 The application needed state management for:
 - Form inputs and UI state
-- Loaded data (announcements, garden plans)
+- Loaded data (garden plans)
 - Async operation status (loading, errors)
 - User preferences (view modes, expanded sections)
 
@@ -87,27 +87,28 @@ export default function VegetableSelector({ onAddVegetable }) {
 
 ### Pattern: Async Data Loading
 
-Simple pattern for API data:
+Simple pattern for API data (used in AI Advisor):
 
 ```typescript
-const [announcements, setAnnouncements] = useState<Announcement[]>([])
-const [loading, setLoading] = useState(true)
+const [messages, setMessages] = useState<ChatMessage[]>([])
+const [loading, setLoading] = useState(false)
 const [error, setError] = useState<string | null>(null)
 
-useEffect(() => {
-  async function fetchData() {
-    try {
-      const response = await fetch('/api/announcements')
-      const data = await response.json()
-      setAnnouncements(data)
-    } catch (err) {
-      setError('Failed to load announcements')
-    } finally {
-      setLoading(false)
-    }
+const sendMessage = async (message: string) => {
+  try {
+    setLoading(true)
+    const response = await fetch('/api/ai-advisor', {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    })
+    const data = await response.json()
+    setMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+  } catch (err) {
+    setError('Failed to get response')
+  } finally {
+    setLoading(false)
   }
-  fetchData()
-}, [])
+}
 ```
 
 ## Consequences
@@ -129,8 +130,8 @@ useEffect(() => {
 ### When This Works
 
 This approach works for this application because:
-1. **Pages are independent** - Garden planner doesn't need announcement state
-2. **Data is localized** - localStorage for user data, API for shared data
+1. **Pages are independent** - Garden planner doesn't share state with other pages
+2. **Data is localized** - localStorage for user data, API only for AI advisor
 3. **Simple async needs** - No complex caching or revalidation
 4. **Limited interactivity** - Most pages are information display
 

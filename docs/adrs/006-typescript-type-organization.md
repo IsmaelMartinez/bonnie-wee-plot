@@ -23,10 +23,9 @@ Use a **hybrid approach** with centralized shared types and domain-specific type
 ```
 src/
 ├── types/
-│   ├── index.ts              # Shared/core types (Announcement, ChatMessage, etc.)
+│   ├── index.ts              # Shared/core types (ChatMessage, UserLocation, etc.)
 │   └── garden-planner.ts     # Domain-specific types for garden planner
 └── lib/
-    ├── announcements.ts      # Uses types from @/types
     ├── garden-storage.ts     # Uses types from @/types/garden-planner
     └── vegetable-database.ts # Uses types from @/types/garden-planner
 ```
@@ -35,20 +34,16 @@ src/
 
 ```typescript
 // Shared across multiple features
-export type AnnouncementType = 'delivery' | 'order' | 'tip' | 'event'
-export type AnnouncementPriority = 'high' | 'medium' | 'low'
-
-export interface Announcement {
-  id: string
-  type: AnnouncementType
-  title: string
-  // ...
-}
-
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+}
+
+export interface UserLocation {
+  latitude: number
+  longitude: number
+  city?: string
 }
 ```
 
@@ -88,7 +83,7 @@ export const CATEGORY_INFO: CategoryInfo[] = [
 
 ```typescript
 // Importing from centralized types
-import type { Announcement, ChatMessage } from '@/types'
+import type { ChatMessage, UserLocation } from '@/types'
 
 // Importing from domain-specific types
 import { 
@@ -96,9 +91,6 @@ import {
   GardenPlan, 
   CATEGORY_INFO 
 } from '@/types/garden-planner'
-
-// Re-exporting in API routes for backwards compatibility
-export type { Announcement }
 ```
 
 ## Consequences

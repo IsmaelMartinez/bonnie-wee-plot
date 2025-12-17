@@ -9,38 +9,16 @@ Accepted
 ## Context
 
 The application has different data persistence needs:
-1. **Announcements**: Shared community data that persists across users/sessions
-2. **Garden Plans**: Personal user data that should persist but is user-specific
-3. **AI Chat**: Temporary session data with conversation history
+1. **Garden Plans**: Personal user data that should persist but is user-specific
+2. **AI Chat**: Temporary session data with conversation history
 
 We needed a strategy that works without a traditional database while serving these different needs.
 
 ## Decision
 
-Implement a **hybrid data persistence strategy** with three approaches:
+Implement a **hybrid data persistence strategy** with two approaches:
 
-### 1. Server-Side JSON Files (Announcements)
-
-```typescript
-// src/lib/announcements.ts
-export function getDataFile(request?: NextRequest): string {
-  return path.join(process.cwd(), 'data', 'announcements.json')
-}
-
-export async function readAnnouncements(dataFile: string): Promise<Announcement[]> {
-  const data = await fs.readFile(dataFile, 'utf-8')
-  return JSON.parse(data)
-}
-
-export async function writeAnnouncements(dataFile: string, announcements: Announcement[]): Promise<void> {
-  await fs.writeFile(dataFile, JSON.stringify(announcements, null, 2))
-}
-```
-
-**Use case**: Community-wide announcements, admin-managed content
-**Location**: `data/announcements.json`
-
-### 2. Client-Side localStorage (Garden Planner)
+### 1. Client-Side localStorage (Garden Planner)
 
 ```typescript
 // src/lib/garden-storage.ts
@@ -89,7 +67,6 @@ sessionStorage.setItem('aitor_api_token', apiToken.trim())
 
 ### Mitigations
 - Export/Import feature allows manual backup
-- JSON files kept small (announcements are admin-curated)
 - Clear documentation about data storage limitations
 
 ## Future Considerations

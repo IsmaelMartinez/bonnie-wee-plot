@@ -23,25 +23,7 @@ Constraints:
 
 ## Decision
 
-Use **file-based JSON storage** for server-side data and **localStorage** for client-side data, avoiding any database dependency.
-
-### Server-Side Data (Announcements)
-
-```
-data/
-├── announcements.json           # Production data
-└── announcements-demo-backup.json  # Backup/demo data
-```
-
-```typescript
-// Read/write operations
-import { promises as fs } from 'fs'
-import path from 'path'
-
-const dataFile = path.join(process.cwd(), 'data', 'announcements.json')
-const data = await fs.readFile(dataFile, 'utf-8')
-await fs.writeFile(dataFile, JSON.stringify(announcements, null, 2))
-```
+Use **localStorage** for client-side data persistence, avoiding any database dependency.
 
 ### Client-Side Data (Garden Planner)
 
@@ -56,7 +38,6 @@ const stored = localStorage.getItem(STORAGE_KEY)
 
 | Data Type | Storage | Shared | Persistent | Editable By |
 |-----------|---------|--------|------------|-------------|
-| Announcements | JSON file | Yes | Yes | Admin |
 | Garden Plans | localStorage | No | Yes | User |
 | AI Chat | Memory | No | Session | User |
 | API Tokens | sessionStorage | No | Session | User |
@@ -81,17 +62,15 @@ const stored = localStorage.getItem(STORAGE_KEY)
 
 ### Mitigations
 
-1. **Announcements are admin-only** - Limited concurrent write risk
-2. **Garden plans are user-local** - No server-side conflicts
-3. **Small dataset expected** - Community allotment, not enterprise scale
-4. **Export/Import** - Users can backup their data
+1. **Garden plans are user-local** - No server-side conflicts
+2. **Small dataset expected** - Community allotment, not enterprise scale
+3. **Export/Import** - Users can backup their data
 
 ### When to Reconsider
 
 This decision should be revisited if:
 - User accounts are added (need user database)
-- Multiple admins edit simultaneously (need locking/transactions)
-- Data grows beyond 100KB (need proper database)
+- Data grows beyond localStorage limits (need proper database)
 - Real-time features needed (need WebSockets + database)
 - Analytics/reporting required (need queryable database)
 
