@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sprout, Users, Recycle, Calendar, Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Sprout, Users, Recycle, Calendar, Plus, Trash2, Edit2, Check, X, LayoutGrid } from 'lucide-react'
 import { GridPlot, PlotCell } from '@/types/garden-planner'
 import { createGridPlot } from '@/lib/garden-storage'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
 import { getVegetableById } from '@/lib/vegetable-database'
 import GardenGrid from '@/components/garden-planner/GardenGrid'
+import BedOverview from '@/components/garden-planner/BedOverview'
+import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 
 const STORAGE_KEY = 'garden-beds-2025'
 const DEFAULT_ROWS = 4
@@ -21,6 +23,7 @@ interface GardenData {
 export default function GardenPlannerPage() {
   const [data, setData] = useState<GardenData | null>(null)
   const [showCalendar, setShowCalendar] = useState(false)
+  const [viewMode, setViewMode] = useState<'overview' | 'single'>('single')
   const [editingBedId, setEditingBedId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
 
@@ -253,12 +256,26 @@ export default function GardenPlannerPage() {
 
         {/* Bed Tabs */}
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+          {/* All Beds overview tab */}
+          <button
+            onClick={() => setViewMode('overview')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap flex items-center gap-1.5 ${
+              viewMode === 'overview'
+                ? 'bg-green-600 text-white shadow'
+                : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            All Beds
+          </button>
+          
+          {/* Individual bed tabs */}
           {data.beds.map(bed => (
             <button
               key={bed.id}
-              onClick={() => handleSelectBed(bed.id)}
+              onClick={() => { handleSelectBed(bed.id); setViewMode('single') }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                bed.id === activeBed.id
+                viewMode === 'single' && bed.id === activeBed.id
                   ? 'bg-green-600 text-white shadow'
                   : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'
               }`}
@@ -266,7 +283,7 @@ export default function GardenPlannerPage() {
               {bed.name}
               {bed.cells.filter(c => c.vegetableId).length > 0 && (
                 <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
-                  bed.id === activeBed.id ? 'bg-green-500' : 'bg-gray-200'
+                  viewMode === 'single' && bed.id === activeBed.id ? 'bg-green-500' : 'bg-gray-200'
                 }`}>
                   {bed.cells.filter(c => c.vegetableId).length}
                 </span>
@@ -282,129 +299,150 @@ export default function GardenPlannerPage() {
           </button>
         </div>
 
-        {/* Active Bed Header */}
-        <div className="bg-white rounded-t-xl shadow-md px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {editingBedId === activeBed.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  className="px-2 py-1 border rounded text-sm font-medium"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleRenameBed(activeBed.id, editingName)
-                    if (e.key === 'Escape') setEditingBedId(null)
-                  }}
-                />
-                <button onClick={() => handleRenameBed(activeBed.id, editingName)} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                  <Check className="w-4 h-4" />
-                </button>
-                <button onClick={() => setEditingBedId(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
-                  <X className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="font-medium text-gray-800">{activeBed.name}</span>
-                <button
-                  onClick={() => { setEditingBedId(activeBed.id); setEditingName(activeBed.name) }}
-                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-              </>
+        {/* Overview Mode */}
+        {viewMode === 'overview' && (
+          <div className="space-y-6">
+            {/* Unified Calendar (when toggled) - at top for consistency */}
+            {showCalendar && (
+              <UnifiedCalendar beds={data.beds} />
             )}
-          </div>
-          {data.beds.length > 1 && (
-            <button
-              onClick={() => handleDeleteBed(activeBed.id)}
-              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
-              title="Delete this bed"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
 
-        {/* Calendar overlay */}
-        {showCalendar && (
-          <div className="bg-white shadow-md p-6 mb-0 border-t">
-            <h2 className="font-semibold text-gray-800 mb-4">Planting Calendar</h2>
-            <div className="grid grid-cols-12 gap-1 text-xs">
-              {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((m, i) => (
-                <div key={i} className="text-center text-gray-500 font-medium">{m}</div>
-              ))}
-            </div>
-            {activeBed.cells.filter(c => c.vegetableId).map(cell => {
-              const veg = getVegetableById(cell.vegetableId!)
-              if (!veg) return null
-              return (
-                <div key={cell.id} className="grid grid-cols-12 gap-1 mt-1">
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const month = i + 1
-                    const canSow = veg.planting.sowOutdoorsMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12) || 
-                                   veg.planting.sowIndoorsMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12)
-                    const canHarvest = veg.planting.harvestMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12)
-                    return (
-                      <div 
-                        key={i} 
-                        className={`h-4 rounded-sm ${canHarvest ? 'bg-amber-400' : canSow ? 'bg-green-400' : 'bg-gray-100'}`}
-                        title={`${veg.name}: ${canSow ? 'Sow' : ''} ${canHarvest ? 'Harvest' : ''}`}
-                      />
-                    )
-                  })}
-                  <span className="col-span-12 text-xs text-gray-600 mt-0.5">{veg.name}</span>
-                </div>
-              )
-            })}
-            {activeBed.cells.filter(c => c.vegetableId).length === 0 && (
-              <p className="text-gray-400 text-sm mt-4">Add plants to see their calendar</p>
-            )}
-            <div className="flex gap-4 mt-4 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-400 rounded"></span> Sow</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded"></span> Harvest</span>
-            </div>
+            {/* Bed Overview Grid */}
+            <BedOverview 
+              beds={data.beds} 
+              onSelectBed={(bedId) => { handleSelectBed(bedId); setViewMode('single') }}
+            />
           </div>
         )}
 
-        {/* Main Grid */}
-        <GardenGrid
-          grid={activeBed}
-          onAssign={handleAssign}
-          onClear={handleClear}
-          onResize={handleResize}
-          onClearAll={handleClearAll}
-        />
-
-        {/* Companion Tips */}
-        {(tips.good.length > 0 || tips.bad.length > 0) && (
-          <div className="mt-4 bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Companion Tips</h3>
-            <div className="space-y-3">
-              {tips.bad.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-red-600 mb-1">⚠️ Avoid together:</p>
-                  <div className="space-y-1">
-                    {tips.bad.map((tip, i) => (
-                      <p key={i} className="text-sm text-red-600 pl-4">{tip}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {tips.good.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-green-600 mb-1">✓ Great companions:</p>
-                  <div className="space-y-1">
-                    {tips.good.map((tip, i) => (
-                      <p key={i} className="text-sm text-green-600 pl-4">{tip}</p>
-                    ))}
-                  </div>
-                </div>
+        {/* Single Bed Mode */}
+        {viewMode === 'single' && (
+          <>
+            {/* Active Bed Header */}
+            <div className="bg-white rounded-t-xl shadow-md px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {editingBedId === activeBed.id ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="px-2 py-1 border rounded text-sm font-medium"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleRenameBed(activeBed.id, editingName)
+                        if (e.key === 'Escape') setEditingBedId(null)
+                      }}
+                    />
+                    <button onClick={() => handleRenameBed(activeBed.id, editingName)} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setEditingBedId(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-gray-800">{activeBed.name}</span>
+                    <button
+                      onClick={() => { setEditingBedId(activeBed.id); setEditingName(activeBed.name) }}
+                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+              {data.beds.length > 1 && (
+                <button
+                  onClick={() => handleDeleteBed(activeBed.id)}
+                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                  title="Delete this bed"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               )}
             </div>
-          </div>
+
+            {/* Calendar overlay */}
+            {showCalendar && (
+              <div className="bg-white shadow-md p-6 mb-0 border-t">
+                <h2 className="font-semibold text-gray-800 mb-4">Planting Calendar</h2>
+                <div className="grid grid-cols-12 gap-1 text-xs">
+                  {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map((m, i) => (
+                    <div key={i} className="text-center text-gray-500 font-medium">{m}</div>
+                  ))}
+                </div>
+                {activeBed.cells.filter(c => c.vegetableId).map(cell => {
+                  const veg = getVegetableById(cell.vegetableId!)
+                  if (!veg) return null
+                  return (
+                    <div key={cell.id} className="grid grid-cols-12 gap-1 mt-1">
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const month = i + 1
+                        const canSow = veg.planting.sowOutdoorsMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12) || 
+                                       veg.planting.sowIndoorsMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12)
+                        const canHarvest = veg.planting.harvestMonths.includes(month as 1|2|3|4|5|6|7|8|9|10|11|12)
+                        return (
+                          <div 
+                            key={i} 
+                            className={`h-4 rounded-sm ${canHarvest ? 'bg-amber-400' : canSow ? 'bg-green-400' : 'bg-gray-100'}`}
+                            title={`${veg.name}: ${canSow ? 'Sow' : ''} ${canHarvest ? 'Harvest' : ''}`}
+                          />
+                        )
+                      })}
+                      <span className="col-span-12 text-xs text-gray-600 mt-0.5">{veg.name}</span>
+                    </div>
+                  )
+                })}
+                {activeBed.cells.filter(c => c.vegetableId).length === 0 && (
+                  <p className="text-gray-400 text-sm mt-4">Add plants to see their calendar</p>
+                )}
+                <div className="flex gap-4 mt-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-400 rounded"></span> Sow</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-400 rounded"></span> Harvest</span>
+                </div>
+              </div>
+            )}
+
+            {/* Main Grid */}
+            <GardenGrid
+              grid={activeBed}
+              onAssign={handleAssign}
+              onClear={handleClear}
+              onResize={handleResize}
+              onClearAll={handleClearAll}
+            />
+
+            {/* Companion Tips */}
+            {(tips.good.length > 0 || tips.bad.length > 0) && (
+              <div className="mt-4 bg-white rounded-lg shadow-sm p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Companion Tips</h3>
+                <div className="space-y-3">
+                  {tips.bad.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-red-600 mb-1">⚠️ Avoid together:</p>
+                      <div className="space-y-1">
+                        {tips.bad.map((tip, i) => (
+                          <p key={i} className="text-sm text-red-600 pl-4">{tip}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {tips.good.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-green-600 mb-1">✓ Great companions:</p>
+                      <div className="space-y-1">
+                        {tips.good.map((tip, i) => (
+                          <p key={i} className="text-sm text-green-600 pl-4">{tip}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

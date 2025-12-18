@@ -5,6 +5,7 @@ import { Plus, Minus, X, Trash2, Search } from 'lucide-react'
 import { GridPlot, PlotCell, CATEGORY_INFO, VegetableCategory } from '@/types/garden-planner'
 import { vegetables, getVegetableById } from '@/lib/vegetable-database'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
+import { getPlantEmoji } from '@/lib/plant-emoji'
 
 interface GardenGridProps {
   grid: GridPlot
@@ -376,19 +377,4 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
       )}
     </>
   )
-}
-
-// Simple emoji mapping for categories
-function getPlantEmoji(category: string): string {
-  const emojis: Record<string, string> = {
-    'leafy-greens': '🥬',
-    'root-vegetables': '🥕',
-    'brassicas': '🥦',
-    'legumes': '🫛',
-    'solanaceae': '🍅',
-    'cucurbits': '🥒',
-    'alliums': '🧅',
-    'herbs': '🌿'
-  }
-  return emojis[category] || '🌱'
 }
