@@ -14,7 +14,9 @@ export function getPlantEmoji(category: string): string {
     'solanaceae': '🍅',
     'cucurbits': '🥒',
     'alliums': '🧅',
-    'herbs': '🌿'
+    'herbs': '🌿',
+    'berries': '🍓',
+    'fruit-trees': '🍎'
   }
   return emojis[category] || '🌱'
 }

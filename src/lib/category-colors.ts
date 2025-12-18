@@ -9,7 +9,9 @@ export const CATEGORY_BG_COLORS: Record<string, string> = {
   red: 'bg-red-500',
   yellow: 'bg-yellow-500',
   amber: 'bg-amber-500',
-  emerald: 'bg-emerald-500'
+  emerald: 'bg-emerald-500',
+  pink: 'bg-pink-500',
+  rose: 'bg-rose-500'
 }
 
 export const CATEGORY_FILTER_COLORS: Record<string, string> = {
@@ -20,7 +22,9 @@ export const CATEGORY_FILTER_COLORS: Record<string, string> = {
   red: 'bg-red-100 text-red-800 border-red-300',
   yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300',
   amber: 'bg-amber-100 text-amber-800 border-amber-300',
-  emerald: 'bg-emerald-100 text-emerald-800 border-emerald-300'
+  emerald: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  pink: 'bg-pink-100 text-pink-800 border-pink-300',
+  rose: 'bg-rose-100 text-rose-800 border-rose-300'
 }
 
 export function getCategoryBgClass(color: string): string {

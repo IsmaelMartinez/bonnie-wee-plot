@@ -12,6 +12,8 @@ export type VegetableCategory =
   | 'cucurbits'
   | 'alliums'
   | 'herbs'
+  | 'berries'
+  | 'fruit-trees'
 
 // Sun requirements
 export type SunRequirement = 'full-sun' | 'partial-shade' | 'shade'
@@ -259,7 +261,9 @@ export const CATEGORY_INFO: CategoryInfo[] = [
   { id: 'solanaceae', name: 'Solanaceae', icon: 'Cherry', color: 'red' },
   { id: 'cucurbits', name: 'Cucurbits', icon: 'Grape', color: 'yellow' },
   { id: 'alliums', name: 'Alliums', icon: 'CircleDot', color: 'amber' },
-  { id: 'herbs', name: 'Herbs', icon: 'Flower', color: 'emerald' }
+  { id: 'herbs', name: 'Herbs', icon: 'Flower', color: 'emerald' },
+  { id: 'berries', name: 'Berries', icon: 'Cherry', color: 'pink' },
+  { id: 'fruit-trees', name: 'Fruit Trees', icon: 'TreeDeciduous', color: 'rose' }
 ]
 
 // Default plot colors

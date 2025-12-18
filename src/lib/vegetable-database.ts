@@ -1238,6 +1238,346 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans'],
     avoidPlants: []
+  },
+  {
+    id: 'jerusalem-artichoke',
+    name: 'Jerusalem Artichoke',
+    category: 'root-vegetables',
+    description: 'Perennial tuber with nutty flavor. Extremely productive and hardy in Scotland.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [2, 3, 4],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1, 2, 3],
+      daysToHarvest: { min: 110, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 90 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Plant tubers like potatoes',
+        'Can become invasive - harvest thoroughly',
+        'Tall plants (up to 3m) make good windbreak',
+        'Sweeter after frost'
+      ]
+    },
+    companionPlants: ['Sweetcorn', 'Sunflowers'],
+    avoidPlants: ['Potatoes']
+  },
+
+  // ============ BERRIES ============
+  {
+    id: 'strawberry',
+    name: 'Strawberry',
+    category: 'berries',
+    description: 'Beloved summer fruit. Grows well in Scottish climate with protection.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 8, 9],
+      transplantMonths: [4, 5, 8, 9],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 35, rows: 75 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Plant with crown at soil level',
+        'Replace plants every 3-4 years',
+        'Net against birds',
+        'Straw mulch keeps fruit clean'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Spinach', 'Beans', 'Borage'],
+    avoidPlants: ['Brassicas', 'Fennel']
+  },
+  {
+    id: 'raspberry',
+    name: 'Raspberry',
+    category: 'berries',
+    description: 'Prolific soft fruit. Summer and autumn varieties give extended harvest.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 180 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Autumn varieties fruit on new canes',
+        'Summer varieties need support wires',
+        'Prune summer types after fruiting',
+        'Scottish climate is ideal for raspberries'
+      ]
+    },
+    companionPlants: ['Garlic', 'Tansy', 'Turnips'],
+    avoidPlants: ['Blackberries', 'Potatoes']
+  },
+  {
+    id: 'blackberry',
+    name: 'Blackberry',
+    category: 'berries',
+    description: 'Hardy bramble fruit. Thornless varieties easier to manage.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 250, rows: 250 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Thornless varieties much easier',
+        'Train along wires or fence',
+        'Cut out fruited canes after harvest',
+        'Very vigorous - needs space'
+      ]
+    },
+    companionPlants: ['Tansy', 'Hyssop'],
+    avoidPlants: ['Raspberries']
+  },
+  {
+    id: 'blueberry',
+    name: 'Blueberry',
+    category: 'berries',
+    description: 'Acid-loving shrub with delicious berries. Needs ericaceous soil.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [10, 11, 3, 4],
+      transplantMonths: [10, 11, 3, 4],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 150, rows: 200 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Must have acidic soil (pH 4.5-5.5)',
+        'Use ericaceous compost in containers',
+        'Water with rainwater not tap water',
+        'Net against birds'
+      ]
+    },
+    companionPlants: ['Rhododendrons', 'Azaleas', 'Heathers'],
+    avoidPlants: []
+  },
+  {
+    id: 'gooseberry',
+    name: 'Gooseberry',
+    category: 'berries',
+    description: 'Traditional Scottish soft fruit. Hardy and productive.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [6, 7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 150, rows: 150 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Tolerates shade better than other fruits',
+        'Prune to open goblet shape',
+        'Pick early for cooking, ripe for dessert',
+        'Watch for sawfly caterpillars'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Tansy'],
+    avoidPlants: []
+  },
+  {
+    id: 'blackcurrant',
+    name: 'Blackcurrant',
+    category: 'berries',
+    description: 'Very hardy soft fruit packed with vitamin C. Thrives in Scotland!',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 150, rows: 180 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Plant 5cm deeper than nursery level',
+        'Cut all stems to ground after planting',
+        'Remove a third of old wood each year',
+        'High in vitamin C - perfect for Scottish winters'
+      ]
+    },
+    companionPlants: ['Wormwood', 'Tansy'],
+    avoidPlants: ['Pine trees']
+  },
+  {
+    id: 'redcurrant',
+    name: 'Redcurrant',
+    category: 'berries',
+    description: 'Ornamental and productive soft fruit. Easy to grow in Scotland.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 150, rows: 150 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Can be trained as cordons against walls',
+        'Tolerates shade well',
+        'Prune like gooseberries',
+        'Beautiful when fruiting'
+      ]
+    },
+    companionPlants: ['Tansy', 'Wormwood'],
+    avoidPlants: []
+  },
+
+  // ============ FRUIT TREES ============
+  {
+    id: 'apple-tree',
+    name: 'Apple Tree',
+    category: 'fruit-trees',
+    description: 'Classic fruit tree. Choose dwarf rootstocks for smaller spaces.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9, 10, 11],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 300, rows: 400 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'M26 or M27 rootstock for small gardens',
+        'Most need a pollination partner',
+        'Prune in winter when dormant',
+        'Scottish varieties like Discovery do well'
+      ]
+    },
+    companionPlants: ['Chives', 'Nasturtiums', 'Garlic'],
+    avoidPlants: ['Grass around base', 'Potatoes']
+  },
+  {
+    id: 'cherry-tree',
+    name: 'Cherry Tree',
+    category: 'fruit-trees',
+    description: 'Beautiful blossom and delicious fruit. Sweet and sour varieties available.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 400, rows: 500 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose self-fertile varieties like Stella',
+        'Gisela rootstocks keep trees smaller',
+        'Net against birds - they love cherries!',
+        'Prune only in summer to avoid disease'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Marigolds'],
+    avoidPlants: ['Grass around base']
+  },
+  {
+    id: 'damson-tree',
+    name: 'Damson Tree',
+    category: 'fruit-trees',
+    description: 'Hardy plum relative. Self-fertile and excellent for Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 350, rows: 400 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Self-fertile - no pollination partner needed',
+        'Very hardy - ideal for Scottish climate',
+        'Perfect for jam and gin',
+        'Minimal pruning required'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base']
+  },
+  {
+    id: 'plum-tree',
+    name: 'Plum Tree',
+    category: 'fruit-trees',
+    description: 'Delicious stone fruit. Victoria is self-fertile and reliable.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 350, rows: 400 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Victoria is self-fertile and popular',
+        'Prune in summer to avoid silver leaf',
+        'May need thinning if heavy crop',
+        'Late frost can damage blossom in Scotland'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base']
   }
 ]
 
