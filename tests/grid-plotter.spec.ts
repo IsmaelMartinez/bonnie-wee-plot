@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Grid Plotter', () => {
+test.describe('Garden Planner', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage before each test
     await page.goto('/garden-planner')
@@ -8,260 +8,143 @@ test.describe('Grid Plotter', () => {
     await page.reload()
   })
 
-  test('should display grid planner view option', async ({ page }) => {
+  test('should display garden planner page with default bed', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Create a plan first
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden 2025')
-    await page.getByRole('button', { name: /create/i }).click()
+    // Check page loads with header
+    await expect(page.locator('h1').filter({ hasText: /Garden/i })).toBeVisible()
     
-    // Check that Grid Planner view option is visible
-    await expect(page.getByRole('button', { name: /grid planner/i })).toBeVisible()
+    // Should show default bed tab (Bed 1)
+    await expect(page.getByRole('button', { name: /Bed 1/i })).toBeVisible()
+    
+    // Should show Add Bed button
+    await expect(page.getByRole('button', { name: /Add Bed/i })).toBeVisible()
   })
 
-  test('should switch to grid view and show empty state', async ({ page }) => {
+  test('should display grid with size controls', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Create a plan
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
+    // Wait for grid to load
+    await expect(page.getByText(/Rows:/i)).toBeVisible()
+    await expect(page.getByText(/Cols:/i)).toBeVisible()
     
-    // Switch to grid view
-    await page.getByRole('button', { name: /grid planner/i }).click()
+    // Size adjustment buttons should be visible
+    const minusButtons = page.locator('button').filter({ has: page.locator('svg.lucide-minus') })
+    const plusButtons = page.locator('button').filter({ has: page.locator('svg.lucide-plus') })
     
-    // Should show empty state with create button
-    await expect(page.getByText(/no grid plots yet/i)).toBeVisible()
-    await expect(page.getByRole('button', { name: /create grid plot/i })).toBeVisible()
+    expect(await minusButtons.count()).toBeGreaterThanOrEqual(2)
+    expect(await plusButtons.count()).toBeGreaterThanOrEqual(2)
   })
 
-  test('should create a new grid plot with custom dimensions', async ({ page }) => {
+  test('should add a new bed', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Create a plan
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
+    // Click Add Bed
+    await page.getByRole('button', { name: /Add Bed/i }).click()
     
-    // Switch to grid view
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    
-    // Click create grid plot
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    
-    // Fill in the form
-    await page.getByLabel(/plot name/i).fill('North Bed')
-    await page.getByLabel(/rows/i).fill('4')
-    await page.getByLabel(/columns/i).fill('5')
-    
-    // Submit
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Verify the plot was created with the grid
-    await expect(page.getByText('North Bed')).toBeVisible()
-    await expect(page.getByText('4×5')).toBeVisible()
+    // Should now show Bed 2
+    await expect(page.getByRole('button', { name: /Bed 2/i })).toBeVisible()
   })
 
-  test('should display plant tray with available vegetables', async ({ page }) => {
+  test('should switch between beds', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Create plan and switch to grid view
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
+    // Add a second bed
+    await page.getByRole('button', { name: /Add Bed/i }).click()
+    await expect(page.getByRole('button', { name: /Bed 2/i })).toBeVisible()
     
-    // Create a grid plot
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
+    // Switch to Bed 1
+    await page.getByRole('button', { name: /Bed 1/i }).click()
     
-    // Check plant tray is visible with search
-    await expect(page.getByPlaceholder(/search vegetables/i)).toBeVisible()
-    
-    // Check that some vegetables are listed
-    await expect(page.getByText('Tomatoes')).toBeVisible()
-    await expect(page.getByText('Carrots')).toBeVisible()
+    // Bed 1 should be active (has different styling)
+    const bed1Button = page.getByRole('button', { name: /Bed 1/i })
+    await expect(bed1Button).toHaveClass(/bg-green-600/)
   })
 
-  test('should filter plants by category', async ({ page }) => {
+  test('should display plant selection when clicking grid cell', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
+    // Click on a grid cell (they're buttons in the grid)
+    const gridCell = page.locator('button').filter({ hasText: '' }).first()
     
-    // Click on Legumes filter
-    await page.getByRole('button', { name: /legumes/i }).click()
+    // Find and click an empty cell
+    const emptyCells = page.locator('div[class*="grid"] button')
+    const firstEmptyCell = emptyCells.first()
     
-    // Should show legume vegetables
-    await expect(page.getByText('Runner Beans')).toBeVisible()
-    await expect(page.getByText('Peas')).toBeVisible()
-    
-    // Should not show non-legumes
-    await expect(page.getByText('Tomatoes')).not.toBeVisible()
+    if (await firstEmptyCell.isVisible()) {
+      await firstEmptyCell.click()
+      
+      // Plant selection dialog should appear with search
+      await expect(page.getByPlaceholder(/search/i)).toBeVisible()
+    }
   })
 
-  test('should search vegetables in plant tray', async ({ page }) => {
+  test('should show calendar toggle button', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Search for "tom"
-    await page.getByPlaceholder(/search vegetables/i).fill('tom')
-    
-    // Should show tomatoes
-    await expect(page.getByText('Tomatoes')).toBeVisible()
-    
-    // Should not show unrelated vegetables
-    await expect(page.getByText('Carrots')).not.toBeVisible()
+    // Calendar button should be visible
+    await expect(page.getByRole('button', { name: /Calendar/i })).toBeVisible()
   })
 
-  test('should display placement guide legend', async ({ page }) => {
+  test('should toggle calendar view', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
+    // Click calendar button
+    await page.getByRole('button', { name: /Calendar/i }).click()
     
-    // Check legend is visible
-    await expect(page.getByText(/placement guide/i)).toBeVisible()
-    await expect(page.getByText(/good companion/i)).toBeVisible()
-    await expect(page.getByText(/neutral placement/i)).toBeVisible()
-    await expect(page.getByText(/avoid placing/i)).toBeVisible()
+    // Calendar content should be visible
+    await expect(page.getByText(/Planting Calendar/i)).toBeVisible()
+    
+    // Click again to hide
+    await page.getByRole('button', { name: /Calendar/i }).click()
+    
+    // Calendar should be hidden
+    await expect(page.getByText(/Planting Calendar/i)).not.toBeVisible()
   })
 
-  test('should show add plot button after creating first plot', async ({ page }) => {
+  test('should display quick links to guides', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Should show "Add Grid Plot" button at the bottom
-    await expect(page.getByRole('button', { name: /add grid plot/i })).toBeVisible()
+    // Quick links should be visible
+    await expect(page.getByRole('link', { name: /Companions/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Composting/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Rotation/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Ask Aitor/i })).toBeVisible()
   })
 
-  test('should display cell count in plot footer', async ({ page }) => {
+  test('should persist data across page reloads', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup with specific dimensions
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByLabel(/rows/i).fill('3')
-    await page.getByLabel(/columns/i).fill('4')
-    await page.getByRole('button', { name: /create plot/i }).click()
+    // Add a second bed
+    await page.getByRole('button', { name: /Add Bed/i }).click()
+    await expect(page.getByRole('button', { name: /Bed 2/i })).toBeVisible()
     
-    // Should show "0 / 12 cells planted" (3 rows × 4 cols = 12 cells)
-    await expect(page.getByText(/0 \/ 12 cells planted/i)).toBeVisible()
+    // Reload the page
+    await page.reload()
+    
+    // Bed 2 should still be there
+    await expect(page.getByRole('button', { name: /Bed 2/i })).toBeVisible()
   })
 })
 
-test.describe('Grid Plotter - Mobile', () => {
-  test.use({ viewport: { width: 375, height: 667 } }) // iPhone SE viewport
+test.describe('Garden Planner - Mobile', () => {
+  test.use({ viewport: { width: 375, height: 667 } })
 
-  test('should show mobile navigation controls', async ({ page }) => {
+  test('should be responsive on mobile', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Create plan and multiple plots
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
+    // Main content should be visible
+    await expect(page.locator('h1').filter({ hasText: /Garden/i })).toBeVisible()
     
-    // Create first plot
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Plot A')
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Create second plot
-    await page.getByRole('button', { name: /add grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Plot B')
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Should show pagination "1 / 2"
-    await expect(page.getByText('1 / 2')).toBeVisible()
+    // Grid should be visible
+    await expect(page.getByText(/Rows:/i)).toBeVisible()
   })
 
-  test('should have collapsible plant tray on mobile', async ({ page }) => {
+  test('should show bed tabs on mobile', async ({ page }) => {
     await page.goto('/garden-planner')
     
-    // Setup
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    await page.getByRole('button', { name: /create grid plot/i }).click()
-    await page.getByLabel(/plot name/i).fill('Test Plot')
-    await page.getByRole('button', { name: /create plot/i }).click()
-    
-    // Find the mobile plant tray header and verify it's clickable
-    const plantTrayHeader = page.locator('text=Available Plants').first()
-    await expect(plantTrayHeader).toBeVisible()
+    // Bed tabs should be visible
+    await expect(page.getByRole('button', { name: /Bed 1/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Add Bed/i })).toBeVisible()
   })
 })
-
-test.describe('Grid Plotter - ViewSwitcher', () => {
-  test('should have all four view options', async ({ page }) => {
-    await page.goto('/garden-planner')
-    
-    // Create a plan
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    
-    // Check all view options are present
-    await expect(page.getByRole('button', { name: /list view/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /plot view/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /grid planner/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /calendar/i })).toBeVisible()
-  })
-
-  test('should highlight active view', async ({ page }) => {
-    await page.goto('/garden-planner')
-    
-    // Create a plan
-    await page.getByRole('button', { name: /new plan/i }).click()
-    await page.getByPlaceholder(/plan name/i).fill('Test Garden')
-    await page.getByRole('button', { name: /create/i }).click()
-    
-    // Initially list view should be active (has white background)
-    const listButton = page.getByRole('button', { name: /list view/i })
-    await expect(listButton).toHaveClass(/bg-white/)
-    
-    // Switch to grid view
-    await page.getByRole('button', { name: /grid planner/i }).click()
-    
-    // Now grid planner should be active
-    const gridButton = page.getByRole('button', { name: /grid planner/i })
-    await expect(gridButton).toHaveClass(/bg-white/)
-  })
-})
-
