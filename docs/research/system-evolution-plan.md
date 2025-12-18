@@ -115,3 +115,4 @@ Each iteration fed into the next, refining the architecture from a simple protot
 *   **ADR-004 (No Database)**: REVOKE. Adopt Supabase.
 *   **New ADR-011**: "Client-Side Image Optimization Strategy".
 
+
