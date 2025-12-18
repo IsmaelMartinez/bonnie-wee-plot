@@ -24,18 +24,13 @@ Use a **feature-based component structure** where components are grouped by the 
 src/
 ├── components/
 │   ├── Navigation.tsx              # Shared global component
+│   ├── GuideCTA.tsx                # Shared CTA component for guides
 │   └── garden-planner/             # Feature-specific folder
-│       ├── PlanManager.tsx
-│       ├── VegetableSelector.tsx
-│       ├── PlotManager.tsx
-│       ├── PlotView.tsx
-│       ├── ListView.tsx
-│       ├── CalendarView.tsx
-│       ├── ExportImport.tsx
-│       └── ViewSwitcher.tsx
+│       ├── GardenGrid.tsx          # Main grid component with plant selection
+│       └── GapSuggestions.tsx      # AI-powered gap fill suggestions
 ├── app/
 │   ├── garden-planner/
-│   │   └── page.tsx               # Assembles feature components
+│   │   └── page.tsx               # Main garden planner with beds, grid, calendar
 │   ├── companion-planting/
 │   │   └── page.tsx               # Self-contained page
 │   └── composting/
@@ -50,11 +45,8 @@ src/
 
 ```typescript
 // src/app/garden-planner/page.tsx
-import PlanManager from '@/components/garden-planner/PlanManager'
-import VegetableSelector from '@/components/garden-planner/VegetableSelector'
-import ListView from '@/components/garden-planner/ListView'
-import PlotView from '@/components/garden-planner/PlotView'
-import CalendarView from '@/components/garden-planner/CalendarView'
+import GardenGrid from '@/components/garden-planner/GardenGrid'
+// GapSuggestions imported when AI suggestions are needed
 ```
 
 #### 2. Simple Features → Self-Contained Pages
@@ -85,15 +77,12 @@ export default function CompanionPlantingPage() {
 ```
 page.tsx (state holder)
     │
-    ├── loads data (localStorage/API)
-    ├── manages state (useState)
-    ├── defines handlers (onAdd, onDelete, etc.)
+    ├── loads data (localStorage)
+    ├── manages state (useState) - beds, activeBed, etc.
+    ├── defines handlers (onAssign, onClear, onResize, etc.)
     │
     └── passes to components as props
-        ├── PlanManager (onCreatePlan, onDeletePlan)
-        ├── VegetableSelector (onAddVegetable)
-        ├── ListView (vegetables, onUpdateVegetable)
-        └── PlotView (plots, onAssignVegetable)
+        └── GardenGrid (grid, onAssign, onClear, onResize, onClearAll)
 ```
 
 ## Consequences
