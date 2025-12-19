@@ -130,9 +130,55 @@ Supabase is an open-source Backend-as-a-Service (BaaS) platform, often described
 ### Tables
 
 ```sql
+-- ============================================================
+-- REFERENCE DATA (Shared across all users)
+-- ============================================================
+
+-- Master vegetable database (currently ~60 vegetables)
+-- This replaces the static TypeScript file: src/lib/vegetable-database.ts
+CREATE TABLE vegetables (
+  id TEXT PRIMARY KEY,                    -- e.g., 'lettuce', 'carrots', 'tomatoes'
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,                 -- 'leafy-greens', 'root-vegetables', etc.
+  description TEXT,
+  
+  -- Planting information (stored as JSONB for flexibility)
+  planting JSONB NOT NULL,
+  -- Example: {
+  --   "sowIndoorsMonths": [3, 4],
+  --   "sowOutdoorsMonths": [5, 6, 7, 8],
+  --   "transplantMonths": [5, 6, 7, 8],
+  --   "harvestMonths": [6, 7, 8, 9, 10],
+  --   "daysToHarvest": { "min": 45, "max": 75 }
+  -- }
+  
+  -- Care requirements (stored as JSONB for flexibility)
+  care JSONB NOT NULL,
+  -- Example: {
+  --   "sun": "partial-shade",
+  --   "water": "moderate",
+  --   "spacing": { "between": 25, "rows": 30 },
+  --   "depth": 1,
+  --   "difficulty": "beginner",
+  --   "tips": ["Sow little and often...", ...]
+  -- }
+  
+  companion_plants TEXT[],                -- Array of vegetable names
+  avoid_plants TEXT[],                    -- Array of vegetable names
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for category filtering
+CREATE INDEX idx_vegetables_category ON vegetables(category);
+
+-- ============================================================
+-- USER DATA
+-- ============================================================
+
 -- Users table (synced with Supabase Auth)
 -- Note: Supabase auto-creates auth.users, we extend with public profile
-
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   email TEXT,
@@ -174,7 +220,7 @@ CREATE TABLE plot_cells (
   plot_id UUID REFERENCES garden_plots(id) ON DELETE CASCADE NOT NULL,
   row_num INTEGER NOT NULL,
   col_num INTEGER NOT NULL,
-  vegetable_id TEXT, -- Reference to static vegetable database
+  vegetable_id TEXT REFERENCES vegetables(id) ON DELETE SET NULL,
   planted_year INTEGER,
   UNIQUE(plot_id, row_num, col_num)
 );
@@ -183,7 +229,7 @@ CREATE TABLE plot_cells (
 CREATE TABLE planned_vegetables (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   plan_id UUID REFERENCES garden_plans(id) ON DELETE CASCADE NOT NULL,
-  vegetable_id TEXT NOT NULL, -- Reference to static vegetable database
+  vegetable_id TEXT REFERENCES vegetables(id) NOT NULL,
   plot_id UUID REFERENCES garden_plots(id) ON DELETE SET NULL,
   quantity INTEGER DEFAULT 1,
   status TEXT DEFAULT 'planned' CHECK (status IN ('planned', 'sown', 'transplanted', 'growing', 'harvesting', 'complete')),
@@ -194,48 +240,61 @@ CREATE TABLE planned_vegetables (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Custom Vegetables (user-defined)
-CREATE TABLE custom_vegetables (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  name TEXT NOT NULL,
-  category TEXT NOT NULL,
-  description TEXT,
-  care_data JSONB, -- Flexible storage for care requirements
-  planting_data JSONB, -- Flexible storage for planting info
-  companion_plants TEXT[],
-  avoid_plants TEXT[],
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Rotation History
+-- Rotation History (tracks what was planted in previous years for crop rotation)
+-- Purpose: Allows users to see what rotation group was in each plot in past years,
+-- helping them follow the recommended 4-year rotation cycle
 CREATE TABLE rotation_history (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   plot_id UUID REFERENCES garden_plots(id) ON DELETE CASCADE NOT NULL,
   year INTEGER NOT NULL,
-  rotation_group TEXT NOT NULL,
-  vegetables TEXT[], -- Array of vegetable IDs
+  rotation_group TEXT NOT NULL,           -- 'brassicas', 'legumes', 'roots', etc.
+  vegetables TEXT[],                      -- Array of vegetable IDs planted that year
   UNIQUE(plot_id, year)
 );
 
--- Indexes for common queries
+-- ============================================================
+-- INDEXES
+-- ============================================================
 CREATE INDEX idx_garden_plans_user ON garden_plans(user_id);
 CREATE INDEX idx_garden_plots_plan ON garden_plots(plan_id);
 CREATE INDEX idx_planned_vegetables_plan ON planned_vegetables(plan_id);
 CREATE INDEX idx_rotation_history_plot ON rotation_history(plot_id);
+CREATE INDEX idx_rotation_history_year ON rotation_history(year);
+
+-- ============================================================
+-- FUTURE ITERATIONS (not implemented now)
+-- ============================================================
+-- Custom Vegetables: Allow users to add their own vegetables
+-- This would extend the master vegetables table with user-specific entries
+-- Deferred to keep initial implementation simpler
 ```
 
 ### Row Level Security (RLS) Policies
 
 ```sql
 -- Enable RLS on all tables
+ALTER TABLE vegetables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE garden_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE garden_plots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plot_cells ENABLE ROW LEVEL SECURITY;
 ALTER TABLE planned_vegetables ENABLE ROW LEVEL SECURITY;
-ALTER TABLE custom_vegetables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rotation_history ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================
+-- REFERENCE DATA POLICIES (Public read access)
+-- ============================================================
+
+-- Everyone can read the vegetables database (including anonymous users)
+CREATE POLICY "Vegetables are publicly readable" ON vegetables
+  FOR SELECT USING (true);
+
+-- Only admins can modify vegetables (managed via service role key)
+-- No INSERT/UPDATE/DELETE policies for regular users
+
+-- ============================================================
+-- USER DATA POLICIES (Private to each user)
+-- ============================================================
 
 -- Users can only access their own data
 CREATE POLICY "Users can view own profile" ON profiles
@@ -265,9 +324,6 @@ CREATE POLICY "Users can manage vegetables in own plans" ON planned_vegetables
   FOR ALL USING (
     plan_id IN (SELECT id FROM garden_plans WHERE user_id = auth.uid())
   );
-
-CREATE POLICY "Users can manage own custom vegetables" ON custom_vegetables
-  FOR ALL USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can manage rotation history for own plots" ON rotation_history
   FOR ALL USING (
@@ -511,15 +567,74 @@ export function getStorageProvider(isAuthenticated: boolean): StorageProvider {
 
 ---
 
+## Data Migration: Vegetables Database
+
+The current vegetable database lives in `src/lib/vegetable-database.ts` with ~60 vegetables. This needs to be migrated to Supabase.
+
+### Seeding Script
+
+```typescript
+// scripts/seed-vegetables.ts
+import { createClient } from '@supabase/supabase-js'
+import { vegetables } from '../src/lib/vegetable-database'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role for seeding
+)
+
+async function seedVegetables() {
+  console.log(`Seeding ${vegetables.length} vegetables...`)
+  
+  const vegRecords = vegetables.map(v => ({
+    id: v.id,
+    name: v.name,
+    category: v.category,
+    description: v.description,
+    planting: v.planting,           // JSONB column
+    care: v.care,                   // JSONB column
+    companion_plants: v.companionPlants,
+    avoid_plants: v.avoidPlants
+  }))
+  
+  const { error } = await supabase
+    .from('vegetables')
+    .upsert(vegRecords, { onConflict: 'id' })
+  
+  if (error) {
+    console.error('Error seeding vegetables:', error)
+    process.exit(1)
+  }
+  
+  console.log('✅ Vegetables seeded successfully!')
+}
+
+seedVegetables()
+```
+
+### Benefits of Database-Stored Vegetables
+
+| Aspect | Static TypeScript File | Supabase Table |
+|--------|----------------------|----------------|
+| Updates | Requires code deploy | Update in dashboard |
+| Versioning | Git history | Audit trail possible |
+| Regional Variants | Hardcoded for Scotland | Could add region column |
+| Community Contributions | Pull requests only | Admin panel possible |
+| API Access | Build-time only | Real-time queries |
+| Size Impact | Bundled in JS (~50KB) | Fetched on demand |
+
+---
+
 ## Migration Strategy
 
 ### Phase 1: Add Supabase Infrastructure (Week 1)
 
 1. Set up Supabase project
-2. Create database schema
-3. Configure RLS policies
-4. Add Supabase client libraries
-5. Create auth pages (login/signup)
+2. Create database schema (including vegetables table)
+3. Run vegetables seeding script
+4. Configure RLS policies
+5. Add Supabase client libraries
+6. Create auth pages (login/signup)
 
 ### Phase 2: Implement Hybrid Storage (Week 2)
 
@@ -601,27 +716,33 @@ The [Clerk research document](./clerk-user-management.md) explored using Clerk's
 
 With Supabase in place, future features become easier:
 
-1. **Community Features**
+1. **Custom Vegetables (Deferred from initial implementation)**
+   - Users can add their own vegetable varieties
+   - Personal planting notes and care tips
+   - Share custom vegetables with community
+   - Regional variants for different climates
+
+2. **Community Features**
    - Share garden plans publicly
    - Browse and clone others' plans
    - Garden tips/advice forum
 
-2. **Collaboration**
+3. **Collaboration**
    - Real-time collaborative planning
    - Family/household shared gardens
    - Allotment community groups
 
-3. **Analytics**
+4. **Analytics**
    - Track harvest yields over years
    - Success rate by vegetable
    - Community-wide planting trends
 
-4. **Rich Media**
+5. **Rich Media**
    - Garden photos (Supabase Storage)
    - Progress timeline with images
    - Visual garden diary
 
-5. **Integrations**
+6. **Integrations**
    - Weather API data storage
    - IoT sensor data (soil moisture, etc.)
    - Calendar sync exports
@@ -652,17 +773,19 @@ With Supabase in place, future features become easier:
 |------|--------|--------------|
 | Supabase project setup | 2-3 hours | None |
 | Database schema creation | 3-4 hours | Project setup |
+| Vegetables seeding script | 2-3 hours | Schema |
 | RLS policies implementation | 2-3 hours | Schema |
 | Supabase client integration | 2-3 hours | Project setup |
 | Auth pages (login/signup) | 4-6 hours | Client integration |
 | Storage abstraction layer | 4-6 hours | Client integration |
+| Refactor to use DB vegetables | 3-4 hours | Client integration |
 | Garden planner integration | 6-8 hours | Storage layer |
 | Migration flow (localStorage → Supabase) | 4-6 hours | Planner integration |
 | Navigation auth UI | 2-3 hours | Auth pages |
 | Testing (unit + e2e) | 4-6 hours | All above |
 | Documentation updates | 2-3 hours | All above |
 
-**Total Estimate**: 36-51 hours of development work (~1-2 weeks)
+**Total Estimate**: 41-58 hours of development work (~1.5-2 weeks)
 
 ---
 
