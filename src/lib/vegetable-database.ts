@@ -718,11 +718,13 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Basil', 'Carrots', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
+
   {
     id: 'peppers',
     name: 'Sweet Peppers',
     category: 'solanaceae',
     description: 'Colorful bell peppers. Need greenhouse in Scotland.',
+    growingRequirement: 'greenhouse',
     planting: {
       sowIndoorsMonths: [2, 3],
       sowOutdoorsMonths: [],
@@ -737,7 +739,7 @@ export const vegetables: Vegetable[] = [
       depth: 1,
       difficulty: 'intermediate',
       tips: [
-        'Greenhouse essential in Scotland',
+        '🏠 Greenhouse essential in Scotland',
         'Start very early indoors',
         'Pinch growing tip for bushier plants'
       ]
@@ -750,6 +752,7 @@ export const vegetables: Vegetable[] = [
     name: 'Chillies',
     category: 'solanaceae',
     description: 'Hot peppers. Grow in pots on sunny windowsill or greenhouse.',
+    growingRequirement: 'windowsill',
     planting: {
       sowIndoorsMonths: [1, 2, 3],
       sowOutdoorsMonths: [],
@@ -764,8 +767,8 @@ export const vegetables: Vegetable[] = [
       depth: 1,
       difficulty: 'intermediate',
       tips: [
+        '🪟 Windowsill or greenhouse growing',
         'Start very early (January) for Scotland',
-        'Windowsill or greenhouse growing',
         'Smaller varieties work well in pots'
       ]
     },
@@ -999,6 +1002,7 @@ export const vegetables: Vegetable[] = [
     name: 'Basil',
     category: 'herbs',
     description: 'Frost tender herb. Best on sunny windowsill or greenhouse.',
+    growingRequirement: 'windowsill',
     planting: {
       sowIndoorsMonths: [4, 5],
       sowOutdoorsMonths: [],
@@ -1013,7 +1017,7 @@ export const vegetables: Vegetable[] = [
       depth: 0.5,
       difficulty: 'beginner',
       tips: [
-        'Grow indoors on sunny windowsill',
+        '🪟 Grow indoors on sunny windowsill',
         'Pinch out flower heads',
         'Protect from any cold'
       ]

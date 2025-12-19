@@ -24,6 +24,9 @@ export type WaterRequirement = 'low' | 'moderate' | 'high'
 // Difficulty level
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'
 
+// Growing requirement - indicates if plant needs protection
+export type GrowingRequirement = 'outdoor' | 'greenhouse' | 'windowsill' | 'polytunnel'
+
 // Month type (1-12)
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
@@ -63,6 +66,7 @@ export interface Vegetable {
   companionPlants: string[]
   avoidPlants: string[]
   isCustom?: boolean
+  growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
 }
 
 // A vegetable added to a garden plan

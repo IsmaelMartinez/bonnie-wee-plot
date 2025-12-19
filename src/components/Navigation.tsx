@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw } from 'lucide-react'
+import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw, Calendar } from 'lucide-react'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -11,6 +11,7 @@ const navLinks = [
 ]
 
 const growingGuides = [
+  { href: '/this-month', label: 'This Month', icon: Calendar, description: 'Seasonal tasks for Scotland' },
   { href: '/companion-planting', label: 'Companion Planting', icon: Users, description: 'Plants that grow well together' },
   { href: '/composting', label: 'Composting', icon: Recycle, description: 'Turn waste into garden gold' },
   { href: '/crop-rotation', label: 'Crop Rotation', icon: RotateCcw, description: 'Maximize soil health & yields' },
