@@ -130,7 +130,7 @@ export default function ThisMonthPage() {
             </h1>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Seasonal gardening tasks and tips tailored for Scotland's climate. 
+            Seasonal gardening tasks and tips tailored for Scotland&apos;s climate. 
             Select a month to plan ahead or see what needs doing now.
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function ThisMonthPage() {
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
               <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-              You're viewing the current month
+              You&apos;re viewing the current month
             </div>
           </div>
         )}

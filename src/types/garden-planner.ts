@@ -282,3 +282,154 @@ export const PLOT_COLORS = [
   '#f97316', // orange-500
 ]
 
+// ============ ALLOTMENT LAYOUT & HISTORY TYPES ============
+
+// Physical bed identifiers - expanded to include all areas
+export type PhysicalBedId = 
+  | 'A'           // Far right, next to berries - Peas → Strawberries
+  | 'B1'          // Center-right column - Pak choi, Cauliflower, Carrots
+  | 'B1-prime'    // Top of B1 column - Strawberries + garlic
+  | 'B2'          // Center-left column - Garlic, Onion, Broad beans
+  | 'B2-prime'    // Top of B2 column - New garlic
+  | 'C'           // Under apple tree - Problem bed (shaded)
+  | 'D'           // Lower center - Potatoes
+  | 'E'           // Top left corner - Problem bed (retry)
+  | 'raspberries' // Right side - Perennial area
+
+// Bed status - whether it's productive or has issues
+export type BedStatus = 'rotation' | 'problem' | 'perennial'
+
+// Physical bed in the allotment layout
+export interface PhysicalBed {
+  id: PhysicalBedId
+  name: string                    // e.g., "Bed A - Legumes"
+  description?: string
+  status: BedStatus               // Whether bed is in rotation, has problems, or is perennial
+  gridPosition?: {                // Optional - not all beds have precise grid positions
+    startRow: number
+    startCol: number
+    endRow: number
+    endCol: number
+  }
+  rotationGroup?: RotationGroup   // Primary rotation group for this bed
+  problemNotes?: string           // Notes about issues if status is 'problem'
+}
+
+// Permanent plantings (fruit trees, berries, etc.)
+export interface PermanentPlanting {
+  id: string
+  name: string                    // e.g., "Apple Tree (North)"
+  type: 'fruit-tree' | 'berry' | 'perennial-veg' | 'herb'
+  variety?: string                // e.g., "Discovery"
+  plantedYear?: number
+  gridPosition?: {
+    row: number
+    col: number
+  }
+  notes?: string
+}
+
+// Infrastructure items (shed, compost, paths)
+export interface InfrastructureItem {
+  id: string
+  type: 'shed' | 'compost' | 'water-butt' | 'path' | 'greenhouse' | 'other'
+  name: string
+  gridPosition?: {
+    startRow: number
+    startCol: number
+    endRow: number
+    endCol: number
+  }
+}
+
+// Complete allotment layout
+export interface AllotmentLayout {
+  id: string
+  name: string                           // e.g., "My Edinburgh Allotment"
+  gridRows: number
+  gridCols: number
+  beds: PhysicalBed[]
+  permanentPlantings: PermanentPlanting[]
+  infrastructure: InfrastructureItem[]
+}
+
+// ============ VARIETY TRACKING TYPES ============
+
+// User's specific seed varieties
+export interface PlantVariety {
+  id: string
+  vegetableId: string             // Links to base vegetable (e.g., 'peas')
+  name: string                    // e.g., "Kelvedon Wonder"
+  supplier?: string               // e.g., "Organic Gardening"
+  price?: number
+  notes?: string
+  yearsUsed: number[]             // Years this variety was planted
+}
+
+// ============ HISTORICAL PLAN TYPES ============
+
+// Success rating for plantings
+export type PlantingSuccess = 'excellent' | 'good' | 'fair' | 'poor'
+
+// A planting record within a season
+export interface PlantedVariety {
+  id: string
+  vegetableId: string             // Reference to Vegetable.id
+  varietyId?: string              // Reference to PlantVariety.id
+  varietyName: string             // Stored directly for historical reference
+  bedId: PhysicalBedId
+  quantity?: number
+  sowDate?: string                // ISO date string
+  transplantDate?: string
+  harvestDate?: string
+  success?: PlantingSuccess
+  notes?: string
+}
+
+// A bed's planting plan for a season
+export interface BedPlan {
+  bedId: PhysicalBedId
+  rotationGroup: RotationGroup
+  plantings: PlantedVariety[]
+}
+
+// Complete season plan (historical or current)
+export interface SeasonPlan {
+  id: string
+  year: number
+  beds: BedPlan[]
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+// Storage format for all historical data
+export interface AllotmentHistoryData {
+  version: number
+  layout: AllotmentLayout
+  varieties: PlantVariety[]
+  seasons: SeasonPlan[]
+  currentYear: number
+}
+
+// ============ ROTATION SUGGESTION TYPES ============
+
+// Rotation suggestion for planning next year
+export interface RotationSuggestion {
+  bedId: PhysicalBedId
+  previousGroup: RotationGroup
+  suggestedGroup: RotationGroup
+  reason: string
+  suggestedVegetables: string[]   // Vegetable IDs that fit the rotation
+  isProblemBed?: boolean          // Whether this is a problem bed needing special attention
+  isPerennial?: boolean           // Whether this is a perennial bed (no rotation)
+  problemNote?: string            // Note about the problem if isProblemBed
+}
+
+// Complete rotation plan for a year
+export interface RotationPlan {
+  year: number
+  suggestions: RotationSuggestion[]
+  warnings: string[]              // Any rotation conflicts or issues
+}
+

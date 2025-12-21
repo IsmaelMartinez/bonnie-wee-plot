@@ -23,7 +23,9 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
   'alliums': 'alliums',
   'cucurbits': 'cucurbits',
   'leafy-greens': 'roots',     // Often grouped with roots in rotation
-  'herbs': 'permanent'          // Perennials, don't need rotation
+  'herbs': 'permanent',         // Perennials, don't need rotation
+  'berries': 'permanent',       // Perennials
+  'fruit-trees': 'permanent'    // Perennials
 }
 
 /**

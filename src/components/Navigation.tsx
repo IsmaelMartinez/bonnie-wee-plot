@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw, Calendar } from 'lucide-react'
+import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw, Calendar, Map } from 'lucide-react'
 
 const navLinks = [
   { href: '/', label: 'Home' },
+  { href: '/allotment', label: 'My Allotment', icon: Map },
   { href: '/garden-planner', label: 'Garden Planner' },
   { href: '/ai-advisor', label: 'Aitor' },
 ]

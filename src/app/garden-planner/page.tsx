@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sprout, Users, Recycle, Calendar, Plus, Trash2, Edit2, Check, X, LayoutGrid } from 'lucide-react'
+import { Sprout, Users, Recycle, Calendar, Plus, Trash2, Edit2, Check, X, LayoutGrid, History, Download } from 'lucide-react'
 import { GridPlot, PlotCell } from '@/types/garden-planner'
 import { createGridPlot } from '@/lib/garden-storage'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
@@ -10,6 +10,8 @@ import { getVegetableById } from '@/lib/vegetable-database'
 import GardenGrid from '@/components/garden-planner/GardenGrid'
 import BedOverview from '@/components/garden-planner/BedOverview'
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
+import { season2025 } from '@/data/historical-plans'
+import { physicalBeds, BED_COLORS } from '@/data/allotment-layout'
 
 const STORAGE_KEY = 'garden-beds-2025'
 const DEFAULT_ROWS = 4
@@ -26,6 +28,7 @@ export default function GardenPlannerPage() {
   const [viewMode, setViewMode] = useState<'overview' | 'single'>('single')
   const [editingBedId, setEditingBedId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
 
   // Load from localStorage
   useEffect(() => {
@@ -171,6 +174,53 @@ export default function GardenPlannerPage() {
     })
   }
 
+  // Load 2025 plan from historical data
+  function handleLoadPlan() {
+    const newBeds: GridPlot[] = physicalBeds.map((physBed, index) => {
+      const bedPlan = season2025.beds.find(b => b.bedId === physBed.id)
+      const plantings = bedPlan?.plantings || []
+      
+      // Create a 4x4 grid for each bed
+      const gridRows = 4
+      const gridCols = 4
+      const cells: PlotCell[] = []
+      
+      for (let row = 0; row < gridRows; row++) {
+        for (let col = 0; col < gridCols; col++) {
+          const plantingIndex = row * gridCols + col
+          const planting = plantings[plantingIndex]
+          cells.push({
+            id: `bed-${physBed.id}-${row}-${col}`,
+            plotId: `bed-${physBed.id}`,
+            row,
+            col,
+            vegetableId: planting?.vegetableId,
+            plantedYear: planting ? 2025 : undefined
+          })
+        }
+      }
+      
+      return {
+        id: `bed-${physBed.id}`,
+        name: `Bed ${physBed.id}`,
+        description: physBed.description,
+        width: 2,
+        length: 2,
+        color: BED_COLORS[physBed.id],
+        sortOrder: index,
+        gridRows,
+        gridCols,
+        cells
+      }
+    })
+    
+    setData({
+      beds: newBeds,
+      activeBedId: newBeds[0].id
+    })
+    setShowLoadDialog(false)
+  }
+
   // Get companion tips for active bed
   function getCompanionTips(): { good: string[], bad: string[] } {
     if (!activeBed) return { good: [], bad: [] }
@@ -233,6 +283,17 @@ export default function GardenPlannerPage() {
 
         {/* Quick Links */}
         <div className="flex flex-wrap gap-3 mb-6 text-sm">
+          <Link href="/plan-history" className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 rounded-full shadow-sm hover:shadow text-amber-700 hover:text-amber-800">
+            <History className="w-3.5 h-3.5" />
+            Past Plans
+          </Link>
+          <button 
+            onClick={() => setShowLoadDialog(true)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-green-100 rounded-full shadow-sm hover:shadow text-green-700 hover:text-green-800"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Load 2025 Plan
+          </button>
           <Link href="/companion-planting" className="flex items-center gap-1 px-3 py-1.5 bg-white rounded-full shadow-sm hover:shadow text-gray-600 hover:text-green-600">
             <Users className="w-3.5 h-3.5" />
             Companions
@@ -253,6 +314,38 @@ export default function GardenPlannerPage() {
             Ask Aitor
           </Link>
         </div>
+
+        {/* Load Plan Dialog */}
+        {showLoadDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md mx-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Load 2025 Plan</h3>
+              <p className="text-gray-600 mb-4">
+                This will replace your current beds with your 2025 planting plan from the Excel workbook. 
+                Your beds will be set up as A, B, C, D with the vegetables you planted this year.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> This will overwrite any existing bed data. 
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowLoadDialog(false)}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLoadPlan}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Load Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Bed Tabs */}
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
