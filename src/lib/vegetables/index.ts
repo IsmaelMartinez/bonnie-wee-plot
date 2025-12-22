@@ -1,0 +1,121 @@
+/**
+ * Lightweight vegetable index for fast lookups
+ * Full data is lazy-loaded by category as needed
+ */
+
+import { VegetableCategory } from '@/types/garden-planner'
+
+export interface VegetableIndex {
+  id: string
+  name: string
+  category: VegetableCategory
+}
+
+/**
+ * Minimal index of all vegetables for quick access
+ * This loads immediately and is used for dropdowns, searches, etc.
+ */
+export const vegetableIndex: VegetableIndex[] = [
+  // Leafy Greens
+  { id: 'lettuce', name: 'Lettuce', category: 'leafy-greens' },
+  { id: 'spinach', name: 'Spinach', category: 'leafy-greens' },
+  { id: 'perpetual-spinach', name: 'Perpetual Spinach', category: 'leafy-greens' },
+  { id: 'kale', name: 'Kale', category: 'leafy-greens' },
+  { id: 'chard', name: 'Swiss Chard', category: 'leafy-greens' },
+  { id: 'rocket', name: 'Rocket', category: 'leafy-greens' },
+  { id: 'pak-choi', name: 'Pak Choi', category: 'leafy-greens' },
+  { id: 'mizuna', name: 'Mizuna', category: 'leafy-greens' },
+  { id: 'land-cress', name: 'Land Cress', category: 'leafy-greens' },
+  
+  // Root Vegetables
+  { id: 'carrot', name: 'Carrot', category: 'root-vegetables' },
+  { id: 'beetroot', name: 'Beetroot', category: 'root-vegetables' },
+  { id: 'parsnip', name: 'Parsnip', category: 'root-vegetables' },
+  { id: 'turnip', name: 'Turnip', category: 'root-vegetables' },
+  { id: 'swede', name: 'Swede', category: 'root-vegetables' },
+  { id: 'radish', name: 'Radish', category: 'root-vegetables' },
+  { id: 'potato', name: 'Potato', category: 'root-vegetables' },
+  { id: 'jerusalem-artichoke', name: 'Jerusalem Artichoke', category: 'root-vegetables' },
+  { id: 'celeriac', name: 'Celeriac', category: 'root-vegetables' },
+  { id: 'salsify', name: 'Salsify', category: 'root-vegetables' },
+  
+  // Brassicas
+  { id: 'broccoli', name: 'Broccoli', category: 'brassicas' },
+  { id: 'cabbage', name: 'Cabbage', category: 'brassicas' },
+  { id: 'cauliflower', name: 'Cauliflower', category: 'brassicas' },
+  { id: 'brussels-sprouts', name: 'Brussels Sprouts', category: 'brassicas' },
+  { id: 'kohlrabi', name: 'Kohlrabi', category: 'brassicas' },
+  
+  // Legumes
+  { id: 'peas', name: 'Garden Peas', category: 'legumes' },
+  { id: 'runner-beans', name: 'Runner Beans', category: 'legumes' },
+  { id: 'broad-beans', name: 'Broad Beans', category: 'legumes' },
+  { id: 'french-beans', name: 'French Beans', category: 'legumes' },
+  
+  // Solanaceae
+  { id: 'tomato', name: 'Tomato', category: 'solanaceae' },
+  { id: 'pepper', name: 'Sweet Pepper', category: 'solanaceae' },
+  { id: 'aubergine', name: 'Aubergine', category: 'solanaceae' },
+  
+  // Cucurbits
+  { id: 'courgette', name: 'Courgette', category: 'cucurbits' },
+  { id: 'cucumber', name: 'Cucumber', category: 'cucurbits' },
+  { id: 'squash', name: 'Winter Squash', category: 'cucurbits' },
+  { id: 'pumpkin', name: 'Pumpkin', category: 'cucurbits' },
+  
+  // Alliums
+  { id: 'onion', name: 'Onion', category: 'alliums' },
+  { id: 'garlic', name: 'Garlic', category: 'alliums' },
+  { id: 'leek', name: 'Leek', category: 'alliums' },
+  { id: 'shallot', name: 'Shallot', category: 'alliums' },
+  
+  // Herbs
+  { id: 'basil', name: 'Basil', category: 'herbs' },
+  { id: 'parsley', name: 'Parsley', category: 'herbs' },
+  { id: 'coriander', name: 'Coriander', category: 'herbs' },
+  { id: 'mint', name: 'Mint', category: 'herbs' },
+  { id: 'thyme', name: 'Thyme', category: 'herbs' },
+  { id: 'rosemary', name: 'Rosemary', category: 'herbs' },
+  { id: 'chives', name: 'Chives', category: 'herbs' },
+  
+  // Berries
+  { id: 'strawberry', name: 'Strawberry', category: 'berries' },
+  { id: 'raspberry', name: 'Raspberry', category: 'berries' },
+  { id: 'blackcurrant', name: 'Blackcurrant', category: 'berries' },
+  { id: 'redcurrant', name: 'Redcurrant', category: 'berries' },
+  { id: 'gooseberry', name: 'Gooseberry', category: 'berries' },
+  { id: 'blueberry', name: 'Blueberry', category: 'berries' },
+  { id: 'blackberry', name: 'Blackberry', category: 'berries' },
+  
+  // Fruit Trees
+  { id: 'apple', name: 'Apple', category: 'fruit-trees' },
+  { id: 'pear', name: 'Pear', category: 'fruit-trees' },
+  { id: 'plum', name: 'Plum', category: 'fruit-trees' },
+  { id: 'cherry', name: 'Cherry', category: 'fruit-trees' }
+]
+
+/**
+ * Get index entry by ID
+ */
+export function getVegetableIndexById(id: string): VegetableIndex | undefined {
+  return vegetableIndex.find(v => v.id === id)
+}
+
+/**
+ * Get all vegetables by category (index only)
+ */
+export function getVegetableIndexByCategory(category: VegetableCategory): VegetableIndex[] {
+  return vegetableIndex.filter(v => v.category === category)
+}
+
+/**
+ * Search vegetables by name (index only)
+ */
+export function searchVegetableIndex(query: string): VegetableIndex[] {
+  const lowerQuery = query.toLowerCase()
+  return vegetableIndex.filter(v => 
+    v.name.toLowerCase().includes(lowerQuery) || 
+    v.id.toLowerCase().includes(lowerQuery)
+  )
+}
+

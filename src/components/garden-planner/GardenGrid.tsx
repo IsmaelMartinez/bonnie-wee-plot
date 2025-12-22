@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Plus, Minus, X, Trash2, Search } from 'lucide-react'
 import { GridPlot, PlotCell, CATEGORY_INFO, VegetableCategory } from '@/types/garden-planner'
 import { vegetables, getVegetableById } from '@/lib/vegetable-database'
@@ -22,6 +22,75 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
   const [selectedCell, setSelectedCell] = useState<PlotCell | null>(null)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
+  const [focusedRow, setFocusedRow] = useState(0)
+  const [focusedCol, setFocusedCol] = useState(0)
+  
+  // Refs for cell buttons to enable focus management
+  const cellRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+
+  // Get cell ref key
+  const getCellKey = useCallback((row: number, col: number) => `${row}-${col}`, [])
+
+  // Focus a specific cell
+  const focusCell = useCallback((row: number, col: number) => {
+    const key = getCellKey(row, col)
+    const cellButton = cellRefs.current.get(key)
+    if (cellButton) {
+      cellButton.focus()
+      setFocusedRow(row)
+      setFocusedCol(col)
+    }
+  }, [getCellKey])
+
+  // Handle keyboard navigation in the grid
+  const handleCellKeyDown = useCallback((
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    cell: PlotCell,
+    row: number,
+    col: number
+  ) => {
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault()
+        setSelectedCell(cell)
+        setSearch('')
+        setCategoryFilter('all')
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        if (row > 0) {
+          focusCell(row - 1, col)
+        }
+        break
+      case 'ArrowDown':
+        e.preventDefault()
+        if (row < grid.gridRows - 1) {
+          focusCell(row + 1, col)
+        }
+        break
+      case 'ArrowLeft':
+        e.preventDefault()
+        if (col > 0) {
+          focusCell(row, col - 1)
+        }
+        break
+      case 'ArrowRight':
+        e.preventDefault()
+        if (col < grid.gridCols - 1) {
+          focusCell(row, col + 1)
+        }
+        break
+      case 'Home':
+        e.preventDefault()
+        focusCell(row, 0)
+        break
+      case 'End':
+        e.preventDefault()
+        focusCell(row, grid.gridCols - 1)
+        break
+    }
+  }, [focusCell, grid.gridRows, grid.gridCols])
 
   // Close dialog on escape
   useEffect(() => {
@@ -163,24 +232,38 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
         </div>
 
         {/* Grid */}
-        <div className="p-4">
+        <div className="p-4" role="grid" aria-label="Garden planting grid">
           <div className="space-y-2">
             {rows.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex gap-2">
-                {row.map(cell => {
+              <div key={rowIndex} className="flex gap-2" role="row">
+                {row.map((cell, colIndex) => {
                   const veg = cell.vegetableId ? getVegetableById(cell.vegetableId) : null
+                  const cellKey = getCellKey(rowIndex, colIndex)
 
                   return (
                     <button
                       key={cell.id}
+                      ref={(el) => {
+                        if (el) {
+                          cellRefs.current.set(cellKey, el)
+                        } else {
+                          cellRefs.current.delete(cellKey)
+                        }
+                      }}
                       onClick={() => {
                         setSelectedCell(cell)
                         setSearch('')
                         setCategoryFilter('all')
                       }}
+                      onKeyDown={(e) => handleCellKeyDown(e, cell, rowIndex, colIndex)}
+                      tabIndex={rowIndex === focusedRow && colIndex === focusedCol ? 0 : -1}
+                      role="gridcell"
+                      aria-label={veg ? `Cell ${rowIndex + 1}-${colIndex + 1}: ${veg.name}` : `Empty cell ${rowIndex + 1}-${colIndex + 1}`}
+                      aria-selected={selectedCell?.id === cell.id}
                       className={`
                         flex-1 aspect-square rounded-lg border-2 transition-all
                         flex flex-col items-center justify-center p-2
+                        focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
                         ${veg
                           ? 'border-green-200 bg-green-50 hover:border-green-300'
                           : 'border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50'

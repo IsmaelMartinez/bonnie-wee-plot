@@ -91,10 +91,7 @@ test.describe('Growing Guides Navigation', () => {
     const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
     await growingGuidesButton.click();
 
-    // Wait for dropdown to appear and check links
-    await page.waitForTimeout(300); // Allow dropdown animation
-    
-    // Check dropdown links are visible
+    // Wait for dropdown link to become visible
     const companionLink = page.locator('a[href="/companion-planting"]');
     await expect(companionLink).toBeVisible();
   });
@@ -106,10 +103,11 @@ test.describe('Growing Guides Navigation', () => {
     // Open dropdown
     const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
     await growingGuidesButton.click();
-    await page.waitForTimeout(300);
 
-    // Click on Companion Planting
-    await page.locator('a[href="/companion-planting"]').click();
+    // Wait for and click on Companion Planting
+    const companionLink = page.locator('a[href="/companion-planting"]');
+    await expect(companionLink).toBeVisible();
+    await companionLink.click();
 
     await expect(page).toHaveURL(/companion-planting/);
   });
@@ -121,10 +119,11 @@ test.describe('Growing Guides Navigation', () => {
     // Open dropdown
     const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
     await growingGuidesButton.click();
-    await page.waitForTimeout(300);
 
-    // Click on Composting
-    await page.locator('a[href="/composting"]').click();
+    // Wait for and click on Composting
+    const compostingLink = page.locator('a[href="/composting"]');
+    await expect(compostingLink).toBeVisible();
+    await compostingLink.click();
 
     await expect(page).toHaveURL(/composting/);
   });
@@ -136,10 +135,11 @@ test.describe('Growing Guides Navigation', () => {
     // Open dropdown
     const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
     await growingGuidesButton.click();
-    await page.waitForTimeout(300);
 
-    // Click on Crop Rotation
-    await page.locator('a[href="/crop-rotation"]').click();
+    // Wait for and click on Crop Rotation
+    const cropRotationLink = page.locator('a[href="/crop-rotation"]');
+    await expect(cropRotationLink).toBeVisible();
+    await cropRotationLink.click();
 
     await expect(page).toHaveURL(/crop-rotation/);
   });
@@ -160,10 +160,8 @@ test.describe('Growing Guides Navigation', () => {
     // Open mobile menu using the hamburger button
     const mobileMenuButton = page.locator('header button.lg\\:hidden');
     await mobileMenuButton.click();
-    await page.waitForTimeout(500);
 
-    // Verify the mobile menu opened by checking for visible navigation links
-    // Look for the Garden Planner link in the mobile menu
+    // Wait for mobile menu to open and verify navigation links are visible
     const gardenPlannerLink = page.locator('a[href="/garden-planner"]').first();
     await expect(gardenPlannerLink).toBeVisible();
   });

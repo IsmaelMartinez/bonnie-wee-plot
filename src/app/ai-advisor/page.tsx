@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Settings, Leaf } from 'lucide-react'
 import type { ChatMessage as ChatMessageType } from '@/types'
 
 // Extracted hooks
 import { useLocation } from '@/hooks/useLocation'
 import { useApiToken } from '@/hooks/useSessionStorage'
+
+// Rate limiting
+import { aiRateLimiter, formatCooldown } from '@/lib/rate-limiter'
 
 // Extracted components
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
@@ -50,17 +53,52 @@ export default function AIAdvisorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [tempToken, setTempToken] = useState('')
+  const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
   
   // Use extracted hooks
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
   const { token, saveToken, clearToken } = useApiToken()
+
+  // Update rate limit state
+  const updateRateLimitState = useCallback(() => {
+    const state = aiRateLimiter.getState()
+    setRateLimitInfo({
+      cooldownMs: state.cooldownMs,
+      remainingRequests: state.remainingRequests
+    })
+  }, [])
 
   // Sync temp token with actual token
   useEffect(() => {
     setTempToken(token)
   }, [token])
 
+  // Update rate limit info periodically when in cooldown
+  useEffect(() => {
+    updateRateLimitState()
+    
+    if (rateLimitInfo.cooldownMs > 0) {
+      const interval = setInterval(() => {
+        updateRateLimitState()
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [rateLimitInfo.cooldownMs, updateRateLimitState])
+
   const handleSubmit = async (query: string, image?: File) => {
+    // Check rate limit before proceeding
+    if (!aiRateLimiter.canRequest()) {
+      const cooldownMs = aiRateLimiter.getCooldownMs()
+      const errorResponse: ExtendedChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `🌿 **Slow Down, Eager Gardener!** 🌿\n\nI'm taking a quick breather to prevent API overload. Please wait ${formatCooldown(cooldownMs)} before your next question.\n\n**While you wait:**\n• Review our previous conversation\n• Think about follow-up questions\n• Check your plants for any changes\n\nI'll be ready to help again shortly! 🌱`
+      }
+      setMessages(prev => [...prev, errorResponse])
+      updateRateLimitState()
+      return
+    }
+
     // Create preview for display
     let imagePreview: string | undefined
     if (image) {
@@ -79,6 +117,10 @@ export default function AIAdvisorPage() {
     }
     setMessages(prev => [...prev, newMessage])
     setIsLoading(true)
+
+    // Record the request for rate limiting
+    aiRateLimiter.recordRequest()
+    updateRateLimitState()
 
     try {
       const headers: Record<string, string> = {
@@ -261,7 +303,11 @@ export default function AIAdvisorPage() {
         </div>
 
         {/* Input */}
-        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+        <ChatInput 
+          onSubmit={handleSubmit} 
+          isLoading={isLoading} 
+          rateLimitInfo={rateLimitInfo}
+        />
       </div>
 
       {/* Tips */}

@@ -1,15 +1,21 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Send, Camera, X } from 'lucide-react'
+import { Send, Camera, X, Clock } from 'lucide-react'
 import Image from 'next/image'
+
+interface RateLimitInfo {
+  cooldownMs: number
+  remainingRequests: number
+}
 
 interface ChatInputProps {
   onSubmit: (message: string, image?: File) => void
   isLoading: boolean
+  rateLimitInfo?: RateLimitInfo
 }
 
-export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
+export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -76,8 +82,9 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
             onClick={removeImage}
             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
             title="Remove image"
+            aria-label="Remove uploaded image"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -91,6 +98,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
             placeholder="Ask about planting, pests, soil, weather, or any garden question..."
             className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
             disabled={isLoading}
+            aria-label="Type your gardening question"
           />
           
           {/* Image upload button */}
@@ -100,25 +108,44 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
             disabled={isLoading}
             title="Upload plant photo"
+            aria-label="Upload a plant photo for visual diagnosis"
           >
-            <Camera className="w-5 h-5" />
+            <Camera className="w-5 h-5" aria-hidden="true" />
           </button>
           
           <button
             type="submit"
             disabled={isLoading || (!input.trim() && !selectedImage)}
             className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            aria-label="Send message"
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
         
-        {/* Helper text */}
-        <div className="text-sm text-gray-500">
-          {selectedImage ? (
-            <span className="text-green-600">📷 Image ready for analysis</span>
-          ) : (
-            <span>💡 Tip: Upload a plant photo for visual diagnosis</span>
+        {/* Helper text and rate limit status */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="text-gray-500">
+            {selectedImage ? (
+              <span className="text-green-600">📷 Image ready for analysis</span>
+            ) : (
+              <span>💡 Tip: Upload a plant photo for visual diagnosis</span>
+            )}
+          </div>
+          
+          {rateLimitInfo && (
+            <div className={`flex items-center gap-1 ${
+              rateLimitInfo.cooldownMs > 0 ? 'text-amber-600' : 'text-gray-400'
+            }`}>
+              {rateLimitInfo.cooldownMs > 0 ? (
+                <>
+                  <Clock className="w-4 h-4" aria-hidden="true" />
+                  <span>Wait {Math.ceil(rateLimitInfo.cooldownMs / 1000)}s</span>
+                </>
+              ) : (
+                <span>{rateLimitInfo.remainingRequests}/5 requests available</span>
+              )}
+            </div>
           )}
         </div>
       </form>
@@ -131,6 +158,8 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
         onChange={handleImageSelect}
         className="hidden"
         capture="environment"
+        aria-label="Select plant photo to upload"
+        aria-hidden="true"
       />
     </div>
   )
