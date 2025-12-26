@@ -119,3 +119,5 @@ export function searchVegetableIndex(query: string): VegetableIndex[] {
   )
 }
 
+
+

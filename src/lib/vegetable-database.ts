@@ -1214,7 +1214,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Garlic', 'Onions'],
-    avoidPlants: []
+    avoidPlants: [],
+    maintenance: {
+      feedMonths: [3],
+      mulchMonths: [11],
+      notes: ['Force under pot from January for early crop', 'Remove flower stalks immediately']
+    }
   },
   {
     id: 'sea-kale',
@@ -1327,7 +1332,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Garlic', 'Tansy', 'Turnips'],
-    avoidPlants: ['Blackberries', 'Potatoes']
+    avoidPlants: ['Blackberries', 'Potatoes'],
+    maintenance: {
+      pruneMonths: [2, 8, 9],
+      feedMonths: [3],
+      mulchMonths: [3],
+      notes: ['Summer types: cut fruited canes after harvest', 'Autumn types: cut all canes to ground in Feb']
+    }
   },
   {
     id: 'blackberry',
@@ -1411,7 +1422,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomatoes', 'Tansy'],
-    avoidPlants: []
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1, 2],
+      feedMonths: [3],
+      notes: ['Prune to open goblet shape in winter', 'Watch for sawfly in spring']
+    }
   },
   {
     id: 'blackcurrant',
@@ -1439,7 +1455,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Wormwood', 'Tansy'],
-    avoidPlants: ['Pine trees']
+    avoidPlants: ['Pine trees'],
+    maintenance: {
+      pruneMonths: [11, 12],
+      feedMonths: [3],
+      mulchMonths: [3],
+      notes: ['Remove a third of oldest wood each year after fruiting']
+    }
   },
   {
     id: 'redcurrant',
@@ -1467,7 +1489,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tansy', 'Wormwood'],
-    avoidPlants: []
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1, 2],
+      feedMonths: [3],
+      notes: ['Prune to open goblet shape like gooseberries']
+    }
   },
 
   // ============ FRUIT TREES ============
@@ -1497,7 +1524,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Chives', 'Nasturtiums', 'Garlic'],
-    avoidPlants: ['Grass around base', 'Potatoes']
+    avoidPlants: ['Grass around base', 'Potatoes'],
+    maintenance: {
+      pruneMonths: [12, 1, 2],
+      feedMonths: [3],
+      mulchMonths: [11],
+      notes: ['Winter prune when dormant', 'Summer prune water shoots in July-Aug']
+    }
   },
   {
     id: 'cherry-tree',
@@ -1525,7 +1558,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Garlic', 'Chives', 'Marigolds'],
-    avoidPlants: ['Grass around base']
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [7, 8],
+      feedMonths: [3],
+      notes: ['ONLY prune in summer to avoid silver leaf and bacterial canker']
+    }
   },
   {
     id: 'damson-tree',
@@ -1553,7 +1591,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
-    avoidPlants: ['Grass around base']
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [2, 3],
+      feedMonths: [3],
+      notes: ['Minimal pruning needed - just remove dead/crossing branches']
+    }
   },
   {
     id: 'plum-tree',
@@ -1581,7 +1624,98 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
-    avoidPlants: ['Grass around base']
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [6, 7],
+      feedMonths: [3],
+      notes: ['Prune in summer to avoid silver leaf disease']
+    }
+  },
+
+  // ============ ADDITIONAL SCOTLAND-FRIENDLY VEGETABLES ============
+  {
+    id: 'pak-choi',
+    name: 'Pak Choi',
+    category: 'leafy-greens',
+    description: 'Fast-growing Asian green. Thrives in cool Scottish weather - less prone to bolting.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5, 6, 7, 8],
+      transplantMonths: [5, 6, 7],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 30, max: 45 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perfect for Scottish climate - rarely bolts',
+        'Sow late summer for autumn harvest',
+        'Harvest baby leaves or full heads',
+        'Protect from slugs'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions'],
+    avoidPlants: ['Strawberries']
+  },
+  {
+    id: 'sweetcorn',
+    name: 'Sweetcorn',
+    category: 'other',
+    description: 'Sweet summer treat. Choose early varieties like Swift F1 for Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 70, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 35, rows: 60 },
+      depth: 3,
+      difficulty: 'intermediate',
+      tips: [
+        'MUST start indoors in Scotland',
+        'Plant in blocks (not rows) for pollination',
+        'Swift F1 or Earlybird are best for short seasons',
+        'Need sheltered, sunny spot'
+      ]
+    },
+    companionPlants: ['Beans', 'Squash', 'Cucumber'],
+    avoidPlants: ['Tomatoes']
+  },
+  {
+    id: 'cavolo-nero',
+    name: 'Cavolo Nero (Black Kale)',
+    category: 'leafy-greens',
+    description: 'Italian black kale. Extremely hardy and improves with frost - perfect for Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4, 5],
+      sowOutdoorsMonths: [5, 6, 7],
+      transplantMonths: [5, 6, 7, 8],
+      harvestMonths: [9, 10, 11, 12, 1, 2, 3, 4],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'One of the hardiest brassicas',
+        'Frost sweetens the leaves',
+        'Pick lower leaves first',
+        'Can crop through entire Scottish winter'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
   }
 ]
 
@@ -1614,4 +1748,45 @@ export function getVegetablesForMonth(month: number, type: 'sow' | 'harvest'): V
 
 export function getAllCategories(): VegetableCategory[] {
   return [...new Set(vegetables.map(v => v.category))]
+}
+
+// ============ MAINTENANCE HELPERS ============
+
+export type MaintenanceType = 'prune' | 'feed' | 'mulch'
+
+export interface MaintenanceTask {
+  vegetable: Vegetable
+  type: MaintenanceType
+  notes?: string[]
+}
+
+/**
+ * Get all vegetables with maintenance tasks for a given month
+ */
+export function getMaintenanceForMonth(month: number): MaintenanceTask[] {
+  const tasks: MaintenanceTask[] = []
+  const m = month as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+  
+  vegetables.forEach(v => {
+    if (!v.maintenance) return
+    
+    if (v.maintenance.pruneMonths?.includes(m)) {
+      tasks.push({ vegetable: v, type: 'prune', notes: v.maintenance.notes })
+    }
+    if (v.maintenance.feedMonths?.includes(m)) {
+      tasks.push({ vegetable: v, type: 'feed', notes: v.maintenance.notes })
+    }
+    if (v.maintenance.mulchMonths?.includes(m)) {
+      tasks.push({ vegetable: v, type: 'mulch', notes: v.maintenance.notes })
+    }
+  })
+  
+  return tasks
+}
+
+/**
+ * Get all vegetables with any maintenance data (trees, shrubs, perennials)
+ */
+export function getPerennialsWithMaintenance(): Vegetable[] {
+  return vegetables.filter(v => v.maintenance !== undefined)
 }

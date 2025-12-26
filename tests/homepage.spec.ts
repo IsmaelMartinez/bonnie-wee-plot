@@ -18,14 +18,14 @@ test.describe('Homepage and Navigation', () => {
     await expect(page).toHaveURL(/ai-advisor/);
   });
 
-  test('should navigate to garden planner page', async ({ page }) => {
+  test('should navigate to allotment page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Look for navigation link to garden planner in header
-    const gardenPlannerLink = page.locator('header').getByRole('link', { name: 'Garden Planner' });
-    await gardenPlannerLink.click();
-    await expect(page).toHaveURL(/garden-planner/);
+    // Look for navigation link to allotment in header
+    const allotmentLink = page.locator('header').getByRole('link', { name: 'My Allotment' });
+    await allotmentLink.click();
+    await expect(page).toHaveURL(/allotment/);
   });
 
   test('should be responsive on mobile', async ({ page }) => {
@@ -162,7 +162,7 @@ test.describe('Growing Guides Navigation', () => {
     await mobileMenuButton.click();
 
     // Wait for mobile menu to open and verify navigation links are visible
-    const gardenPlannerLink = page.locator('a[href="/garden-planner"]').first();
-    await expect(gardenPlannerLink).toBeVisible();
+    const allotmentLink = page.locator('a[href="/allotment"]').first();
+    await expect(allotmentLink).toBeVisible();
   });
 });

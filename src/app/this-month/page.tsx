@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { 
   Calendar, 
   Sprout, 
@@ -13,15 +14,19 @@ import {
   Leaf, 
   Cloud,
   Lightbulb,
-  Home
+  Home,
+  MapPin
 } from 'lucide-react'
 import GuideCTA from '@/components/GuideCTA'
+import { useAllotment } from '@/hooks/useAllotment'
+import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
 import { 
   scotlandMonthlyCalendar, 
   MONTH_KEYS, 
   getCurrentMonthKey,
   type MonthKey 
 } from '@/data/scotland-calendar'
+import { Scissors, Droplet, TreeDeciduous } from 'lucide-react'
 
 // Month selector button component
 function MonthButton({ 
@@ -107,8 +112,66 @@ function TipCard({
   )
 }
 
+// Personalized planting card
+function PersonalizedPlanting({ 
+  bedId, 
+  vegetableName, 
+  varietyName
+}: { 
+  bedId: string
+  vegetableName: string
+  varietyName?: string
+}) {
+  return (
+    <div className="flex items-start gap-3 p-3 bg-white/80 rounded-lg border border-green-200">
+      <div className="flex-1">
+        <div className="font-medium text-gray-800">{vegetableName}</div>
+        {varietyName && <div className="text-xs text-gray-500">{varietyName}</div>}
+        <div className="text-xs text-green-600 mt-1">Bed {bedId}</div>
+      </div>
+    </div>
+  )
+}
+
+// Maintenance task card
+function MaintenanceCard({ task }: { task: MaintenanceTask }) {
+  const typeIcons = {
+    prune: Scissors,
+    feed: Droplet,
+    mulch: TreeDeciduous
+  }
+  const typeLabels = {
+    prune: 'Prune',
+    feed: 'Feed',
+    mulch: 'Mulch'
+  }
+  const typeColors = {
+    prune: 'text-purple-600 bg-purple-50 border-purple-200',
+    feed: 'text-blue-600 bg-blue-50 border-blue-200',
+    mulch: 'text-amber-600 bg-amber-50 border-amber-200'
+  }
+  
+  const Icon = typeIcons[task.type]
+  
+  return (
+    <div className={`flex items-start gap-3 p-3 rounded-lg border ${typeColors[task.type]}`}>
+      <Icon className="w-5 h-5 mt-0.5" />
+      <div className="flex-1">
+        <div className="font-medium">{task.vegetable.name}</div>
+        <div className="text-xs opacity-75">{typeLabels[task.type]}</div>
+        {task.notes && task.notes.length > 0 && (
+          <div className="text-xs mt-1 opacity-75">{task.notes[0]}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
+  
+  // Load allotment data for personalization
+  const { data: allotmentData, currentSeason, selectedYear, isLoading } = useAllotment()
   
   // Auto-select current month on page load
   useEffect(() => {
@@ -117,6 +180,70 @@ export default function ThisMonthPage() {
   
   const data = scotlandMonthlyCalendar[selectedMonth]
   const isCurrentMonth = selectedMonth === getCurrentMonthKey()
+  
+  // Get maintenance tasks for trees, shrubs, and perennials this month
+  const maintenanceTasks = useMemo(() => {
+    const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
+    return getMaintenanceForMonth(monthIndex)
+  }, [selectedMonth])
+  
+  // Get personalized tasks based on user's plantings
+  const personalizedData = useMemo(() => {
+    if (!currentSeason || !allotmentData) return null
+    
+    const allPlantings: Array<{
+      bedId: string
+      vegetableId: string
+      vegetableName: string
+      varietyName?: string
+      harvestMonths: number[]
+      sowMonths: number[]
+      category: string
+    }> = []
+    
+    for (const bed of currentSeason.beds) {
+      for (const planting of bed.plantings) {
+        const veg = getVegetableById(planting.vegetableId)
+        if (veg) {
+          allPlantings.push({
+            bedId: bed.bedId,
+            vegetableId: planting.vegetableId,
+            vegetableName: veg.name,
+            varietyName: planting.varietyName,
+            harvestMonths: veg.planting?.harvestMonths || [],
+            sowMonths: [...(veg.planting?.sowIndoorsMonths || []), ...(veg.planting?.sowOutdoorsMonths || [])],
+            category: veg.category
+          })
+        }
+      }
+    }
+    
+    // Get month index (1-12) for comparison
+    const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
+    
+    // Get plantings that might be ready to harvest this month
+    const readyToHarvest = allPlantings.filter(p => {
+      // Check if current month is within harvest months
+      return p.harvestMonths.includes(monthIndex) || 
+             p.harvestMonths.includes(monthIndex + 1) || 
+             p.harvestMonths.includes(monthIndex - 1)
+    })
+    
+    // Get plantings that need attention (sowing season)
+    const needsAttention = allPlantings.filter(p => {
+      return p.sowMonths.includes(monthIndex) || 
+             p.sowMonths.includes(monthIndex + 1) ||
+             p.sowMonths.includes(monthIndex - 1)
+    })
+    
+    return {
+      plantingCount: allPlantings.length,
+      bedCount: currentSeason.beds.filter(b => b.plantings.length > 0).length,
+      readyToHarvest: readyToHarvest.slice(0, 4),
+      needsAttention: needsAttention.slice(0, 4),
+      allPlantings: allPlantings.slice(0, 6)
+    }
+  }, [currentSeason, allotmentData, selectedMonth])
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -169,6 +296,86 @@ export default function ThisMonthPage() {
             </div>
           </div>
         </div>
+
+        {/* Personalized Section - Your Garden This Month */}
+        {!isLoading && personalizedData && personalizedData.plantingCount > 0 && (
+          <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-green-200 rounded-xl shadow-lg p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <MapPin className="w-6 h-6 text-emerald-600 mr-2" />
+                <h3 className="text-xl font-bold text-gray-800">Your Garden in {data.month}</h3>
+              </div>
+              <Link 
+                href="/allotment" 
+                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
+              >
+                View All →
+              </Link>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-white/60 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-emerald-600">{personalizedData.plantingCount}</div>
+                <div className="text-xs text-gray-600">Plantings in {selectedYear}</div>
+              </div>
+              <div className="bg-white/60 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-emerald-600">{personalizedData.bedCount}</div>
+                <div className="text-xs text-gray-600">Active Beds</div>
+              </div>
+              <div className="bg-white/60 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-emerald-600">{personalizedData.readyToHarvest.length}</div>
+                <div className="text-xs text-gray-600">May Be Ready</div>
+              </div>
+            </div>
+            
+            {/* Your Plantings */}
+            {personalizedData.allPlantings.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Current Plantings</h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {personalizedData.allPlantings.map((p, i) => (
+                    <PersonalizedPlanting
+                      key={i}
+                      bedId={p.bedId}
+                      vegetableName={p.vegetableName}
+                      varietyName={p.varietyName}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {personalizedData.readyToHarvest.length > 0 && (
+              <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center text-orange-700 font-medium mb-1">
+                  <Carrot className="w-4 h-4 mr-2" />
+                  Might be ready to harvest soon
+                </div>
+                <p className="text-sm text-orange-600">
+                  {personalizedData.readyToHarvest.map(p => p.vegetableName).join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* No plantings prompt */}
+        {!isLoading && (!personalizedData || personalizedData.plantingCount === 0) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-center">
+            <Sprout className="w-10 h-10 text-blue-400 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">Track Your Garden</h3>
+            <p className="text-blue-600 mb-4">
+              Add your plantings to get personalized recommendations for {data.month}
+            </p>
+            <Link 
+              href="/allotment" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Manage My Allotment
+            </Link>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
@@ -235,6 +442,24 @@ export default function ThisMonthPage() {
             <TaskList items={data.tasks} />
           </div>
         </div>
+        
+        {/* Trees & Shrubs Maintenance Section */}
+        {maintenanceTasks.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div className="flex items-center mb-4">
+              <TreeDeciduous className="w-6 h-6 text-green-700 mr-2" />
+              <h3 className="text-xl font-bold text-gray-800">Trees & Perennials Care</h3>
+            </div>
+            <p className="text-gray-600 text-sm mb-4">
+              Maintenance tasks for your fruit trees, berry bushes, and perennials this month.
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {maintenanceTasks.map((task, index) => (
+                <MaintenanceCard key={`${task.vegetable.id}-${task.type}-${index}`} task={task} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Specialization Tips */}
         <div className="mb-8">

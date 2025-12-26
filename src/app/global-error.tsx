@@ -11,7 +11,7 @@ interface GlobalErrorProps {
  * Global error handler for the entire application
  * This catches errors in the root layout itself
  */
-export default function GlobalError({ error: _error, reset }: GlobalErrorProps) {
+export default function GlobalError({ reset }: GlobalErrorProps) {
   return (
     <html lang="en">
       <body className="bg-gray-50">

@@ -1,0 +1,172 @@
+/**
+ * Unified Allotment Data Model
+ * 
+ * Single source of truth for all allotment data.
+ * Replaces the disconnected data models from:
+ * - allotment-layout.ts (hardcoded layout)
+ * - historical-plans.ts (hardcoded seasons)
+ * - garden-storage.ts (localStorage with different IDs)
+ */
+
+// Re-export canonical types from garden-planner
+export type {
+  PhysicalBedId,
+  BedStatus,
+  RotationGroup,
+  PlantingSuccess,
+} from './garden-planner'
+
+// Re-export layout types we're keeping
+export type {
+  PhysicalBed,
+  PermanentPlanting,
+  InfrastructureItem,
+} from './garden-planner'
+
+// ============ UNIFIED DATA MODEL ============
+
+/**
+ * Root data structure for the entire allotment
+ * Stored in localStorage as a single JSON object
+ */
+export interface AllotmentData {
+  version: number                    // Schema version for migrations
+  meta: AllotmentMeta
+  layout: AllotmentLayoutData
+  seasons: SeasonRecord[]            // All historical + current seasons
+  currentYear: number                // Which year is "active"
+  maintenanceTasks?: MaintenanceTask[] // Perennial plant care tasks
+}
+
+/**
+ * Allotment metadata
+ */
+export interface AllotmentMeta {
+  name: string                       // "My Edinburgh Allotment"
+  location?: string                  // "Edinburgh, Scotland"
+  createdAt: string                  // ISO date string
+  updatedAt: string                  // ISO date string
+}
+
+/**
+ * Physical layout of the allotment
+ * Rarely changes - beds, trees, infrastructure
+ */
+export interface AllotmentLayoutData {
+  beds: import('./garden-planner').PhysicalBed[]
+  permanentPlantings: import('./garden-planner').PermanentPlanting[]
+  infrastructure: import('./garden-planner').InfrastructureItem[]
+}
+
+// ============ SEASON RECORDS ============
+
+/**
+ * Status of a season record
+ */
+export type SeasonStatus = 'historical' | 'current' | 'planned'
+
+/**
+ * Complete record for one growing season (year)
+ */
+export interface SeasonRecord {
+  year: number
+  status: SeasonStatus
+  beds: BedSeason[]
+  notes?: string                     // General notes for the season
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * One bed's plantings for a season
+ */
+export interface BedSeason {
+  bedId: import('./garden-planner').PhysicalBedId
+  rotationGroup: import('./garden-planner').RotationGroup
+  plantings: Planting[]              // Multiple plantings per bed
+}
+
+// ============ PLANTINGS ============
+
+/**
+ * A single planting within a bed for a season
+ * Simplified from the old PlantedVariety type
+ */
+export interface Planting {
+  id: string                         // Unique ID (generated)
+  vegetableId: string                // Reference to Vegetable.id from database
+  varietyName?: string               // "Kelvedon Wonder", "Nantes 2", etc.
+  
+  // Dates (all optional)
+  sowDate?: string                   // ISO date string
+  transplantDate?: string            // ISO date string
+  harvestDate?: string               // ISO date string
+  
+  // Outcome tracking
+  success?: import('./garden-planner').PlantingSuccess
+  notes?: string                     // Free-form notes
+  
+  // Optional quantity
+  quantity?: number
+}
+
+// ============ MAINTENANCE TASKS ============
+
+/**
+ * Type of maintenance task
+ */
+export type MaintenanceTaskType = 'prune' | 'feed' | 'spray' | 'mulch' | 'harvest' | 'other'
+
+/**
+ * A maintenance task for perennial plants (trees, shrubs, berries)
+ */
+export interface MaintenanceTask {
+  id: string                         // Unique ID
+  plantingId: string                 // Links to permanent planting ID
+  type: MaintenanceTaskType
+  month: number                      // 1-12 when task should be done
+  description: string                // e.g., "Winter prune apple trees"
+  lastCompleted?: string             // ISO date of last completion
+  notes?: string                     // Additional notes
+}
+
+/**
+ * Input for creating a new maintenance task
+ */
+export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
+
+// ============ STORAGE CONSTANTS ============
+
+export const STORAGE_KEY = 'allotment-unified-data'
+export const CURRENT_SCHEMA_VERSION = 2 // Bumped for maintenance tasks
+
+// ============ HELPER TYPES ============
+
+/**
+ * Result type for storage operations
+ */
+export interface StorageResult<T> {
+  success: boolean
+  data?: T
+  error?: string
+}
+
+/**
+ * Input for creating a new planting (without ID)
+ */
+export type NewPlanting = Omit<Planting, 'id'>
+
+/**
+ * Input for updating a planting (partial, without ID)
+ */
+export type PlantingUpdate = Partial<Omit<Planting, 'id'>>
+
+/**
+ * Input for creating a new season
+ */
+export interface NewSeasonInput {
+  year: number
+  status?: SeasonStatus
+  notes?: string
+}
+

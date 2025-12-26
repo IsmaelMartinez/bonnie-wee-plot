@@ -14,6 +14,7 @@ export type VegetableCategory =
   | 'herbs'
   | 'berries'
   | 'fruit-trees'
+  | 'other'        // Sweetcorn, etc.
 
 // Sun requirements
 export type SunRequirement = 'full-sun' | 'partial-shade' | 'shade'
@@ -67,6 +68,15 @@ export interface Vegetable {
   avoidPlants: string[]
   isCustom?: boolean
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
+  maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
+}
+
+// Maintenance info for perennials, trees, and shrubs
+export interface MaintenanceInfo {
+  pruneMonths?: Month[]    // Months when pruning is recommended
+  feedMonths?: Month[]     // Months when feeding is recommended
+  mulchMonths?: Month[]    // Months when mulching is recommended
+  notes?: string[]         // Additional maintenance tips
 }
 
 // A vegetable added to a garden plan

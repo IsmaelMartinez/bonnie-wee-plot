@@ -1,18 +1,20 @@
 'use client'
 
-import { ALL_BED_IDS, BED_COLORS, getBedById } from '@/data/allotment-layout'
-import { getSeasonByYear } from '@/data/historical-plans'
+import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation-planner'
-import { PhysicalBedId, RotationGroup, RotationPlan } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, RotationPlan, PhysicalBed } from '@/types/garden-planner'
+import { SeasonRecord } from '@/types/unified-allotment'
 
 interface RotationTimelineProps {
   availableYears: number[]
+  seasons: SeasonRecord[]
+  beds: PhysicalBed[]
   plan2026: RotationPlan
 }
 
 // Get bed status info
-function getBedStatusInfo(bedId: PhysicalBedId) {
-  const bed = getBedById(bedId)
+function getBedStatusInfo(bedId: PhysicalBedId, beds: PhysicalBed[]) {
+  const bed = beds.find(b => b.id === bedId)
   if (!bed) return null
   
   return {
@@ -23,7 +25,13 @@ function getBedStatusInfo(bedId: PhysicalBedId) {
   }
 }
 
-export default function RotationTimeline({ availableYears, plan2026 }: RotationTimelineProps) {
+export default function RotationTimeline({ availableYears, seasons, beds, plan2026 }: RotationTimelineProps) {
+  // Get all bed IDs from the beds array
+  const allBedIds = beds.map(b => b.id)
+  
+  // Helper to get season by year
+  const getSeasonByYear = (year: number) => seasons.find(s => s.year === year)
+  
   return (
     <div className="mt-8 bg-white rounded-xl shadow-md p-6">
       <h3 className="text-lg font-bold text-gray-800 mb-4">Rotation Timeline - All Beds</h3>
@@ -36,13 +44,13 @@ export default function RotationTimeline({ availableYears, plan2026 }: RotationT
               {availableYears.slice().reverse().map(year => (
                 <th key={year} className="text-center py-2 px-3 text-gray-600">{year}</th>
               ))}
-              <th className="text-center py-2 px-3 text-green-600">2026</th>
+              <th className="text-center py-2 px-3 text-green-600">{plan2026.year}</th>
             </tr>
           </thead>
           <tbody>
-            {ALL_BED_IDS.map(bedId => {
-              const bed = getBedById(bedId)
-              const statusInfo = getBedStatusInfo(bedId)
+            {allBedIds.map(bedId => {
+              const bed = beds.find(b => b.id === bedId)
+              const statusInfo = getBedStatusInfo(bedId, beds)
               
               return (
                 <tr key={bedId} className={`border-b last:border-0 ${statusInfo?.isProblem ? 'bg-red-50' : ''}`}>
@@ -126,4 +134,3 @@ export default function RotationTimeline({ availableYears, plan2026 }: RotationT
     </div>
   )
 }
-

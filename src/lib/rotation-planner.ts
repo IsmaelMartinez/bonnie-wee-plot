@@ -8,7 +8,8 @@ import {
   RotationSuggestion, 
   RotationPlan,
   PhysicalBedId,
-  SeasonPlan
+  SeasonPlan,
+  PhysicalBed
 } from '@/types/garden-planner'
 import { getSeasonByYear, getRotationGroupForBed } from '@/data/historical-plans'
 import { 
@@ -17,6 +18,7 @@ import {
   getProblemBeds
 } from '@/data/allotment-layout'
 import { vegetables } from '@/lib/vegetable-database'
+import { AllotmentData } from '@/types/unified-allotment'
 
 // Standard 4-year rotation sequence
 // Each group should follow a specific pattern to maximize soil health
@@ -352,4 +354,152 @@ export function getBedATransitionPlan(): {
       '2027: First strawberry harvest from Bed A'
     ]
   }
+}
+
+// ============ UNIFIED DATA MODEL SUPPORT ============
+
+/**
+ * Generate rotation suggestion for a single bed using unified data
+ */
+export function generateBedSuggestionFromData(
+  bedId: PhysicalBedId,
+  beds: PhysicalBed[],
+  previousYears: { year: number; group: RotationGroup }[]
+): RotationSuggestion {
+  const bed = beds.find(b => b.id === bedId)
+  
+  // Handle problem beds differently
+  if (bed?.status === 'problem') {
+    const problemSuggestion = PROBLEM_BED_SUGGESTIONS[bedId]
+    return {
+      bedId,
+      previousGroup: previousYears[0]?.group || 'legumes',
+      suggestedGroup: 'permanent',
+      reason: problemSuggestion?.recommendation || 'Problem bed - consider perennial plantings',
+      suggestedVegetables: problemSuggestion?.perennialOptions || [],
+      isProblemBed: true,
+      problemNote: problemSuggestion?.issue
+    }
+  }
+
+  // Handle perennial beds
+  if (bed?.status === 'perennial') {
+    return {
+      bedId,
+      previousGroup: 'permanent',
+      suggestedGroup: 'permanent',
+      reason: 'Perennial bed - maintain existing plantings',
+      suggestedVegetables: [],
+      isPerennial: true
+    }
+  }
+
+  // Get the most recent year's rotation group
+  const sortedYears = [...previousYears].sort((a, b) => b.year - a.year)
+  const mostRecent = sortedYears[0]
+  
+  if (!mostRecent) {
+    return {
+      bedId,
+      previousGroup: 'legumes',
+      suggestedGroup: 'legumes',
+      reason: 'No planting history - legumes are a good starting point to fix nitrogen',
+      suggestedVegetables: getVegetablesForRotationGroup('legumes')
+    }
+  }
+
+  const suggestedGroup = getNextRotationGroup(mostRecent.group)
+  
+  const recentGroups = sortedYears.slice(0, 3).map(y => y.group)
+  let finalSuggestion = suggestedGroup
+  let reason = getRotationReason(mostRecent.group, suggestedGroup)
+
+  if (recentGroups.includes(suggestedGroup)) {
+    const alternatives = ROTATION_ALTERNATIVES[mostRecent.group] || []
+    for (const alt of alternatives) {
+      if (!recentGroups.includes(alt)) {
+        finalSuggestion = alt
+        reason = `${suggestedGroup} was grown recently - ${alt} is a good alternative`
+        break
+      }
+    }
+  }
+
+  return {
+    bedId,
+    previousGroup: mostRecent.group,
+    suggestedGroup: finalSuggestion,
+    reason,
+    suggestedVegetables: getVegetablesForRotationGroup(finalSuggestion)
+  }
+}
+
+/**
+ * Generate rotation plan from unified AllotmentData
+ */
+export function generateRotationPlanFromData(
+  targetYear: number,
+  data: AllotmentData
+): RotationPlan {
+  const beds = data.layout.beds
+  const suggestions: RotationSuggestion[] = []
+  const warnings: string[] = []
+
+  // Build history for each bed from seasons
+  for (const bed of beds) {
+    const bedHistory: { year: number; group: RotationGroup }[] = []
+    
+    for (const season of data.seasons) {
+      const bedSeason = season.beds.find(b => b.bedId === bed.id)
+      if (bedSeason) {
+        bedHistory.push({
+          year: season.year,
+          group: bedSeason.rotationGroup
+        })
+      }
+    }
+
+    const suggestion = generateBedSuggestionFromData(bed.id, beds, bedHistory)
+    suggestions.push(suggestion)
+
+    // Check for rotation warnings (only for rotation beds)
+    if (bed.status === 'rotation' && bedHistory.length >= 2) {
+      const sorted = bedHistory.sort((a, b) => b.year - a.year)
+      if (sorted[0]?.group === sorted[1]?.group) {
+        warnings.push(`Bed ${bed.id}: Same crop family grown two years in a row - consider rotating`)
+      }
+    }
+  }
+
+  // Check for duplicate suggestions in rotation beds
+  const rotationSuggestions = suggestions.filter(s => !s.isProblemBed && !s.isPerennial)
+  const suggestedGroups = rotationSuggestions.map(s => s.suggestedGroup)
+  const duplicates = suggestedGroups.filter((g, i) => suggestedGroups.indexOf(g) !== i)
+  if (duplicates.length > 0) {
+    warnings.push(`Multiple beds suggested for ${duplicates.join(', ')} - consider adjusting`)
+  }
+
+  // Add problem bed warnings
+  const problemBedsList = beds.filter(b => b.status === 'problem')
+  for (const bed of problemBedsList) {
+    warnings.push(`${bed.name} needs attention: ${bed.problemNotes}`)
+  }
+
+  return {
+    year: targetYear,
+    suggestions,
+    warnings
+  }
+}
+
+/**
+ * Get problem beds summary from unified data
+ */
+export function getProblemBedsSummaryFromData(data: AllotmentData): string {
+  const problemBeds = data.layout.beds.filter(b => b.status === 'problem')
+  if (problemBeds.length === 0) return 'No problem beds identified.'
+  
+  return problemBeds
+    .map(b => `${b.name}: ${b.problemNotes || 'Needs attention'}`)
+    .join('\n')
 }

@@ -121,7 +121,7 @@ function getVegetableCandidates(
 ): string[] {
   // Get vegetables in the suggested rotation group
   const rotationCategories = Object.entries(ROTATION_GROUPS)
-    .filter(([_, group]) => group === suggestedRotation)
+    .filter(([, group]) => group === suggestedRotation)
     .map(([category]) => category)
   
   let candidates = vegetables

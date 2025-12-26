@@ -14,10 +14,9 @@ interface ErrorBoundaryProviderProps {
 export default function ErrorBoundaryProvider({ children }: ErrorBoundaryProviderProps) {
   return (
     <ErrorBoundary
-      onError={(error, _errorInfo) => {
+      onError={(error) => {
         // In production, you could send errors to a logging service
         if (process.env.NODE_ENV === 'production') {
-          // Example: sendToErrorTracker(error, _errorInfo)
           console.error('Production error:', error.message)
         }
       }}

@@ -59,9 +59,9 @@ export default function Home() {
 
         <div className="bg-lime-50 rounded-lg p-6 text-center">
           <h3 className="text-xl font-semibold mb-4">Plan Your Garden</h3>
-          <p className="text-gray-600 mb-4">Design garden beds, plan crops, and track your planting calendar.</p>
-          <a href="/garden-planner" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 transition">
-            Open Planner
+          <p className="text-gray-600 mb-4">Manage your allotment beds, plan crops, and track planting history.</p>
+          <a href="/allotment" className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 transition">
+            My Allotment
           </a>
         </div>
       </section>

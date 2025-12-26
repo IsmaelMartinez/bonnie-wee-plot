@@ -131,7 +131,7 @@ function buildApiConfig(apiKey: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, messages = [], image } = await request.json()
+    const { message, messages = [], image, allotmentContext } = await request.json()
 
     if (!message) {
       return NextResponse.json(
@@ -160,9 +160,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Build system prompt with optional allotment context
+    let systemPrompt = AITOR_SYSTEM_PROMPT
+    
+    if (allotmentContext && typeof allotmentContext === 'string' && allotmentContext.trim()) {
+      systemPrompt += `\n\n📊 USER'S ALLOTMENT DATA:\n${allotmentContext}\n\nUse this context to provide personalized advice. When relevant, reference the user's specific beds, plantings, and any noted problem areas. Consider their planting history when making rotation and succession suggestions.`
+    }
+    
     // Prepare messages for AI API
     const apiMessages: OpenAIMessage[] = [
-      { role: 'system', content: AITOR_SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...messages.map((msg: IncomingMessage) => ({
         role: msg.role,
         content: msg.content

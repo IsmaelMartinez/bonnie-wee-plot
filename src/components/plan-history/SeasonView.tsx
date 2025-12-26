@@ -1,10 +1,11 @@
 'use client'
 
 import { Calendar, AlertCircle, AlertTriangle } from 'lucide-react'
-import { BED_COLORS, getBedById } from '@/data/allotment-layout'
+import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { SeasonPlan, RotationGroup, PlantingSuccess, PhysicalBedId } from '@/types/garden-planner'
+import { RotationGroup, PlantingSuccess, PhysicalBedId, PhysicalBed } from '@/types/garden-planner'
+import { SeasonRecord } from '@/types/unified-allotment'
 
 // Success badge colors
 const SUCCESS_COLORS: Record<PlantingSuccess, { bg: string; text: string }> = {
@@ -14,9 +15,9 @@ const SUCCESS_COLORS: Record<PlantingSuccess, { bg: string; text: string }> = {
   'poor': { bg: 'bg-red-100', text: 'text-red-700' }
 }
 
-// Get bed status info
-function getBedStatusInfo(bedId: PhysicalBedId) {
-  const bed = getBedById(bedId)
+// Get bed status info from passed beds array
+function getBedStatusInfo(bedId: PhysicalBedId, beds: PhysicalBed[]) {
+  const bed = beds.find(b => b.id === bedId)
   if (!bed) return null
   
   return {
@@ -28,11 +29,12 @@ function getBedStatusInfo(bedId: PhysicalBedId) {
 }
 
 interface SeasonViewProps {
-  season: SeasonPlan
+  season: SeasonRecord
   year: number
+  beds: PhysicalBed[]
 }
 
-export default function SeasonView({ season, year }: SeasonViewProps) {
+export default function SeasonView({ season, year, beds }: SeasonViewProps) {
   return (
     <div className="space-y-6">
       {/* Season Summary */}
@@ -40,6 +42,15 @@ export default function SeasonView({ season, year }: SeasonViewProps) {
         <div className="flex items-center gap-3 mb-4">
           <Calendar className="w-6 h-6 text-amber-600" />
           <h2 className="text-xl font-bold text-gray-800">{year} Season</h2>
+          {season.status && (
+            <span className={`px-2 py-0.5 text-xs rounded-full ${
+              season.status === 'current' ? 'bg-green-100 text-green-700' :
+              season.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+              'bg-gray-100 text-gray-600'
+            }`}>
+              {season.status}
+            </span>
+          )}
         </div>
         
         {season.notes && (
@@ -81,7 +92,7 @@ export default function SeasonView({ season, year }: SeasonViewProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {season.beds.map(bed => {
           const rotationDisplay = ROTATION_GROUP_DISPLAY[bed.rotationGroup as RotationGroup]
-          const bedInfo = getBedStatusInfo(bed.bedId)
+          const bedInfo = getBedStatusInfo(bed.bedId, beds)
           
           return (
             <div 
@@ -162,4 +173,6 @@ export default function SeasonView({ season, year }: SeasonViewProps) {
     </div>
   )
 }
+
+
 

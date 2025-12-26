@@ -25,7 +25,8 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
   'leafy-greens': 'roots',     // Often grouped with roots in rotation
   'herbs': 'permanent',         // Perennials, don't need rotation
   'berries': 'permanent',       // Perennials
-  'fruit-trees': 'permanent'    // Perennials
+  'fruit-trees': 'permanent',   // Perennials
+  'other': 'roots'              // Sweetcorn etc - treat as roots for rotation
 }
 
 /**
@@ -214,10 +215,11 @@ export function getRotationSummary(
  */
 export function getVegetablesForRotationGroup(rotationGroup: RotationGroup): string[] {
   const categories = Object.entries(ROTATION_GROUPS)
-    .filter(([_, group]) => group === rotationGroup)
+    .filter(([, group]) => group === rotationGroup)
     .map(([category]) => category as VegetableCategory)
   
-  // Import and filter vegetables by category
+  // Import vegetables dynamically to avoid circular dependency
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { vegetables } = require('@/lib/vegetable-database')
   return vegetables
     .filter((v: { category: VegetableCategory }) => categories.includes(v.category))

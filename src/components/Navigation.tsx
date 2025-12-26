@@ -7,7 +7,7 @@ import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw, Calendar, Map } 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/allotment', label: 'My Allotment', icon: Map },
-  { href: '/garden-planner', label: 'Garden Planner' },
+  { href: '/plan-history', label: 'History' },
   { href: '/ai-advisor', label: 'Aitor' },
 ]
 
