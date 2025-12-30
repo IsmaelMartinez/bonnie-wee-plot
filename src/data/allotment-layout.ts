@@ -77,29 +77,28 @@ export const physicalBeds: PhysicalBed[] = [
     rotationGroup: 'solanaceae'
   },
   
-  // Problem beds - need special attention
+  // Beds with challenges (problem status inferred from notes)
   {
     id: 'C',
     name: 'Bed C',
-    description: 'Under apple tree on left side. Shaded and poor results.',
-    status: 'problem',
-    problemNotes: 'Too shaded by apple tree. Peas did poorly. Consider shade-tolerant perennials like asparagus or rhubarb expansion.'
+    description: 'Under apple tree on left side. Shaded area.',
+    status: 'rotation',
+    rotationGroup: 'legumes',
   },
   {
     id: 'E',
     name: 'Bed E',
     description: 'Top left corner. First year cultivating this area.',
-    status: 'problem',
-    problemNotes: 'French beans + sunflowers competition failed. Retry with just beans or consider perennials.'
+    status: 'rotation',
+    rotationGroup: 'legumes',
   },
-  
+
   // Perennial area
   {
     id: 'raspberries',
     name: 'Raspberry Area',
     description: 'Large raspberry patch on right side. Consider reducing size.',
     status: 'perennial',
-    problemNotes: 'Area is too large - plan to reduce and reclaim space for rotation beds.'
   }
 ]
 

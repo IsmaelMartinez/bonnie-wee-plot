@@ -75,12 +75,29 @@ export interface SeasonRecord {
 }
 
 /**
+ * Type of bed note (visual indicator)
+ */
+export type BedNoteType = 'warning' | 'error' | 'success' | 'info'
+
+/**
+ * A note attached to a bed for a specific season
+ */
+export interface BedNote {
+  id: string
+  content: string
+  type: BedNoteType
+  createdAt: string
+  updatedAt: string
+}
+
+/**
  * One bed's plantings for a season
  */
 export interface BedSeason {
   bedId: PhysicalBedId
   rotationGroup: RotationGroup
   plantings: Planting[]              // Multiple plantings per bed
+  notes?: BedNote[]                  // Per-bed notes for this season
 }
 
 // ============ PLANTINGS ============
@@ -135,7 +152,7 @@ export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 2 // Bumped for maintenance tasks
+export const CURRENT_SCHEMA_VERSION = 4 // Bumped for problemNotes migration
 
 // ============ HELPER TYPES ============
 
@@ -166,4 +183,14 @@ export interface NewSeasonInput {
   status?: SeasonStatus
   notes?: string
 }
+
+/**
+ * Input for creating a new bed note (without ID and timestamps)
+ */
+export type NewBedNote = Omit<BedNote, 'id' | 'createdAt' | 'updatedAt'>
+
+/**
+ * Input for updating a bed note (partial, without ID)
+ */
+export type BedNoteUpdate = Partial<Omit<BedNote, 'id' | 'createdAt'>>
 

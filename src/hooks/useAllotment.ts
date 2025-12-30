@@ -17,6 +17,9 @@ import {
   PlantingUpdate,
   MaintenanceTask,
   NewMaintenanceTask,
+  BedNote,
+  NewBedNote,
+  BedNoteUpdate,
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PhysicalBed } from '@/types/garden-planner'
 import {
@@ -46,6 +49,10 @@ import {
   updateMaintenanceTask as storageUpdateTask,
   completeMaintenanceTask as storageCompleteTask,
   removeMaintenanceTask as storageRemoveTask,
+  getBedNotes,
+  addBedNote as storageAddBedNote,
+  updateBedNote as storageUpdateBedNote,
+  removeBedNote as storageRemoveBedNote,
 } from '@/services/allotment-storage'
 import { STORAGE_KEY } from '@/types/unified-allotment'
 
@@ -109,7 +116,13 @@ export interface UseAllotmentActions {
   updateMaintenanceTask: (taskId: string, updates: Partial<Omit<MaintenanceTask, 'id'>>) => void
   completeMaintenanceTask: (taskId: string) => void
   removeMaintenanceTask: (taskId: string) => void
-  
+
+  // Bed notes
+  getBedNotes: (bedId: PhysicalBedId) => BedNote[]
+  addBedNote: (bedId: PhysicalBedId, note: NewBedNote) => void
+  updateBedNote: (bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => void
+  removeBedNote: (bedId: PhysicalBedId, noteId: string) => void
+
   // Data operations
   reload: () => void
   flushSave: () => void  // Force immediate save of pending data
@@ -450,6 +463,28 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRemoveTask(data, taskId))
   }, [data])
 
+  // ============ BED NOTES ============
+
+  const getBedNotesData = useCallback((bedId: PhysicalBedId): BedNote[] => {
+    if (!data) return []
+    return getBedNotes(data, selectedYear, bedId)
+  }, [data, selectedYear])
+
+  const addBedNoteData = useCallback((bedId: PhysicalBedId, note: NewBedNote) => {
+    if (!data) return
+    setData(storageAddBedNote(data, selectedYear, bedId, note))
+  }, [data, selectedYear])
+
+  const updateBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => {
+    if (!data) return
+    setData(storageUpdateBedNote(data, selectedYear, bedId, noteId, updates))
+  }, [data, selectedYear])
+
+  const removeBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string) => {
+    if (!data) return
+    setData(storageRemoveBedNote(data, selectedYear, bedId, noteId))
+  }, [data, selectedYear])
+
   return {
     // State
     data,
@@ -488,6 +523,10 @@ export function useAllotment(): UseAllotmentReturn {
     updateMaintenanceTask: updateTask,
     completeMaintenanceTask: completeTask,
     removeMaintenanceTask: removeTask,
+    getBedNotes: getBedNotesData,
+    addBedNote: addBedNoteData,
+    updateBedNote: updateBedNoteData,
+    removeBedNote: removeBedNoteData,
     reload,
     flushSave,
     clearSaveError,

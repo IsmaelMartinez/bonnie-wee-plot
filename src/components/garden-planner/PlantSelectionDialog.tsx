@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Search } from 'lucide-react'
+import { X, Search, Check, AlertTriangle } from 'lucide-react'
 import { Vegetable, CATEGORY_INFO, VegetableCategory } from '@/types/garden-planner'
-import { vegetables } from '@/lib/vegetable-database'
+import { vegetables, getVegetableById } from '@/lib/vegetable-database'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 
@@ -50,22 +50,24 @@ export default function PlantSelectionDialog({
 
   if (!isOpen) return null
 
-  // Get compatibility color for a plant based on what's already planted
-  function getCompatibility(vegetableId: string): 'good' | 'neutral' | 'bad' {
-    if (plantedVegetableIds.length === 0) return 'neutral'
-
-    let hasGood = false
-    let hasBad = false
+  // Get compatibility details for a plant based on what's already planted
+  function getCompatibilityDetails(vegetableId: string): {
+    status: 'good' | 'neutral' | 'bad'
+    goodWith: string[]
+    badWith: string[]
+  } {
+    const goodWith: string[] = []
+    const badWith: string[] = []
 
     for (const plantedId of plantedVegetableIds) {
       const compat = checkCompanionCompatibility(vegetableId, plantedId)
-      if (compat === 'good') hasGood = true
-      if (compat === 'bad') hasBad = true
+      const plantedVeg = getVegetableById(plantedId)
+      if (compat === 'good' && plantedVeg) goodWith.push(plantedVeg.name)
+      if (compat === 'bad' && plantedVeg) badWith.push(plantedVeg.name)
     }
 
-    if (hasBad) return 'bad'
-    if (hasGood) return 'good'
-    return 'neutral'
+    const status = badWith.length > 0 ? 'bad' : goodWith.length > 0 ? 'good' : 'neutral'
+    return { status, goodWith, badWith }
   }
 
   // Filter plants
@@ -172,10 +174,10 @@ export default function PlantSelectionDialog({
         <div className="flex-1 overflow-y-auto p-2">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {filteredPlants.map(plant => {
-              const compat = getCompatibility(plant.id)
-              const bgColor = compat === 'good'
+              const { status, goodWith, badWith } = getCompatibilityDetails(plant.id)
+              const bgColor = status === 'good'
                 ? 'bg-green-50 hover:bg-green-100 border-green-200'
-                : compat === 'bad'
+                : status === 'bad'
                 ? 'bg-red-50 hover:bg-red-100 border-red-200'
                 : 'bg-white hover:bg-gray-50 border-gray-200'
 
@@ -185,13 +187,25 @@ export default function PlantSelectionDialog({
                   onClick={() => onSelect(plant.id)}
                   className={`p-3 rounded-lg border text-left transition-all ${bgColor}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <span className="text-2xl">{getPlantEmoji(plant.category)}</span>
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-gray-800 truncate">{plant.name}</div>
                       <div className="text-xs text-gray-500 truncate">
                         {CATEGORY_INFO.find(c => c.id === plant.category)?.name}
                       </div>
+                      {goodWith.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-green-700">
+                          <Check className="w-3 h-3 shrink-0" />
+                          <span className="truncate">Good: {goodWith.join(', ')}</span>
+                        </div>
+                      )}
+                      {badWith.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+                          <AlertTriangle className="w-3 h-3 shrink-0" />
+                          <span className="truncate">Avoid: {badWith.join(', ')}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>

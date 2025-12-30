@@ -27,6 +27,7 @@ import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import DataManagement from '@/components/allotment/DataManagement'
 import SaveIndicator from '@/components/ui/SaveIndicator'
+import BedNotes from '@/components/allotment/BedNotes'
 
 // Add Planting Form (used inside Dialog)
 function AddPlantingForm({ 
@@ -326,6 +327,10 @@ export default function AllotmentPage() {
     reload,
     saveStatus,
     lastSavedAt,
+    getBedNotes,
+    addBedNote,
+    updateBedNote,
+    removeBedNote,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -338,8 +343,13 @@ export default function AllotmentPage() {
   // Get bed data
   const selectedBedData = selectedBedId ? getBed(selectedBedId) : null
   const selectedPlantings = selectedBedId ? getPlantings(selectedBedId) : []
+  const selectedBedNotes = selectedBedId ? getBedNotes(selectedBedId) : []
   const allBeds = data?.layout.beds || []
   const permanentPlantingsCount = data?.layout.permanentPlantings.length || 0
+
+  // Infer "problem" status from note type (warning or error)
+  const hasProblemNote = selectedBedNotes.some(n => n.type === 'warning' || n.type === 'error')
+  const inferredStatus = hasProblemNote ? 'problem' : selectedBedData?.status
 
   // Loading state
   if (isLoading) {
@@ -552,27 +562,30 @@ export default function AllotmentPage() {
                   <div>
                     <h3 className="font-bold text-gray-800">{selectedBedData.name}</h3>
                     <div className={`text-xs flex items-center gap-1 ${
-                      selectedBedData.status === 'problem' ? 'text-red-500' : 
-                      selectedBedData.status === 'perennial' ? 'text-purple-500' : 
+                      inferredStatus === 'problem' ? 'text-red-500' :
+                      inferredStatus === 'perennial' ? 'text-purple-500' :
                       'text-green-600'
                     }`}>
-                      {selectedBedData.status === 'problem' && <AlertTriangle className="w-3 h-3" />}
-                      {selectedBedData.status === 'perennial' && <Leaf className="w-3 h-3" />}
-                      {selectedBedData.status.charAt(0).toUpperCase() + selectedBedData.status.slice(1)}
+                      {inferredStatus === 'problem' && <AlertTriangle className="w-3 h-3" />}
+                      {inferredStatus === 'perennial' && <Leaf className="w-3 h-3" />}
+                      {inferredStatus === 'problem' ? 'Problem' :
+                       inferredStatus === 'perennial' ? 'Perennial' :
+                       selectedBedData.rotationGroup || 'Rotation'}
                     </div>
                   </div>
                 </div>
 
                 <p className="text-sm text-gray-600 mb-4">{selectedBedData.description}</p>
 
-                {selectedBedData.problemNotes && (
-                  <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
-                      <p className="text-sm text-red-700">{selectedBedData.problemNotes}</p>
-                    </div>
-                  </div>
-                )}
+                {/* Bed Note for this year */}
+                <div className="mb-4">
+                  <BedNotes
+                    notes={selectedBedNotes}
+                    onAdd={(note) => addBedNote(selectedBedId!, note)}
+                    onUpdate={(noteId, updates) => updateBedNote(selectedBedId!, noteId, updates)}
+                    onRemove={(noteId) => removeBedNote(selectedBedId!, noteId)}
+                  />
+                </div>
 
                 {/* Plantings section with Add button */}
                 <div>

@@ -16,6 +16,9 @@ import {
   StorageResult,
   MaintenanceTask,
   NewMaintenanceTask,
+  BedNote,
+  NewBedNote,
+  BedNoteUpdate,
   STORAGE_KEY,
   CURRENT_SCHEMA_VERSION,
 } from '@/types/unified-allotment'
@@ -341,13 +344,65 @@ export function clearAllotmentData(): StorageResult<void> {
  */
 function migrateSchema(data: AllotmentData): AllotmentData {
   const migrated = { ...data }
-  
+
   // Version 1 -> 2: Add maintenance tasks array
   if (migrated.version < 2) {
     migrated.maintenanceTasks = migrated.maintenanceTasks || []
     console.log('Migrated to schema v2: added maintenanceTasks')
   }
-  
+
+  // Version 2 -> 3: Add notes array to BedSeason (no action needed, notes is optional)
+  if (migrated.version < 3) {
+    console.log('Migrated to schema v3: bed notes support added')
+  }
+
+  // Version 3 -> 4: Migrate problemNotes from layout.beds to BedNotes for 2025
+  if (migrated.version < 4) {
+    const now = new Date().toISOString()
+    const problemNotesMap: Record<string, string> = {
+      'C': 'Too shaded by apple tree. Peas did poorly. Consider shade-tolerant perennials like asparagus or rhubarb expansion.',
+      'E': 'French beans + sunflowers competition failed. Retry with just beans or consider perennials.',
+      'raspberries': 'Area is too large - plan to reduce and reclaim space for rotation beds.',
+    }
+
+    // Add notes to 2025 season beds
+    migrated.seasons = migrated.seasons.map(season => {
+      if (season.year !== 2025) return season
+
+      return {
+        ...season,
+        beds: season.beds.map(bed => {
+          const problemNote = problemNotesMap[bed.bedId]
+          if (!problemNote) return bed
+
+          // Only add if no notes exist yet
+          if (bed.notes && bed.notes.length > 0) return bed
+
+          return {
+            ...bed,
+            notes: [{
+              id: generateId('note'),
+              content: problemNote,
+              type: 'warning' as const,
+              createdAt: now,
+              updatedAt: now,
+            }],
+          }
+        }),
+      }
+    })
+
+    // Remove problemNotes from layout.beds (create new objects without the field)
+    migrated.layout = {
+      ...migrated.layout,
+      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup }) => ({
+        id, name, description, status, rotationGroup,
+      })),
+    }
+
+    console.log('Migrated to schema v4: problemNotes converted to BedNotes for 2025')
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
   return migrated
 }
@@ -413,13 +468,45 @@ function convertSeason(legacy: SeasonPlan, status: 'historical' | 'current'): Se
 export function migrateFromLegacyData(): AllotmentData {
   const now = new Date().toISOString()
   const currentYear = new Date().getFullYear()
-  
-  // Convert legacy seasons
-  const seasons: SeasonRecord[] = [
-    convertSeason(season2024, 'historical'),
-    convertSeason(season2025, currentYear === 2025 ? 'current' : 'historical'),
-  ]
-  
+
+  // Problem notes to migrate to BedNotes for 2025
+  const problemNotesMap: Record<string, string> = {
+    'C': 'Too shaded by apple tree. Peas did poorly. Consider shade-tolerant perennials like asparagus or rhubarb expansion.',
+    'E': 'French beans + sunflowers competition failed. Retry with just beans or consider perennials.',
+    'raspberries': 'Area is too large - plan to reduce and reclaim space for rotation beds.',
+  }
+
+  // Convert legacy seasons and add BedNotes for 2025
+  const convertedSeason2024 = convertSeason(season2024, 'historical')
+  const convertedSeason2025 = convertSeason(season2025, currentYear === 2025 ? 'current' : 'historical')
+
+  // Add BedNotes to 2025 season
+  const season2025WithNotes: SeasonRecord = {
+    ...convertedSeason2025,
+    beds: convertedSeason2025.beds.map(bed => {
+      const problemNote = problemNotesMap[bed.bedId]
+      if (!problemNote) return bed
+
+      return {
+        ...bed,
+        notes: [{
+          id: generateId('note'),
+          content: problemNote,
+          type: 'warning' as const,
+          createdAt: now,
+          updatedAt: now,
+        }],
+      }
+    }),
+  }
+
+  const seasons: SeasonRecord[] = [convertedSeason2024, season2025WithNotes]
+
+  // Remove problemNotes from beds in layout (create new objects without the field)
+  const bedsWithoutProblemNotes = physicalBeds.map(({ id, name, description, status, rotationGroup }) => ({
+    id, name, description, status, rotationGroup,
+  }))
+
   // Create initial data structure
   const data: AllotmentData = {
     version: CURRENT_SCHEMA_VERSION,
@@ -430,14 +517,14 @@ export function migrateFromLegacyData(): AllotmentData {
       updatedAt: now,
     },
     layout: {
-      beds: physicalBeds,
+      beds: bedsWithoutProblemNotes,
       permanentPlantings: permanentPlantings,
       infrastructure: infrastructure,
     },
     seasons,
     currentYear: 2025,
   }
-  
+
   return data
 }
 
@@ -706,6 +793,132 @@ export function getPlantingsForBed(
 ): Planting[] {
   const bedSeason = getBedSeason(data, year, bedId)
   return bedSeason?.plantings || []
+}
+
+// ============ BED NOTE OPERATIONS ============
+
+/**
+ * Generate a unique ID for a bed note
+ */
+export function generateBedNoteId(): string {
+  return generateId('note')
+}
+
+/**
+ * Get all notes for a bed in a season
+ */
+export function getBedNotes(
+  data: AllotmentData,
+  year: number,
+  bedId: PhysicalBedId
+): BedNote[] {
+  const bedSeason = getBedSeason(data, year, bedId)
+  return bedSeason?.notes || []
+}
+
+/**
+ * Add a note to a bed in a season
+ */
+export function addBedNote(
+  data: AllotmentData,
+  year: number,
+  bedId: PhysicalBedId,
+  note: NewBedNote
+): AllotmentData {
+  const now = new Date().toISOString()
+  const newNote: BedNote = {
+    ...note,
+    id: generateBedNoteId(),
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  return {
+    ...data,
+    seasons: data.seasons.map(season => {
+      if (season.year !== year) return season
+
+      return {
+        ...season,
+        updatedAt: now,
+        beds: season.beds.map(bed => {
+          if (bed.bedId !== bedId) return bed
+
+          return {
+            ...bed,
+            notes: [...(bed.notes || []), newNote],
+          }
+        }),
+      }
+    }),
+  }
+}
+
+/**
+ * Update a bed note
+ */
+export function updateBedNote(
+  data: AllotmentData,
+  year: number,
+  bedId: PhysicalBedId,
+  noteId: string,
+  updates: BedNoteUpdate
+): AllotmentData {
+  const now = new Date().toISOString()
+
+  return {
+    ...data,
+    seasons: data.seasons.map(season => {
+      if (season.year !== year) return season
+
+      return {
+        ...season,
+        updatedAt: now,
+        beds: season.beds.map(bed => {
+          if (bed.bedId !== bedId) return bed
+
+          return {
+            ...bed,
+            notes: (bed.notes || []).map(note =>
+              note.id === noteId
+                ? { ...note, ...updates, updatedAt: now }
+                : note
+            ),
+          }
+        }),
+      }
+    }),
+  }
+}
+
+/**
+ * Remove a bed note
+ */
+export function removeBedNote(
+  data: AllotmentData,
+  year: number,
+  bedId: PhysicalBedId,
+  noteId: string
+): AllotmentData {
+  return {
+    ...data,
+    seasons: data.seasons.map(season => {
+      if (season.year !== year) return season
+
+      return {
+        ...season,
+        updatedAt: new Date().toISOString(),
+        beds: season.beds.map(bed => {
+          if (bed.bedId !== bedId) return bed
+
+          return {
+            ...bed,
+            notes: (bed.notes || []).filter(note => note.id !== noteId),
+          }
+        }),
+      }
+    }),
+  }
 }
 
 // ============ LAYOUT OPERATIONS ============
