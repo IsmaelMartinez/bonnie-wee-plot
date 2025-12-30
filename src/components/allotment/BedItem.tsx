@@ -2,14 +2,33 @@
 
 import { AlertTriangle } from 'lucide-react'
 import { GridItemConfig } from '@/data/allotment-layout'
+import { Planting } from '@/types/unified-allotment'
+import { getVegetableById } from '@/lib/vegetable-database'
+import { getPlantEmoji } from '@/lib/plant-emoji'
 
 interface BedItemProps {
   item: GridItemConfig
   isSelected?: boolean
   isEditing?: boolean
+  plantings?: Planting[]
 }
 
-export default function BedItem({ item, isSelected, isEditing }: BedItemProps) {
+export default function BedItem({ item, isSelected, isEditing, plantings = [] }: BedItemProps) {
+  // Get icon from plantings if available, otherwise use default
+  const getPlantingIcon = (): string | undefined => {
+    if (plantings.length === 0) return item.icon
+
+    // Get first planting's vegetable and show its emoji
+    const firstPlanting = plantings[0]
+    const veg = getVegetableById(firstPlanting.vegetableId)
+    if (veg) {
+      return getPlantEmoji(veg.category)
+    }
+    return item.icon
+  }
+
+  const displayIcon = getPlantingIcon()
+
   // Determine text color based on background brightness
   const getTextColor = (bgColor?: string) => {
     if (!bgColor) return 'text-gray-700'
@@ -52,10 +71,10 @@ export default function BedItem({ item, isSelected, isEditing }: BedItemProps) {
         backgroundColor: item.color || '#e5e7eb',
       }}
     >
-      {/* Icon */}
-      {item.icon && (
+      {/* Icon - shows planting icon if available */}
+      {displayIcon && (
         <span className="text-lg leading-none" role="img" aria-label={item.label}>
-          {item.icon}
+          {displayIcon}
         </span>
       )}
       

@@ -33,6 +33,7 @@ import {
   updatePlanting as storageUpdatePlanting,
   removePlanting as storageRemovePlanting,
   addSeason,
+  removeSeason,
   updateSeason,
   setCurrentYear,
   updateBedRotationGroup,
@@ -97,6 +98,7 @@ export interface UseAllotmentActions {
   
   // Season operations
   createSeason: (year: number, notes?: string) => void
+  deleteSeason: (year: number) => void
   updateSeasonNotes: (notes: string) => void
   
   // Layout helpers
@@ -357,6 +359,15 @@ export function useAllotment(): UseAllotmentReturn {
     setSelectedYear(year)
   }, [data])
 
+  const deleteSeasonData = useCallback((year: number) => {
+    if (!data) return
+    // Don't allow deleting the last season
+    if (data.seasons.length <= 1) return
+    const newData = removeSeason(data, year)
+    setData(newData)
+    setSelectedYear(newData.currentYear)
+  }, [data])
+
   const updateSeasonNotes = useCallback((notes: string) => {
     if (!data) return
     setData(updateSeason(data, selectedYear, { notes }))
@@ -510,6 +521,7 @@ export function useAllotment(): UseAllotmentReturn {
     getBedSeason: getBedSeasonData,
     updateRotationGroup,
     createSeason,
+    deleteSeason: deleteSeasonData,
     updateSeasonNotes,
     getRotationBeds: getRotationBedsData,
     getProblemBeds,

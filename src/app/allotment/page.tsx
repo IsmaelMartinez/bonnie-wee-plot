@@ -320,6 +320,7 @@ export default function AllotmentPage() {
     updatePlanting,
     removePlanting,
     createSeason,
+    deleteSeason,
     getRotationBeds,
     getProblemBeds,
     getPerennialBeds,
@@ -334,7 +335,8 @@ export default function AllotmentPage() {
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
-  
+  const [yearToDelete, setYearToDelete] = useState<number | null>(null)
+
   // Get available years and add next year option
   const availableYears = getYears()
   const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : new Date().getFullYear()
@@ -488,17 +490,30 @@ export default function AllotmentPage() {
           </button>
           
           {availableYears.map(year => (
-            <button
-              key={year}
-              onClick={() => selectYear(year)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                selectedYear === year
-                  ? 'bg-emerald-500 text-white shadow'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {year}
-            </button>
+            <div key={year} className="relative group">
+              <button
+                onClick={() => selectYear(year)}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  selectedYear === year
+                    ? 'bg-emerald-500 text-white shadow'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {year}
+              </button>
+              {availableYears.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setYearToDelete(year)
+                  }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-red-600"
+                  title={`Delete ${year}`}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           ))}
           
           {canCreateNextYear && (
@@ -541,9 +556,10 @@ export default function AllotmentPage() {
               </h2>
               
               {/* Draggable Grid Layout */}
-              <AllotmentGrid 
+              <AllotmentGrid
                 onBedSelect={(bedId) => selectBed(bedId as PhysicalBedId)}
                 selectedBed={selectedBedId}
+                getPlantingsForBed={getPlantings}
               />
             </div>
           </div>
@@ -720,6 +736,23 @@ export default function AllotmentPage() {
           existingPlantings={selectedPlantings}
         />
       </Dialog>
+
+      {/* Delete Year Confirmation */}
+      <ConfirmDialog
+        isOpen={yearToDelete !== null}
+        onClose={() => setYearToDelete(null)}
+        onConfirm={() => {
+          if (yearToDelete) {
+            deleteSeason(yearToDelete)
+            setYearToDelete(null)
+          }
+        }}
+        title="Delete Year"
+        message={`Are you sure you want to delete ${yearToDelete}? All plantings and notes for this year will be permanently deleted.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   )
 }

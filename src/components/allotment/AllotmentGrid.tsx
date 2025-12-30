@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import ReactGridLayout from 'react-grid-layout'
 import { Lock, Unlock, RotateCcw } from 'lucide-react'
-import { 
-  DEFAULT_GRID_LAYOUT, 
+import {
+  DEFAULT_GRID_LAYOUT,
   LAYOUT_STORAGE_KEY,
-  GridItemConfig 
+  GridItemConfig
 } from '@/data/allotment-layout'
 import { PhysicalBedId } from '@/types/garden-planner'
+import { Planting } from '@/types/unified-allotment'
 import BedItem from './BedItem'
 
 import 'react-grid-layout/css/styles.css'
@@ -17,6 +18,7 @@ import 'react-resizable/css/styles.css'
 interface AllotmentGridProps {
   onBedSelect?: (bedId: PhysicalBedId | null) => void
   selectedBed?: PhysicalBedId | null
+  getPlantingsForBed?: (bedId: PhysicalBedId) => Planting[]
 }
 
 // Layout item type for react-grid-layout
@@ -64,7 +66,7 @@ function mergeLayoutWithConfig(
   })
 }
 
-export default function AllotmentGrid({ onBedSelect, selectedBed }: AllotmentGridProps) {
+export default function AllotmentGrid({ onBedSelect, selectedBed, getPlantingsForBed }: AllotmentGridProps) {
   const [items, setItems] = useState<GridItemConfig[]>(DEFAULT_GRID_LAYOUT)
   const [isEditing, setIsEditing] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -205,19 +207,23 @@ export default function AllotmentGrid({ onBedSelect, selectedBed }: AllotmentGri
             useCSSTransforms: true,
           } as unknown as React.ComponentProps<typeof ReactGridLayout>)}
         >
-          {items.map(item => (
-            <div 
-              key={item.i}
-              onClick={() => handleItemClick(item)}
-              className={item.bedId ? 'cursor-pointer' : ''}
-            >
-              <BedItem 
-                item={item} 
-                isSelected={selectedBed === item.bedId}
-                isEditing={isEditing}
-              />
-            </div>
-          ))}
+          {items.map(item => {
+            const plantings = item.bedId && getPlantingsForBed ? getPlantingsForBed(item.bedId) : []
+            return (
+              <div
+                key={item.i}
+                onClick={() => handleItemClick(item)}
+                className={item.bedId ? 'cursor-pointer' : ''}
+              >
+                <BedItem
+                  item={item}
+                  isSelected={selectedBed === item.bedId}
+                  isEditing={isEditing}
+                  plantings={plantings}
+                />
+              </div>
+            )
+          })}
         </ReactGridLayout>
 
         {/* South label */}

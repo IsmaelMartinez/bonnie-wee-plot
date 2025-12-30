@@ -608,17 +608,43 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
 }
 
 /**
+ * Remove a season by year
+ * Cannot remove if it's the only season
+ */
+export function removeSeason(data: AllotmentData, year: number): AllotmentData {
+  // Don't allow removing the last season
+  if (data.seasons.length <= 1) {
+    return data
+  }
+
+  const filteredSeasons = data.seasons.filter(s => s.year !== year)
+
+  // If we removed the current year, switch to the most recent remaining year
+  let newCurrentYear = data.currentYear
+  if (data.currentYear === year) {
+    const years = filteredSeasons.map(s => s.year).sort((a, b) => b - a)
+    newCurrentYear = years[0]
+  }
+
+  return {
+    ...data,
+    seasons: filteredSeasons,
+    currentYear: newCurrentYear,
+  }
+}
+
+/**
  * Update a season's metadata (notes, status)
  */
 export function updateSeason(
-  data: AllotmentData, 
-  year: number, 
+  data: AllotmentData,
+  year: number,
   updates: Partial<Pick<SeasonRecord, 'notes' | 'status'>>
 ): AllotmentData {
   return {
     ...data,
-    seasons: data.seasons.map(s => 
-      s.year === year 
+    seasons: data.seasons.map(s =>
+      s.year === year
         ? { ...s, ...updates, updatedAt: new Date().toISOString() }
         : s
     ),
