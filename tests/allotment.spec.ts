@@ -434,13 +434,183 @@ test.describe('Allotment Mobile', () => {
 test.describe('Allotment Navigation', () => {
   test('should navigate to plan history', async ({ page }) => {
     await page.goto('/allotment')
-    
+
     // Find and click History link (use the one in the allotment page header, not main nav)
     // The allotment page has a dedicated History button with amber styling
     const historyLink = page.locator('a[href*="plan-history"]').filter({ hasText: 'History' }).first()
     await historyLink.click()
-    
+
     await expect(page).toHaveURL(/plan-history/)
+  })
+})
+
+test.describe('Allotment Bed Notes', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should show Note section when bed is selected', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Note section should be visible
+    await expect(page.getByText('Note', { exact: true })).toBeVisible()
+  })
+
+  test('should add a note to a bed', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Click Add note button
+    const addNoteButton = page.locator('button').filter({ hasText: 'Add note' })
+    await addNoteButton.click()
+
+    // Fill in the note
+    const noteText = `Test note ${Date.now()}`
+    await page.locator('textarea').fill(noteText)
+
+    // Click Add Note button
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+
+    // Note should appear
+    await expect(page.getByText(noteText)).toBeVisible()
+  })
+
+  test('should only allow 1 note per bed', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add first note
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+    await page.locator('textarea').fill('First note')
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+
+    // Wait for note to appear
+    await expect(page.getByText('First note')).toBeVisible()
+
+    // Add note button should no longer be visible
+    await expect(page.locator('button').filter({ hasText: 'Add note' })).not.toBeVisible()
+  })
+
+  test('should edit an existing note', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add a note first
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+    await page.locator('textarea').fill('Original note')
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+    await expect(page.getByText('Original note')).toBeVisible()
+
+    // Click edit button (pencil icon)
+    await page.locator('button[title="Edit note"]').click()
+
+    // Change the note text
+    await page.locator('textarea').fill('Edited note')
+    await page.locator('button').filter({ hasText: 'Save' }).click()
+
+    // Edited note should appear
+    await expect(page.getByText('Edited note')).toBeVisible()
+    await expect(page.getByText('Original note')).not.toBeVisible()
+  })
+
+  test('should delete a note', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add a note first
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+    await page.locator('textarea').fill('Note to delete')
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+    await expect(page.getByText('Note to delete')).toBeVisible()
+
+    // Click delete button (trash icon)
+    await page.locator('button[title="Delete note"]').click()
+
+    // Note should be removed
+    await expect(page.getByText('Note to delete')).not.toBeVisible()
+
+    // Add note button should reappear
+    await expect(page.locator('button').filter({ hasText: 'Add note' })).toBeVisible()
+  })
+
+  test('should change note type', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add a note with default type (info)
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+
+    // Select warning type
+    await page.locator('button').filter({ hasText: 'Warning' }).click()
+
+    await page.locator('textarea').fill('Warning note')
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+
+    // Note should appear with warning styling (amber background)
+    const noteCard = page.locator('.bg-amber-50').filter({ hasText: 'Warning note' })
+    await expect(noteCard).toBeVisible()
+  })
+
+  test('should infer problem status from warning note', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add a warning note
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+    await page.locator('button').filter({ hasText: 'Warning' }).click()
+    await page.locator('textarea').fill('Problem note')
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+
+    // Wait for save
+    await page.waitForTimeout(600)
+
+    // Bed status should now show "Problem" (red text)
+    await expect(page.locator('.text-red-500').filter({ hasText: 'Problem' })).toBeVisible()
+  })
+
+  test('should persist notes across page reloads', async ({ page }) => {
+    await page.goto('/allotment')
+
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Add a note
+    const noteText = `Persistent note ${Date.now()}`
+    await page.locator('button').filter({ hasText: 'Add note' }).click()
+    await page.locator('textarea').fill(noteText)
+    await page.locator('button').filter({ hasText: 'Add Note' }).click()
+    await expect(page.getByText(noteText)).toBeVisible()
+
+    // Wait for save (debounced)
+    await page.waitForTimeout(700)
+
+    // Reload the page
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Re-select the same rotation bed
+    await selectRotationBed(page)
+
+    // Note should still be there
+    await expect(page.getByText(noteText)).toBeVisible()
   })
 })
 
