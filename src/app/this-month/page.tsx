@@ -18,14 +18,17 @@ import {
   MapPin
 } from 'lucide-react'
 import GuideCTA from '@/components/GuideCTA'
+import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
-import { 
-  scotlandMonthlyCalendar, 
-  MONTH_KEYS, 
+import {
+  scotlandMonthlyCalendar,
+  MONTH_KEYS,
   getCurrentMonthKey,
-  type MonthKey 
+  type MonthKey
 } from '@/data/scotland-calendar'
+import { BED_COLORS, getBedById } from '@/data/allotment-layout'
+import { PhysicalBedId } from '@/types/garden-planner'
 import { Scissors, Droplet, TreeDeciduous } from 'lucide-react'
 
 // Month selector button component
@@ -244,6 +247,37 @@ export default function ThisMonthPage() {
       allPlantings: allPlantings.slice(0, 6)
     }
   }, [currentSeason, allotmentData, selectedMonth])
+
+  // Build calendar plantings data
+  const calendarPlantings = useMemo(() => {
+    if (!currentSeason) return []
+
+    const entries: Array<{
+      bedId: string
+      bedName: string
+      bedColor: string
+      vegetableId: string
+      varietyName?: string
+    }> = []
+
+    for (const bed of currentSeason.beds) {
+      const bedInfo = getBedById(bed.bedId as PhysicalBedId)
+      const bedColor = BED_COLORS[bed.bedId as PhysicalBedId] || '#9ca3af'
+      const bedName = bedInfo?.name || `Bed ${bed.bedId}`
+
+      for (const planting of bed.plantings) {
+        entries.push({
+          bedId: bed.bedId,
+          bedName,
+          bedColor,
+          vegetableId: planting.vegetableId,
+          varietyName: planting.varietyName
+        })
+      }
+    }
+
+    return entries
+  }, [currentSeason])
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -358,7 +392,17 @@ export default function ThisMonthPage() {
             )}
           </div>
         )}
-        
+
+        {/* Planting Calendar */}
+        {!isLoading && calendarPlantings.length > 0 && (
+          <div className="mb-8">
+            <UnifiedCalendar
+              plantings={calendarPlantings}
+              currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
+            />
+          </div>
+        )}
+
         {/* No plantings prompt */}
         {!isLoading && (!personalizedData || personalizedData.plantingCount === 0) && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-center">
