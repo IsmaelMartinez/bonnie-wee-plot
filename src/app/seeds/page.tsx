@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Sprout,
   ChevronDown,
@@ -16,7 +17,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import { useVarieties } from '@/hooks/useVarieties'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { getVegetableById, vegetables } from '@/lib/vegetable-database'
 import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
 
@@ -51,6 +52,20 @@ export default function SeedsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+
+  // Handle URL param filtering (Spike 3)
+  const searchParams = useSearchParams()
+  const vegetableFilter = searchParams.get('vegetable')
+
+  // Auto-expand the filtered vegetable group when coming from allotment page
+  useEffect(() => {
+    if (vegetableFilter) {
+      const veg = vegetables.find(v => v.id === vegetableFilter)
+      if (veg) {
+        setExpandedGroups(new Set([veg.name]))
+      }
+    }
+  }, [vegetableFilter])
 
   const displayVarieties = getDisplayVarieties()
   const suppliers = getSuppliers()

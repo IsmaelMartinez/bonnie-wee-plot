@@ -22,7 +22,7 @@ import {
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
-import { getNextRotationGroup, ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
+import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
 import { Planting, NewPlanting } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
@@ -138,6 +138,12 @@ function AddPlantingForm({
   const [sowDate, setSowDate] = useState('')
   const [notes, setNotes] = useState('')
 
+  // Get matching varieties from seed library for autocomplete (Spike 1)
+  const matchingVarieties = vegetableId
+    ? myVarieties.filter(v => v.vegetableId === vegetableId)
+    : []
+  const selectedVegetable = vegetableId ? getVegetableById(vegetableId) : null
+
   // Calculate companion compatibility with existing plantings
   const companionInfo = vegetableId ? (() => {
     const goods: string[] = []
@@ -224,9 +230,28 @@ function AddPlantingForm({
           type="text"
           value={varietyName}
           onChange={(e) => setVarietyName(e.target.value)}
+          list="variety-suggestions"
           placeholder="e.g., Kelvedon Wonder"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         />
+        {/* Datalist for variety autocomplete (Spike 1) */}
+        <datalist id="variety-suggestions">
+          {matchingVarieties.map(v => (
+            <option key={v.id} value={v.name} />
+          ))}
+        </datalist>
+        {/* Link to Seeds page (Spike 3) */}
+        {vegetableId && matchingVarieties.length > 0 && (
+          <a
+            href={`/seeds?vegetable=${vegetableId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-1.5 text-xs text-emerald-600 hover:text-emerald-700"
+          >
+            <Package className="w-3 h-3" />
+            View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'} →
+          </a>
+        )}
       </div>
       
       <div>
@@ -723,6 +748,12 @@ export default function AllotmentPage() {
                   if (!rotationInfo) return null
                   const lastDisplay = ROTATION_GROUP_DISPLAY[rotationInfo.lastYear]
                   const nextDisplay = ROTATION_GROUP_DISPLAY[rotationInfo.suggested]
+                  // Get suggested vegetables for this rotation group (Spike 2)
+                  const suggestedVegIds = getVegetablesForRotationGroup(rotationInfo.suggested)
+                  const suggestedVegNames = suggestedVegIds
+                    .slice(0, 4)
+                    .map(id => getVegetableById(id)?.name)
+                    .filter(Boolean)
                   return (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
                       <div className="text-xs text-amber-800 font-medium mb-1">Rotation Guide</div>
@@ -737,6 +768,12 @@ export default function AllotmentPage() {
                           <span>{selectedYear}: {nextDisplay?.name}</span>
                         </span>
                       </div>
+                      {/* Suggested vegetables (Spike 2) */}
+                      {suggestedVegNames.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Consider: {suggestedVegNames.join(', ')}
+                        </div>
+                      )}
                     </div>
                   )
                 })()}
