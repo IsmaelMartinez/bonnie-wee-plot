@@ -1,9 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Sprout, ChevronDown, ChevronRight, ExternalLink, Package, Check, ShoppingCart, AlertTriangle } from 'lucide-react'
-import { myVarieties, getSuppliers, getTotalSpendForYear } from '@/data/my-varieties'
+import { useState, useMemo } from 'react'
+import {
+  Sprout,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  Package,
+  Check,
+  ShoppingCart,
+  AlertTriangle,
+  Plus,
+  Pencil,
+  Trash2,
+  Calendar,
+} from 'lucide-react'
+import { useVarieties } from '@/hooks/useVarieties'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
+import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
 
 const SUPPLIER_URLS: Record<string, string> = {
   'Organic Gardening': 'https://www.organiccatalogue.com/',
@@ -12,61 +27,60 @@ const SUPPLIER_URLS: Record<string, string> = {
   'Garden Organic': 'https://www.gardenorganic.org.uk/shop/seeds',
 }
 
-const SEEDS_STORAGE_KEY = 'community-allotment-seeds-have'
+const CURRENT_YEAR = new Date().getFullYear()
+const AVAILABLE_YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
 
 export default function SeedsPage() {
+  const {
+    data,
+    selectedYear,
+    isLoading,
+    setSelectedYear,
+    addVariety,
+    updateVariety,
+    removeVariety,
+    togglePlannedYear,
+    toggleHaveSeeds,
+    getDisplayVarieties,
+    getSuppliers,
+    getTotalSpendForYear,
+    hasSeeds,
+  } = useVarieties()
+
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
-  const [haveSeeds, setHaveSeeds] = useState<Set<string>>(new Set())
-  const [mounted, setMounted] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const saved = localStorage.getItem(SEEDS_STORAGE_KEY)
-      if (saved) {
-        setHaveSeeds(new Set(JSON.parse(saved)))
-      }
-    } catch (e) {
-      console.warn('Failed to load seeds status:', e)
-    }
-  }, [])
-
-  // Save to localStorage when haveSeeds changes
-  useEffect(() => {
-    if (!mounted) return
-    try {
-      localStorage.setItem(SEEDS_STORAGE_KEY, JSON.stringify([...haveSeeds]))
-    } catch (e) {
-      console.warn('Failed to save seeds status:', e)
-    }
-  }, [haveSeeds, mounted])
-
-  const toggleHaveSeeds = (id: string) => {
-    setHaveSeeds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+  const displayVarieties = getDisplayVarieties()
+  const suppliers = getSuppliers()
 
   // Group varieties by vegetable
-  const grouped = myVarieties.reduce((acc, v) => {
-    const veg = getVegetableById(v.vegetableId)
-    const groupName = veg?.name || v.vegetableId
-    if (!acc[groupName]) acc[groupName] = []
-    acc[groupName].push(v)
-    return acc
-  }, {} as Record<string, typeof myVarieties>)
+  const grouped = useMemo(() => {
+    return displayVarieties.reduce((acc, v) => {
+      const veg = getVegetableById(v.vegetableId)
+      const groupName = veg?.name || v.vegetableId
+      if (!acc[groupName]) acc[groupName] = []
+      acc[groupName].push(v)
+      return acc
+    }, {} as Record<string, StoredVariety[]>)
+  }, [displayVarieties])
 
   const groupNames = Object.keys(grouped).sort()
-  const suppliers = getSuppliers()
-  const spend2024 = getTotalSpendForYear(2024)
-  const spend2025 = getTotalSpendForYear(2025)
 
-  const haveCount = haveSeeds.size
-  const needCount = myVarieties.length - haveCount
+  // Stats - context-aware based on selected year
+  const haveCount = data?.haveSeeds.length || 0
+  const totalVarieties = data?.varieties.length || 0
+
+  // For year view: count varieties planned for that year that user doesn't have
+  // For all view: count all varieties user doesn't have
+  const needCount = selectedYear !== 'all' && data
+    ? displayVarieties.filter(v => !data.haveSeeds.includes(v.id)).length
+    : totalVarieties - haveCount
+
+  const plannedCount = selectedYear !== 'all' && data
+    ? data.varieties.filter(v => v.plannedYears.includes(selectedYear)).length
+    : 0
 
   const toggleGroup = (name: string) => {
     const next = new Set(expandedGroups)
@@ -78,11 +92,45 @@ export default function SeedsPage() {
   const expandAll = () => setExpandedGroups(new Set(groupNames))
   const collapseAll = () => setExpandedGroups(new Set())
 
+  const handleOpenAddDialog = () => {
+    setEditingVariety(undefined)
+    setDialogOpen(true)
+  }
+
+  const handleOpenEditDialog = (variety: StoredVariety) => {
+    setEditingVariety(variety)
+    setDialogOpen(true)
+  }
+
+  const handleSaveVariety = (variety: NewVariety | (VarietyUpdate & { id: string })) => {
+    if ('id' in variety) {
+      const { id, ...updates } = variety
+      updateVariety(id, updates)
+    } else {
+      addVariety(variety)
+    }
+    setDialogOpen(false)
+    setEditingVariety(undefined)
+  }
+
+  const handleDeleteVariety = (id: string) => {
+    removeVariety(id)
+    setConfirmDelete(null)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center">
+        <div className="text-gray-500">Loading varieties...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-4">
             <Package className="w-10 h-10 text-green-600 mr-3" />
             <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
@@ -90,46 +138,119 @@ export default function SeedsPage() {
             </h1>
           </div>
           <p className="text-gray-600">
-            Your tracked seed varieties, suppliers, and spending
+            Track your seed varieties, plan by year, and manage suppliers
           </p>
         </div>
 
+        {/* Year Tabs */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex bg-white rounded-lg shadow p-1 gap-1">
+            <button
+              onClick={() => setSelectedYear('all')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                selectedYear === 'all'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All
+            </button>
+            {AVAILABLE_YEARS.map(year => (
+              <button
+                key={year}
+                onClick={() => setSelectedYear(year)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                  selectedYear === year
+                    ? 'bg-green-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg p-4 shadow text-center">
             <div className="text-2xl font-bold text-green-600">{haveCount}</div>
             <div className="text-sm text-gray-500">Have Seeds</div>
           </div>
           <div className="bg-white rounded-lg p-4 shadow text-center">
             <div className="text-2xl font-bold text-orange-500">{needCount}</div>
-            <div className="text-sm text-gray-500">Need to Order</div>
+            <div className="text-sm text-gray-500">
+              {selectedYear !== 'all' ? `Need for ${selectedYear}` : 'Need to Order'}
+            </div>
           </div>
+          {selectedYear !== 'all' ? (
+            <div className="bg-white rounded-lg p-4 shadow text-center">
+              <div className="text-2xl font-bold text-blue-600">{plannedCount}</div>
+              <div className="text-sm text-gray-500">Planned {selectedYear}</div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg p-4 shadow text-center">
+              <div className="text-2xl font-bold text-amber-600">£{getTotalSpendForYear(CURRENT_YEAR - 1).toFixed(2)}</div>
+              <div className="text-sm text-gray-500">Spent {CURRENT_YEAR - 1}</div>
+            </div>
+          )}
           <div className="bg-white rounded-lg p-4 shadow text-center">
-            <div className="text-2xl font-bold text-amber-600">£{spend2024.toFixed(2)}</div>
-            <div className="text-sm text-gray-500">Spent 2024</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow text-center">
-            <div className="text-2xl font-bold text-amber-600">£{spend2025.toFixed(2)}</div>
-            <div className="text-sm text-gray-500">Spent 2025</div>
+            <div className="text-2xl font-bold text-amber-600">£{getTotalSpendForYear(CURRENT_YEAR).toFixed(2)}</div>
+            <div className="text-sm text-gray-500">Spent {CURRENT_YEAR}</div>
           </div>
         </div>
 
-        {/* Expand/Collapse buttons */}
-        <div className="flex gap-2 mb-4">
+        {/* Add button and Expand/Collapse */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={expandAll}
+              className="text-sm text-green-600 hover:text-green-700"
+            >
+              Expand all
+            </button>
+            <span className="text-gray-300">|</span>
+            <button
+              onClick={collapseAll}
+              className="text-sm text-green-600 hover:text-green-700"
+            >
+              Collapse all
+            </button>
+          </div>
           <button
-            onClick={expandAll}
-            className="text-sm text-green-600 hover:text-green-700"
+            onClick={handleOpenAddDialog}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
           >
-            Expand all
-          </button>
-          <span className="text-gray-300">|</span>
-          <button
-            onClick={collapseAll}
-            className="text-sm text-green-600 hover:text-green-700"
-          >
-            Collapse all
+            <Plus className="w-4 h-4" />
+            Add Variety
           </button>
         </div>
+
+        {/* Empty state */}
+        {displayVarieties.length === 0 && (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <Sprout className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            {selectedYear === 'all' ? (
+              <>
+                <p className="text-gray-600 mb-4">No varieties added yet.</p>
+                <button
+                  onClick={handleOpenAddDialog}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add your first variety
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-2">No varieties planned for {selectedYear}.</p>
+                <p className="text-sm text-gray-500">
+                  Switch to &quot;All&quot; to see all varieties, or add planned years to existing varieties.
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Variety groups */}
         <div className="space-y-2">
@@ -159,7 +280,8 @@ export default function SeedsPage() {
                   <div className="px-4 pb-4 pt-2 border-t border-gray-100">
                     <div className="space-y-3">
                       {varieties.map(v => {
-                        const hasIt = haveSeeds.has(v.id)
+                        const hasIt = hasSeeds(v.id)
+                        const isPlannedForSelectedYear = selectedYear !== 'all' && v.plannedYears.includes(selectedYear)
                         return (
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${!hasIt ? 'opacity-75' : ''}`}>
                             <button
@@ -173,7 +295,7 @@ export default function SeedsPage() {
                             >
                               {hasIt ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
                             </button>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
                                 <span className="font-medium text-gray-700">{v.name}</span>
                                 {v.supplier && (
@@ -197,10 +319,14 @@ export default function SeedsPage() {
                                   <span className="text-sm text-amber-600">£{v.price.toFixed(2)}</span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {v.yearsUsed.length > 0 ? (
+                              <div className="text-sm text-gray-500 flex flex-wrap gap-x-3">
+                                {v.yearsUsed.length > 0 && (
                                   <span>Used: {v.yearsUsed.join(', ')}</span>
-                                ) : (
+                                )}
+                                {v.plannedYears.length > 0 && (
+                                  <span className="text-blue-600">Planned: {v.plannedYears.join(', ')}</span>
+                                )}
+                                {v.yearsUsed.length === 0 && v.plannedYears.length === 0 && (
                                   <span className="text-red-500">Not used yet</span>
                                 )}
                               </div>
@@ -216,6 +342,53 @@ export default function SeedsPage() {
                                 )
                               })()}
                             </div>
+                            {/* Actions */}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {selectedYear !== 'all' && (
+                                <button
+                                  onClick={() => togglePlannedYear(v.id, selectedYear)}
+                                  className={`p-1.5 rounded transition ${
+                                    isPlannedForSelectedYear
+                                      ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                      : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                  }`}
+                                  title={isPlannedForSelectedYear ? `Remove from ${selectedYear}` : `Plan for ${selectedYear}`}
+                                >
+                                  <Calendar className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleOpenEditDialog(v)}
+                                className="p-1.5 rounded bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                                title="Edit variety"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              {confirmDelete === v.id ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleDeleteVariety(v.id)}
+                                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                  >
+                                    Delete
+                                  </button>
+                                  <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setConfirmDelete(v.id)}
+                                  className="p-1.5 rounded bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 transition"
+                                  title="Delete variety"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )
                       })}
@@ -228,44 +401,59 @@ export default function SeedsPage() {
         </div>
 
         {/* Suppliers section */}
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Suppliers</h2>
-          <div className="flex flex-wrap gap-3">
-            {suppliers.map(s => (
-              <div key={s}>
-                {SUPPLIER_URLS[s] ? (
-                  <a
-                    href={SUPPLIER_URLS[s]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100"
-                  >
-                    {s}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                ) : (
-                  <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
-                    {s}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+        {suppliers.length > 0 && (
+          <div className="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 className="font-semibold text-gray-800 mb-4">Suppliers</h2>
+            <div className="flex flex-wrap gap-3">
+              {suppliers.map(s => (
+                <div key={s}>
+                  {SUPPLIER_URLS[s] ? (
+                    <a
+                      href={SUPPLIER_URLS[s]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100"
+                    >
+                      {s}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
+                      {s}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
 
-          {/* Garden Organic link */}
-          <div className="mt-6 pt-4 border-t">
-            <a
-              href="https://www.gardenorganic.org.uk/shop/seeds"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium"
-            >
-              Browse Garden Organic Heritage Seeds
-              <ExternalLink className="w-4 h-4" />
-            </a>
+            {/* Garden Organic link */}
+            <div className="mt-6 pt-4 border-t">
+              <a
+                href="https://www.gardenorganic.org.uk/shop/seeds"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium"
+              >
+                Browse Garden Organic Heritage Seeds
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Edit Dialog */}
+      <VarietyEditDialog
+        isOpen={dialogOpen}
+        onClose={() => {
+          setDialogOpen(false)
+          setEditingVariety(undefined)
+        }}
+        onSave={handleSaveVariety}
+        variety={editingVariety}
+        mode={editingVariety ? 'edit' : 'add'}
+        existingSuppliers={suppliers}
+      />
     </div>
   )
 }
