@@ -593,21 +593,10 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
     .filter(bed => bed.status !== 'perennial')
     .map(bed => {
       // Auto-rotate based on previous year, if it exists
-      let rotationGroup: RotationGroup
-
-      if (previousSeason) {
-        const previousBed = previousSeason.beds.find(b => b.bedId === bed.id)
-        if (previousBed?.rotationGroup) {
-          // Auto-rotate to next group following crop rotation principles
-          rotationGroup = getNextRotationGroup(previousBed.rotationGroup)
-        } else {
-          // Fallback to bed's default if no previous data
-          rotationGroup = bed.rotationGroup || 'legumes'
-        }
-      } else {
-        // First year for this bed, use bed's default
-        rotationGroup = bed.rotationGroup || 'legumes'
-      }
+      const previousBed = previousSeason?.beds.find(b => b.bedId === bed.id)
+      const rotationGroup = previousBed?.rotationGroup
+        ? getNextRotationGroup(previousBed.rotationGroup)
+        : bed.rotationGroup || 'legumes'
 
       return {
         bedId: bed.id,

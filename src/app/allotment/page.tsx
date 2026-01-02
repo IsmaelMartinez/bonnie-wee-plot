@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Map,
@@ -152,7 +152,7 @@ function AddPlantingForm({
       // Clear variety if changing to vegetable with no varieties
       setVarietyName('')
     }
-  }, [vegetableId, matchingVarieties.length])
+  }, [matchingVarieties, varietyName])
 
   // Calculate companion compatibility with existing plantings
   const companionInfo = vegetableId ? (() => {
@@ -503,6 +503,31 @@ export default function AllotmentPage() {
   const hasProblemNote = selectedBedNotes.some(n => n.type === 'warning' || n.type === 'error')
   const inferredStatus = hasProblemNote ? 'problem' : selectedBedData?.status
 
+  // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
+  const autoRotateInfo = useMemo(() => {
+    if (!selectedBedId || !data) return null
+
+    const previousYear = selectedYear - 1
+
+    // Find previous year's season directly from data
+    const previousSeason = data.seasons.find(s => s.year === previousYear)
+    if (!previousSeason) return null
+
+    const previousBedSeason = previousSeason.beds.find(b => b.bedId === selectedBedId)
+    if (!previousBedSeason?.rotationGroup) return null
+
+    const previousGroup = previousBedSeason.rotationGroup
+    const suggestedGroup = getNextRotationGroup(previousGroup)
+    const suggestedVegetables = getVegetablesForRotationGroup(suggestedGroup)
+
+    return {
+      previousYear,
+      previousGroup,
+      suggestedGroup,
+      suggestedVegetables,
+    }
+  }, [selectedBedId, selectedYear, data?.seasons])
+
   // Loading state
   if (isLoading) {
     return (
@@ -535,17 +560,14 @@ export default function AllotmentPage() {
   }
 
   const handleAutoRotate = (addSuggestedVegetables: boolean) => {
-    if (!selectedBedId) return
-
-    const rotateInfo = getAutoRotateInfo()
-    if (!rotateInfo) return
+    if (!selectedBedId || !autoRotateInfo) return
 
     // Update the bed's rotation group to the suggested one
-    updateRotationGroup(selectedBedId, rotateInfo.suggestedGroup)
+    updateRotationGroup(selectedBedId, autoRotateInfo.suggestedGroup)
 
     // Optionally add suggested vegetables
-    if (addSuggestedVegetables && rotateInfo.suggestedVegetables.length > 0) {
-      rotateInfo.suggestedVegetables.slice(0, 3).forEach(vegId => {
+    if (addSuggestedVegetables && autoRotateInfo.suggestedVegetables.length > 0) {
+      autoRotateInfo.suggestedVegetables.slice(0, 3).forEach(vegId => {
         const newPlanting: NewPlanting = {
           vegetableId: vegId,
         }
@@ -554,31 +576,6 @@ export default function AllotmentPage() {
     }
 
     setShowAutoRotateDialog(false)
-  }
-
-  // Get info for auto-rotate dialog (without changing selected year to avoid re-render loop)
-  const getAutoRotateInfo = () => {
-    if (!selectedBedId || !data) return null
-
-    const previousYear = selectedYear - 1
-
-    // Find previous year's season directly from data WITHOUT calling selectYear
-    const previousSeason = data.seasons.find(s => s.year === previousYear)
-    if (!previousSeason) return null
-
-    const previousBedSeason = previousSeason.beds.find(b => b.bedId === selectedBedId)
-    if (!previousBedSeason?.rotationGroup) return null
-
-    const previousGroup = previousBedSeason.rotationGroup
-    const suggestedGroup = getNextRotationGroup(previousGroup)
-    const suggestedVegetables = getVegetablesForRotationGroup(suggestedGroup)
-
-    return {
-      previousYear,
-      previousGroup,
-      suggestedGroup,
-      suggestedVegetables,
-    }
   }
 
   return (
@@ -858,19 +855,16 @@ export default function AllotmentPage() {
                     </h4>
                     {selectedBedData.status !== 'perennial' && (
                       <div className="flex items-center gap-1">
-                        {(() => {
-                          const rotateInfo = getAutoRotateInfo()
-                          return rotateInfo ? (
-                            <button
-                              onClick={() => setShowAutoRotateDialog(true)}
-                              className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
-                              title={`Rotate from ${ROTATION_GROUP_DISPLAY[rotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[rotateInfo.suggestedGroup]?.name}`}
-                            >
-                              <ArrowRight className="w-3 h-3" />
-                              Auto-rotate
-                            </button>
-                          ) : null
-                        })()}
+                        {autoRotateInfo && (
+                          <button
+                            onClick={() => setShowAutoRotateDialog(true)}
+                            className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                            title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
+                          >
+                            <ArrowRight className="w-3 h-3" />
+                            Auto-rotate
+                          </button>
+                        )}
                         <button
                           onClick={() => setShowAddDialog(true)}
                           className="flex items-center gap-1 text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
@@ -1016,13 +1010,10 @@ export default function AllotmentPage() {
       />
 
       {/* Auto-rotate Dialog */}
-      {(() => {
-        const rotateInfo = getAutoRotateInfo()
-        if (!rotateInfo || !selectedBedData) return null
-
-        const previousDisplay = ROTATION_GROUP_DISPLAY[rotateInfo.previousGroup]
-        const suggestedDisplay = ROTATION_GROUP_DISPLAY[rotateInfo.suggestedGroup]
-        const suggestedVegNames = rotateInfo.suggestedVegetables
+      {autoRotateInfo && selectedBedData && (() => {
+        const previousDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]
+        const suggestedDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]
+        const suggestedVegNames = autoRotateInfo.suggestedVegetables
           .slice(0, 3)
           .map(id => getVegetableById(id)?.name)
           .filter(Boolean)
@@ -1041,7 +1032,7 @@ export default function AllotmentPage() {
                   <div className="text-center">
                     <div className="text-2xl mb-1">{previousDisplay?.emoji}</div>
                     <div className="text-sm font-medium text-gray-700">{previousDisplay?.name}</div>
-                    <div className="text-xs text-gray-500">{rotateInfo.previousYear}</div>
+                    <div className="text-xs text-gray-500">{autoRotateInfo.previousYear}</div>
                   </div>
                   <ArrowRight className="w-6 h-6 text-emerald-600" />
                   <div className="text-center">
