@@ -171,10 +171,10 @@ export default function Dialog({
         aria-labelledby={titleId.current}
         aria-describedby={description ? descriptionId.current : undefined}
         tabIndex={-1}
-        className={`relative bg-white rounded-xl shadow-xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-auto focus:outline-none`}
+        className={`relative bg-white rounded-xl shadow-xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col focus:outline-none`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
           <h2
             id={titleId.current}
             className="text-lg font-bold text-gray-800"
@@ -197,14 +197,14 @@ export default function Dialog({
         {description && (
           <p
             id={descriptionId.current}
-            className="px-4 pt-3 text-sm text-gray-600"
+            className="px-4 pt-3 text-sm text-gray-600 shrink-0"
           >
             {description}
           </p>
         )}
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto flex-1">
           {children}
         </div>
       </div>
