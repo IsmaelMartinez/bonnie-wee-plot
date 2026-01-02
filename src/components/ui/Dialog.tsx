@@ -153,15 +153,18 @@ export default function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 overflow-y-auto"
       role="presentation"
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-black/50 transition-opacity"
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
+
+      {/* Centering wrapper */}
+      <div className="flex min-h-full items-center justify-center p-4">
 
       {/* Dialog */}
       <div
@@ -207,6 +210,7 @@ export default function Dialog({
         <div className="p-4 overflow-y-auto flex-1">
           {children}
         </div>
+      </div>
       </div>
     </div>
   )
