@@ -24,6 +24,7 @@ import {
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
+import { getNextRotationGroup } from '@/lib/rotation'
 
 // Import legacy data for migration
 import { physicalBeds, permanentPlantings, infrastructure } from '@/data/allotment-layout'
@@ -522,7 +523,7 @@ export function migrateFromLegacyData(): AllotmentData {
       infrastructure: infrastructure,
     },
     seasons,
-    currentYear: 2025,
+    currentYear, // Use actual current year, not hardcoded 2025
   }
 
   return data
@@ -578,19 +579,43 @@ export function getCurrentSeason(data: AllotmentData): SeasonRecord | undefined 
 
 /**
  * Add a new season
+ * Automatically rotates beds based on previous year's rotation groups
  */
 export function addSeason(data: AllotmentData, input: NewSeasonInput): AllotmentData {
   const now = new Date().toISOString()
-  
+
+  // Find previous year's season for auto-rotation
+  const previousYear = input.year - 1
+  const previousSeason = data.seasons.find(s => s.year === previousYear)
+
   // Create bed seasons for all rotation beds (not perennial)
   const bedSeasons: BedSeason[] = data.layout.beds
     .filter(bed => bed.status !== 'perennial')
-    .map(bed => ({
-      bedId: bed.id,
-      rotationGroup: bed.rotationGroup || 'legumes',
-      plantings: [],
-    }))
-  
+    .map(bed => {
+      // Auto-rotate based on previous year, if it exists
+      let rotationGroup: RotationGroup
+
+      if (previousSeason) {
+        const previousBed = previousSeason.beds.find(b => b.bedId === bed.id)
+        if (previousBed?.rotationGroup) {
+          // Auto-rotate to next group following crop rotation principles
+          rotationGroup = getNextRotationGroup(previousBed.rotationGroup)
+        } else {
+          // Fallback to bed's default if no previous data
+          rotationGroup = bed.rotationGroup || 'legumes'
+        }
+      } else {
+        // First year for this bed, use bed's default
+        rotationGroup = bed.rotationGroup || 'legumes'
+      }
+
+      return {
+        bedId: bed.id,
+        rotationGroup,
+        plantings: [],
+      }
+    })
+
   const newSeason: SeasonRecord = {
     year: input.year,
     status: input.status || 'planned',
@@ -599,7 +624,7 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
     createdAt: now,
     updatedAt: now,
   }
-  
+
   return {
     ...data,
     seasons: [...data.seasons, newSeason],
