@@ -23,7 +23,9 @@ interface DialogProps {
   children: ReactNode
   closeOnOutsideClick?: boolean
   showCloseButton?: boolean
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  /** When true, children get no wrapper padding and fill available space */
+  fullContent?: boolean
 }
 
 // Get all focusable elements within a container
@@ -45,6 +47,7 @@ export default function Dialog({
   closeOnOutsideClick = true,
   showCloseButton = true,
   maxWidth = 'md',
+  fullContent = false,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
@@ -149,6 +152,7 @@ export default function Dialog({
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
   }
 
   return (
@@ -207,9 +211,15 @@ export default function Dialog({
         )}
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto flex-1">
-          {children}
-        </div>
+        {fullContent ? (
+          <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+            {children}
+          </div>
+        ) : (
+          <div className="p-4 overflow-y-auto flex-1">
+            {children}
+          </div>
+        )}
       </div>
       </div>
     </div>

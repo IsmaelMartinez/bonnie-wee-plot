@@ -1,5 +1,23 @@
 /**
  * Type definitions for the Vegetable Garden Planner feature
+ *
+ * NOTE: This file contains two categories of types:
+ *
+ * 1. CORE TYPES (actively used across the codebase):
+ *    - VegetableCategory, Vegetable, PlantingInfo, CareRequirements
+ *    - RotationGroup, PhysicalBedId, PhysicalBed
+ *    - Month, SunRequirement, WaterRequirement, DifficultyLevel
+ *    - PermanentPlanting, InfrastructureItem
+ *
+ * 2. GRID PLANNER TYPES (used by garden-planner components):
+ *    - GridPlot, PlotCell, GardenPlot (for the drag-drop grid interface)
+ *    - RotationHistory (for grid-based rotation tracking)
+ *
+ * 3. LEGACY TYPES (superseded by unified-allotment.ts):
+ *    - SeasonPlan, BedPlan, PlantedVariety → Use SeasonRecord, BedSeason, Planting
+ *    - GardenPlan, GardenPlannerData → Use AllotmentData
+ *    - AllotmentLayout, AllotmentHistoryData → Use AllotmentData
+ *    These are kept for backwards compatibility and historical-plans.ts migration.
  */
 
 // Vegetable Categories
@@ -79,7 +97,10 @@ export interface MaintenanceInfo {
   notes?: string[]         // Additional maintenance tips
 }
 
-// A vegetable added to a garden plan
+/**
+ * A vegetable added to a garden plan
+ * @deprecated Use Planting from unified-allotment.ts instead
+ */
 export interface PlannedVegetable {
   id: string                     // Unique ID for this planned instance
   vegetableId: string            // Reference to Vegetable.id
@@ -92,7 +113,10 @@ export interface PlannedVegetable {
   status: PlannedVegetableStatus
 }
 
-export type PlannedVegetableStatus = 
+/**
+ * @deprecated Use unified-allotment.ts types instead
+ */
+export type PlannedVegetableStatus =
   | 'planned'        // Just added to plan
   | 'sown'           // Seeds have been sown
   | 'transplanted'   // Seedlings transplanted
@@ -179,7 +203,10 @@ export interface GapSuggestion {
   canPlantNow: boolean    // Based on current month
 }
 
-// Complete garden plan
+/**
+ * Complete garden plan
+ * @deprecated Use AllotmentData from unified-allotment.ts instead
+ */
 export interface GardenPlan {
   id: string
   name: string
@@ -192,7 +219,10 @@ export interface GardenPlan {
   customVegetables: Vegetable[]  // User-created vegetables
 }
 
-// Storage format for all plans
+/**
+ * Storage format for all plans
+ * @deprecated Use AllotmentData from unified-allotment.ts instead
+ */
 export interface GardenPlannerData {
   version: number                // Schema version for migrations
   currentPlanId: string | null   // Currently selected plan
@@ -309,6 +339,9 @@ export type PhysicalBedId =
 // Bed status - whether it's productive or has issues
 export type BedStatus = 'rotation' | 'problem' | 'perennial'
 
+// Soil management method for a bed
+export type SoilMethod = 'no-dig' | 'back-to-eden' | 'traditional' | 'raised-bed'
+
 // Physical bed in the allotment layout
 export interface PhysicalBed {
   id: PhysicalBedId
@@ -323,6 +356,7 @@ export interface PhysicalBed {
   }
   rotationGroup?: RotationGroup   // Primary rotation group for this bed
   problemNotes?: string           // Notes about issues if status is 'problem'
+  soilMethod?: SoilMethod         // Optional - soil management method
 }
 
 // Permanent plantings (fruit trees, berries, etc.)
@@ -352,7 +386,10 @@ export interface InfrastructureItem {
   }
 }
 
-// Complete allotment layout
+/**
+ * Complete allotment layout
+ * @deprecated Use AllotmentLayoutData from unified-allotment.ts instead
+ */
 export interface AllotmentLayout {
   id: string
   name: string                           // e.g., "My Edinburgh Allotment"
@@ -381,7 +418,10 @@ export interface PlantVariety {
 // Success rating for plantings
 export type PlantingSuccess = 'excellent' | 'good' | 'fair' | 'poor'
 
-// A planting record within a season
+/**
+ * A planting record within a season
+ * @deprecated Use Planting from unified-allotment.ts instead
+ */
 export interface PlantedVariety {
   id: string
   vegetableId: string             // Reference to Vegetable.id
@@ -396,14 +436,20 @@ export interface PlantedVariety {
   notes?: string
 }
 
-// A bed's planting plan for a season
+/**
+ * A bed's planting plan for a season
+ * @deprecated Use BedSeason from unified-allotment.ts instead
+ */
 export interface BedPlan {
   bedId: PhysicalBedId
   rotationGroup: RotationGroup
   plantings: PlantedVariety[]
 }
 
-// Complete season plan (historical or current)
+/**
+ * Complete season plan (historical or current)
+ * @deprecated Use SeasonRecord from unified-allotment.ts instead
+ */
 export interface SeasonPlan {
   id: string
   year: number
@@ -413,7 +459,10 @@ export interface SeasonPlan {
   updatedAt: string
 }
 
-// Storage format for all historical data
+/**
+ * Storage format for all historical data
+ * @deprecated Use AllotmentData from unified-allotment.ts instead
+ */
 export interface AllotmentHistoryData {
   version: number
   layout: AllotmentLayout

@@ -25,19 +25,6 @@ import ChatInput from '@/components/ai-advisor/ChatInput'
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
 
-const sampleConversation: ExtendedChatMessage[] = [
-  {
-    id: '1',
-    role: 'user',
-    content: 'My tomato plants have yellow leaves on the bottom. Should I be worried?'
-  },
-  {
-    id: '2',
-    role: 'assistant',
-    content: 'Hello! I\'m Aitor, your gardening specialist. Let me help you with those yellowing tomato leaves.\n\n🌱 **What you\'re seeing is quite common** and usually manageable! Yellow lower leaves on tomatoes can indicate several things:\n\n**Most likely causes:**\n• **Natural aging** - Lower leaves naturally yellow and drop as the plant matures and focuses energy on upper growth\n• **Watering inconsistency** - Both overwatering and underwatering can cause yellowing\n• **Nitrogen deficiency** - The plant may be using up nutrients as it grows\n\n**Recommended actions:**\n• Remove the yellow leaves to prevent potential disease spread\n• Check soil moisture - aim for consistently moist (not soggy) soil\n• Apply a balanced tomato fertilizer to boost nutrition\n• Add mulch around the base to help retain moisture\n\n**When to be concerned:** If yellowing spreads rapidly up the plant or you notice dark spots/wilting, it could indicate blight or other diseases.\n\n📸 **Pro tip**: Upload a photo of your tomato plants using the camera button below for more specific visual diagnosis!\n\nI can see from your location that it\'s currently summer in your area - this is actually a great time to address these issues before the main harvest season. The warm weather means your plants are actively growing and can recover quickly with proper care!'
-  }
-]
-
 // Convert image to base64 for API
 const imageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -53,7 +40,7 @@ const imageToBase64 = (file: File): Promise<string> => {
 }
 
 export default function AIAdvisorPage() {
-  const [messages, setMessages] = useState<ExtendedChatMessage[]>(sampleConversation)
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [tempToken, setTempToken] = useState('')
@@ -291,48 +278,50 @@ export default function AIAdvisorPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1"></div>
-          <h1 className="text-3xl font-bold text-gray-800 flex-1">🌱 Aitor - Your Gardening Companion</h1>
-          <div className="flex-1 flex justify-end">
+    <div className="min-h-screen bg-zen-stone-50 zen-texture">
+      <div className="container mx-auto px-4 py-10 max-w-4xl">
+        {/* Header */}
+        <header className="mb-10">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-2xl">🌱</span>
+                <h1 className="text-zen-ink-900">Ask Aitor</h1>
+              </div>
+              <p className="text-zen-stone-500 text-lg">
+                Your gardening companion
+              </p>
+            </div>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-zen-stone-500 hover:text-zen-ink-700 hover:bg-zen-stone-100 rounded-zen transition"
               title="Configure API Token"
             >
               <Settings className="w-5 h-5" />
             </button>
           </div>
-        </div>
-        <p className="text-gray-600 mb-4">
-          Aitor is your friendly allotment expert, ready to help you grow healthy, thriving gardens
-          with personalized advice for your location and season.
-        </p>
-        
-        {/* Location Status */}
-        <div className="mb-6">
-          <LocationStatus 
-            userLocation={userLocation}
-            locationError={locationError}
-            onRetry={detectUserLocation}
-            isDetecting={isDetecting}
-          />
-        </div>
-        
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-center mb-2">
-            <Leaf className="w-5 h-5 text-green-600 mr-2" />
-            <span className="text-green-800 font-medium">Specialized for Allotment Gardens</span>
+
+          {/* Location Status */}
+          <div className="mb-6">
+            <LocationStatus
+              userLocation={userLocation}
+              locationError={locationError}
+              onRetry={detectUserLocation}
+              isDetecting={isDetecting}
+            />
           </div>
-          <p className="text-green-700 text-sm">
-            Aitor provides expert guidance specifically for allotment gardening, vegetable cultivation,
-            composting systems, and seasonal care tailored to your local climate and growing conditions.
-          </p>
-        </div>
-      </div>
+
+          <div className="zen-card p-4 bg-zen-moss-50/50 border-zen-moss-200">
+            <div className="flex items-center mb-2">
+              <Leaf className="w-4 h-4 text-zen-moss-600 mr-2" />
+              <span className="text-zen-moss-800 font-medium text-sm">Specialized for Allotment Gardens</span>
+            </div>
+            <p className="text-zen-moss-700 text-sm">
+              Aitor provides expert guidance specifically for allotment gardening, vegetable cultivation,
+              composting systems, and seasonal care tailored to your local climate.
+            </p>
+          </div>
+        </header>
 
       {/* API Token Settings */}
       {showSettings && (
@@ -345,43 +334,55 @@ export default function AIAdvisorPage() {
         />
       )}
 
-      {/* Quick Topics */}
-      <QuickTopics onSelectTopic={(query) => handleSubmit(query)} />
+        {/* Quick Topics */}
+        <QuickTopics onSelectTopic={(query) => handleSubmit(query)} />
 
-      {/* Chat Interface */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="border-b border-gray-200 p-4">
-          <h3 className="text-lg font-semibold text-gray-800">Chat with Aitor</h3>
-          <p className="text-sm text-gray-600">Ask me anything about your allotment and garden!</p>
+        {/* Chat Interface */}
+        <div className="zen-card overflow-hidden">
+          <div className="border-b border-zen-stone-100 p-4">
+            <h3 className="font-display text-zen-ink-800">Chat with Aitor</h3>
+            <p className="text-sm text-zen-stone-500">Ask me anything about your allotment and garden</p>
+          </div>
+
+          {/* Messages */}
+          <div className="h-96 overflow-y-auto p-4 space-y-4 bg-zen-stone-50/50">
+            {messages.length === 0 && !isLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                <Leaf className="w-12 h-12 text-zen-moss-200 mb-4" />
+                <p className="text-zen-ink-600 text-lg mb-2">What can I help you grow today?</p>
+                <p className="text-zen-stone-400 text-sm">
+                  Ask about planting, pests, harvesting, or select a topic above
+                </p>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isLoading && <LoadingMessage />}
+              </>
+            )}
+          </div>
+
+          {/* Input */}
+          <ChatInput
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            rateLimitInfo={rateLimitInfo}
+          />
         </div>
 
-        {/* Messages */}
-        <div className="h-96 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-          
-          {isLoading && <LoadingMessage />}
+        {/* Tips */}
+        <div className="mt-8 zen-card p-6 bg-zen-water-50/30 border-zen-water-200">
+          <h3 className="font-display text-zen-water-800 mb-4">Getting the Best Advice</h3>
+          <ul className="space-y-2 text-zen-water-700 text-sm">
+            <li>• Share your location and local climate conditions</li>
+            <li>• Upload clear photos of your plants for visual diagnosis</li>
+            <li>• Describe symptoms in detail with timing and photos if possible</li>
+            <li>• Ask follow-up questions for more specific guidance</li>
+            <li>• Let me know your gardening experience level for tailored advice</li>
+          </ul>
         </div>
-
-        {/* Input */}
-        <ChatInput 
-          onSubmit={handleSubmit} 
-          isLoading={isLoading} 
-          rateLimitInfo={rateLimitInfo}
-        />
-      </div>
-
-      {/* Tips */}
-      <div className="mt-8 bg-blue-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 text-blue-800">💡 Getting the Best Advice</h3>
-        <ul className="space-y-2 text-blue-700">
-          <li>• Share your location and local climate conditions</li>
-          <li>• Upload clear photos of your plants for visual diagnosis</li>
-          <li>• Describe symptoms in detail with timing and photos if possible</li>
-          <li>• Ask follow-up questions for more specific guidance</li>
-          <li>• Let me know your gardening experience level for tailored advice</li>
-        </ul>
       </div>
     </div>
   )

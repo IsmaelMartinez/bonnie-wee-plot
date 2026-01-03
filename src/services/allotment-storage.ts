@@ -19,10 +19,12 @@ import {
   BedNote,
   NewBedNote,
   BedNoteUpdate,
+  GardenEvent,
+  NewGardenEvent,
   STORAGE_KEY,
   CURRENT_SCHEMA_VERSION,
 } from '@/types/unified-allotment'
-import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan, SoilMethod } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 
@@ -396,12 +398,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
     // Remove problemNotes from layout.beds (create new objects without the field)
     migrated.layout = {
       ...migrated.layout,
-      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup }) => ({
-        id, name, description, status, rotationGroup,
+      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup, soilMethod }) => ({
+        id, name, description, status, rotationGroup, soilMethod,
       })),
     }
 
     console.log('Migrated to schema v4: problemNotes converted to BedNotes for 2025')
+  }
+
+  // Version 4 -> 5: Add gardenEvents array
+  if (migrated.version < 5) {
+    migrated.gardenEvents = migrated.gardenEvents || []
+    console.log('Migrated to schema v5: added gardenEvents')
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -724,6 +732,33 @@ export function updateBedRotationGroup(
   }
 }
 
+// ============ BED LAYOUT OPERATIONS ============
+
+/**
+ * Update a bed's soil method in the layout
+ */
+export function updateBedSoilMethod(
+  data: AllotmentData,
+  bedId: PhysicalBedId,
+  soilMethod: SoilMethod | undefined
+): AllotmentData {
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      beds: data.layout.beds.map(bed =>
+        bed.id === bedId
+          ? { ...bed, soilMethod }
+          : bed
+      ),
+    },
+    meta: {
+      ...data.meta,
+      updatedAt: new Date().toISOString(),
+    },
+  }
+}
+
 // ============ PLANTING OPERATIONS ============
 
 /**
@@ -966,6 +1001,69 @@ export function removeBedNote(
         }),
       }
     }),
+  }
+}
+
+// ============ GARDEN EVENTS OPERATIONS ============
+
+/**
+ * Get all garden events
+ */
+export function getGardenEvents(data: AllotmentData): GardenEvent[] {
+  return data.gardenEvents || []
+}
+
+/**
+ * Get garden events for a specific date range
+ */
+export function getGardenEventsInRange(
+  data: AllotmentData,
+  startDate: string,
+  endDate: string
+): GardenEvent[] {
+  return (data.gardenEvents || []).filter(event => {
+    return event.date >= startDate && event.date <= endDate
+  })
+}
+
+/**
+ * Add a garden event
+ */
+export function addGardenEvent(
+  data: AllotmentData,
+  event: NewGardenEvent
+): AllotmentData {
+  const now = new Date().toISOString()
+  const newEvent: GardenEvent = {
+    ...event,
+    id: generateId('event'),
+    createdAt: now,
+  }
+
+  return {
+    ...data,
+    gardenEvents: [...(data.gardenEvents || []), newEvent],
+    meta: {
+      ...data.meta,
+      updatedAt: now,
+    },
+  }
+}
+
+/**
+ * Remove a garden event
+ */
+export function removeGardenEvent(
+  data: AllotmentData,
+  eventId: string
+): AllotmentData {
+  return {
+    ...data,
+    gardenEvents: (data.gardenEvents || []).filter(e => e.id !== eventId),
+    meta: {
+      ...data.meta,
+      updatedAt: new Date().toISOString(),
+    },
   }
 }
 

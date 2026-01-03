@@ -23,9 +23,10 @@ import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
-import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, SoilMethod } from '@/types/garden-planner'
 import { Planting, NewPlanting } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
+import { SEASONAL_PHASES } from '@/lib/seasons'
 import { myVarieties } from '@/data/my-varieties'
 import { Calendar, Package, ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
@@ -33,22 +34,6 @@ import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import DataManagement from '@/components/allotment/DataManagement'
 import SaveIndicator from '@/components/ui/SaveIndicator'
 import BedNotes from '@/components/allotment/BedNotes'
-
-// Seasonal phase based on month
-const SEASONAL_PHASES: Record<number, { name: string; emoji: string; action: string }> = {
-  0: { name: 'Planning Season', emoji: '❄️', action: 'Order seeds & plan rotation' },
-  1: { name: 'Early Spring', emoji: '🌱', action: 'Start seeds indoors' },
-  2: { name: 'Spring Prep', emoji: '🌿', action: 'Prepare beds & sow early crops' },
-  3: { name: 'Planting Time', emoji: '🌻', action: 'Transplant & direct sow' },
-  4: { name: 'Growing Season', emoji: '☀️', action: 'Maintain & water' },
-  5: { name: 'Peak Season', emoji: '🌽', action: 'Harvest & succession plant' },
-  6: { name: 'Midsummer', emoji: '🍅', action: 'Harvest & preserve' },
-  7: { name: 'Late Summer', emoji: '🎃', action: 'Harvest main crops' },
-  8: { name: 'Autumn', emoji: '🍂', action: 'Clear beds & plant garlic' },
-  9: { name: 'Late Autumn', emoji: '🥕', action: 'Lift roots & protect crops' },
-  10: { name: 'Early Winter', emoji: '🥬', action: 'Harvest hardy crops' },
-  11: { name: 'Rest Period', emoji: '❄️', action: 'Rest & reflect' }
-}
 
 // Season Status Widget Component
 function SeasonStatusWidget({
@@ -68,36 +53,36 @@ function SeasonStatusWidget({
   const varietiesUsedLastYear = myVarieties.filter(v => v.yearsUsed.includes(currentYear - 1))
 
   return (
-    <div className="bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl p-4 shadow-lg">
+    <div className="zen-card p-4 border-zen-moss-200">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{phase.emoji}</span>
           <div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 opacity-80" />
+            <div className="flex items-center gap-2 text-zen-ink-700">
+              <Calendar className="w-4 h-4 text-zen-stone-400" />
               <span className="font-medium">{monthName}</span>
-              <span className="text-emerald-200">•</span>
-              <span className="text-emerald-100">{phase.name}</span>
+              <span className="text-zen-stone-300">·</span>
+              <span className="text-zen-moss-600">{phase.name}</span>
             </div>
-            <p className="text-sm text-emerald-100 mt-0.5">{phase.action}</p>
+            <p className="text-sm text-zen-stone-500 mt-0.5">{phase.action}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 text-sm">
           <Link
             href="/seeds"
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
           >
-            <Package className="w-4 h-4" />
-            <span>{varietiesUsedLastYear.length} varieties to check</span>
+            <Package className="w-4 h-4 text-zen-stone-400" />
+            <span>{varietiesUsedLastYear.length} varieties</span>
           </Link>
 
           <Link
             href="/plan-history"
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
           >
-            <ArrowRight className="w-4 h-4" />
-            <span>{bedsNeedingRotation}/{totalRotationBeds} beds need rotation</span>
+            <ArrowRight className="w-4 h-4 text-zen-stone-400" />
+            <span>{bedsNeedingRotation}/{totalRotationBeds} to rotate</span>
           </Link>
         </div>
       </div>
@@ -139,9 +124,10 @@ function AddPlantingForm({
   const [notes, setNotes] = useState('')
 
   // Get matching varieties from seed library for autocomplete (Spike 1)
-  const matchingVarieties = vegetableId
-    ? myVarieties.filter(v => v.vegetableId === vegetableId)
-    : []
+  const matchingVarieties = useMemo(
+    () => vegetableId ? myVarieties.filter(v => v.vegetableId === vegetableId) : [],
+    [vegetableId]
+  )
   const selectedVegetable = vegetableId ? getVegetableById(vegetableId) : null
 
   // Track 3C: Pre-select variety if only one match exists
@@ -190,7 +176,7 @@ function AddPlantingForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="vegetable-select" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="vegetable-select" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Vegetable *
         </label>
         <select
@@ -198,31 +184,31 @@ function AddPlantingForm({
           value={vegetableId}
           onChange={(e) => setVegetableId(e.target.value)}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          className="zen-select"
         >
           <option value="">Select a vegetable...</option>
           {[...vegetables].sort((a, b) => a.name.localeCompare(b.name)).map(v => (
             <option key={v.id} value={v.id}>{v.name}</option>
           ))}
         </select>
-        
+
         {/* Companion suggestions panel */}
         {vegetableId && existingPlantings.length > 0 && (
           <div className="mt-2 space-y-1">
             {companionInfo.goods.length > 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1.5 rounded">
+              <div className="flex items-center gap-1.5 text-xs text-zen-moss-700 bg-zen-moss-50 px-2 py-1.5 rounded-zen">
                 <Check className="w-3 h-3" />
                 <span>Good with: {companionInfo.goods.join(', ')}</span>
               </div>
             )}
             {companionInfo.bads.length > 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-orange-700 bg-orange-50 px-2 py-1.5 rounded">
+              <div className="flex items-center gap-1.5 text-xs text-zen-kitsune-700 bg-zen-kitsune-50 px-2 py-1.5 rounded-zen">
                 <AlertTriangle className="w-3 h-3" />
                 <span>Avoid: {companionInfo.bads.join(', ')}</span>
               </div>
             )}
             {companionInfo.goods.length === 0 && companionInfo.bads.length === 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2 py-1.5 rounded">
+              <div className="flex items-center gap-1.5 text-xs text-zen-stone-500 bg-zen-stone-50 px-2 py-1.5 rounded-zen">
                 <Users className="w-3 h-3" />
                 <span>Neutral with current plantings</span>
               </div>
@@ -230,9 +216,9 @@ function AddPlantingForm({
           </div>
         )}
       </div>
-      
+
       <div>
-        <label htmlFor="variety-input" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="variety-input" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Variety Name
         </label>
         <input
@@ -242,7 +228,7 @@ function AddPlantingForm({
           onChange={(e) => setVarietyName(e.target.value)}
           list="variety-suggestions"
           placeholder="e.g., Kelvedon Wonder"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          className="zen-input"
         />
         {/* Datalist for variety autocomplete (Spike 1) */}
         <datalist id="variety-suggestions">
@@ -256,16 +242,16 @@ function AddPlantingForm({
             href={`/seeds?vegetable=${vegetableId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-1.5 text-xs text-emerald-600 hover:text-emerald-700"
+            className="inline-flex items-center gap-1 mt-1.5 text-xs text-zen-moss-600 hover:text-zen-moss-700"
           >
             <Package className="w-3 h-3" />
             View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'} →
           </a>
         )}
       </div>
-      
+
       <div>
-        <label htmlFor="sow-date-input" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="sow-date-input" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Sow Date
         </label>
         <input
@@ -273,12 +259,12 @@ function AddPlantingForm({
           type="date"
           value={sowDate}
           onChange={(e) => setSowDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          className="zen-input"
         />
       </div>
-      
+
       <div>
-        <label htmlFor="notes-input" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="notes-input" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Notes
         </label>
         <textarea
@@ -287,22 +273,22 @@ function AddPlantingForm({
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
           placeholder="Any notes about this planting..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          className="zen-input"
         />
       </div>
-      
+
       <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="zen-btn-secondary flex-1"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!vegetableId}
-          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Planting
         </button>
@@ -331,12 +317,12 @@ function getCompanionStatus(planting: Planting, otherPlantings: Planting[]): {
 }
 
 // Planting Card with accessible actions (always visible for mobile)
-function PlantingCard({ 
-  planting, 
+function PlantingCard({
+  planting,
   onDelete,
   onUpdateSuccess,
   otherPlantings = []
-}: { 
+}: {
   planting: Planting
   onDelete: () => void
   onUpdateSuccess: (success: Planting['success']) => void
@@ -345,32 +331,32 @@ function PlantingCard({
   const veg = getVegetableById(planting.vegetableId)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { goods, bads } = getCompanionStatus(planting, otherPlantings)
-  
+
   return (
     <>
-      <div className={`rounded-lg p-3 ${bads.length > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'}`}>
+      <div className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'}`}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-gray-800">
+            <div className="font-medium text-zen-ink-800">
               {veg?.name || planting.vegetableId}
             </div>
             {planting.varietyName && (
-              <div className="text-xs text-gray-500">{planting.varietyName}</div>
+              <div className="text-xs text-zen-stone-500">{planting.varietyName}</div>
             )}
 
             {/* Care requirements */}
             {veg && (
-              <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+              <div className="flex items-center gap-2 mt-1 text-xs text-zen-stone-500">
                 <span className="flex items-center gap-0.5" title={`Water: ${veg.care.water}`}>
                   <Droplets className={`w-3 h-3 ${
-                    veg.care.water === 'high' ? 'text-blue-500' :
-                    veg.care.water === 'moderate' ? 'text-blue-400' : 'text-blue-300'
+                    veg.care.water === 'high' ? 'text-zen-water-600' :
+                    veg.care.water === 'moderate' ? 'text-zen-water-500' : 'text-zen-water-400'
                   }`} />
                   {veg.care.water === 'high' ? 'High' : veg.care.water === 'moderate' ? 'Med' : 'Low'}
                 </span>
                 <span className="flex items-center gap-0.5" title={`Sun: ${veg.care.sun}`}>
                   <Sun className={`w-3 h-3 ${
-                    veg.care.sun === 'full-sun' ? 'text-yellow-500' : 'text-yellow-400'
+                    veg.care.sun === 'full-sun' ? 'text-zen-kitsune-500' : 'text-zen-kitsune-400'
                   }`} />
                   {veg.care.sun === 'full-sun' ? 'Full' : 'Partial'}
                 </span>
@@ -380,32 +366,32 @@ function PlantingCard({
             {/* Companion Status */}
             {goods.length > 0 && (
               <div className="flex items-center gap-1 mt-1">
-                <Check className="w-3 h-3 text-green-600" />
-                <span className="text-xs text-green-700">Good with {goods.join(', ')}</span>
+                <Check className="w-3 h-3 text-zen-moss-600" />
+                <span className="text-xs text-zen-moss-700">Good with {goods.join(', ')}</span>
               </div>
             )}
             {bads.length > 0 && (
               <div className="flex items-center gap-1 mt-1">
-                <AlertTriangle className="w-3 h-3 text-orange-500" />
-                <span className="text-xs text-orange-600">Conflicts with {bads.join(', ')}</span>
+                <AlertTriangle className="w-3 h-3 text-zen-kitsune-500" />
+                <span className="text-xs text-zen-kitsune-600">Conflicts with {bads.join(', ')}</span>
               </div>
             )}
-            
+
             {planting.success && (
               <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
-                planting.success === 'excellent' ? 'bg-green-100 text-green-700' :
-                planting.success === 'good' ? 'bg-blue-100 text-blue-700' :
-                planting.success === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
+                planting.success === 'excellent' ? 'bg-zen-moss-100 text-zen-moss-700' :
+                planting.success === 'good' ? 'bg-zen-water-100 text-zen-water-700' :
+                planting.success === 'fair' ? 'bg-zen-kitsune-100 text-zen-kitsune-700' :
+                'bg-zen-ume-100 text-zen-ume-700'
               }`}>
                 {planting.success}
               </span>
             )}
             {planting.notes && (
-              <div className="text-xs text-gray-400 mt-1 line-clamp-2">{planting.notes}</div>
+              <div className="text-xs text-zen-stone-400 mt-1 line-clamp-2">{planting.notes}</div>
             )}
           </div>
-          
+
           {/* Actions - always visible for accessibility and mobile */}
           <div className="flex items-center gap-1 shrink-0">
             <label htmlFor={`success-${planting.id}`} className="sr-only">
@@ -415,7 +401,7 @@ function PlantingCard({
               id={`success-${planting.id}`}
               value={planting.success || ''}
               onChange={(e) => onUpdateSuccess(e.target.value as Planting['success'])}
-              className="text-xs px-1 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="text-xs px-1 py-1 border border-zen-stone-200 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
               aria-label="Rate planting success"
             >
               <option value="">Rate...</option>
@@ -426,7 +412,7 @@ function PlantingCard({
             </select>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-1.5 text-red-500 hover:bg-red-50 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="p-1.5 text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500"
               aria-label={`Delete ${veg?.name || planting.vegetableId}`}
             >
               <Trash2 className="w-4 h-4" />
@@ -481,6 +467,7 @@ export default function AllotmentPage() {
     updateBedNote,
     removeBedNote,
     updateRotationGroup,
+    updateSoilMethod,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -526,13 +513,13 @@ export default function AllotmentPage() {
       suggestedGroup,
       suggestedVegetables,
     }
-  }, [selectedBedId, selectedYear, data?.seasons])
+  }, [selectedBedId, selectedYear, data])
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+      <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-zen-moss-600 animate-spin" />
       </div>
     )
   }
@@ -579,40 +566,40 @@ export default function AllotmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50">
+    <div className="min-h-screen bg-zen-stone-50 zen-texture">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-zen-stone-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Map className="w-8 h-8 text-emerald-600" />
+              <Map className="w-7 h-7 text-zen-moss-600" />
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-gray-800">{data?.meta.name || 'My Allotment'}</h1>
+                  <h1 className="text-lg font-display text-zen-ink-800">{data?.meta.name || 'My Allotment'}</h1>
                   <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
                 </div>
-                <p className="text-xs text-gray-500">{data?.meta.location || 'Edinburgh, Scotland'}</p>
+                <p className="text-xs text-zen-stone-500">{data?.meta.location || 'Edinburgh, Scotland'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <DataManagement data={data} onDataImported={reload} />
-              <Link 
-                href="/companion-planting"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition"
+              <Link
+                href="/ai-advisor"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
               >
                 <Users className="w-4 h-4" />
-                Companions
+                Ask Aitor
               </Link>
-              <Link 
+              <Link
                 href="/this-month"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
               >
                 <TreeDeciduous className="w-4 h-4" />
                 Care
               </Link>
-              <Link 
+              <Link
                 href="/plan-history"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
               >
                 <History className="w-4 h-4" />
                 History
@@ -625,19 +612,19 @@ export default function AllotmentPage() {
       {/* Save Error Alert */}
       {saveError && (
         <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div 
-            className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+          <div
+            className="zen-card p-4 border-zen-ume-200 bg-zen-ume-50 flex items-start gap-3"
             role="alert"
             aria-live="polite"
           >
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-zen-ume-600 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-medium text-red-800">Failed to save changes</p>
-              <p className="text-sm text-red-600 mt-1">{saveError}</p>
+              <p className="font-medium text-zen-ume-800">Failed to save changes</p>
+              <p className="text-sm text-zen-ume-600 mt-1">{saveError}</p>
             </div>
             <button
               onClick={clearSaveError}
-              className="p-1 text-red-400 hover:text-red-600 hover:bg-red-100 rounded transition"
+              className="p-1 text-zen-ume-400 hover:text-zen-ume-600 hover:bg-zen-ume-100 rounded-zen transition"
               aria-label="Dismiss error"
             >
               <span className="sr-only">Dismiss</span>
@@ -652,15 +639,15 @@ export default function AllotmentPage() {
       {/* Multi-tab Sync Notification */}
       {isSyncedFromOtherTab && (
         <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div 
-            className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-3 animate-pulse"
+          <div
+            className="zen-card p-3 border-zen-water-200 bg-zen-water-50 flex items-center gap-3 animate-pulse"
             role="status"
             aria-live="polite"
           >
-            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-zen-water-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <p className="text-sm text-blue-700">
+            <p className="text-sm text-zen-water-700">
               Data synced from another browser tab
             </p>
           </div>
@@ -669,7 +656,7 @@ export default function AllotmentPage() {
 
       {/* Year Selector */}
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="bg-white rounded-xl shadow-sm p-3 flex items-center justify-center gap-2 flex-wrap">
+        <div className="zen-card p-3 flex items-center justify-center gap-2 flex-wrap">
           <button
             onClick={() => {
               const idx = availableYears.indexOf(selectedYear)
@@ -678,19 +665,19 @@ export default function AllotmentPage() {
               }
             }}
             disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          
+
           {availableYears.map(year => (
             <div key={year} className="relative group">
               <button
                 onClick={() => selectYear(year)}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
+                className={`px-4 py-2 rounded-zen font-medium transition ${
                   selectedYear === year
-                    ? 'bg-emerald-500 text-white shadow'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-zen-moss-600 text-white'
+                    : 'bg-zen-stone-100 text-zen-ink-600 hover:bg-zen-stone-200'
                 }`}
               >
                 {year}
@@ -701,7 +688,7 @@ export default function AllotmentPage() {
                     e.stopPropagation()
                     setYearToDelete(year)
                   }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-red-600"
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-zen-ume-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-zen-ume-700"
                   title={`Delete ${year}`}
                 >
                   ×
@@ -709,17 +696,17 @@ export default function AllotmentPage() {
               )}
             </div>
           ))}
-          
+
           {canCreateNextYear && (
             <button
               onClick={handleCreateNextYear}
-              className="px-4 py-2 rounded-lg font-medium bg-green-100 text-green-700 hover:bg-green-200 transition flex items-center gap-1"
+              className="px-4 py-2 rounded-zen font-medium bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 transition flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
               {nextYear}
             </button>
           )}
-          
+
           <button
             onClick={() => {
               const idx = availableYears.indexOf(selectedYear)
@@ -728,14 +715,14 @@ export default function AllotmentPage() {
               }
             }}
             disabled={availableYears.indexOf(selectedYear) <= 0}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
-        
+
         {currentSeason?.notes && (
-          <p className="text-center text-sm text-gray-500 mt-2">{currentSeason.notes}</p>
+          <p className="text-center text-sm text-zen-stone-500 mt-2">{currentSeason.notes}</p>
         )}
       </div>
 
@@ -752,12 +739,12 @@ export default function AllotmentPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Layout */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Leaf className="w-5 h-5 text-green-600" />
+            <div className="zen-card p-6">
+              <h2 className="text-lg font-display text-zen-ink-700 mb-4 flex items-center gap-2">
+                <Leaf className="w-5 h-5 text-zen-moss-600" />
                 Plot Overview - {selectedYear}
               </h2>
-              
+
               {/* Draggable Grid Layout */}
               <AllotmentGrid
                 onBedSelect={(bedId) => selectBed(bedId as PhysicalBedId)}
@@ -770,20 +757,20 @@ export default function AllotmentPage() {
           {/* Sidebar - Bed Details */}
           <div className="lg:col-span-1">
             {selectedBedData ? (
-              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-20">
+              <div className="zen-card p-6 sticky top-20">
                 <div className="flex items-center gap-3 mb-4">
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold"
+                  <div
+                    className="w-12 h-12 rounded-zen-lg flex items-center justify-center text-white text-xl font-bold"
                     style={{ backgroundColor: BED_COLORS[selectedBedId!] }}
                   >
                     {selectedBedId?.replace('-prime', "'")}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800">{selectedBedData.name}</h3>
+                    <h3 className="font-display text-zen-ink-800">{selectedBedData.name}</h3>
                     <div className={`text-xs flex items-center gap-1 ${
-                      inferredStatus === 'problem' ? 'text-red-500' :
-                      inferredStatus === 'perennial' ? 'text-purple-500' :
-                      'text-green-600'
+                      inferredStatus === 'problem' ? 'text-zen-ume-600' :
+                      inferredStatus === 'perennial' ? 'text-zen-sakura-600' :
+                      'text-zen-moss-600'
                     }`}>
                       {inferredStatus === 'problem' && <AlertTriangle className="w-3 h-3" />}
                       {inferredStatus === 'perennial' && <Leaf className="w-3 h-3" />}
@@ -792,6 +779,25 @@ export default function AllotmentPage() {
                        selectedBedData.rotationGroup || 'Rotation'}
                     </div>
                   </div>
+                </div>
+
+                {/* Soil Method Selector */}
+                <div className="mb-4">
+                  <label htmlFor="soil-method" className="block text-xs font-medium text-zen-stone-500 mb-1">
+                    Soil Method
+                  </label>
+                  <select
+                    id="soil-method"
+                    value={selectedBedData.soilMethod || ''}
+                    onChange={(e) => updateSoilMethod(selectedBedId!, (e.target.value || undefined) as SoilMethod | undefined)}
+                    className="zen-select text-sm"
+                  >
+                    <option value="">Not specified</option>
+                    <option value="no-dig">No-dig</option>
+                    <option value="back-to-eden">Back to Eden</option>
+                    <option value="traditional">Traditional</option>
+                    <option value="raised-bed">Raised Bed</option>
+                  </select>
                 </div>
 
                 {/* Rotation Indicator for rotation beds */}
@@ -811,22 +817,22 @@ export default function AllotmentPage() {
                     .map(id => getVegetableById(id)?.name)
                     .filter(Boolean)
                   return (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                      <div className="text-xs text-amber-800 font-medium mb-1">Rotation Guide</div>
+                    <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3 mb-4">
+                      <div className="text-xs text-zen-kitsune-700 font-medium mb-1">Rotation Guide</div>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="flex items-center gap-1">
                           <span>{lastDisplay?.emoji}</span>
-                          <span className="text-gray-600">{selectedYear - 1}: {lastDisplay?.name}</span>
+                          <span className="text-zen-stone-600">{selectedYear - 1}: {lastDisplay?.name}</span>
                         </span>
-                        <ArrowRight className="w-4 h-4 text-amber-500" />
-                        <span className="flex items-center gap-1 font-medium text-amber-700">
+                        <ArrowRight className="w-4 h-4 text-zen-kitsune-500" />
+                        <span className="flex items-center gap-1 font-medium text-zen-kitsune-700">
                           <span>{nextDisplay?.emoji}</span>
                           <span>{selectedYear}: {nextDisplay?.name}</span>
                         </span>
                       </div>
                       {/* Suggested vegetables (Spike 2) */}
                       {suggestedVegNames.length > 0 && (
-                        <div className="text-xs text-gray-500 mt-2">
+                        <div className="text-xs text-zen-stone-500 mt-2">
                           Consider: {suggestedVegNames.join(', ')}
                         </div>
                       )}
@@ -834,7 +840,7 @@ export default function AllotmentPage() {
                   )
                 })()}
 
-                <p className="text-sm text-gray-600 mb-4">{selectedBedData.description}</p>
+                <p className="text-sm text-zen-stone-600 mb-4">{selectedBedData.description}</p>
 
                 {/* Bed Note for this year */}
                 <div className="mb-4">
@@ -849,8 +855,8 @@ export default function AllotmentPage() {
                 {/* Plantings section with Add button */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                      <Sprout className="w-4 h-4" />
+                    <h4 className="font-medium text-zen-ink-700 flex items-center gap-2">
+                      <Sprout className="w-4 h-4 text-zen-moss-600" />
                       {selectedYear} Plantings
                     </h4>
                     {selectedBedData.status !== 'perennial' && (
@@ -858,7 +864,7 @@ export default function AllotmentPage() {
                         {autoRotateInfo && (
                           <button
                             onClick={() => setShowAutoRotateDialog(true)}
-                            className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                            className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
                             title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
                           >
                             <ArrowRight className="w-3 h-3" />
@@ -867,7 +873,7 @@ export default function AllotmentPage() {
                         )}
                         <button
                           onClick={() => setShowAddDialog(true)}
-                          className="flex items-center gap-1 text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition"
+                          className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
                         >
                           <Plus className="w-3 h-3" />
                           Add
@@ -875,7 +881,7 @@ export default function AllotmentPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {selectedPlantings.length > 0 ? (
                     <div className="space-y-2">
                       {selectedPlantings.map(p => (
@@ -889,8 +895,8 @@ export default function AllotmentPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-400 italic">
-                      {selectedBedData.status === 'perennial' 
+                    <div className="text-sm text-zen-stone-400 italic">
+                      {selectedBedData.status === 'perennial'
                         ? 'Perennial bed - see permanent plantings'
                         : 'No plantings recorded. Click Add to start planning.'}
                     </div>
@@ -898,40 +904,40 @@ export default function AllotmentPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-20">
-                <div className="text-center text-gray-400">
+              <div className="zen-card p-6 sticky top-20">
+                <div className="text-center text-zen-stone-400">
                   <Map className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="font-medium">Select a bed</p>
+                  <p className="font-medium text-zen-ink-600">Select a bed</p>
                   <p className="text-sm">Click on any bed in the layout to see its details and manage plantings</p>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="font-semibold text-gray-700 mb-3">Quick Stats</h4>
+                <div className="mt-6 pt-6 border-t border-zen-stone-100">
+                  <h4 className="font-medium text-zen-ink-700 mb-3">Quick Stats</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-green-600">
+                    <div className="bg-zen-moss-50 rounded-zen p-3 text-center">
+                      <div className="text-2xl font-bold text-zen-moss-600">
                         {getRotationBeds().length}
                       </div>
-                      <div className="text-xs text-green-700">Rotation Beds</div>
+                      <div className="text-xs text-zen-moss-700">Rotation Beds</div>
                     </div>
-                    <div className="bg-red-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-red-600">
+                    <div className="bg-zen-ume-50 rounded-zen p-3 text-center">
+                      <div className="text-2xl font-bold text-zen-ume-600">
                         {getProblemBeds().length}
                       </div>
-                      <div className="text-xs text-red-700">Problem Areas</div>
+                      <div className="text-xs text-zen-ume-700">Problem Areas</div>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                    <div className="bg-zen-sakura-50 rounded-zen p-3 text-center">
+                      <div className="text-2xl font-bold text-zen-sakura-600">
                         {getPerennialBeds().length}
                       </div>
-                      <div className="text-xs text-purple-700">Perennials</div>
+                      <div className="text-xs text-zen-sakura-700">Perennials</div>
                     </div>
-                    <div className="bg-amber-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-amber-600">
+                    <div className="bg-zen-kitsune-50 rounded-zen p-3 text-center">
+                      <div className="text-2xl font-bold text-zen-kitsune-600">
                         {permanentPlantingsCount}
                       </div>
-                      <div className="text-xs text-amber-700">Permanent</div>
+                      <div className="text-xs text-zen-kitsune-700">Permanent</div>
                     </div>
                   </div>
                 </div>
@@ -939,29 +945,29 @@ export default function AllotmentPage() {
             )}
 
             {/* Bed Legend */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mt-4">
-              <h4 className="font-semibold text-gray-700 mb-3">All Beds</h4>
+            <div className="zen-card p-6 mt-4">
+              <h4 className="font-medium text-zen-ink-700 mb-3">All Beds</h4>
               <div className="space-y-2">
                 {allBeds.map(bed => (
                   <button
                     key={bed.id}
                     onClick={() => selectBed(bed.id)}
-                    className={`w-full flex items-center gap-2 p-2 rounded-lg transition hover:bg-gray-50 ${
-                      selectedBedId === bed.id ? 'bg-gray-100' : ''
+                    className={`w-full flex items-center gap-2 p-2 rounded-zen transition hover:bg-zen-stone-50 ${
+                      selectedBedId === bed.id ? 'bg-zen-stone-100' : ''
                     }`}
                   >
-                    <div 
-                      className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    <div
+                      className="w-8 h-8 rounded-zen flex items-center justify-center text-white text-xs font-bold shrink-0"
                       style={{ backgroundColor: BED_COLORS[bed.id] }}
                     >
                       {bed.id.replace('-prime', "'")}
                     </div>
                     <div className="text-left min-w-0">
-                      <div className="font-medium text-gray-800 text-sm truncate">{bed.name}</div>
+                      <div className="font-medium text-zen-ink-700 text-sm truncate">{bed.name}</div>
                       <div className={`text-xs ${
-                        bed.status === 'problem' ? 'text-red-500' : 
-                        bed.status === 'perennial' ? 'text-purple-500' : 
-                        'text-gray-500'
+                        bed.status === 'problem' ? 'text-zen-ume-600' :
+                        bed.status === 'perennial' ? 'text-zen-sakura-600' :
+                        'text-zen-stone-500'
                       }`}>
                         {bed.status === 'problem' && '⚠️ '}
                         {bed.rotationGroup || bed.status}
@@ -1027,25 +1033,25 @@ export default function AllotmentPage() {
           >
             <div className="space-y-4">
               {/* Rotation Flow */}
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <div className="bg-zen-moss-50 border border-zen-moss-200 rounded-zen p-4">
                 <div className="flex items-center justify-center gap-4">
                   <div className="text-center">
                     <div className="text-2xl mb-1">{previousDisplay?.emoji}</div>
-                    <div className="text-sm font-medium text-gray-700">{previousDisplay?.name}</div>
-                    <div className="text-xs text-gray-500">{autoRotateInfo.previousYear}</div>
+                    <div className="text-sm font-medium text-zen-ink-700">{previousDisplay?.name}</div>
+                    <div className="text-xs text-zen-stone-500">{autoRotateInfo.previousYear}</div>
                   </div>
-                  <ArrowRight className="w-6 h-6 text-emerald-600" />
+                  <ArrowRight className="w-6 h-6 text-zen-moss-600" />
                   <div className="text-center">
                     <div className="text-2xl mb-1">{suggestedDisplay?.emoji}</div>
-                    <div className="text-sm font-medium text-emerald-700">{suggestedDisplay?.name}</div>
-                    <div className="text-xs text-emerald-600">{selectedYear}</div>
+                    <div className="text-sm font-medium text-zen-moss-700">{suggestedDisplay?.name}</div>
+                    <div className="text-xs text-zen-moss-600">{selectedYear}</div>
                   </div>
                 </div>
               </div>
 
               {/* Why this matters */}
-              <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-700 mb-1">Why rotate?</p>
+              <div className="text-sm text-zen-stone-600">
+                <p className="font-medium text-zen-ink-700 mb-1">Why rotate?</p>
                 <p>
                   Crop rotation prevents soil nutrient depletion and reduces pest and disease buildup.
                   Each plant family uses different nutrients and attracts different pests.
@@ -1055,18 +1061,18 @@ export default function AllotmentPage() {
               {/* Suggested vegetables preview */}
               {suggestedVegNames.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">
+                  <p className="text-sm font-medium text-zen-ink-700 mb-2">
                     Suggested {suggestedDisplay?.name.toLowerCase()} to plant:
                   </p>
-                  <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <div className="bg-zen-stone-50 rounded-zen p-3 space-y-1">
                     {suggestedVegNames.map((name, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                        <span className="text-gray-400">•</span>
+                      <div key={idx} className="flex items-center gap-2 text-sm text-zen-ink-700">
+                        <span className="text-zen-stone-400">•</span>
                         <span>{name}</span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-zen-stone-500 mt-2">
                     You can add these automatically or choose your own later.
                   </p>
                 </div>
@@ -1076,19 +1082,19 @@ export default function AllotmentPage() {
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={() => handleAutoRotate(true)}
-                  className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+                  className="zen-btn-primary w-full"
                 >
                   Rotate & Add Suggested Plants
                 </button>
                 <button
                   onClick={() => handleAutoRotate(false)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="zen-btn-secondary w-full"
                 >
-                  Just Rotate (I'll add plants myself)
+                  Just Rotate (I&apos;ll add plants myself)
                 </button>
                 <button
                   onClick={() => setShowAutoRotateDialog(false)}
-                  className="w-full px-4 py-2 text-gray-600 hover:text-gray-800 transition text-sm"
+                  className="w-full px-4 py-2 text-zen-stone-600 hover:text-zen-ink-800 transition text-sm"
                 >
                   Cancel
                 </button>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Sprout,
@@ -31,7 +31,7 @@ const SUPPLIER_URLS: Record<string, string> = {
 const CURRENT_YEAR = new Date().getFullYear()
 const AVAILABLE_YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
 
-export default function SeedsPage() {
+function SeedsPageContent() {
   const {
     data,
     selectedYear,
@@ -135,37 +135,35 @@ export default function SeedsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading varieties...</div>
+      <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
+        <div className="text-zen-stone-500">Loading varieties...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-zen-stone-50 zen-texture">
+      <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-4">
-            <Package className="w-10 h-10 text-green-600 mr-3" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-              Seeds & Varieties
-            </h1>
+        <header className="mb-10">
+          <div className="flex items-baseline gap-3 mb-2">
+            <Package className="w-6 h-6 text-zen-moss-600" />
+            <h1 className="text-zen-ink-900">Seeds & Varieties</h1>
           </div>
-          <p className="text-gray-600">
-            Track your seed varieties, plan by year, and manage suppliers
+          <p className="text-zen-stone-500 text-lg">
+            Track your seed collection, plan by year
           </p>
-        </div>
+        </header>
 
         {/* Year Tabs */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex bg-white rounded-lg shadow p-1 gap-1">
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex zen-card p-1 gap-1">
             <button
               onClick={() => setSelectedYear('all')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+              className={`px-4 py-2 rounded-zen text-sm font-medium transition ${
                 selectedYear === 'all'
-                  ? 'bg-green-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-zen-moss-600 text-white'
+                  : 'text-zen-ink-600 hover:bg-zen-stone-100'
               }`}
             >
               All
@@ -174,10 +172,10 @@ export default function SeedsPage() {
               <button
                 key={year}
                 onClick={() => setSelectedYear(year)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                className={`px-4 py-2 rounded-zen text-sm font-medium transition ${
                   selectedYear === year
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-zen-moss-600 text-white'
+                    : 'text-zen-ink-600 hover:bg-zen-stone-100'
                 }`}
               >
                 {year}
@@ -187,31 +185,31 @@ export default function SeedsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg p-4 shadow text-center">
-            <div className="text-2xl font-bold text-green-600">{haveCount}</div>
-            <div className="text-sm text-gray-500">Have Seeds</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="zen-card p-4 text-center">
+            <div className="text-2xl font-bold text-zen-moss-600">{haveCount}</div>
+            <div className="text-sm text-zen-stone-500">Have Seeds</div>
           </div>
-          <div className="bg-white rounded-lg p-4 shadow text-center">
-            <div className="text-2xl font-bold text-orange-500">{needCount}</div>
-            <div className="text-sm text-gray-500">
+          <div className="zen-card p-4 text-center">
+            <div className="text-2xl font-bold text-zen-kitsune-600">{needCount}</div>
+            <div className="text-sm text-zen-stone-500">
               {selectedYear !== 'all' ? `Need for ${selectedYear}` : 'Need to Order'}
             </div>
           </div>
           {selectedYear !== 'all' ? (
-            <div className="bg-white rounded-lg p-4 shadow text-center">
-              <div className="text-2xl font-bold text-blue-600">{plannedCount}</div>
-              <div className="text-sm text-gray-500">Planned {selectedYear}</div>
+            <div className="zen-card p-4 text-center">
+              <div className="text-2xl font-bold text-zen-water-600">{plannedCount}</div>
+              <div className="text-sm text-zen-stone-500">Planned {selectedYear}</div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg p-4 shadow text-center">
-              <div className="text-2xl font-bold text-amber-600">£{getTotalSpendForYear(CURRENT_YEAR - 1).toFixed(2)}</div>
-              <div className="text-sm text-gray-500">Spent {CURRENT_YEAR - 1}</div>
+            <div className="zen-card p-4 text-center">
+              <div className="text-2xl font-bold text-zen-kitsune-600">£{getTotalSpendForYear(CURRENT_YEAR - 1).toFixed(2)}</div>
+              <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR - 1}</div>
             </div>
           )}
-          <div className="bg-white rounded-lg p-4 shadow text-center">
-            <div className="text-2xl font-bold text-amber-600">£{getTotalSpendForYear(CURRENT_YEAR).toFixed(2)}</div>
-            <div className="text-sm text-gray-500">Spent {CURRENT_YEAR}</div>
+          <div className="zen-card p-4 text-center">
+            <div className="text-2xl font-bold text-zen-kitsune-600">£{getTotalSpendForYear(CURRENT_YEAR).toFixed(2)}</div>
+            <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR}</div>
           </div>
         </div>
 
@@ -220,21 +218,21 @@ export default function SeedsPage() {
           <div className="flex gap-2">
             <button
               onClick={expandAll}
-              className="text-sm text-green-600 hover:text-green-700"
+              className="text-sm text-zen-moss-600 hover:text-zen-moss-700"
             >
               Expand all
             </button>
-            <span className="text-gray-300">|</span>
+            <span className="text-zen-stone-300">|</span>
             <button
               onClick={collapseAll}
-              className="text-sm text-green-600 hover:text-green-700"
+              className="text-sm text-zen-moss-600 hover:text-zen-moss-700"
             >
               Collapse all
             </button>
           </div>
           <button
             onClick={handleOpenAddDialog}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+            className="zen-btn-primary text-sm"
           >
             <Plus className="w-4 h-4" />
             Add Variety
@@ -243,14 +241,14 @@ export default function SeedsPage() {
 
         {/* Empty state */}
         {displayVarieties.length === 0 && (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <Sprout className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <div className="zen-card p-8 text-center">
+            <Sprout className="w-12 h-12 text-zen-stone-300 mx-auto mb-4" />
             {selectedYear === 'all' ? (
               <>
-                <p className="text-gray-600 mb-4">No varieties added yet.</p>
+                <p className="text-zen-ink-600 mb-4">No varieties added yet.</p>
                 <button
                   onClick={handleOpenAddDialog}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                  className="zen-btn-primary"
                 >
                   <Plus className="w-4 h-4" />
                   Add your first variety
@@ -258,8 +256,8 @@ export default function SeedsPage() {
               </>
             ) : (
               <>
-                <p className="text-gray-600 mb-2">No varieties planned for {selectedYear}.</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-zen-ink-600 mb-2">No varieties planned for {selectedYear}.</p>
+                <p className="text-sm text-zen-stone-500">
                   Switch to &quot;All&quot; to see all varieties, or add planned years to existing varieties.
                 </p>
               </>
@@ -274,25 +272,25 @@ export default function SeedsPage() {
             const isExpanded = expandedGroups.has(name)
 
             return (
-              <div key={name} className="bg-white rounded-lg shadow overflow-hidden">
+              <div key={name} className="zen-card overflow-hidden">
                 <button
                   onClick={() => toggleGroup(name)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zen-stone-50 transition"
                 >
                   <div className="flex items-center gap-2">
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-5 h-5 text-zen-stone-400" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-zen-stone-400" />
                     )}
-                    <Sprout className="w-5 h-5 text-green-500" />
-                    <span className="font-medium text-gray-800">{name}</span>
-                    <span className="text-sm text-gray-400">({varieties.length})</span>
+                    <Sprout className="w-5 h-5 text-zen-moss-500" />
+                    <span className="font-medium text-zen-ink-800">{name}</span>
+                    <span className="text-sm text-zen-stone-400">({varieties.length})</span>
                   </div>
                 </button>
 
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                  <div className="px-4 pb-4 pt-2 border-t border-zen-stone-100">
                     <div className="space-y-3">
                       {varieties.map(v => {
                         const hasIt = hasSeeds(v.id)
@@ -301,10 +299,10 @@ export default function SeedsPage() {
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${!hasIt ? 'opacity-75' : ''}`}>
                             <button
                               onClick={() => toggleHaveSeeds(v.id)}
-                              className={`mt-0.5 p-1 rounded ${
+                              className={`mt-0.5 p-1 rounded-zen transition ${
                                 hasIt
-                                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                                  : 'bg-orange-100 text-orange-500 hover:bg-orange-200'
+                                  ? 'bg-zen-moss-100 text-zen-moss-600 hover:bg-zen-moss-200'
+                                  : 'bg-zen-kitsune-100 text-zen-kitsune-600 hover:bg-zen-kitsune-200'
                               }`}
                               title={hasIt ? 'Have seeds - click to mark as needed' : 'Need seeds - click to mark as have'}
                             >
@@ -312,15 +310,15 @@ export default function SeedsPage() {
                             </button>
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
-                                <span className="font-medium text-gray-700">{v.name}</span>
+                                <span className="font-medium text-zen-ink-700">{v.name}</span>
                                 {v.supplier && (
-                                  <span className="text-sm text-gray-500">
+                                  <span className="text-sm text-zen-stone-500">
                                     {SUPPLIER_URLS[v.supplier] ? (
                                       <a
                                         href={SUPPLIER_URLS[v.supplier]}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-green-600 hover:underline inline-flex items-center gap-1"
+                                        className="text-zen-moss-600 hover:underline inline-flex items-center gap-1"
                                       >
                                         {v.supplier}
                                         <ExternalLink className="w-3 h-3" />
@@ -331,25 +329,25 @@ export default function SeedsPage() {
                                   </span>
                                 )}
                                 {v.price && (
-                                  <span className="text-sm text-amber-600">£{v.price.toFixed(2)}</span>
+                                  <span className="text-sm text-zen-kitsune-600">£{v.price.toFixed(2)}</span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500 flex flex-wrap gap-x-3">
+                              <div className="text-sm text-zen-stone-500 flex flex-wrap gap-x-3">
                                 {v.yearsUsed.length > 0 && (
                                   <span>Used: {v.yearsUsed.join(', ')}</span>
                                 )}
                                 {v.plannedYears.length > 0 && (
-                                  <span className="text-blue-600">Planned: {v.plannedYears.join(', ')}</span>
+                                  <span className="text-zen-water-600">Planned: {v.plannedYears.join(', ')}</span>
                                 )}
                                 {v.yearsUsed.length === 0 && v.plannedYears.length === 0 && (
-                                  <span className="text-red-500">Not used yet</span>
+                                  <span className="text-zen-ume-600">Not used yet</span>
                                 )}
                               </div>
                               {v.notes && (() => {
                                 const isWarning = /rotten|poor|failed|bad|damaged|diseased/i.test(v.notes)
                                 return (
                                   <div className={`text-sm italic flex items-start gap-1 ${
-                                    isWarning ? 'text-red-500 font-medium' : 'text-gray-400'
+                                    isWarning ? 'text-zen-ume-600 font-medium' : 'text-zen-stone-400'
                                   }`}>
                                     {isWarning && <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />}
                                     {v.notes}
@@ -362,10 +360,10 @@ export default function SeedsPage() {
                               {selectedYear !== 'all' && (
                                 <button
                                   onClick={() => togglePlannedYear(v.id, selectedYear)}
-                                  className={`p-1.5 rounded transition ${
+                                  className={`p-1.5 rounded-zen transition ${
                                     isPlannedForSelectedYear
-                                      ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                                      : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                      ? 'bg-zen-water-100 text-zen-water-600 hover:bg-zen-water-200'
+                                      : 'bg-zen-stone-100 text-zen-stone-400 hover:bg-zen-stone-200'
                                   }`}
                                   title={isPlannedForSelectedYear ? `Remove from ${selectedYear}` : `Plan for ${selectedYear}`}
                                 >
@@ -374,7 +372,7 @@ export default function SeedsPage() {
                               )}
                               <button
                                 onClick={() => handleOpenEditDialog(v)}
-                                className="p-1.5 rounded bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                                className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-stone-200 transition"
                                 title="Edit variety"
                               >
                                 <Pencil className="w-4 h-4" />
@@ -383,13 +381,13 @@ export default function SeedsPage() {
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleDeleteVariety(v.id)}
-                                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                    className="px-2 py-1 text-xs bg-zen-ume-600 text-white rounded-zen hover:bg-zen-ume-700"
                                   >
                                     Delete
                                   </button>
                                   <button
                                     onClick={() => setConfirmDelete(null)}
-                                    className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300"
+                                    className="px-2 py-1 text-xs bg-zen-stone-200 text-zen-ink-600 rounded-zen hover:bg-zen-stone-300"
                                   >
                                     Cancel
                                   </button>
@@ -397,7 +395,7 @@ export default function SeedsPage() {
                               ) : (
                                 <button
                                   onClick={() => setConfirmDelete(v.id)}
-                                  className="p-1.5 rounded bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 transition"
+                                  className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-ume-100 hover:text-zen-ume-600 transition"
                                   title="Delete variety"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -417,8 +415,8 @@ export default function SeedsPage() {
 
         {/* Suppliers section */}
         {suppliers.length > 0 && (
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="font-semibold text-gray-800 mb-4">Suppliers</h2>
+          <div className="mt-8 zen-card p-6">
+            <h2 className="font-display text-zen-ink-800 mb-4">Suppliers</h2>
             <div className="flex flex-wrap gap-3">
               {suppliers.map(s => (
                 <div key={s}>
@@ -427,13 +425,13 @@ export default function SeedsPage() {
                       href={SUPPLIER_URLS[s]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm hover:bg-green-100"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-zen-moss-50 text-zen-moss-700 rounded-full text-sm hover:bg-zen-moss-100 transition"
                     >
                       {s}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   ) : (
-                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
+                    <span className="px-3 py-1.5 bg-zen-stone-100 text-zen-ink-600 rounded-full text-sm">
                       {s}
                     </span>
                   )}
@@ -442,12 +440,12 @@ export default function SeedsPage() {
             </div>
 
             {/* Garden Organic link */}
-            <div className="mt-6 pt-4 border-t">
+            <div className="mt-6 pt-4 border-t border-zen-stone-100">
               <a
                 href="https://www.gardenorganic.org.uk/shop/seeds"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium"
+                className="inline-flex items-center gap-2 text-zen-moss-600 hover:text-zen-moss-700 font-medium transition"
               >
                 Browse Garden Organic Heritage Seeds
                 <ExternalLink className="w-4 h-4" />
@@ -470,5 +468,21 @@ export default function SeedsPage() {
         existingSuppliers={suppliers}
       />
     </div>
+  )
+}
+
+function SeedsPageFallback() {
+  return (
+    <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
+      <div className="text-zen-stone-500">Loading varieties...</div>
+    </div>
+  )
+}
+
+export default function SeedsPage() {
+  return (
+    <Suspense fallback={<SeedsPageFallback />}>
+      <SeedsPageContent />
+    </Suspense>
   )
 }

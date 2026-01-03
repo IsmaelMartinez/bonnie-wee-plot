@@ -2,8 +2,225 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
- * Note: Dark mode is not currently supported.
- * The app is designed with a light theme only.
- * Future enhancement: Add comprehensive dark mode support.
+/*
+ * Zen Garden Design System
+ * A calm, seasonal aesthetic inspired by Japanese garden design
  */
+
+@layer base {
+  /* Typography foundation */
+  html {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply text-zen-ink-800 bg-zen-stone-50;
+    line-height: 1.6;
+  }
+
+  /* Refined heading styles */
+  h1, h2, h3, h4 {
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    @apply font-normal tracking-tight;
+    line-height: 1.25;
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl text-zen-ink-900;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl text-zen-ink-800;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl text-zen-ink-700;
+  }
+
+  h4 {
+    @apply text-lg text-zen-ink-700;
+  }
+
+  /* Smooth focus states */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-zen-moss-400 ring-offset-2 ring-offset-zen-stone-50;
+  }
+
+  /* Links */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-zen-moss-200 text-zen-ink-900;
+  }
+}
+
+@layer components {
+  /* Zen card - the primary container */
+  .zen-card {
+    @apply bg-white border border-zen-stone-200 rounded-zen-lg shadow-zen;
+  }
+
+  .zen-card-elevated {
+    @apply bg-white border border-zen-stone-100 rounded-zen-lg shadow-zen-md;
+  }
+
+  /* Zen button variants */
+  .zen-btn {
+    @apply inline-flex items-center justify-center px-4 py-2
+           text-sm font-medium rounded-zen
+           transition-all duration-200 ease-out
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-moss-400 focus-visible:ring-offset-2;
+  }
+
+  .zen-btn-primary {
+    @apply zen-btn bg-zen-moss-600 text-white
+           hover:bg-zen-moss-700 active:bg-zen-moss-800;
+  }
+
+  .zen-btn-secondary {
+    @apply zen-btn bg-zen-stone-100 text-zen-ink-700
+           hover:bg-zen-stone-200 active:bg-zen-stone-300;
+  }
+
+  .zen-btn-ghost {
+    @apply zen-btn bg-transparent text-zen-ink-600
+           hover:bg-zen-stone-100 active:bg-zen-stone-200;
+  }
+
+  /* Zen input styles */
+  .zen-input {
+    @apply w-full px-3 py-2
+           bg-white border border-zen-stone-300 rounded-zen
+           text-zen-ink-800 placeholder-zen-stone-400
+           transition-colors duration-200
+           hover:border-zen-stone-400
+           focus:border-zen-moss-500 focus:ring-1 focus:ring-zen-moss-500 focus:outline-none;
+  }
+
+  .zen-select {
+    @apply zen-input appearance-none cursor-pointer
+           bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%2378716c%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')]
+           bg-[length:12px] bg-[right_12px_center] bg-no-repeat pr-10;
+  }
+
+  /* Page container */
+  .zen-page {
+    @apply min-h-screen bg-zen-stone-50;
+  }
+
+  /* Seasonal background overlays */
+  .zen-bg-winter {
+    background: linear-gradient(135deg, #fafaf9 0%, #f5f5f4 50%, #faf5f7 100%);
+  }
+
+  .zen-bg-spring {
+    background: linear-gradient(135deg, #fafaf9 0%, #f6f7f4 50%, #fdf6f8 100%);
+  }
+
+  .zen-bg-summer {
+    background: linear-gradient(135deg, #fdfcf9 0%, #f6f7f4 50%, #f9f6ee 100%);
+  }
+
+  .zen-bg-autumn {
+    background: linear-gradient(135deg, #fdfcf9 0%, #fdf8f4 50%, #f9f6ee 100%);
+  }
+
+  /* Subtle texture overlay */
+  .zen-texture {
+    position: relative;
+  }
+
+  .zen-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Ink-style dividers */
+  .zen-divider {
+    @apply border-t border-zen-stone-200;
+  }
+
+  .zen-divider-subtle {
+    @apply border-t border-zen-stone-100;
+  }
+
+  /* Badge/tag styles */
+  .zen-badge {
+    @apply inline-flex items-center px-2 py-0.5
+           text-xs font-medium rounded-full
+           bg-zen-stone-100 text-zen-ink-600;
+  }
+
+  .zen-badge-moss {
+    @apply zen-badge bg-zen-moss-100 text-zen-moss-700;
+  }
+
+  .zen-badge-sakura {
+    @apply zen-badge bg-zen-sakura-100 text-zen-sakura-700;
+  }
+
+  .zen-badge-kitsune {
+    @apply zen-badge bg-zen-kitsune-100 text-zen-kitsune-700;
+  }
+
+  .zen-badge-water {
+    @apply zen-badge bg-zen-water-100 text-zen-water-700;
+  }
+
+  /* Prose/content styling */
+  .zen-prose {
+    @apply text-zen-ink-700 leading-relaxed;
+  }
+
+  .zen-prose p + p {
+    @apply mt-4;
+  }
+
+  /* Icon containers */
+  .zen-icon-container {
+    @apply flex items-center justify-center
+           w-10 h-10 rounded-full
+           bg-zen-stone-100 text-zen-ink-600;
+  }
+
+  /* Empty state styling */
+  .zen-empty {
+    @apply py-12 text-center text-zen-stone-500;
+  }
+}
+
+@layer utilities {
+  /* Seasonal accent colors as utilities */
+  .accent-winter { --accent: theme('colors.zen.ume.500'); }
+  .accent-spring { --accent: theme('colors.zen.sakura.500'); }
+  .accent-summer { --accent: theme('colors.zen.moss.500'); }
+  .accent-autumn { --accent: theme('colors.zen.kitsune.500'); }
+
+  /* Breathing animation for subtle elements */
+  .animate-subtle {
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  /* Smooth scroll behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

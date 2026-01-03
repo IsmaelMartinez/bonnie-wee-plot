@@ -32,23 +32,23 @@ import { PhysicalBedId } from '@/types/garden-planner'
 import { Scissors, Droplet, TreeDeciduous } from 'lucide-react'
 
 // Month selector button component
-function MonthButton({ 
-  monthKey, 
-  isSelected, 
-  onClick 
-}: { 
+function MonthButton({
+  monthKey,
+  isSelected,
+  onClick
+}: {
   monthKey: MonthKey
   isSelected: boolean
-  onClick: () => void 
+  onClick: () => void
 }) {
   const data = scotlandMonthlyCalendar[monthKey]
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-        isSelected 
-          ? 'bg-green-600 text-white shadow-md' 
-          : 'bg-white text-gray-700 hover:bg-green-50 border border-gray-200'
+      className={`px-3 py-2 rounded-zen text-sm font-medium transition whitespace-nowrap ${
+        isSelected
+          ? 'bg-zen-moss-600 text-white'
+          : 'bg-white text-zen-ink-700 hover:bg-zen-stone-50 border border-zen-stone-200'
       }`}
     >
       {data.emoji} {data.month.slice(0, 3)}
@@ -57,22 +57,22 @@ function MonthButton({
 }
 
 // Task list component
-function TaskList({ 
-  items, 
-  emptyMessage = 'Nothing this month' 
-}: { 
+function TaskList({
+  items,
+  emptyMessage = 'Nothing this month'
+}: {
   items: string[]
-  emptyMessage?: string 
+  emptyMessage?: string
 }) {
   if (items.length === 0) {
-    return <p className="text-gray-500 text-sm italic">{emptyMessage}</p>
+    return <p className="text-zen-stone-500 text-sm italic">{emptyMessage}</p>
   }
   return (
     <ul className="space-y-2">
       {items.map((item, index) => (
         <li key={index} className="flex items-start">
-          <span className="text-green-500 mr-2 mt-1">•</span>
-          <span className="text-gray-700 text-sm">{item}</span>
+          <span className="text-zen-moss-500 mr-2 mt-1">•</span>
+          <span className="text-zen-ink-700 text-sm">{item}</span>
         </li>
       ))}
     </ul>
@@ -80,35 +80,35 @@ function TaskList({
 }
 
 // Specialization tip card
-function TipCard({ 
-  icon: Icon, 
-  title, 
-  content, 
-  color 
-}: { 
+function TipCard({
+  icon: Icon,
+  title,
+  content,
+  color
+}: {
   icon: React.ElementType
   title: string
   content: string
-  color: string 
+  color: string
 }) {
   const colorClasses: Record<string, string> = {
-    green: 'bg-green-50 border-green-200 text-green-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
-    amber: 'bg-amber-50 border-amber-200 text-amber-800',
-    purple: 'bg-purple-50 border-purple-200 text-purple-800'
+    green: 'bg-zen-moss-50 border-zen-moss-200 text-zen-moss-800',
+    blue: 'bg-zen-water-50 border-zen-water-200 text-zen-water-800',
+    amber: 'bg-zen-kitsune-50 border-zen-kitsune-200 text-zen-kitsune-800',
+    purple: 'bg-zen-sakura-50 border-zen-sakura-200 text-zen-sakura-800'
   }
   const iconColors: Record<string, string> = {
-    green: 'text-green-600',
-    blue: 'text-blue-600',
-    amber: 'text-amber-600',
-    purple: 'text-purple-600'
+    green: 'text-zen-moss-600',
+    blue: 'text-zen-water-600',
+    amber: 'text-zen-kitsune-600',
+    purple: 'text-zen-sakura-600'
   }
-  
+
   return (
-    <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
+    <div className={`rounded-zen border p-4 ${colorClasses[color]}`}>
       <div className="flex items-center mb-2">
         <Icon className={`w-5 h-5 mr-2 ${iconColors[color]}`} />
-        <h4 className="font-semibold">{title}</h4>
+        <h4 className="font-medium">{title}</h4>
       </div>
       <p className="text-sm leading-relaxed">{content}</p>
     </div>
@@ -116,21 +116,21 @@ function TipCard({
 }
 
 // Personalized planting card
-function PersonalizedPlanting({ 
-  bedId, 
-  vegetableName, 
+function PersonalizedPlanting({
+  bedId,
+  vegetableName,
   varietyName
-}: { 
+}: {
   bedId: string
   vegetableName: string
   varietyName?: string
 }) {
   return (
-    <div className="flex items-start gap-3 p-3 bg-white/80 rounded-lg border border-green-200">
+    <div className="flex items-start gap-3 p-3 bg-white/80 rounded-zen border border-zen-moss-200">
       <div className="flex-1">
-        <div className="font-medium text-gray-800">{vegetableName}</div>
-        {varietyName && <div className="text-xs text-gray-500">{varietyName}</div>}
-        <div className="text-xs text-green-600 mt-1">Bed {bedId}</div>
+        <div className="font-medium text-zen-ink-800">{vegetableName}</div>
+        {varietyName && <div className="text-xs text-zen-stone-500">{varietyName}</div>}
+        <div className="text-xs text-zen-moss-600 mt-1">Bed {bedId}</div>
       </div>
     </div>
   )
@@ -149,15 +149,15 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
     mulch: 'Mulch'
   }
   const typeColors = {
-    prune: 'text-purple-600 bg-purple-50 border-purple-200',
-    feed: 'text-blue-600 bg-blue-50 border-blue-200',
-    mulch: 'text-amber-600 bg-amber-50 border-amber-200'
+    prune: 'text-zen-sakura-600 bg-zen-sakura-50 border-zen-sakura-200',
+    feed: 'text-zen-water-600 bg-zen-water-50 border-zen-water-200',
+    mulch: 'text-zen-kitsune-600 bg-zen-kitsune-50 border-zen-kitsune-200'
   }
-  
+
   const Icon = typeIcons[task.type]
-  
+
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-lg border ${typeColors[task.type]}`}>
+    <div className={`flex items-start gap-3 p-3 rounded-zen border ${typeColors[task.type]}`}>
       <Icon className="w-5 h-5 mt-0.5" />
       <div className="flex-1">
         <div className="font-medium">{task.vegetable.name}</div>
@@ -280,21 +280,18 @@ export default function ThisMonthPage() {
   }, [currentSeason])
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-zen-stone-50 zen-texture">
+      <div className="container mx-auto px-4 py-10 max-w-5xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Calendar className="w-10 h-10 text-green-600 mr-3" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-              This Month in the Scottish Allotment
-            </h1>
+        <header className="mb-10">
+          <div className="flex items-baseline gap-3 mb-2">
+            <Calendar className="w-6 h-6 text-zen-moss-600" />
+            <h1 className="text-zen-ink-900">This Month</h1>
           </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Seasonal gardening tasks and tips tailored for Scotland&apos;s climate. 
-            Select a month to plan ahead or see what needs doing now.
+          <p className="text-zen-stone-500 text-lg">
+            Seasonal tasks for Scottish gardens
           </p>
-        </div>
+        </header>
 
         {/* Month Selector */}
         <div className="mb-8">
@@ -313,59 +310,59 @@ export default function ThisMonthPage() {
         {/* Current Month Indicator */}
         {isCurrentMonth && (
           <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            <div className="inline-flex items-center bg-zen-moss-100 text-zen-moss-800 px-4 py-2 rounded-full text-sm font-medium">
+              <span className="w-2 h-2 bg-zen-moss-500 rounded-full mr-2 animate-pulse"></span>
               You&apos;re viewing the current month
             </div>
           </div>
         )}
 
         {/* Month Overview */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="zen-card p-6 mb-8">
           <div className="flex items-start">
             <span className="text-4xl mr-4">{data.emoji}</span>
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{data.month}</h2>
-              <p className="text-gray-600 leading-relaxed">{data.overview}</p>
+              <h2 className="text-xl font-display text-zen-ink-800 mb-2">{data.month}</h2>
+              <p className="text-zen-stone-600 leading-relaxed">{data.overview}</p>
             </div>
           </div>
         </div>
 
         {/* Personalized Section - Your Garden This Month */}
         {!isLoading && personalizedData && personalizedData.plantingCount > 0 && (
-          <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-green-200 rounded-xl shadow-lg p-6 mb-8">
+          <div className="zen-card p-6 mb-8 border-zen-moss-200 bg-zen-moss-50/30">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <MapPin className="w-6 h-6 text-emerald-600 mr-2" />
-                <h3 className="text-xl font-bold text-gray-800">Your Garden in {data.month}</h3>
+                <MapPin className="w-5 h-5 text-zen-moss-600 mr-2" />
+                <h3 className="font-display text-zen-ink-800">Your Garden in {data.month}</h3>
               </div>
-              <Link 
-                href="/allotment" 
-                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
+              <Link
+                href="/allotment"
+                className="text-sm text-zen-moss-600 hover:text-zen-moss-700"
               >
                 View All →
               </Link>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white/60 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-emerald-600">{personalizedData.plantingCount}</div>
-                <div className="text-xs text-gray-600">Plantings in {selectedYear}</div>
+              <div className="bg-white/60 rounded-zen p-3 text-center">
+                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.plantingCount}</div>
+                <div className="text-xs text-zen-stone-600">Plantings in {selectedYear}</div>
               </div>
-              <div className="bg-white/60 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-emerald-600">{personalizedData.bedCount}</div>
-                <div className="text-xs text-gray-600">Active Beds</div>
+              <div className="bg-white/60 rounded-zen p-3 text-center">
+                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.bedCount}</div>
+                <div className="text-xs text-zen-stone-600">Active Beds</div>
               </div>
-              <div className="bg-white/60 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-emerald-600">{personalizedData.readyToHarvest.length}</div>
-                <div className="text-xs text-gray-600">May Be Ready</div>
+              <div className="bg-white/60 rounded-zen p-3 text-center">
+                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.readyToHarvest.length}</div>
+                <div className="text-xs text-zen-stone-600">May Be Ready</div>
               </div>
             </div>
-            
+
             {/* Your Plantings */}
             {personalizedData.allPlantings.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Current Plantings</h4>
+                <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Your Current Plantings</h4>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {personalizedData.allPlantings.map((p, i) => (
                     <PersonalizedPlanting
@@ -378,14 +375,14 @@ export default function ThisMonthPage() {
                 </div>
               </div>
             )}
-            
+
             {personalizedData.readyToHarvest.length > 0 && (
-              <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <div className="flex items-center text-orange-700 font-medium mb-1">
+              <div className="mt-4 p-3 bg-zen-kitsune-50 rounded-zen border border-zen-kitsune-200">
+                <div className="flex items-center text-zen-kitsune-700 font-medium mb-1">
                   <Carrot className="w-4 h-4 mr-2" />
                   Might be ready to harvest soon
                 </div>
-                <p className="text-sm text-orange-600">
+                <p className="text-sm text-zen-kitsune-600">
                   {personalizedData.readyToHarvest.map(p => p.vegetableName).join(', ')}
                 </p>
               </div>
@@ -405,83 +402,83 @@ export default function ThisMonthPage() {
 
         {/* No plantings prompt */}
         {!isLoading && (!personalizedData || personalizedData.plantingCount === 0) && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-center">
-            <Sprout className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Track Your Garden</h3>
-            <p className="text-blue-600 mb-4">
+          <div className="zen-card p-6 mb-8 text-center border-zen-water-200 bg-zen-water-50/30">
+            <Sprout className="w-10 h-10 text-zen-water-400 mx-auto mb-3" />
+            <h3 className="text-lg font-display text-zen-water-800 mb-2">Track Your Garden</h3>
+            <p className="text-zen-water-600 mb-4">
               Add your plantings to get personalized recommendations for {data.month}
             </p>
-            <Link 
-              href="/allotment" 
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            <Link
+              href="/allotment"
+              className="zen-btn-primary"
             >
-              <MapPin className="w-4 h-4 mr-2" />
+              <MapPin className="w-4 h-4" />
               Manage My Allotment
             </Link>
           </div>
         )}
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
           {/* Sowing Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="zen-card p-6">
             <div className="flex items-center mb-4">
-              <Sprout className="w-6 h-6 text-green-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-800">What to Sow</h3>
+              <Sprout className="w-5 h-5 text-zen-moss-600 mr-2" />
+              <h3 className="font-display text-zen-ink-800">What to Sow</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <Home className="w-4 h-4 mr-1" /> Indoors
+                <h4 className="text-sm font-medium text-zen-ink-700 mb-2 flex items-center">
+                  <Home className="w-4 h-4 mr-1 text-zen-stone-400" /> Indoors
                 </h4>
-                <TaskList 
-                  items={data.sowIndoors} 
-                  emptyMessage="No indoor sowing this month" 
+                <TaskList
+                  items={data.sowIndoors}
+                  emptyMessage="No indoor sowing this month"
                 />
               </div>
-              
-              <div className="border-t pt-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <Cloud className="w-4 h-4 mr-1" /> Outdoors
+
+              <div className="border-t border-zen-stone-100 pt-4">
+                <h4 className="text-sm font-medium text-zen-ink-700 mb-2 flex items-center">
+                  <Cloud className="w-4 h-4 mr-1 text-zen-stone-400" /> Outdoors
                 </h4>
-                <TaskList 
-                  items={data.sowOutdoors} 
-                  emptyMessage="No outdoor sowing this month" 
+                <TaskList
+                  items={data.sowOutdoors}
+                  emptyMessage="No outdoor sowing this month"
                 />
               </div>
             </div>
           </div>
 
           {/* Plant Out Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="zen-card p-6">
             <div className="flex items-center mb-4">
-              <Shovel className="w-6 h-6 text-amber-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-800">Plant Out</h3>
+              <Shovel className="w-5 h-5 text-zen-kitsune-600 mr-2" />
+              <h3 className="font-display text-zen-ink-800">Plant Out</h3>
             </div>
-            <TaskList 
-              items={data.plantOut} 
-              emptyMessage="Nothing to plant out this month" 
+            <TaskList
+              items={data.plantOut}
+              emptyMessage="Nothing to plant out this month"
             />
           </div>
 
           {/* Harvest Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="zen-card p-6">
             <div className="flex items-center mb-4">
-              <Carrot className="w-6 h-6 text-orange-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-800">Ready to Harvest</h3>
+              <Carrot className="w-5 h-5 text-zen-kitsune-600 mr-2" />
+              <h3 className="font-display text-zen-ink-800">Ready to Harvest</h3>
             </div>
-            <TaskList 
-              items={data.harvest} 
-              emptyMessage="The hungry gap – not much to harvest" 
+            <TaskList
+              items={data.harvest}
+              emptyMessage="The hungry gap – not much to harvest"
             />
           </div>
 
           {/* Key Tasks Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="zen-card p-6">
             <div className="flex items-center mb-4">
-              <CheckCircle className="w-6 h-6 text-blue-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-800">Key Tasks</h3>
+              <CheckCircle className="w-5 h-5 text-zen-water-600 mr-2" />
+              <h3 className="font-display text-zen-ink-800">Key Tasks</h3>
             </div>
             <TaskList items={data.tasks} />
           </div>
@@ -489,12 +486,12 @@ export default function ThisMonthPage() {
         
         {/* Trees & Shrubs Maintenance Section */}
         {maintenanceTasks.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="zen-card p-6 mb-8">
             <div className="flex items-center mb-4">
-              <TreeDeciduous className="w-6 h-6 text-green-700 mr-2" />
-              <h3 className="text-xl font-bold text-gray-800">Trees & Perennials Care</h3>
+              <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
+              <h3 className="font-display text-zen-ink-800">Trees & Perennials Care</h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-zen-stone-600 text-sm mb-4">
               Maintenance tasks for your fruit trees, berry bushes, and perennials this month.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -507,31 +504,31 @@ export default function ThisMonthPage() {
 
         {/* Specialization Tips */}
         <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+          <h3 className="text-lg font-display text-zen-ink-800 mb-4 text-center">
             Expert Tips for {data.month}
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <TipCard 
-              icon={Recycle} 
-              title="Composting" 
+            <TipCard
+              icon={Recycle}
+              title="Composting"
               content={data.composting}
               color="green"
             />
-            <TipCard 
-              icon={RotateCcw} 
-              title="Crop Rotation" 
+            <TipCard
+              icon={RotateCcw}
+              title="Crop Rotation"
               content={data.rotation}
               color="blue"
             />
-            <TipCard 
-              icon={Users} 
-              title="Companions" 
+            <TipCard
+              icon={Users}
+              title="Companions"
               content={data.companions}
               color="purple"
             />
-            <TipCard 
-              icon={Leaf} 
-              title="Organic" 
+            <TipCard
+              icon={Leaf}
+              title="Organic"
               content={data.organic}
               color="amber"
             />
@@ -541,21 +538,21 @@ export default function ThisMonthPage() {
         {/* Weather & Tip Callouts */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Weather */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="zen-card p-6 bg-zen-water-50/30 border-zen-water-200">
             <div className="flex items-center mb-3">
-              <Cloud className="w-6 h-6 text-blue-600 mr-2" />
-              <h3 className="text-lg font-semibold text-blue-800">Weather to Expect</h3>
+              <Cloud className="w-5 h-5 text-zen-water-600 mr-2" />
+              <h3 className="font-display text-zen-water-800">Weather to Expect</h3>
             </div>
-            <p className="text-blue-700 leading-relaxed">{data.weather}</p>
+            <p className="text-zen-water-700 leading-relaxed">{data.weather}</p>
           </div>
 
           {/* Monthly Tip */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <div className="zen-card p-6 bg-zen-kitsune-50/30 border-zen-kitsune-200">
             <div className="flex items-center mb-3">
-              <Lightbulb className="w-6 h-6 text-amber-600 mr-2" />
-              <h3 className="text-lg font-semibold text-amber-800">Tip of the Month</h3>
+              <Lightbulb className="w-5 h-5 text-zen-kitsune-600 mr-2" />
+              <h3 className="font-display text-zen-kitsune-800">Tip of the Month</h3>
             </div>
-            <p className="text-amber-700 leading-relaxed">{data.tip}</p>
+            <p className="text-zen-kitsune-700 leading-relaxed">{data.tip}</p>
           </div>
         </div>
 
@@ -576,13 +573,13 @@ export default function ThisMonthPage() {
         />
 
         {/* Footer Note */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>
-            All dates are approximate and based on central Scotland conditions. 
-            Adjust for your local area – highlands may be 2-3 weeks behind, 
+        <footer className="mt-16 pt-8 border-t border-zen-stone-200 text-center">
+          <p className="text-sm text-zen-stone-400">
+            All dates are approximate and based on central Scotland conditions.
+            Adjust for your local area – highlands may be 2-3 weeks behind,
             coastal areas often milder.
           </p>
-        </div>
+        </footer>
       </div>
     </div>
   )

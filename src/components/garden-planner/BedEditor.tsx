@@ -5,12 +5,14 @@
 
 'use client'
 
-import { useState } from 'react'
-import { Trash2, Edit2, Check, X } from 'lucide-react'
-import { GridPlot } from '@/types/garden-planner'
+import { useState, useMemo } from 'react'
+import { Trash2, Edit2, Check, X, AlertTriangle, Sparkles } from 'lucide-react'
+import { GridPlot, RotationGroup } from '@/types/garden-planner'
 import { checkCompanionCompatibility } from '@/lib/companion-validation'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { getRotationGroup, ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
 import GardenGrid from './GardenGrid'
+import InlineAIPrompt from '@/components/ai-advisor/InlineAIPrompt'
 
 interface BedEditorProps {
   bed: GridPlot
@@ -37,6 +39,71 @@ export default function BedEditor({
 }: BedEditorProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingName, setEditingName] = useState('')
+
+  // Detect rotation conflicts - multiple rotation groups in the same bed
+  const rotationConflict = useMemo(() => {
+    const plantedCells = bed.cells.filter(c => c.vegetableId)
+    if (plantedCells.length === 0) return null
+
+    const rotationGroups = new Map<RotationGroup, string[]>()
+
+    for (const cell of plantedCells) {
+      const veg = getVegetableById(cell.vegetableId!)
+      if (!veg) continue
+
+      const group = getRotationGroup(cell.vegetableId!)
+      if (!group || group === 'permanent') continue
+
+      const existing = rotationGroups.get(group) || []
+      existing.push(veg.name)
+      rotationGroups.set(group, existing)
+    }
+
+    // Only flag as conflict if we have multiple different groups (excluding permanent)
+    if (rotationGroups.size > 1) {
+      const groups = Array.from(rotationGroups.entries()).map(([group, vegs]) => ({
+        group,
+        display: ROTATION_GROUP_DISPLAY[group],
+        vegetables: vegs
+      }))
+      return groups
+    }
+
+    return null
+  }, [bed.cells])
+
+  // Build context for AI about the bed's plantings
+  const buildAllotmentContext = (): string => {
+    const plantedCells = bed.cells.filter(c => c.vegetableId)
+    if (plantedCells.length === 0) return `Bed "${bed.name}" has no plantings yet.`
+
+    const plantNames = plantedCells
+      .map(c => getVegetableById(c.vegetableId!)?.name)
+      .filter(Boolean)
+      .join(', ')
+
+    let context = `Bed "${bed.name}" currently contains: ${plantNames}.`
+
+    if (rotationConflict) {
+      context += ` This bed has plants from multiple rotation groups: `
+      context += rotationConflict
+        .map(g => `${g.display.name} (${g.vegetables.join(', ')})`)
+        .join('; ')
+      context += '.'
+    }
+
+    return context
+  }
+
+  // Build the question about rotation conflict
+  const buildRotationQuestion = (): string => {
+    if (!rotationConflict || rotationConflict.length < 2) {
+      return 'Is it okay to mix different vegetable families in the same bed?'
+    }
+
+    const groupNames = rotationConflict.map(g => g.display.name).join(' and ')
+    return `My garden bed has both ${groupNames} growing together. Should I be concerned about mixing these families, and what are the implications for soil health and next year's rotation?`
+  }
 
   // Get companion tips for the bed
   const getCompanionTips = (): { good: string[], bad: string[] } => {
@@ -189,6 +256,43 @@ export default function BedEditor({
         onClearAll={onClearAll}
       />
 
+      {/* Rotation Conflict Warning with Ask Aitor */}
+      {rotationConflict && (
+        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-amber-800 mb-1">Mixed Rotation Groups</h3>
+              <p className="text-sm text-amber-700 mb-2">
+                This bed contains vegetables from different rotation families:
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {rotationConflict.map((group, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-xs font-medium text-gray-700 border border-amber-200"
+                  >
+                    <span>{group.display.emoji}</span>
+                    <span>{group.display.name}</span>
+                    <span className="text-gray-400">({group.vegetables.length})</span>
+                  </span>
+                ))}
+              </div>
+              <InlineAIPrompt
+                contextQuestion={buildRotationQuestion()}
+                allotmentContext={buildAllotmentContext()}
+                trigger={
+                  <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors">
+                    <Sparkles className="w-4 h-4" />
+                    Ask Aitor about this
+                  </button>
+                }
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Companion Tips */}
       {(tips.good.length > 0 || tips.bad.length > 0) && (
         <div className="mt-4 bg-white rounded-lg shadow-sm p-4">
@@ -196,7 +300,7 @@ export default function BedEditor({
           <div className="space-y-3">
             {tips.bad.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-red-600 mb-1">⚠️ Avoid together:</p>
+                <p className="text-xs font-medium text-red-600 mb-1">Avoid together:</p>
                 <div className="space-y-1">
                   {tips.bad.map((tip, i) => (
                     <p key={i} className="text-sm text-red-600 pl-4">{tip}</p>
@@ -206,7 +310,7 @@ export default function BedEditor({
             )}
             {tips.good.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-green-600 mb-1">✓ Great companions:</p>
+                <p className="text-xs font-medium text-green-600 mb-1">Great companions:</p>
                 <div className="space-y-1">
                   {tips.good.map((tip, i) => (
                     <p key={i} className="text-sm text-green-600 pl-4">{tip}</p>

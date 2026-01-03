@@ -2,38 +2,40 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Book, ChevronDown, Users, Recycle, RotateCcw, Calendar, Map, Package } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen } from 'lucide-react'
+import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/allotment', label: 'My Allotment', icon: Map },
+  { href: '/', label: 'Today' },
+  { href: '/allotment', label: 'Allotment', icon: Map },
   { href: '/seeds', label: 'Seeds', icon: Package },
   { href: '/plan-history', label: 'History' },
-  { href: '/ai-advisor', label: 'Aitor' },
 ]
 
-const growingGuides = [
-  { href: '/this-month', label: 'This Month', icon: Calendar, description: 'Seasonal tasks for Scotland' },
-  { href: '/companion-planting', label: 'Companion Planting', icon: Users, description: 'Plants that grow well together' },
-  { href: '/composting', label: 'Composting', icon: Recycle, description: 'Turn waste into garden gold' },
-  { href: '/crop-rotation', label: 'Crop Rotation', icon: RotateCcw, description: 'Maximize soil health & yields' },
+const moreLinks = [
+  { href: '/this-month', label: 'This Month', icon: Calendar, description: 'Seasonal calendar' },
+  { href: '/ai-advisor', label: 'Ask Aitor', icon: Leaf, description: 'Garden advice' },
+  { href: '/about', label: 'About', icon: BookOpen, description: 'Learn more' },
 ]
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isGuidesOpen, setIsGuidesOpen] = useState(false)
-  const [isMobileGuidesOpen, setIsMobileGuidesOpen] = useState(false)
+  const [isMoreOpen, setIsMoreOpen] = useState(false)
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
 
-  // Close dropdown on click outside or escape key
+  const theme = getSeasonalTheme(getCurrentSeason())
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsGuidesOpen(false)
+        setIsMoreOpen(false)
       }
     }
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsGuidesOpen(false)
+      if (e.key === 'Escape') setIsMoreOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
@@ -45,75 +47,102 @@ export default function Navigation() {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
-    setIsMobileGuidesOpen(false)
+    setIsMobileMoreOpen(false)
   }
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false)
-    setIsMobileGuidesOpen(false)
+    setIsMobileMoreOpen(false)
   }
 
+  const isActive = (href: string) => pathname === href
+
   return (
-    <header className="bg-primary-600 text-white shadow-lg">
-      <div className="container mx-auto px-4 py-4">
-        <nav className="flex items-center justify-between" role="navigation">
-          <Link href="/" className="text-2xl font-bold hover:text-primary-200 transition">
-            🌱 Community Allotment
+    <header className="bg-white border-b border-zen-stone-200">
+      <div className="container mx-auto px-4">
+        <nav className="flex items-center justify-between h-16" role="navigation">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
+          >
+            <span className="text-2xl" aria-hidden="true">
+              {theme.season === 'winter' && '❄️'}
+              {theme.season === 'spring' && '🌸'}
+              {theme.season === 'summer' && '🌿'}
+              {theme.season === 'autumn' && '🍂'}
+            </span>
+            <span className="font-display text-xl tracking-tight">
+              Community Allotment
+            </span>
           </Link>
-          
+
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
-                href={link.href} 
-                className="hover:text-primary-200 transition"
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                  isActive(link.href)
+                    ? 'bg-zen-moss-50 text-zen-moss-700'
+                    : 'text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50'
+                }`}
               >
                 {link.label}
               </Link>
             ))}
-            
-            {/* Growing Guides Dropdown */}
+
+            {/* More Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setIsGuidesOpen(!isGuidesOpen)}
-                onMouseEnter={() => setIsGuidesOpen(true)}
-                className="flex items-center space-x-1 hover:text-primary-200 transition"
-                aria-expanded={isGuidesOpen}
+                onClick={() => setIsMoreOpen(!isMoreOpen)}
+                className={`flex items-center gap-1 px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                  isMoreOpen
+                    ? 'bg-zen-stone-100 text-zen-ink-800'
+                    : 'text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50'
+                }`}
+                aria-expanded={isMoreOpen}
                 aria-haspopup="menu"
-                aria-controls="growing-guides-menu"
               >
-                <Book className="w-4 h-4" aria-hidden="true" />
-                <span>Growing Guides</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${isGuidesOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                <span>More</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${isMoreOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
-              {/* Dropdown Menu */}
-              {isGuidesOpen && (
+              {isMoreOpen && (
                 <div
-                  id="growing-guides-menu"
                   role="menu"
-                  aria-label="Growing guides submenu"
-                  className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl py-2 z-50"
-                  onMouseLeave={() => setIsGuidesOpen(false)}
+                  className="absolute top-full right-0 mt-1 w-56 bg-white rounded-zen-lg border border-zen-stone-200 shadow-zen-md py-1 z-50"
                 >
-                  {growingGuides.map((guide) => {
-                    const IconComponent = guide.icon
+                  {moreLinks.map((link) => {
+                    const IconComponent = link.icon
                     return (
                       <Link
-                        key={guide.href}
-                        href={guide.href}
+                        key={link.href}
+                        href={link.href}
                         role="menuitem"
-                        className="flex items-start px-4 py-3 hover:bg-primary-50 transition group"
-                        onClick={() => setIsGuidesOpen(false)}
+                        className={`flex items-start gap-3 px-4 py-3 transition-colors ${
+                          isActive(link.href)
+                            ? 'bg-zen-moss-50'
+                            : 'hover:bg-zen-stone-50'
+                        }`}
+                        onClick={() => setIsMoreOpen(false)}
                       >
-                        <IconComponent className="w-5 h-5 text-primary-600 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                        <IconComponent
+                          className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                            isActive(link.href) ? 'text-zen-moss-600' : 'text-zen-stone-400'
+                          }`}
+                        />
                         <div>
-                          <div className="text-gray-800 font-medium group-hover:text-primary-600 transition">
-                            {guide.label}
+                          <div className={`text-sm font-medium ${
+                            isActive(link.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
+                          }`}>
+                            {link.label}
                           </div>
-                          <div className="text-gray-500 text-xs mt-0.5">
-                            {guide.description}
+                          <div className="text-xs text-zen-stone-500 mt-0.5">
+                            {link.description}
                           </div>
                         </div>
                       </Link>
@@ -122,73 +151,74 @@ export default function Navigation() {
                 </div>
               )}
             </div>
-            
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 hover:bg-primary-700 rounded-lg transition"
+            className="lg:hidden p-2 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition-colors"
             onClick={toggleMobileMenu}
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMobileMenuOpen}
           >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </nav>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-primary-500 pt-4">
-            <div className="flex flex-col space-y-1">
+          <div className="lg:hidden pb-4 border-t border-zen-stone-100">
+            <div className="pt-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="hover:text-primary-200 hover:bg-primary-700 px-3 py-2 rounded-lg transition"
+                  className={`block px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                    isActive(link.href)
+                      ? 'bg-zen-moss-50 text-zen-moss-700'
+                      : 'text-zen-ink-600 hover:bg-zen-stone-50'
+                  }`}
                   onClick={closeMobileMenu}
                 >
                   {link.label}
                 </Link>
               ))}
-              
-              {/* Mobile Growing Guides Expandable Section */}
-              <div className="px-3">
+
+              {/* Mobile More Section */}
+              <div className="pt-2 border-t border-zen-stone-100 mt-2">
                 <button
-                  onClick={() => setIsMobileGuidesOpen(!isMobileGuidesOpen)}
-                  className="w-full flex items-center justify-between py-2 hover:text-primary-200 transition"
-                  aria-expanded={isMobileGuidesOpen}
+                  onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zen-ink-600"
+                  aria-expanded={isMobileMoreOpen}
                 >
-                  <div className="flex items-center space-x-2">
-                    <Book className="w-4 h-4" />
-                    <span>Growing Guides</span>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isMobileGuidesOpen ? 'rotate-180' : ''}`} />
+                  <span>More</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${isMobileMoreOpen ? 'rotate-180' : ''}`}
+                  />
                 </button>
-                
-                {isMobileGuidesOpen && (
-                  <div className="ml-6 mt-1 space-y-1 border-l-2 border-primary-400 pl-3">
-                    {growingGuides.map((guide) => {
-                      const IconComponent = guide.icon
+
+                {isMobileMoreOpen && (
+                  <div className="ml-3 mt-1 space-y-1 border-l-2 border-zen-stone-200 pl-3">
+                    {moreLinks.map((link) => {
+                      const IconComponent = link.icon
                       return (
                         <Link
-                          key={guide.href}
-                          href={guide.href}
-                          className="flex items-center space-x-2 py-2 hover:text-primary-200 transition text-sm"
+                          key={link.href}
+                          href={link.href}
+                          className={`flex items-center gap-2 py-2 text-sm transition-colors ${
+                            isActive(link.href)
+                              ? 'text-zen-moss-700'
+                              : 'text-zen-ink-600 hover:text-zen-ink-800'
+                          }`}
                           onClick={closeMobileMenu}
                         >
                           <IconComponent className="w-4 h-4" />
-                          <span>{guide.label}</span>
+                          <span>{link.label}</span>
                         </Link>
                       )
                     })}
                   </div>
                 )}
               </div>
-              
             </div>
           </div>
         )}

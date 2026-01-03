@@ -33,6 +33,7 @@ export interface AllotmentData {
   seasons: SeasonRecord[]            // All historical + current seasons
   currentYear: number                // Which year is "active"
   maintenanceTasks?: MaintenanceTask[] // Perennial plant care tasks
+  gardenEvents?: GardenEvent[]       // Log of garden events (pruning, feeding, etc.)
 }
 
 /**
@@ -149,10 +150,44 @@ export interface MaintenanceTask {
  */
 export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
 
+// ============ GARDEN EVENTS ============
+
+/**
+ * Type of garden event
+ */
+export type GardenEventType =
+  | 'prune'
+  | 'feed'
+  | 'spray'
+  | 'mulch'
+  | 'soil-amendment'
+  | 'pest-treatment'
+  | 'harvest'
+  | 'other'
+
+/**
+ * A garden event log entry
+ */
+export interface GardenEvent {
+  id: string                       // Unique ID
+  type: GardenEventType
+  date: string                     // ISO date string
+  description: string              // What was done
+  bedId?: string                   // Optional - which bed(s) affected
+  product?: string                 // Optional - what product/material used
+  notes?: string                   // Additional notes
+  createdAt: string
+}
+
+/**
+ * Input for creating a new garden event
+ */
+export type NewGardenEvent = Omit<GardenEvent, 'id' | 'createdAt'>
+
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 4 // Bumped for problemNotes migration
+export const CURRENT_SCHEMA_VERSION = 5 // Bumped for gardenEvents
 
 // ============ HELPER TYPES ============
 

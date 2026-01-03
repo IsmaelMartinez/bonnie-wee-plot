@@ -1,13 +1,13 @@
 /**
  * useAllotment Hook
- * 
+ *
  * Unified state management for allotment data.
  * Single source of truth for all allotment operations.
  */
 
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   AllotmentData,
   SeasonRecord,
@@ -20,8 +20,10 @@ import {
   BedNote,
   NewBedNote,
   BedNoteUpdate,
+  GardenEvent,
+  NewGardenEvent,
 } from '@/types/unified-allotment'
-import { PhysicalBedId, RotationGroup, PhysicalBed } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, PhysicalBed, SoilMethod } from '@/types/garden-planner'
 import {
   initializeStorage,
   saveAllotmentData,
@@ -54,11 +56,13 @@ import {
   addBedNote as storageAddBedNote,
   updateBedNote as storageUpdateBedNote,
   removeBedNote as storageRemoveBedNote,
+  updateBedSoilMethod as storageUpdateSoilMethod,
+  getGardenEvents,
+  addGardenEvent as storageAddGardenEvent,
+  removeGardenEvent as storageRemoveGardenEvent,
 } from '@/services/allotment-storage'
 import { STORAGE_KEY } from '@/types/unified-allotment'
-
-// Debounce delay for save operations (ms)
-const SAVE_DEBOUNCE_MS = 500
+import { usePersistedStorage, StorageResult } from './usePersistedStorage'
 
 // ============ HOOK TYPES ============
 
@@ -105,6 +109,7 @@ export interface UseAllotmentActions {
   getRotationBeds: () => PhysicalBed[]
   getProblemBeds: () => PhysicalBed[]
   getPerennialBeds: () => PhysicalBed[]
+  updateSoilMethod: (bedId: PhysicalBedId, soilMethod: SoilMethod | undefined) => void
   
   // Rotation history
   getRotationHistory: (bedId: PhysicalBedId) => Array<{ year: number; group: RotationGroup }>
@@ -125,6 +130,11 @@ export interface UseAllotmentActions {
   updateBedNote: (bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => void
   removeBedNote: (bedId: PhysicalBedId, noteId: string) => void
 
+  // Garden events
+  getGardenEvents: () => GardenEvent[]
+  addGardenEvent: (event: NewGardenEvent) => void
+  removeGardenEvent: (eventId: string) => void
+
   // Data operations
   reload: () => void
   flushSave: () => void  // Force immediate save of pending data
@@ -133,164 +143,69 @@ export interface UseAllotmentActions {
 
 export type UseAllotmentReturn = UseAllotmentState & UseAllotmentActions
 
+// ============ STORAGE OPTIONS ============
+
+const loadAllotment = (): StorageResult<AllotmentData> => {
+  return initializeStorage()
+}
+
+const saveAllotment = (data: AllotmentData): StorageResult<void> => {
+  return saveAllotmentData(data)
+}
+
+const validateAllotment = (parsed: unknown): StorageResult<AllotmentData> => {
+  const validation = validateAllotmentData(parsed)
+  if (!validation.valid) {
+    return { success: false, error: validation.errors?.join(', ') }
+  }
+  return { success: true, data: parsed as AllotmentData }
+}
+
 // ============ HOOK IMPLEMENTATION ============
 
 export function useAllotment(): UseAllotmentReturn {
-  const [data, setData] = useState<AllotmentData | null>(null)
   const [selectedYear, setSelectedYear] = useState<number>(2025)
   const [selectedBedId, setSelectedBedId] = useState<PhysicalBedId | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
-  const [isSyncedFromOtherTab, setIsSyncedFromOtherTab] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
+
+  // Handle year sync when data changes from another tab
+  const handleSync = useCallback((newData: AllotmentData) => {
+    setSelectedYear(newData.currentYear)
+  }, [])
+
+  const {
+    data,
+    setData,
+    saveStatus,
+    isLoading,
+    error,
+    saveError,
+    isSyncedFromOtherTab,
+    lastSavedAt,
+    reload: baseReload,
+    flushSave,
+    clearSaveError,
+  } = usePersistedStorage<AllotmentData>({
+    storageKey: STORAGE_KEY,
+    load: loadAllotment,
+    save: saveAllotment,
+    validate: validateAllotment,
+    onSync: handleSync,
+  })
+
+  // Update selectedYear when data first loads
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (data && !initializedRef.current) {
+      initializedRef.current = true
+      setSelectedYear(data.currentYear)
+    }
+  }, [data])
 
   // Derived state: current season based on selected year
   const currentSeason = useMemo(() => {
     if (!data) return null
     return getSeasonByYear(data, selectedYear) || null
   }, [data, selectedYear])
-
-  // Ref for debounced save timeout
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingDataRef = useRef<AllotmentData | null>(null)
-  // Ref to track if we just saved (to ignore our own storage events)
-  const justSavedRef = useRef(false)
-  
-  // Load data on mount
-  useEffect(() => {
-    const result = initializeStorage()
-    if (result.success && result.data) {
-      setData(result.data)
-      setSelectedYear(result.data.currentYear)
-      setError(null)
-    } else {
-      setError(result.error || 'Failed to load data')
-    }
-    setIsLoading(false)
-  }, [])
-
-  // Multi-tab sync: listen for storage events from other tabs
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      // Only react to changes to our storage key
-      if (event.key !== STORAGE_KEY) return
-      
-      // Ignore if we just saved (this is our own event)
-      if (justSavedRef.current) {
-        justSavedRef.current = false
-        return
-      }
-      
-      // If data was cleared in another tab
-      if (event.newValue === null) {
-        console.log('Data cleared in another tab, reloading...')
-        const result = initializeStorage()
-        if (result.success && result.data) {
-          setData(result.data)
-          setSelectedYear(result.data.currentYear)
-          setIsSyncedFromOtherTab(true)
-          // Clear the sync flag after a short delay
-          setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
-        }
-        return
-      }
-      
-      // Parse the new data from the other tab
-      try {
-        const parsed = JSON.parse(event.newValue)
-        
-        // Validate the data before accepting it
-        const validation = validateAllotmentData(parsed)
-        if (!validation.valid) {
-          console.warn('Ignoring invalid sync data from other tab:', validation.errors)
-          return
-        }
-        
-        const newData = parsed as AllotmentData
-        console.log('Data updated in another tab, syncing...')
-        
-        // Cancel any pending save (other tab's data is newer)
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current)
-          saveTimeoutRef.current = null
-        }
-        pendingDataRef.current = null
-        
-        // Update state with data from other tab
-        setData(newData)
-        setSelectedYear(newData.currentYear)
-        setIsSyncedFromOtherTab(true)
-        
-        // Clear the sync flag after a short delay
-        setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
-      } catch (e) {
-        console.error('Failed to parse storage event data:', e)
-      }
-    }
-    
-    // Add event listener
-    window.addEventListener('storage', handleStorageChange)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [])
-
-  // Debounced save function
-  const debouncedSave = useCallback((dataToSave: AllotmentData) => {
-    pendingDataRef.current = dataToSave
-    // Clear any previous save error when attempting a new save
-    setSaveError(null)
-    setSaveStatus('saving')
-    
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-    
-    saveTimeoutRef.current = setTimeout(() => {
-      if (pendingDataRef.current) {
-        // Mark that we're about to save (to ignore our own storage event)
-        justSavedRef.current = true
-        const result = saveAllotmentData(pendingDataRef.current)
-        if (!result.success) {
-          console.error('Failed to save allotment data:', result.error)
-          setSaveError(result.error || 'Failed to save data')
-          setSaveStatus('error')
-          justSavedRef.current = false // Reset on error
-        } else {
-          setSaveError(null) // Clear error on successful save
-          setSaveStatus('saved')
-          setLastSavedAt(new Date())
-          // Reset to idle after 2 seconds
-          setTimeout(() => setSaveStatus('idle'), 2000)
-        }
-        pendingDataRef.current = null
-      }
-      saveTimeoutRef.current = null
-    }, SAVE_DEBOUNCE_MS)
-  }, [])
-
-  // Save data whenever it changes (debounced)
-  useEffect(() => {
-    if (data && !isLoading) {
-      debouncedSave(data)
-    }
-  }, [data, isLoading, debouncedSave])
-
-  // Flush pending saves on unmount (important for data integrity)
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
-      // Flush any pending data immediately on unmount
-      if (pendingDataRef.current) {
-        saveAllotmentData(pendingDataRef.current)
-      }
-    }
-  }, [])
 
   // ============ YEAR NAVIGATION ============
 
@@ -299,7 +214,7 @@ export function useAllotment(): UseAllotmentReturn {
     if (data) {
       setData(setCurrentYear(data, year))
     }
-  }, [data])
+  }, [data, setData])
 
   const getYears = useCallback(() => {
     if (!data) return []
@@ -322,17 +237,17 @@ export function useAllotment(): UseAllotmentReturn {
   const addPlanting = useCallback((bedId: PhysicalBedId, planting: NewPlanting) => {
     if (!data) return
     setData(storageAddPlanting(data, selectedYear, bedId, planting))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   const updatePlanting = useCallback((bedId: PhysicalBedId, plantingId: string, updates: PlantingUpdate) => {
     if (!data) return
     setData(storageUpdatePlanting(data, selectedYear, bedId, plantingId, updates))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   const removePlanting = useCallback((bedId: PhysicalBedId, plantingId: string) => {
     if (!data) return
     setData(storageRemovePlanting(data, selectedYear, bedId, plantingId))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   const getPlantings = useCallback((bedId: PhysicalBedId) => {
     if (!data) return []
@@ -349,7 +264,7 @@ export function useAllotment(): UseAllotmentReturn {
   const updateRotationGroup = useCallback((bedId: PhysicalBedId, group: RotationGroup) => {
     if (!data) return
     setData(updateBedRotationGroup(data, selectedYear, bedId, group))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   // ============ SEASON OPERATIONS ============
 
@@ -357,7 +272,7 @@ export function useAllotment(): UseAllotmentReturn {
     if (!data) return
     setData(addSeason(data, { year, status: 'planned', notes }))
     setSelectedYear(year)
-  }, [data])
+  }, [data, setData])
 
   const deleteSeasonData = useCallback((year: number) => {
     if (!data) return
@@ -366,12 +281,12 @@ export function useAllotment(): UseAllotmentReturn {
     const newData = removeSeason(data, year)
     setData(newData)
     setSelectedYear(newData.currentYear)
-  }, [data])
+  }, [data, setData])
 
   const updateSeasonNotes = useCallback((notes: string) => {
     if (!data) return
     setData(updateSeason(data, selectedYear, { notes }))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   // ============ LAYOUT HELPERS ============
 
@@ -390,6 +305,11 @@ export function useAllotment(): UseAllotmentReturn {
     return getBedsByStatus(data, 'perennial')
   }, [data])
 
+  const updateSoilMethod = useCallback((bedId: PhysicalBedId, soilMethod: SoilMethod | undefined) => {
+    if (!data) return
+    setData(storageUpdateSoilMethod(data, bedId, soilMethod))
+  }, [data, setData])
+
   // ============ ROTATION HISTORY ============
 
   const getRotationHistoryData = useCallback((bedId: PhysicalBedId) => {
@@ -405,37 +325,13 @@ export function useAllotment(): UseAllotmentReturn {
   // ============ DATA REFRESH ============
 
   const reload = useCallback(() => {
-    setIsLoading(true)
+    baseReload()
+    // After reload, sync the selectedYear with the loaded data
     const result = initializeStorage()
     if (result.success && result.data) {
-      setData(result.data)
       setSelectedYear(result.data.currentYear)
-      setError(null)
-    } else {
-      setError(result.error || 'Failed to reload data')
     }
-    setIsLoading(false)
-  }, [])
-
-  // Force immediate save of any pending data
-  const flushSave = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-      saveTimeoutRef.current = null
-    }
-    if (pendingDataRef.current) {
-      const result = saveAllotmentData(pendingDataRef.current)
-      if (!result.success) {
-        setSaveError(result.error || 'Failed to save data')
-      }
-      pendingDataRef.current = null
-    }
-  }, [])
-
-  // Clear save error (for user dismissal)
-  const clearSaveError = useCallback(() => {
-    setSaveError(null)
-  }, [])
+  }, [baseReload])
 
   // ============ MAINTENANCE TASKS ============
 
@@ -457,22 +353,22 @@ export function useAllotment(): UseAllotmentReturn {
   const addTask = useCallback((task: NewMaintenanceTask) => {
     if (!data) return
     setData(storageAddTask(data, task))
-  }, [data])
+  }, [data, setData])
 
   const updateTask = useCallback((taskId: string, updates: Partial<Omit<MaintenanceTask, 'id'>>) => {
     if (!data) return
     setData(storageUpdateTask(data, taskId, updates))
-  }, [data])
+  }, [data, setData])
 
   const completeTask = useCallback((taskId: string) => {
     if (!data) return
     setData(storageCompleteTask(data, taskId))
-  }, [data])
+  }, [data, setData])
 
   const removeTask = useCallback((taskId: string) => {
     if (!data) return
     setData(storageRemoveTask(data, taskId))
-  }, [data])
+  }, [data, setData])
 
   // ============ BED NOTES ============
 
@@ -484,17 +380,34 @@ export function useAllotment(): UseAllotmentReturn {
   const addBedNoteData = useCallback((bedId: PhysicalBedId, note: NewBedNote) => {
     if (!data) return
     setData(storageAddBedNote(data, selectedYear, bedId, note))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   const updateBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => {
     if (!data) return
     setData(storageUpdateBedNote(data, selectedYear, bedId, noteId, updates))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
 
   const removeBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string) => {
     if (!data) return
     setData(storageRemoveBedNote(data, selectedYear, bedId, noteId))
-  }, [data, selectedYear])
+  }, [data, selectedYear, setData])
+
+  // ============ GARDEN EVENTS ============
+
+  const getGardenEventsData = useCallback((): GardenEvent[] => {
+    if (!data) return []
+    return getGardenEvents(data)
+  }, [data])
+
+  const addGardenEventData = useCallback((event: NewGardenEvent) => {
+    if (!data) return
+    setData(storageAddGardenEvent(data, event))
+  }, [data, setData])
+
+  const removeGardenEventData = useCallback((eventId: string) => {
+    if (!data) return
+    setData(storageRemoveGardenEvent(data, eventId))
+  }, [data, setData])
 
   return {
     // State
@@ -526,6 +439,7 @@ export function useAllotment(): UseAllotmentReturn {
     getRotationBeds: getRotationBedsData,
     getProblemBeds,
     getPerennialBeds,
+    updateSoilMethod,
     getRotationHistory: getRotationHistoryData,
     getRecentRotation: getRecentRotationData,
     getMaintenanceTasks: getMaintenanceTasksData,
@@ -539,6 +453,9 @@ export function useAllotment(): UseAllotmentReturn {
     addBedNote: addBedNoteData,
     updateBedNote: updateBedNoteData,
     removeBedNote: removeBedNoteData,
+    getGardenEvents: getGardenEventsData,
+    addGardenEvent: addGardenEventData,
+    removeGardenEvent: removeGardenEventData,
     reload,
     flushSave,
     clearSaveError,
