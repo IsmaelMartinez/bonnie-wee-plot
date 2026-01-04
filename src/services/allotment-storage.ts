@@ -24,7 +24,7 @@ import {
   STORAGE_KEY,
   CURRENT_SCHEMA_VERSION,
 } from '@/types/unified-allotment'
-import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan, SoilMethod } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 
@@ -398,8 +398,8 @@ function migrateSchema(data: AllotmentData): AllotmentData {
     // Remove problemNotes from layout.beds (create new objects without the field)
     migrated.layout = {
       ...migrated.layout,
-      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup, soilMethod }) => ({
-        id, name, description, status, rotationGroup, soilMethod,
+      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup }) => ({
+        id, name, description, status, rotationGroup,
       })),
     }
 
@@ -510,6 +510,33 @@ export function migrateFromLegacyData(): AllotmentData {
   }
 
   const seasons: SeasonRecord[] = [convertedSeason2024, season2025WithNotes]
+
+  // If current year is after 2025, create a season for it with auto-rotation
+  if (currentYear > 2025) {
+    const currentYearBeds: BedSeason[] = physicalBeds
+      .filter(bed => bed.status !== 'perennial')
+      .map(bed => {
+        // Find 2025 bed to auto-rotate from
+        const previousBed = season2025WithNotes.beds.find(b => b.bedId === bed.id)
+        const rotationGroup = previousBed?.rotationGroup
+          ? getNextRotationGroup(previousBed.rotationGroup)
+          : bed.rotationGroup || 'legumes'
+        return {
+          bedId: bed.id,
+          rotationGroup,
+          plantings: [],
+        }
+      })
+
+    const currentYearSeason: SeasonRecord = {
+      year: currentYear,
+      status: 'current',
+      beds: currentYearBeds,
+      createdAt: now,
+      updatedAt: now,
+    }
+    seasons.push(currentYearSeason)
+  }
 
   // Remove problemNotes from beds in layout (create new objects without the field)
   const bedsWithoutProblemNotes = physicalBeds.map(({ id, name, description, status, rotationGroup }) => ({
@@ -729,33 +756,6 @@ export function updateBedRotationGroup(
         ),
       }
     }),
-  }
-}
-
-// ============ BED LAYOUT OPERATIONS ============
-
-/**
- * Update a bed's soil method in the layout
- */
-export function updateBedSoilMethod(
-  data: AllotmentData,
-  bedId: PhysicalBedId,
-  soilMethod: SoilMethod | undefined
-): AllotmentData {
-  return {
-    ...data,
-    layout: {
-      ...data.layout,
-      beds: data.layout.beds.map(bed =>
-        bed.id === bedId
-          ? { ...bed, soilMethod }
-          : bed
-      ),
-    },
-    meta: {
-      ...data.meta,
-      updatedAt: new Date().toISOString(),
-    },
   }
 }
 
