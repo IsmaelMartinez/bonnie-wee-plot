@@ -62,11 +62,12 @@ import {
   removeGardenEvent as storageRemoveGardenEvent,
 } from '@/services/allotment-storage'
 import { STORAGE_KEY } from '@/types/unified-allotment'
-import { usePersistedStorage, StorageResult } from './usePersistedStorage'
+import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
+
+// Re-export SaveStatus for backward compatibility
+export type { SaveStatus } from './usePersistedStorage'
 
 // ============ HOOK TYPES ============
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export interface UseAllotmentState {
   data: AllotmentData | null

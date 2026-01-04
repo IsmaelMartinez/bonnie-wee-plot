@@ -29,13 +29,13 @@ import {
   getPileById,
   getPilesByStatus,
   getActivePiles,
-  StorageResult,
 } from '@/services/compost-storage'
-import { usePersistedStorage } from './usePersistedStorage'
+import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
+
+// Re-export SaveStatus for backward compatibility
+export type { SaveStatus } from './usePersistedStorage'
 
 // ============ HOOK TYPES ============
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export interface UseCompostState {
   data: CompostData | null

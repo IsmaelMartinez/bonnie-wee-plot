@@ -19,23 +19,25 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
   const [input, setInput] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValidationError(null)
     const file = event.target.files?.[0]
     if (file) {
       // Check if file is an image
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file')
+        setValidationError('Please select an image file')
         return
       }
-      
+
       // Check file size (limit to 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be smaller than 5MB')
+        setValidationError('Image must be smaller than 5MB')
         return
       }
-      
+
       setSelectedImage(file)
       
       // Create preview URL
@@ -122,11 +124,20 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
             <Send className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
-        
+
+        {/* Validation error - announced to screen readers */}
+        <div
+          role="alert"
+          aria-live="polite"
+          className={`text-sm text-red-600 ${validationError ? 'block' : 'hidden'}`}
+        >
+          {validationError}
+        </div>
+
         {/* Helper text and rate limit status */}
         <div className="flex items-center justify-between text-sm">
           <div className="text-gray-500">
-            {selectedImage ? (
+            {validationError ? null : selectedImage ? (
               <span className="text-green-600">📷 Image ready for analysis</span>
             ) : (
               <span>💡 Tip: Upload a plant photo for visual diagnosis</span>
@@ -150,7 +161,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
         </div>
       </form>
 
-      {/* Hidden file input */}
+      {/* Hidden file input - aria-hidden because users interact via the upload button */}
       <input
         ref={fileInputRef}
         type="file"
@@ -158,7 +169,6 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
         onChange={handleImageSelect}
         className="hidden"
         capture="environment"
-        aria-label="Select plant photo to upload"
         aria-hidden="true"
       />
     </div>

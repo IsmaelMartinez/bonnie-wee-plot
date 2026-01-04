@@ -17,14 +17,9 @@ import {
   COMPOST_SCHEMA_VERSION,
 } from '@/types/compost'
 import { generateId } from '@/lib/utils/id'
+import { StorageResult } from '@/types/storage'
 
-// ============ RESULT TYPE ============
-
-export interface StorageResult<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+export type { StorageResult } from '@/types/storage'
 
 // ============ VALIDATION ============
 

@@ -191,14 +191,8 @@ export const CURRENT_SCHEMA_VERSION = 5 // Bumped for gardenEvents
 
 // ============ HELPER TYPES ============
 
-/**
- * Result type for storage operations
- */
-export interface StorageResult<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+// Re-export from shared storage types
+export type { StorageResult } from './storage'
 
 /**
  * Input for creating a new planting (without ID)

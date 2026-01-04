@@ -28,9 +28,10 @@ import {
   getSuppliers as storageGetSuppliers,
   getTotalSpendForYear as storageGetTotalSpendForYear,
 } from '@/services/variety-storage'
-import { usePersistedStorage, StorageResult } from './usePersistedStorage'
+import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+// Re-export SaveStatus for backward compatibility
+export type { SaveStatus } from './usePersistedStorage'
 
 export interface UseVarietiesState {
   data: VarietyData | null

@@ -340,7 +340,7 @@ export default function AIAdvisorPage() {
         {/* Chat Interface */}
         <div className="zen-card overflow-hidden">
           <div className="border-b border-zen-stone-100 p-4">
-            <h3 className="font-display text-zen-ink-800">Chat with Aitor</h3>
+            <h2 className="font-display text-zen-ink-800">Chat with Aitor</h2>
             <p className="text-sm text-zen-stone-500">Ask me anything about your allotment and garden</p>
           </div>
 
@@ -374,7 +374,7 @@ export default function AIAdvisorPage() {
 
         {/* Tips */}
         <div className="mt-8 zen-card p-6 bg-zen-water-50/30 border-zen-water-200">
-          <h3 className="font-display text-zen-water-800 mb-4">Getting the Best Advice</h3>
+          <h2 className="font-display text-zen-water-800 mb-4">Getting the Best Advice</h2>
           <ul className="space-y-2 text-zen-water-700 text-sm">
             <li>• Share your location and local climate conditions</li>
             <li>• Upload clear photos of your plants for visual diagnosis</li>

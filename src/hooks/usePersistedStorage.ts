@@ -11,16 +11,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { SaveStatus, StorageResult } from '@/types/storage'
+
+// Re-export for convenience
+export type { SaveStatus, StorageResult } from '@/types/storage'
 
 const SAVE_DEBOUNCE_MS = 500
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-
-export interface StorageResult<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
 
 export interface UsePersistedStorageOptions<T> {
   storageKey: string
@@ -42,6 +38,7 @@ export interface UsePersistedStorageReturn<T> {
   reload: () => void
   flushSave: () => void
   clearSaveError: () => void
+  retrySave: () => void
 }
 
 export function usePersistedStorage<T>(
@@ -59,7 +56,8 @@ export function usePersistedStorage<T>(
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingDataRef = useRef<T | null>(null)
-  const justSavedRef = useRef(false)
+  // Track recent saves to detect our own storage events (handles rapid successive saves)
+  const recentSavesRef = useRef<Set<string>>(new Set())
 
   // Load data on mount
   useEffect(() => {
@@ -78,8 +76,8 @@ export function usePersistedStorage<T>(
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key !== storageKey) return
 
-      if (justSavedRef.current) {
-        justSavedRef.current = false
+      // Ignore our own saves by checking the set of recent saves
+      if (event.newValue && recentSavesRef.current.has(event.newValue)) {
         return
       }
 
@@ -143,18 +141,22 @@ export function usePersistedStorage<T>(
 
       saveTimeoutRef.current = setTimeout(() => {
         if (pendingDataRef.current) {
-          justSavedRef.current = true
+          // Add to recent saves set before saving to detect our own storage events
+          const serialized = JSON.stringify(pendingDataRef.current)
+          recentSavesRef.current.add(serialized)
           const result = save(pendingDataRef.current)
           if (!result.success) {
             console.error('Failed to save data:', result.error)
             setSaveError(result.error || 'Failed to save data')
             setSaveStatus('error')
-            justSavedRef.current = false
+            recentSavesRef.current.delete(serialized)
           } else {
             setSaveError(null)
             setSaveStatus('saved')
             setLastSavedAt(new Date())
             setTimeout(() => setSaveStatus('idle'), 2000)
+            // Clean up from recent saves after 1 second
+            setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
           }
           pendingDataRef.current = null
         }
@@ -213,15 +215,17 @@ export function usePersistedStorage<T>(
       saveTimeoutRef.current = null
     }
     if (pendingDataRef.current) {
-      justSavedRef.current = true
+      const serialized = JSON.stringify(pendingDataRef.current)
+      recentSavesRef.current.add(serialized)
       const result = save(pendingDataRef.current)
       if (!result.success) {
         setSaveError(result.error || 'Failed to save data')
         setSaveStatus('error')
-        justSavedRef.current = false
+        recentSavesRef.current.delete(serialized)
       } else {
         setSaveError(null)
         setSaveStatus('saved')
+        setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
       }
       pendingDataRef.current = null
     }
@@ -230,6 +234,30 @@ export function usePersistedStorage<T>(
   const clearSaveError = useCallback(() => {
     setSaveError(null)
   }, [])
+
+  const retrySave = useCallback(() => {
+    // Retry saving current data state (useful after quota exceeded errors)
+    if (!data) return
+
+    setSaveError(null)
+    setSaveStatus('saving')
+
+    const serialized = JSON.stringify(data)
+    recentSavesRef.current.add(serialized)
+    const result = save(data)
+
+    if (!result.success) {
+      setSaveError(result.error || 'Failed to save data')
+      setSaveStatus('error')
+      recentSavesRef.current.delete(serialized)
+    } else {
+      setSaveError(null)
+      setSaveStatus('saved')
+      setLastSavedAt(new Date())
+      setTimeout(() => setSaveStatus('idle'), 2000)
+      setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
+    }
+  }, [data, save])
 
   return {
     data,
@@ -243,5 +271,6 @@ export function usePersistedStorage<T>(
     reload,
     flushSave,
     clearSaveError,
+    retrySave,
   }
 }
