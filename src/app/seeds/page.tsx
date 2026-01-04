@@ -52,6 +52,7 @@ function SeedsPageContent() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'have' | 'need'>('all')
 
   // Handle URL param filtering (Spike 3)
   const searchParams = useSearchParams()
@@ -70,16 +71,23 @@ function SeedsPageContent() {
   const displayVarieties = getDisplayVarieties()
   const suppliers = getSuppliers()
 
-  // Group varieties by vegetable
+  // Filter and group varieties by vegetable
   const grouped = useMemo(() => {
-    return displayVarieties.reduce((acc, v) => {
+    const filtered = statusFilter === 'all'
+      ? displayVarieties
+      : displayVarieties.filter(v => {
+          const has = data?.haveSeeds.includes(v.id)
+          return statusFilter === 'have' ? has : !has
+        })
+
+    return filtered.reduce((acc, v) => {
       const veg = getVegetableById(v.vegetableId)
       const groupName = veg?.name || v.vegetableId
       if (!acc[groupName]) acc[groupName] = []
       acc[groupName].push(v)
       return acc
     }, {} as Record<string, StoredVariety[]>)
-  }, [displayVarieties])
+  }, [displayVarieties, statusFilter, data?.haveSeeds])
 
   const groupNames = Object.keys(grouped).sort()
 
@@ -184,18 +192,32 @@ function SeedsPageContent() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats - clickable filters */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="zen-card p-4 text-center">
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
+            aria-pressed={statusFilter === 'have'}
+            className={`zen-card p-4 text-center transition cursor-pointer ${
+              statusFilter === 'have' ? 'ring-2 ring-zen-moss-500 bg-zen-moss-50' : 'hover:bg-zen-stone-50'
+            }`}
+          >
             <div className="text-2xl font-bold text-zen-moss-600">{haveCount}</div>
-            <div className="text-sm text-zen-stone-500">Have Seeds</div>
-          </div>
-          <div className="zen-card p-4 text-center">
+            <div className="text-sm text-zen-stone-500">
+              {statusFilter === 'have' ? '✓ Have Seeds' : 'Have Seeds'}
+            </div>
+          </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'need' ? 'all' : 'need')}
+            aria-pressed={statusFilter === 'need'}
+            className={`zen-card p-4 text-center transition cursor-pointer ${
+              statusFilter === 'need' ? 'ring-2 ring-zen-kitsune-500 bg-zen-kitsune-50' : 'hover:bg-zen-stone-50'
+            }`}
+          >
             <div className="text-2xl font-bold text-zen-kitsune-600">{needCount}</div>
             <div className="text-sm text-zen-stone-500">
               {selectedYear !== 'all' ? `Need for ${selectedYear}` : 'Need to Order'}
             </div>
-          </div>
+          </button>
           {selectedYear !== 'all' ? (
             <div className="zen-card p-4 text-center">
               <div className="text-2xl font-bold text-zen-water-600">{plannedCount}</div>
@@ -240,10 +262,22 @@ function SeedsPageContent() {
         </div>
 
         {/* Empty state */}
-        {displayVarieties.length === 0 && (
+        {groupNames.length === 0 && (
           <div className="zen-card p-8 text-center">
             <Sprout className="w-12 h-12 text-zen-stone-300 mx-auto mb-4" />
-            {selectedYear === 'all' ? (
+            {statusFilter !== 'all' && displayVarieties.length > 0 ? (
+              <>
+                <p className="text-zen-ink-600 mb-2">
+                  No varieties match the &quot;{statusFilter === 'have' ? 'Have Seeds' : 'Need to Order'}&quot; filter.
+                </p>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className="text-zen-moss-600 hover:text-zen-moss-700 text-sm underline"
+                >
+                  Clear filter
+                </button>
+              </>
+            ) : selectedYear === 'all' ? (
               <>
                 <p className="text-zen-ink-600 mb-4">No varieties added yet.</p>
                 <button
@@ -299,14 +333,15 @@ function SeedsPageContent() {
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${!hasIt ? 'opacity-75' : ''}`}>
                             <button
                               onClick={() => toggleHaveSeeds(v.id)}
-                              className={`mt-0.5 p-1 rounded-zen transition ${
+                              className={`mt-0.5 px-2 py-1 rounded-zen transition flex items-center gap-1 text-xs font-medium ${
                                 hasIt
-                                  ? 'bg-zen-moss-100 text-zen-moss-600 hover:bg-zen-moss-200'
-                                  : 'bg-zen-kitsune-100 text-zen-kitsune-600 hover:bg-zen-kitsune-200'
+                                  ? 'bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200'
+                                  : 'bg-zen-kitsune-100 text-zen-kitsune-700 hover:bg-zen-kitsune-200'
                               }`}
                               title={hasIt ? 'Have seeds - click to mark as needed' : 'Need seeds - click to mark as have'}
                             >
-                              {hasIt ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                              {hasIt ? <Check className="w-3 h-3" /> : <ShoppingCart className="w-3 h-3" />}
+                              <span>{hasIt ? 'Have' : 'Need'}</span>
                             </button>
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">

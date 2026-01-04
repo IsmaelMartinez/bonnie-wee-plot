@@ -7,6 +7,7 @@ import TaskList from './TaskList'
 import BedAlerts from './BedAlerts'
 import QuickActions from './QuickActions'
 import AIInsight from './AIInsight'
+import CompostAlerts from './CompostAlerts'
 
 function LoadingSkeleton() {
   return (
@@ -96,6 +97,9 @@ export default function TodayDashboard() {
               theme={theme}
             />
           </div>
+
+          {/* Compost Alerts */}
+          <CompostAlerts />
 
           {/* AI Insight */}
           <AIInsight

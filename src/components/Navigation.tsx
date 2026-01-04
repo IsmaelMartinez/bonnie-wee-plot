@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen } from 'lucide-react'
+import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 
 const navLinks = [
@@ -14,6 +14,7 @@ const navLinks = [
 ]
 
 const moreLinks = [
+  { href: '/compost', label: 'Compost', icon: Recycle, description: 'Track your piles' },
   { href: '/this-month', label: 'This Month', icon: Calendar, description: 'Seasonal calendar' },
   { href: '/ai-advisor', label: 'Ask Aitor', icon: Leaf, description: 'Garden advice' },
   { href: '/about', label: 'About', icon: BookOpen, description: 'Learn more' },
