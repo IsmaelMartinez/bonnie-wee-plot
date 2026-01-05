@@ -5,35 +5,29 @@ test.describe('Homepage and Navigation', () => {
     await page.goto('/');
 
     await expect(page).toHaveTitle(/Community Allotment/);
-    await expect(page.getByRole('heading', { name: /Welcome to Community Allotment/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
   });
 
   test('should navigate to AI advisor page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Look for navigation link to AI advisor in header (labeled as "Aitor")
-    const aiAdvisorLink = page.locator('header').getByRole('link', { name: 'Aitor' });
+    // AI advisor is now in "More" dropdown - click More button first
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await moreButton.click();
+
+    // Then click "Ask Aitor" link in dropdown
+    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i });
     await aiAdvisorLink.click();
     await expect(page).toHaveURL(/ai-advisor/);
-  });
-
-  test('should navigate to allotment page', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/');
-
-    // Look for navigation link to allotment in header
-    const allotmentLink = page.locator('header').getByRole('link', { name: 'My Allotment' });
-    await allotmentLink.click();
-    await expect(page).toHaveURL(/allotment/);
   });
 
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
 
-    // Check that content is still visible on mobile
-    await expect(page.getByRole('heading', { name: /Welcome to Community Allotment/ })).toBeVisible();
+    // Check that Today heading is still visible on mobile
+    await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
   });
 
   test('should have proper meta tags', async ({ page }) => {
@@ -73,75 +67,75 @@ test.describe('Homepage and Navigation', () => {
   });
 });
 
-test.describe('Growing Guides Navigation', () => {
-  test('should display Growing Guides dropdown on desktop', async ({ page }) => {
+test.describe('More Dropdown Navigation', () => {
+  test('should display More dropdown button on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Look for Growing Guides button in navigation header
-    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
-    await expect(growingGuidesButton).toBeVisible();
+    // Look for More button in navigation header
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await expect(moreButton).toBeVisible();
   });
 
-  test('should open Growing Guides dropdown and show links', async ({ page }) => {
+  test('should open More dropdown and show links', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Click on Growing Guides to open dropdown
-    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
-    await growingGuidesButton.click();
+    // Click on More to open dropdown
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await moreButton.click();
 
-    // Wait for dropdown link to become visible
-    const companionLink = page.locator('a[href="/companion-planting"]');
-    await expect(companionLink).toBeVisible();
+    // Wait for dropdown links to become visible
+    const compostLink = page.getByRole('menuitem', { name: /Compost/i });
+    await expect(compostLink).toBeVisible();
   });
 
-  test('should navigate to Companion Planting from dropdown', async ({ page }) => {
+  test('should navigate to Compost from dropdown', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
     // Open dropdown
-    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
-    await growingGuidesButton.click();
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await moreButton.click();
 
-    // Wait for and click on Companion Planting
-    const companionLink = page.locator('a[href="/companion-planting"]');
-    await expect(companionLink).toBeVisible();
-    await companionLink.click();
+    // Wait for and click on Compost
+    const compostLink = page.getByRole('menuitem', { name: /Compost/i });
+    await expect(compostLink).toBeVisible();
+    await compostLink.click();
 
-    await expect(page).toHaveURL(/companion-planting/);
+    await expect(page).toHaveURL(/compost/);
   });
 
-  test('should navigate to Composting from dropdown', async ({ page }) => {
+  test('should navigate to This Month from dropdown', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
     // Open dropdown
-    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
-    await growingGuidesButton.click();
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await moreButton.click();
 
-    // Wait for and click on Composting
-    const compostingLink = page.locator('a[href="/composting"]');
-    await expect(compostingLink).toBeVisible();
-    await compostingLink.click();
+    // Wait for and click on This Month
+    const thisMonthLink = page.getByRole('menuitem', { name: /This Month/i });
+    await expect(thisMonthLink).toBeVisible();
+    await thisMonthLink.click();
 
-    await expect(page).toHaveURL(/composting/);
+    await expect(page).toHaveURL(/this-month/);
   });
 
-  test('should navigate to Crop Rotation from dropdown', async ({ page }) => {
+  test('should navigate to About from dropdown', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
     // Open dropdown
-    const growingGuidesButton = page.locator('header button').filter({ hasText: /growing guides/i });
-    await growingGuidesButton.click();
+    const moreButton = page.locator('header button').filter({ hasText: 'More' });
+    await moreButton.click();
 
-    // Wait for and click on Crop Rotation
-    const cropRotationLink = page.locator('a[href="/crop-rotation"]');
-    await expect(cropRotationLink).toBeVisible();
-    await cropRotationLink.click();
+    // Wait for and click on About
+    const aboutLink = page.getByRole('menuitem', { name: /About/i });
+    await expect(aboutLink).toBeVisible();
+    await aboutLink.click();
 
-    await expect(page).toHaveURL(/crop-rotation/);
+    await expect(page).toHaveURL(/about/);
   });
 
   test('should show mobile menu button on mobile', async ({ page }) => {
@@ -157,12 +151,18 @@ test.describe('Growing Guides Navigation', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
 
-    // Open mobile menu using the hamburger button
-    const mobileMenuButton = page.locator('header button.lg\\:hidden');
-    await mobileMenuButton.click();
+    // Wait for hamburger button to be visible
+    const menuButton = page.getByLabel('Open menu');
+    await expect(menuButton).toBeVisible();
 
-    // Wait for mobile menu to open and verify navigation links are visible
-    const allotmentLink = page.locator('a[href="/allotment"]').first();
-    await expect(allotmentLink).toBeVisible();
+    // Click to open menu
+    await menuButton.click();
+
+    // Wait for mobile menu to open - button should change to "Close menu"
+    await expect(page.getByLabel('Close menu')).toBeVisible();
+
+    // Verify navigation links are visible in the mobile menu
+    await expect(page.locator('a').filter({ hasText: 'Today' }).last()).toBeVisible();
+    await expect(page.locator('a').filter({ hasText: 'Allotment' }).last()).toBeVisible();
   });
 });

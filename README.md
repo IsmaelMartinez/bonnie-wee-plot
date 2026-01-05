@@ -12,23 +12,38 @@ This serves as an example of what's possible when AI agents have access to devel
 
 ## 🎉 What Does This Thing Actually Do?
 
-### 🗺️ Garden Planner
-Design your perfect plot with our interactive garden planner:
-- **Visual Grid Layout**: Plan your beds and see your garden come to life
-- **Crop Management**: Track what you're growing and where
-- **Smart Suggestions**: Get recommendations for filling gaps in your garden
+### 📅 Today Dashboard
+Your personal allotment command center that answers "what should I do today?":
+- **Seasonal Insights**: Current seasonal phase with actionable suggestions
+- **Daily Tasks**: Maintenance tasks and care reminders for your perennial plants
+- **Bed Alerts**: Problem beds and harvest-ready crops at a glance
+- **Quick Actions**: Fast access to your allotment, seeds, and AI advisor
 
-### 🤖 Your New AI Garden Buddy
+### 🗺️ Allotment Planner
+Design and track your real allotment with year-by-year planning:
+- **Physical Layout**: Map your actual beds with rotation groups
+- **Yearly Planning**: Track plantings across multiple growing seasons
+- **Bed Notes**: Record observations and management notes for each bed
+- **Historical Data**: View past years to inform future decisions
+
+### 🌱 Seeds & Tracking
+Comprehensive seed and plant management:
+- **Seed Catalog**: Browse and search vegetables by category
+- **Planting Calendar**: View detailed planting windows and care instructions
+- **Crop Rotation**: Smart rotation suggestions based on plant families
+
+### 🤖 Your New AI Garden Buddy (Aitor)
 Think of it as having a horticultural genius in your pocket, except this one won't judge you for killing that "supposedly unkillable" succulent. Ask it anything:
 - "Why are my tomatoes plotting against me?"
 - "Is this normal plant behavior or should I call an exorcist?"
 - "What's this green fuzzy stuff, and should I be worried?"
 
-### 📚 Growing Guides
-Learn proven techniques from our comprehensive guides:
-- **Companion Planting**: Discover which plants thrive together
-- **Composting**: Turn garden waste into black gold
-- **Crop Rotation**: Keep your soil healthy year after year
+### ♻️ Compost Tracker
+Turn garden waste into black gold:
+- **Multiple Piles**: Track several compost piles simultaneously
+- **Material Logging**: Record greens and browns with automatic C:N ratio tracking
+- **Event History**: Document turning, watering, and monitoring activities
+- **Status Tracking**: Follow pile progress from active through curing to ready
 
 ## 🛠️ Built With Love (And Probably Too Much Coffee)
 
@@ -72,18 +87,33 @@ Learn proven techniques from our comprehensive guides:
 src/
 ├── app/
 │   ├── layout.tsx              # Root layout with navigation
-│   ├── page.tsx                # Home page with overview
+│   ├── page.tsx                # Today Dashboard (homepage)
 │   ├── globals.css             # Global styles
-│   ├── garden-planner/
-│   │   └── page.tsx            # Interactive garden planning tool
+│   ├── allotment/
+│   │   └── page.tsx            # Allotment planner with year-by-year tracking
 │   ├── ai-advisor/
-│   │   └── page.tsx            # AI-powered plant advice chat
-│   ├── companion-planting/
-│   │   └── page.tsx            # Companion planting guide
-│   ├── composting/
-│   │   └── page.tsx            # Composting guide
-│   └── crop-rotation/
-│       └── page.tsx            # Crop rotation guide
+│   │   └── page.tsx            # AI-powered plant advice chat (Aitor)
+│   ├── seeds/
+│   │   └── page.tsx            # Seed catalog and planting calendar
+│   ├── compost/
+│   │   └── page.tsx            # Compost pile tracking
+│   ├── plan-history/
+│   │   └── page.tsx            # Historical plan viewer
+│   ├── this-month/
+│   │   └── page.tsx            # Seasonal calendar and tasks
+│   └── about/
+│       └── page.tsx            # About page
+├── components/
+│   ├── dashboard/              # Today Dashboard components
+│   ├── allotment/              # Allotment planner components
+│   ├── ai-advisor/             # Chat interface components
+│   └── ui/                     # Shared UI components
+├── lib/
+│   ├── vegetables/             # Vegetable database
+│   ├── seasons.ts              # Seasonal phase calculations
+│   └── ai-suggestions.ts       # AI topic generation
+└── services/
+    └── allotment-storage.ts    # LocalStorage data persistence
 ```
 
 ## 🎨 The Pretty Stuff (Design System)
@@ -99,19 +129,29 @@ We've got colors! We've got components! We've got enough CSS classes to make you
 
 ## 🏠 What Lives Where (Page Guide)
 
-### Home Sweet Home (`/`)
-Your digital allotment entrance hall. Includes a virtual welcome mat and everything you need to feel at home.
+### Today Dashboard (`/`)
+Your homepage command center showing seasonal phase, daily tasks, bed alerts, and quick actions to get you started.
 
-### Garden Planner (`/garden-planner`)
-Your interactive plot planning tool. Design beds, place crops, and visualize your garden layout.
+### Allotment Planner (`/allotment`)
+The heart of the app - manage your real allotment with physical bed layouts, yearly planting plans, rotation tracking, and bed notes.
+
+### Seeds Catalog (`/seeds`)
+Browse vegetables by category, view detailed planting calendars, and learn about crop rotation families.
+
+### Compost Tracker (`/compost`)
+Track multiple compost piles with material logging, C:N ratio tracking, event history, and status management.
+
+### Plan History (`/plan-history`)
+Review historical planting plans year by year to inform future decisions.
 
 ### Aitor - AI Garden Advisor (`/ai-advisor`)
-Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables.
+Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your allotment data.
 
-### Growing Guides
-- **Companion Planting** (`/companion-planting`): Learn which plants help each other thrive
-- **Composting** (`/composting`): Master the art of turning waste into garden gold
-- **Crop Rotation** (`/crop-rotation`): Keep your soil healthy with smart rotation planning
+### This Month (`/this-month`)
+Seasonal calendar showing what to plant, harvest, and maintain during the current month.
+
+### About (`/about`)
+Learn about the project and its AI-powered origins.
 
 ## 🔮 Future Dreams and Schemes
 
