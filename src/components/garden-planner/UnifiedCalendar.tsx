@@ -7,7 +7,7 @@ interface PlantingEntry {
   bedId: string
   bedName: string
   bedColor: string
-  vegetableId: string
+  plantId: string
   varietyName?: string
 }
 
@@ -85,7 +85,7 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
               {/* Plants in this bed */}
               <div className="space-y-1">
                 {group.items.map((item, idx) => {
-                  const veg = getVegetableById(item.vegetableId)
+                  const veg = getVegetableById(item.plantId)
                   if (!veg) return null
 
                   const displayName = item.varietyName
@@ -93,7 +93,7 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
                     : veg.name
 
                   return (
-                    <div key={`${item.vegetableId}-${idx}`} className="grid grid-cols-12 gap-1">
+                    <div key={`${item.plantId}-${idx}`} className="grid grid-cols-12 gap-1">
                       {Array.from({ length: 12 }, (_, i) => {
                         const month = (i + 1) as Month
                         const canSow = veg.planting.sowOutdoorsMonths.includes(month) ||

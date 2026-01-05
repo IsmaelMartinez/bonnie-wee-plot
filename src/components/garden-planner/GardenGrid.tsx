@@ -10,7 +10,7 @@ import PlantSelectionDialog from './PlantSelectionDialog'
 
 interface GardenGridProps {
   grid: GridPlot
-  onAssign: (cellId: string, vegetableId: string) => void
+  onAssign: (cellId: string, plantId: string) => void
   onClear: (cellId: string) => void
   onResize: (rows: number, cols: number) => void
   onClearAll: () => void
@@ -82,8 +82,8 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
   }, [focusCell, grid.gridRows, grid.gridCols])
 
   // Check if removing row/col would delete plants
-  const hasPlantInLastRow = grid.cells.some(c => c.row === grid.gridRows - 1 && c.vegetableId)
-  const hasPlantInLastCol = grid.cells.some(c => c.col === grid.gridCols - 1 && c.vegetableId)
+  const hasPlantInLastRow = grid.cells.some(c => c.row === grid.gridRows - 1 && c.plantId)
+  const hasPlantInLastCol = grid.cells.some(c => c.col === grid.gridCols - 1 && c.plantId)
 
   // Build cells into rows
   const rows: PlotCell[][] = []
@@ -96,17 +96,17 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
     rows.push(row)
   }
 
-  const planted = grid.cells.filter(c => c.vegetableId).length
-  const selectedVeg = selectedCell?.vegetableId ? getVegetableById(selectedCell.vegetableId) ?? null : null
+  const planted = grid.cells.filter(c => c.plantId).length
+  const selectedVeg = selectedCell?.plantId ? getVegetableById(selectedCell.plantId) ?? null : null
 
   // Get planted vegetable IDs (excluding the selected cell)
   const plantedVegetableIds = grid.cells
-    .filter(c => c.vegetableId && c.id !== selectedCell?.id)
-    .map(c => c.vegetableId!)
+    .filter(c => c.plantId && c.id !== selectedCell?.id)
+    .map(c => c.plantId!)
 
-  const handlePlantSelect = (vegetableId: string) => {
+  const handlePlantSelect = (plantId: string) => {
     if (selectedCell) {
-      onAssign(selectedCell.id, vegetableId)
+      onAssign(selectedCell.id, plantId)
       setSelectedCell(null)
     }
   }
@@ -137,7 +137,7 @@ export default function GardenGrid({ grid, onAssign, onClear, onResize, onClearA
             {rows.map((row, rowIndex) => (
               <div key={rowIndex} className="flex gap-2" role="row">
                 {row.map((cell, colIndex) => {
-                  const veg = cell.vegetableId ? getVegetableById(cell.vegetableId) : null
+                  const veg = cell.plantId ? getVegetableById(cell.plantId) : null
                   const cellKey = getCellKey(rowIndex, colIndex)
 
                   return (

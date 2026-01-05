@@ -16,7 +16,12 @@ export function getPlantEmoji(category: string): string {
     'alliums': '🧅',
     'herbs': '🌿',
     'berries': '🍓',
-    'fruit-trees': '🍎'
+    'fruit-trees': '🍎',
+    'annual-flowers': '🌸',
+    'perennial-flowers': '🌺',
+    'bulbs': '🌷',
+    'climbers': '🪴',
+    'other': '🌱'
   }
   return emojis[category] || '🌱'
 }

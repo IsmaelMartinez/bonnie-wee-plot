@@ -10,7 +10,7 @@ interface GapSuggestionsProps {
   selectedCell?: PlotCell
   plot?: GridPlot
   currentMonth?: number
-  onQuickPlant: (vegetableId: string) => void
+  onQuickPlant: (plantId: string) => void
 }
 
 export default function GapSuggestions({
@@ -22,17 +22,17 @@ export default function GapSuggestions({
   const [isExpanded, setIsExpanded] = useState(true)
 
   const suggestions = useMemo(() => {
-    if (!selectedCell || !plot || selectedCell.vegetableId) return []
+    if (!selectedCell || !plot || selectedCell.plantId) return []
     
     return suggestGapFillers(selectedCell, plot, currentMonth as Month)
   }, [selectedCell, plot, currentMonth])
 
-  if (!selectedCell || selectedCell.vegetableId) {
+  if (!selectedCell || selectedCell.plantId) {
     return null
   }
 
-  const getCategoryColor = (vegetableId: string) => {
-    const veg = getVegetableById(vegetableId)
+  const getCategoryColor = (plantId: string) => {
+    const veg = getVegetableById(plantId)
     if (!veg) return 'bg-gray-500'
     const cat = CATEGORY_INFO.find(c => c.id === veg.category)
     const colors: Record<string, string> = {
@@ -74,17 +74,17 @@ export default function GapSuggestions({
           ) : (
             <div className="space-y-3">
               {suggestions.slice(0, 5).map((suggestion) => {
-                const veg = getVegetableById(suggestion.vegetableId)
+                const veg = getVegetableById(suggestion.plantId)
                 if (!veg) return null
 
                 return (
                   <div
-                    key={suggestion.vegetableId}
+                    key={suggestion.plantId}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg
                                border border-gray-200 hover:border-green-400 transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full ${getCategoryColor(suggestion.vegetableId)}
+                      <div className={`w-8 h-8 rounded-full ${getCategoryColor(suggestion.plantId)}
                                       flex items-center justify-center`}>
                         <Leaf className="w-4 h-4 text-white" />
                       </div>
@@ -110,7 +110,7 @@ export default function GapSuggestions({
                       </div>
                     </div>
                     <button
-                      onClick={() => onQuickPlant(suggestion.vegetableId)}
+                      onClick={() => onQuickPlant(suggestion.plantId)}
                       className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white
                                text-sm font-medium rounded-lg hover:bg-green-700 transition"
                     >
@@ -159,8 +159,8 @@ export function suggestGapFillers(
     let hasCompanion = false
     
     for (const adjCell of adjacentCells) {
-      if (!adjCell.vegetableId) continue
-      const compatibility = checkCompanionCompatibility(veg.id, adjCell.vegetableId)
+      if (!adjCell.plantId) continue
+      const compatibility = checkCompanionCompatibility(veg.id, adjCell.plantId)
       if (compatibility === 'bad') hasConflict = true
       if (compatibility === 'good') hasCompanion = true
     }
@@ -181,8 +181,8 @@ export function suggestGapFillers(
       reason = `Fast harvest (${veg.planting.daysToHarvest.min}-${veg.planting.daysToHarvest.max} days)`
     } else if (hasCompanion) {
       const companionName = adjacentCells
-        .filter(c => c.vegetableId && checkCompanionCompatibility(veg.id, c.vegetableId) === 'good')
-        .map(c => getVegetableById(c.vegetableId!)?.name)
+        .filter(c => c.plantId && checkCompanionCompatibility(veg.id, c.plantId) === 'good')
+        .map(c => getVegetableById(c.plantId!)?.name)
         .filter(Boolean)[0]
       reason = companionName ? `Good companion for ${companionName}` : 'Compatible with neighbors'
     } else if (canPlantNow) {
@@ -192,7 +192,7 @@ export function suggestGapFillers(
     }
     
     suggestions.push({
-      vegetableId: veg.id,
+      plantId: veg.id,
       reason,
       score,
       quickGrow,

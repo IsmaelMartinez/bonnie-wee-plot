@@ -36,7 +36,7 @@ Enhanced to full year-aware variety management:
 ```typescript
 interface StoredVariety {
   id: string
-  vegetableId: string
+  plantId: string
   name: string
   supplier?: string
   price?: number

@@ -68,7 +68,7 @@ There are 37 vegetables total with companion/avoid arrays populated.
       plotId: string          // Reference to parent plot
       row: number
       col: number
-      vegetableId?: string    // Planted vegetable ID
+      plantId?: string    // Planted vegetable ID
       plantedYear?: number    // For rotation tracking
     }
 
@@ -119,7 +119,7 @@ There are 37 vegetables total with companion/avoid arrays populated.
   - [ ] T5.1: Create `src/lib/companion-validation.ts` with:
     ```typescript
     function getAdjacentCells(cell: PlotCell, cells: PlotCell[]): PlotCell[]
-    function validatePlacement(vegetableId: string, targetCell: PlotCell, allCells: PlotCell[]): PlacementValidation
+    function validatePlacement(plantId: string, targetCell: PlotCell, allCells: PlotCell[]): PlacementValidation
     function checkCompanionCompatibility(vegA: Vegetable, vegB: Vegetable): 'good' | 'neutral' | 'bad'
     ```
   - [ ] T5.2: Implement bidirectional avoid checking (both plant's avoid lists)
@@ -244,7 +244,7 @@ export interface PlotCell {
   plotId: string
   row: number
   col: number
-  vegetableId?: string    // Reference to Vegetable.id
+  plantId?: string    // Reference to Vegetable.id
   plantedYear?: number    // Year this was planted (for rotation)
 }
 
@@ -296,7 +296,7 @@ export interface AutoFillOptions {
 
 // Gap filler suggestion
 export interface GapSuggestion {
-  vegetableId: string
+  plantId: string
   reason: string
   score: number           // 0-100 suitability
   quickGrow: boolean      // < 45 days to harvest

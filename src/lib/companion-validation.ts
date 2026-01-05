@@ -31,7 +31,7 @@ export function getAdjacentCells(cell: PlotCell, cells: PlotCell[]): PlotCell[] 
  * Get adjacent cells that have vegetables planted
  */
 export function getPlantedAdjacentCells(cell: PlotCell, cells: PlotCell[]): PlotCell[] {
-  return getAdjacentCells(cell, cells).filter(c => c.vegetableId)
+  return getAdjacentCells(cell, cells).filter(c => c.plantId)
 }
 
 /**
@@ -78,7 +78,7 @@ export function checkCompanionCompatibility(
  * Validate placement of a vegetable in a target cell
  */
 export function validatePlacement(
-  vegetableId: string,
+  plantId: string,
   targetCell: PlotCell,
   plot: GridPlot
 ): PlacementValidation {
@@ -86,7 +86,7 @@ export function validatePlacement(
   const suggestions: string[] = []
   let overallCompatibility: 'good' | 'neutral' | 'bad' = 'neutral'
   
-  const vegetable = getVegetableById(vegetableId)
+  const vegetable = getVegetableById(plantId)
   if (!vegetable) {
     return {
       isValid: false,
@@ -105,10 +105,10 @@ export function validatePlacement(
   const badCompanions: string[] = []
   
   for (const adjCell of adjacentCells) {
-    if (!adjCell.vegetableId) continue
+    if (!adjCell.plantId) continue
     
-    const compatibility = checkCompanionCompatibility(vegetableId, adjCell.vegetableId)
-    const adjVeg = getVegetableById(adjCell.vegetableId)
+    const compatibility = checkCompanionCompatibility(plantId, adjCell.plantId)
+    const adjVeg = getVegetableById(adjCell.plantId)
     const adjName = adjVeg?.name || 'Unknown plant'
     
     if (compatibility === 'bad') {
@@ -118,7 +118,7 @@ export function validatePlacement(
         type: 'avoid',
         severity: 'warning',
         message: `${vegetable.name} should not be planted near ${adjName}`,
-        conflictingPlant: adjCell.vegetableId,
+        conflictingPlant: adjCell.plantId,
         affectedCells: [adjCell.id]
       })
     } else if (compatibility === 'good') {
@@ -148,8 +148,8 @@ export function validatePlacement(
 /**
  * Get suggested companions for a vegetable
  */
-export function getSuggestedCompanions(vegetableId: string): string[] {
-  const vegetable = getVegetableById(vegetableId)
+export function getSuggestedCompanions(plantId: string): string[] {
+  const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
   
   // Find vegetables that match companion plant names
@@ -165,8 +165,8 @@ export function getSuggestedCompanions(vegetableId: string): string[] {
 /**
  * Get plants that should be avoided near a vegetable
  */
-export function getAvoidedPlants(vegetableId: string): string[] {
-  const vegetable = getVegetableById(vegetableId)
+export function getAvoidedPlants(plantId: string): string[] {
+  const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
   
   // Find vegetables that match avoid plant names
@@ -184,7 +184,7 @@ export function getAvoidedPlants(vegetableId: string): string[] {
  * Higher score = better placement
  */
 export function calculateCompanionScore(
-  vegetableId: string,
+  plantId: string,
   targetCell: PlotCell,
   plot: GridPlot
 ): number {
@@ -196,9 +196,9 @@ export function calculateCompanionScore(
   let badCount = 0
   
   for (const adjCell of adjacentCells) {
-    if (!adjCell.vegetableId) continue
+    if (!adjCell.plantId) continue
     
-    const compatibility = checkCompanionCompatibility(vegetableId, adjCell.vegetableId)
+    const compatibility = checkCompanionCompatibility(plantId, adjCell.plantId)
     if (compatibility === 'good') goodCount++
     if (compatibility === 'bad') badCount++
   }

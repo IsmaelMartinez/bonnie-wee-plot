@@ -1,23 +1,21 @@
 'use client'
 
-import { AlertTriangle, Carrot, Sprout } from 'lucide-react'
-import { PhysicalBed } from '@/types/garden-planner'
+import { Carrot, Sprout } from 'lucide-react'
 import { Planting } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
 
 interface BedAlertsProps {
-  problemBeds: PhysicalBed[]
   harvestReady: Planting[]
   needsAttention: Planting[]
   theme: SeasonalTheme
 }
 
 function PlantingChip({ planting }: { planting: Planting }) {
-  const vegetable = getVegetableById(planting.vegetableId)
-  const emoji = getPlantEmoji(planting.vegetableId)
-  const name = vegetable?.name || planting.vegetableId
+  const vegetable = getVegetableById(planting.plantId)
+  const emoji = getPlantEmoji(planting.plantId)
+  const name = vegetable?.name || planting.plantId
 
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-zen text-sm border border-zen-stone-200">
@@ -53,7 +51,7 @@ function HarvestSection({ plantings }: { plantings: Planting[] }) {
   if (plantings.length === 0) return null
 
   const unique = plantings.reduce((acc, p) => {
-    if (!acc.find((existing) => existing.vegetableId === p.vegetableId)) {
+    if (!acc.find((existing) => existing.plantId === p.plantId)) {
       acc.push(p)
     }
     return acc
@@ -79,7 +77,7 @@ function AttentionSection({ plantings }: { plantings: Planting[] }) {
   if (plantings.length === 0) return null
 
   const unique = plantings.reduce((acc, p) => {
-    if (!acc.find((existing) => existing.vegetableId === p.vegetableId)) {
+    if (!acc.find((existing) => existing.plantId === p.plantId)) {
       acc.push(p)
     }
     return acc
@@ -101,27 +99,8 @@ function AttentionSection({ plantings }: { plantings: Planting[] }) {
   )
 }
 
-function ProblemBedsSection({ beds }: { beds: PhysicalBed[] }) {
-  if (beds.length === 0) return null
-
-  return (
-    <Section icon={AlertTriangle} title="Needs attention" accentClass="text-zen-ume-600">
-      <div className="space-y-2">
-        {beds.map((bed) => (
-          <div key={bed.id} className="text-sm text-zen-ink-600">
-            <span className="font-medium">{bed.name}</span>
-            {bed.problemNotes && (
-              <span className="text-zen-stone-500"> — {bed.problemNotes}</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </Section>
-  )
-}
-
-export default function BedAlerts({ problemBeds, harvestReady, needsAttention }: BedAlertsProps) {
-  const hasContent = problemBeds.length > 0 || harvestReady.length > 0 || needsAttention.length > 0
+export default function BedAlerts({ harvestReady, needsAttention }: BedAlertsProps) {
+  const hasContent = harvestReady.length > 0 || needsAttention.length > 0
 
   if (!hasContent) {
     return (
@@ -143,7 +122,6 @@ export default function BedAlerts({ problemBeds, harvestReady, needsAttention }:
       <div>
         <HarvestSection plantings={harvestReady} />
         <AttentionSection plantings={needsAttention} />
-        <ProblemBedsSection beds={problemBeds} />
       </div>
     </div>
   )

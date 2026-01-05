@@ -91,7 +91,37 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'apple', name: 'Apple', category: 'fruit-trees' },
   { id: 'pear', name: 'Pear', category: 'fruit-trees' },
   { id: 'plum', name: 'Plum', category: 'fruit-trees' },
-  { id: 'cherry', name: 'Cherry', category: 'fruit-trees' }
+  { id: 'cherry', name: 'Cherry', category: 'fruit-trees' },
+
+  // Annual Flowers
+  { id: 'cosmos', name: 'Cosmos', category: 'annual-flowers' },
+  { id: 'sunflower', name: 'Sunflower', category: 'annual-flowers' },
+  { id: 'zinnia', name: 'Zinnia', category: 'annual-flowers' },
+  { id: 'marigold', name: 'Marigold', category: 'annual-flowers' },
+  { id: 'calendula', name: 'Calendula', category: 'annual-flowers' },
+  { id: 'nasturtium', name: 'Nasturtium', category: 'annual-flowers' },
+  { id: 'cornflower', name: 'Cornflower', category: 'annual-flowers' },
+
+  // Perennial Flowers
+  { id: 'lavender', name: 'Lavender', category: 'perennial-flowers' },
+  { id: 'echinacea', name: 'Echinacea', category: 'perennial-flowers' },
+  { id: 'rudbeckia', name: 'Rudbeckia', category: 'perennial-flowers' },
+  { id: 'sedum', name: 'Sedum', category: 'perennial-flowers' },
+  { id: 'geranium', name: 'Hardy Geranium', category: 'perennial-flowers' },
+  { id: 'salvia', name: 'Salvia', category: 'perennial-flowers' },
+
+  // Bulbs
+  { id: 'tulip', name: 'Tulip', category: 'bulbs' },
+  { id: 'daffodil', name: 'Daffodil', category: 'bulbs' },
+  { id: 'allium-flower', name: 'Ornamental Allium', category: 'bulbs' },
+  { id: 'crocus', name: 'Crocus', category: 'bulbs' },
+  { id: 'dahlia', name: 'Dahlia', category: 'bulbs' },
+
+  // Climbers
+  { id: 'sweet-pea', name: 'Sweet Pea', category: 'climbers' },
+  { id: 'clematis', name: 'Clematis', category: 'climbers' },
+  { id: 'honeysuckle', name: 'Honeysuckle', category: 'climbers' },
+  { id: 'morning-glory', name: 'Morning Glory', category: 'climbers' }
 ]
 
 /**

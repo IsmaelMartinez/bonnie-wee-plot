@@ -15,10 +15,11 @@ import {
   Pencil,
   Trash2,
   Calendar,
+  type LucideIcon,
 } from 'lucide-react'
 import { useVarieties } from '@/hooks/useVarieties'
-import { getVegetableById, vegetables } from '@/lib/vegetable-database'
-import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
+import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
+import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
 
 const SUPPLIER_URLS: Record<string, string> = {
@@ -31,6 +32,35 @@ const SUPPLIER_URLS: Record<string, string> = {
 const CURRENT_YEAR = new Date().getFullYear()
 const AVAILABLE_YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
 
+// Helper to get next seed status in cycle
+function getNextStatus(current: SeedStatus): SeedStatus {
+  const cycle: Record<SeedStatus, SeedStatus> = {
+    'none': 'ordered',
+    'ordered': 'have',
+    'have': 'none'
+  }
+  return cycle[current]
+}
+
+// Status configuration for display
+const statusConfig: Record<SeedStatus, { label: string; icon: LucideIcon; className: string }> = {
+  'none': {
+    label: 'Need',
+    icon: ShoppingCart,
+    className: 'bg-zen-kitsune-100 text-zen-kitsune-700 hover:bg-zen-kitsune-200'
+  },
+  'ordered': {
+    label: 'Ordered',
+    icon: Package,
+    className: 'bg-zen-water-100 text-zen-water-700 hover:bg-zen-water-200'
+  },
+  'have': {
+    label: 'Have',
+    icon: Check,
+    className: 'bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200'
+  }
+}
+
 function SeedsPageContent() {
   const {
     data,
@@ -41,11 +71,11 @@ function SeedsPageContent() {
     updateVariety,
     removeVariety,
     togglePlannedYear,
-    toggleHaveSeeds,
+    toggleHaveSeedsForYear,
+    getSeedsStatsForYear,
     getDisplayVarieties,
     getSuppliers,
     getTotalSpendForYear,
-    hasSeeds,
   } = useVarieties()
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -61,45 +91,52 @@ function SeedsPageContent() {
   // Auto-expand the filtered vegetable group when coming from allotment page
   useEffect(() => {
     if (vegetableFilter) {
-      const veg = vegetables.find(v => v.id === vegetableFilter)
+      const veg = vegetableIndex.find(v => v.id === vegetableFilter)
       if (veg) {
         setExpandedGroups(new Set([veg.name]))
       }
     }
   }, [vegetableFilter])
 
+  // Reset filter when switching to "All" view
+  useEffect(() => {
+    if (selectedYear === 'all' && statusFilter !== 'all') {
+      setStatusFilter('all')
+    }
+  }, [selectedYear, statusFilter])
+
   const displayVarieties = getDisplayVarieties()
   const suppliers = getSuppliers()
 
   // Filter and group varieties by vegetable
   const grouped = useMemo(() => {
-    const filtered = statusFilter === 'all'
+    const filtered = statusFilter === 'all' || selectedYear === 'all'
       ? displayVarieties
       : displayVarieties.filter(v => {
-          const has = data?.haveSeeds.includes(v.id)
-          return statusFilter === 'have' ? has : !has
+          const status = v.seedsByYear?.[selectedYear] || 'none'
+
+          if (statusFilter === 'have') {
+            return status === 'have'
+          } else { // statusFilter === 'need'
+            return status === 'none' || status === 'ordered'
+          }
         })
 
     return filtered.reduce((acc, v) => {
-      const veg = getVegetableById(v.vegetableId)
-      const groupName = veg?.name || v.vegetableId
+      const veg = getVegetableIndexById(v.plantId)
+      const groupName = veg?.name || v.plantId
       if (!acc[groupName]) acc[groupName] = []
       acc[groupName].push(v)
       return acc
     }, {} as Record<string, StoredVariety[]>)
-  }, [displayVarieties, statusFilter, data?.haveSeeds])
+  }, [displayVarieties, statusFilter, selectedYear])
 
   const groupNames = Object.keys(grouped).sort()
 
   // Stats - context-aware based on selected year
-  const haveCount = data?.haveSeeds.length || 0
-  const totalVarieties = data?.varieties.length || 0
-
-  // For year view: count varieties planned for that year that user doesn't have
-  // For all view: count all varieties user doesn't have
-  const needCount = selectedYear !== 'all' && data
-    ? displayVarieties.filter(v => !data.haveSeeds.includes(v.id)).length
-    : totalVarieties - haveCount
+  const { have: haveCount, need: needCount } = selectedYear !== 'all'
+    ? getSeedsStatsForYear(selectedYear)
+    : { have: 0, need: 0 }  // All view doesn't show have/need
 
   const plannedCount = selectedYear !== 'all' && data
     ? data.varieties.filter(v => v.plannedYears.includes(selectedYear)).length
@@ -195,11 +232,15 @@ function SeedsPageContent() {
         {/* Stats - clickable filters */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <button
-            onClick={() => setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
+            onClick={() => selectedYear !== 'all' && setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
+            disabled={selectedYear === 'all'}
             aria-pressed={statusFilter === 'have'}
-            className={`zen-card p-4 text-center transition cursor-pointer ${
-              statusFilter === 'have' ? 'ring-2 ring-zen-moss-500 bg-zen-moss-50' : 'hover:bg-zen-stone-50'
+            className={`zen-card p-4 text-center transition ${
+              selectedYear === 'all'
+                ? 'opacity-50 cursor-not-allowed'
+                : 'cursor-pointer ' + (statusFilter === 'have' ? 'ring-2 ring-zen-moss-500 bg-zen-moss-50' : 'hover:bg-zen-stone-50')
             }`}
+            title={selectedYear === 'all' ? 'Select a year to filter by seed status' : undefined}
           >
             <div className="text-2xl font-bold text-zen-moss-600">{haveCount}</div>
             <div className="text-sm text-zen-stone-500">
@@ -207,11 +248,15 @@ function SeedsPageContent() {
             </div>
           </button>
           <button
-            onClick={() => setStatusFilter(statusFilter === 'need' ? 'all' : 'need')}
+            onClick={() => selectedYear !== 'all' && setStatusFilter(statusFilter === 'need' ? 'all' : 'need')}
+            disabled={selectedYear === 'all'}
             aria-pressed={statusFilter === 'need'}
-            className={`zen-card p-4 text-center transition cursor-pointer ${
-              statusFilter === 'need' ? 'ring-2 ring-zen-kitsune-500 bg-zen-kitsune-50' : 'hover:bg-zen-stone-50'
+            className={`zen-card p-4 text-center transition ${
+              selectedYear === 'all'
+                ? 'opacity-50 cursor-not-allowed'
+                : 'cursor-pointer ' + (statusFilter === 'need' ? 'ring-2 ring-zen-kitsune-500 bg-zen-kitsune-50' : 'hover:bg-zen-stone-50')
             }`}
+            title={selectedYear === 'all' ? 'Select a year to filter by seed status' : undefined}
           >
             <div className="text-2xl font-bold text-zen-kitsune-600">{needCount}</div>
             <div className="text-sm text-zen-stone-500">
@@ -327,22 +372,30 @@ function SeedsPageContent() {
                   <div className="px-4 pb-4 pt-2 border-t border-zen-stone-100">
                     <div className="space-y-3">
                       {varieties.map(v => {
-                        const hasIt = hasSeeds(v.id)
+                        const status = selectedYear !== 'all' ? (v.seedsByYear?.[selectedYear] || 'none') : 'none'
+                        const config = statusConfig[status]
+                        const Icon = config.icon
                         const isPlannedForSelectedYear = selectedYear !== 'all' && v.plannedYears.includes(selectedYear)
                         return (
-                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${!hasIt ? 'opacity-75' : ''}`}>
-                            <button
-                              onClick={() => toggleHaveSeeds(v.id)}
-                              className={`mt-0.5 px-2 py-1 rounded-zen transition flex items-center gap-1 text-xs font-medium ${
-                                hasIt
-                                  ? 'bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200'
-                                  : 'bg-zen-kitsune-100 text-zen-kitsune-700 hover:bg-zen-kitsune-200'
-                              }`}
-                              title={hasIt ? 'Have seeds - click to mark as needed' : 'Need seeds - click to mark as have'}
-                            >
-                              {hasIt ? <Check className="w-3 h-3" /> : <ShoppingCart className="w-3 h-3" />}
-                              <span>{hasIt ? 'Have' : 'Need'}</span>
-                            </button>
+                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
+                            {selectedYear === 'all' ? (
+                              <div
+                                className="mt-0.5 px-2 py-1 rounded-zen bg-zen-stone-100 text-zen-stone-500 text-xs font-medium cursor-not-allowed flex items-center gap-1"
+                                title="Select a year to track seeds"
+                              >
+                                <Calendar className="w-3 h-3" />
+                                <span>Select year</span>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => toggleHaveSeedsForYear(v.id, selectedYear)}
+                                className={`mt-0.5 px-2 py-1 rounded-zen transition flex items-center gap-1 text-xs font-medium ${config.className}`}
+                                title={`Click to cycle: ${status} → ${getNextStatus(status)}`}
+                              >
+                                <Icon className="w-3 h-3" />
+                                <span>{config.label}</span>
+                              </button>
+                            )}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
                                 <span className="font-medium text-zen-ink-700">{v.name}</span>

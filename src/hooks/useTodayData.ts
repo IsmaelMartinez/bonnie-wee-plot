@@ -13,13 +13,11 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { MaintenanceTask, Planting } from '@/types/unified-allotment'
-import { PhysicalBed } from '@/types/garden-planner'
 
 export interface TodayData {
   currentMonth: number
   seasonalPhase: SeasonalPhase
   maintenanceTasks: MaintenanceTask[]
-  problemBeds: PhysicalBed[]
   harvestReady: Planting[]
   needsAttention: Planting[]
   isLoading: boolean
@@ -37,7 +35,6 @@ export function useTodayData(): TodayData {
     currentSeason,
     isLoading,
     getTasksForMonth,
-    getProblemBeds,
   } = useAllotment()
 
   // Current month (1-12 for January-December, matching vegetable database)
@@ -51,11 +48,6 @@ export function useTodayData(): TodayData {
     return getTasksForMonth(currentMonth)
   }, [getTasksForMonth, currentMonth])
 
-  // Problem beds from layout
-  const problemBeds = useMemo(() => {
-    return getProblemBeds()
-  }, [getProblemBeds])
-
   // Collect all plantings from current season with vegetable data
   const allPlantingsWithVegetable = useMemo(() => {
     if (!currentSeason || !data) return []
@@ -64,7 +56,7 @@ export function useTodayData(): TodayData {
 
     for (const bed of currentSeason.beds) {
       for (const planting of bed.plantings) {
-        const vegetable = getVegetableById(planting.vegetableId)
+        const vegetable = getVegetableById(planting.plantId)
         if (vegetable) {
           const harvestMonths = vegetable.planting?.harvestMonths || []
           const sowIndoors = vegetable.planting?.sowIndoorsMonths || []
@@ -102,7 +94,6 @@ export function useTodayData(): TodayData {
     currentMonth,
     seasonalPhase,
     maintenanceTasks,
-    problemBeds,
     harvestReady,
     needsAttention,
     isLoading,

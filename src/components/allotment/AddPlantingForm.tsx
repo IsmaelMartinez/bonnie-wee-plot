@@ -2,33 +2,55 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { AlertTriangle, Check, Users, Package } from 'lucide-react'
-import { getVegetableById, vegetables } from '@/lib/vegetable-database'
+import { getVegetableById } from '@/lib/vegetable-database'
+import { vegetableIndex } from '@/lib/vegetables/index'
+import { getPlantEmoji } from '@/lib/plant-emoji'
+import { VegetableCategory, CATEGORY_INFO } from '@/types/garden-planner'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
-import { myVarieties } from '@/data/my-varieties'
+import { useVarieties } from '@/hooks/useVarieties'
+import { hasSeedsForYear } from '@/services/variety-storage'
 import { NewPlanting, Planting } from '@/types/unified-allotment'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
   onCancel: () => void
   existingPlantings?: Planting[]
+  selectedYear: number
 }
 
 export default function AddPlantingForm({
   onSubmit,
   onCancel,
-  existingPlantings = []
+  existingPlantings = [],
+  selectedYear
 }: AddPlantingFormProps) {
-  const [vegetableId, setVegetableId] = useState('')
+  const { data } = useVarieties()
+  const [plantId, setVegetableId] = useState('')
   const [varietyName, setVarietyName] = useState('')
   const [sowDate, setSowDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
 
   // Get matching varieties from seed library for autocomplete
-  const matchingVarieties = useMemo(
-    () => vegetableId ? myVarieties.filter(v => v.vegetableId === vegetableId) : [],
-    [vegetableId]
-  )
-  const selectedVegetable = vegetableId ? getVegetableById(vegetableId) : null
+  // Sort: varieties with seeds first, then alphabetically
+  const matchingVarieties = useMemo(() => {
+    if (!plantId || !data) return []
+
+    const forPlant = data.varieties.filter(v => v.plantId === plantId)
+
+    return forPlant.sort((a, b) => {
+      const aHasSeeds = hasSeedsForYear(a, selectedYear)
+      const bHasSeeds = hasSeedsForYear(b, selectedYear)
+
+      // Prioritize varieties with seeds
+      if (aHasSeeds && !bHasSeeds) return -1
+      if (!aHasSeeds && bHasSeeds) return 1
+
+      // Then alphabetically
+      return a.name.localeCompare(b.name)
+    })
+  }, [plantId, data, selectedYear])
+  const selectedVegetable = plantId ? getVegetableById(plantId) : null
 
   // Pre-select variety if only one match exists
   useEffect(() => {
@@ -40,16 +62,22 @@ export default function AddPlantingForm({
   }, [matchingVarieties, varietyName])
 
   // Calculate companion compatibility with existing plantings
-  const companionInfo = vegetableId
-    ? getCompanionStatusForVegetable(vegetableId, existingPlantings)
+  const companionInfo = plantId
+    ? getCompanionStatusForVegetable(plantId, existingPlantings)
     : { goods: [], bads: [] }
+
+  const filteredPlants = useMemo(() => {
+    return vegetableIndex
+      .filter(v => categoryFilter === 'all' || v.category === categoryFilter)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [categoryFilter])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!vegetableId) return
+    if (!plantId) return
 
     onSubmit({
-      vegetableId,
+      plantId,
       varietyName: varietyName || undefined,
       sowDate: sowDate || undefined,
       notes: notes || undefined,
@@ -64,25 +92,56 @@ export default function AddPlantingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Category Filter Tabs */}
+      <div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setCategoryFilter('all')}
+            className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+              categoryFilter === 'all'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All Plants
+          </button>
+          {CATEGORY_INFO.map((info) => (
+            <button
+              key={info.id}
+              type="button"
+              onClick={() => setCategoryFilter(info.id)}
+              className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+                categoryFilter === info.id
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {getPlantEmoji(info.id)} {info.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label htmlFor="vegetable-select" className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Vegetable *
+          Plant *
         </label>
         <select
           id="vegetable-select"
-          value={vegetableId}
+          value={plantId}
           onChange={(e) => setVegetableId(e.target.value)}
           required
           className="zen-select"
         >
-          <option value="">Select a vegetable...</option>
-          {[...vegetables].sort((a, b) => a.name.localeCompare(b.name)).map(v => (
-            <option key={v.id} value={v.id}>{v.name}</option>
+          <option value="">Select a plant...</option>
+          {filteredPlants.map((plant) => (
+            <option key={plant.id} value={plant.id}>{plant.name}</option>
           ))}
         </select>
 
         {/* Companion suggestions panel */}
-        {vegetableId && existingPlantings.length > 0 && (
+        {plantId && existingPlantings.length > 0 && (
           <div className="mt-2 space-y-1">
             {companionInfo.goods.length > 0 && (
               <div className="flex items-center gap-1.5 text-xs text-zen-moss-700 bg-zen-moss-50 px-2 py-1.5 rounded-zen">
@@ -120,20 +179,30 @@ export default function AddPlantingForm({
           className="zen-input"
         />
         <datalist id="variety-suggestions">
-          {matchingVarieties.map(v => (
-            <option key={v.id} value={v.name} />
-          ))}
+          {matchingVarieties.map(v => {
+            const hasSeeds = hasSeedsForYear(v, selectedYear)
+            return (
+              <option key={v.id} value={v.name}>
+                {hasSeeds ? '● ' : '○ '}{v.name}
+              </option>
+            )
+          })}
         </datalist>
-        {vegetableId && matchingVarieties.length > 0 && (
-          <a
-            href={`/seeds?vegetable=${vegetableId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-1.5 text-xs text-zen-moss-600 hover:text-zen-moss-700"
-          >
-            <Package className="w-3 h-3" />
-            View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'} →
-          </a>
+        {plantId && matchingVarieties.length > 0 && (
+          <>
+            <p className="text-xs text-zen-stone-500 mt-1">
+              ● Have seeds  |  ○ Need to order
+            </p>
+            <a
+              href={`/seeds?vegetable=${plantId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-1.5 text-xs text-zen-moss-600 hover:text-zen-moss-700"
+            >
+              <Package className="w-3 h-3" />
+              View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'} →
+            </a>
+          </>
         )}
       </div>
 
@@ -174,7 +243,7 @@ export default function AddPlantingForm({
         </button>
         <button
           type="submit"
-          disabled={!vegetableId}
+          disabled={!plantId}
           className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Planting

@@ -20,7 +20,7 @@ import {
 } from './rotation'
 
 interface CandidateScore {
-  vegetableId: string
+  plantId: string
   totalScore: number
   companionScore: number
   rotationScore: number
@@ -39,7 +39,7 @@ export function autoFillPlot(
   const suggestedRotation = getSuggestedRotation(plot.id, year, history)
   
   // Get empty cells
-  const emptyCells = plot.cells.filter(c => !c.vegetableId)
+  const emptyCells = plot.cells.filter(c => !c.plantId)
   if (emptyCells.length === 0) return plot.cells
   
   // Build candidate list
@@ -48,7 +48,7 @@ export function autoFillPlot(
   // Make a mutable copy of the cells for simulation
   const filledCells: PlotCell[] = options.respectExisting 
     ? [...plot.cells]
-    : plot.cells.map(c => ({ ...c, vegetableId: undefined, plantedYear: undefined }))
+    : plot.cells.map(c => ({ ...c, plantId: undefined, plantedYear: undefined }))
   
   // Create a simulation plot for scoring
   const simulationPlot: GridPlot = { ...plot, cells: filledCells }
@@ -84,7 +84,7 @@ export function autoFillPlot(
       if (difficultyMatch) totalScore += 5
       
       return {
-        vegetableId: vegId,
+        plantId: vegId,
         totalScore,
         companionScore,
         rotationScore,
@@ -103,7 +103,7 @@ export function autoFillPlot(
       // Update the simulation
       filledCells[cellIndex] = {
         ...filledCells[cellIndex],
-        vegetableId: selected.vegetableId,
+        plantId: selected.plantId,
         plantedYear: year
       }
     }
@@ -147,23 +147,23 @@ export function previewAutoFill(
   options: AutoFillOptions,
   history: RotationHistory[],
   year: number
-): Array<{ cellId: string; vegetableId: string; reason: string }> {
+): Array<{ cellId: string; plantId: string; reason: string }> {
   const filledCells = autoFillPlot(plot, options, history, year)
-  const previews: Array<{ cellId: string; vegetableId: string; reason: string }> = []
+  const previews: Array<{ cellId: string; plantId: string; reason: string }> = []
   
   for (const cell of filledCells) {
     // Find original cell
     const originalCell = plot.cells.find(c => c.id === cell.id)
     
     // If this cell was empty and now has a vegetable
-    if (!originalCell?.vegetableId && cell.vegetableId) {
-      const veg = getVegetableById(cell.vegetableId)
-      const group = getRotationGroup(cell.vegetableId)
+    if (!originalCell?.plantId && cell.plantId) {
+      const veg = getVegetableById(cell.plantId)
+      const group = getRotationGroup(cell.plantId)
       const reason = `${veg?.name || 'Plant'} (${group}) - matches rotation suggestion`
       
       previews.push({
         cellId: cell.id,
-        vegetableId: cell.vegetableId,
+        plantId: cell.plantId,
         reason
       })
     }
@@ -200,9 +200,9 @@ export function getPlotRotationStats(
   let matchingSuggested = 0
   
   for (const cell of plot.cells) {
-    if (cell.vegetableId) {
+    if (cell.plantId) {
       totalPlanted++
-      const group = getRotationGroup(cell.vegetableId)
+      const group = getRotationGroup(cell.plantId)
       if (group) {
         groupCounts[group]++
         if (group === suggestedGroup) matchingSuggested++

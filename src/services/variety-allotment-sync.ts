@@ -7,7 +7,7 @@
  * When a planting is added in the allotment:
  * - If a matching variety exists, adds the year to its plannedYears
  * - If no matching variety exists, creates a new one
- * - Matching is done by vegetableId + normalized variety name
+ * - Matching is done by plantId + normalized variety name
  */
 
 import type { VarietyData, StoredVariety } from '@/types/variety-data'
@@ -27,20 +27,18 @@ function normalizeVarietyName(name: string | undefined): string {
 
 /**
  * Find a variety that matches the planting
- * Match criteria: vegetableId + normalized variety name
+ * Match criteria: plantId + normalized variety name
  */
 function findMatchingVariety(
   data: VarietyData,
   planting: Planting
 ): StoredVariety | undefined {
-  if (!planting.varietyName) return undefined
-
   const normalizedPlantingName = normalizeVarietyName(planting.varietyName)
   if (!normalizedPlantingName) return undefined
 
   return data.varieties.find(
     v =>
-      v.vegetableId === planting.vegetableId &&
+      v.plantId === planting.plantId &&
       normalizeVarietyName(v.name) === normalizedPlantingName
   )
 }
@@ -82,13 +80,14 @@ function createVarietyFromPlanting(
 ): VarietyData {
   const newVariety: StoredVariety = {
     id: generateId('variety'),
-    vegetableId: planting.vegetableId,
+    plantId: planting.plantId,
     name: planting.varietyName!,
     supplier: undefined,
     price: undefined,
     notes: '(Auto-created from allotment planting)',
     yearsUsed: [],
     plannedYears: [year],
+    seedsByYear: {},  // Initialize empty
   }
 
   return {

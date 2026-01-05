@@ -158,7 +158,7 @@ describe('getDominantRotationGroup', () => {
       plotId: 'plot-1',
       row: Math.floor(i / 2),
       col: i % 2,
-      vegetableId: vegId
+      plantId: vegId
     }))
   })
 
@@ -193,7 +193,7 @@ describe('buildRotationHistoryEntry', () => {
       plotId: 'plot-1',
       row: Math.floor(i / 2),
       col: i % 2,
-      vegetableId: vegId
+      plantId: vegId
     }))
   })
 

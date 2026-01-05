@@ -38,17 +38,6 @@ export default function PlanHistoryPage() {
     return generateRotationPlanFromData(nextPlanningYear, data)
   }, [data, nextPlanningYear])
 
-  // Get problem beds summary
-  const problemBedsSummary = useMemo(() => {
-    if (!data) return []
-    const problemBeds = data.layout.beds.filter(b => b.status === 'problem')
-    return problemBeds.map(bed => ({
-      bedId: bed.id,
-      issue: bed.problemNotes || 'Needs attention',
-      suggestion: `Consider alternative plantings for ${bed.name}`
-    }))
-  }, [data])
-
   // Get selected season
   const selectedSeason = useMemo(() => {
     if (!data || selectedYear === 'next') return null
@@ -157,10 +146,7 @@ export default function PlanHistoryPage() {
 
         {/* Next Year Planning View */}
         {selectedYear === 'next' && nextYearPlan && (
-          <Year2026Planning
-            plan2026={nextYearPlan}
-            problemBedsSummary={problemBedsSummary}
-          />
+          <Year2026Planning plan2026={nextYearPlan} />
         )}
 
         {/* Historical Season View */}
@@ -168,7 +154,6 @@ export default function PlanHistoryPage() {
           <SeasonView
             season={selectedSeason}
             year={selectedYear}
-            beds={data.layout.beds}
           />
         )}
 

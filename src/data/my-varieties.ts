@@ -10,7 +10,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ PEAS ============
   {
     id: 'var-pea-kelvedon',
-    vegetableId: 'peas',
+    plantId: 'peas',
     name: 'Kelvedon Wonder',
     supplier: 'Organic Gardening',
     price: 2.99,
@@ -19,7 +19,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-pea-jumbo',
-    vegetableId: 'peas',
+    plantId: 'peas',
     name: 'Jumbo',
     yearsUsed: [2024],
     notes: 'Large pods'
@@ -28,7 +28,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ BROAD BEANS ============
   {
     id: 'var-broad-bean-ratio',
-    vegetableId: 'broad-beans',
+    plantId: 'broad-beans',
     name: 'Ratio',
     supplier: 'Organic Gardening',
     price: 2.99,
@@ -39,7 +39,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ FRENCH BEANS ============
   {
     id: 'var-french-bean-borlotti',
-    vegetableId: 'french-beans',
+    plantId: 'french-beans',
     name: 'Borlotti Stokkievitsboon',
     supplier: 'Organic Gardening',
     price: 3.99,
@@ -50,7 +50,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ POTATOES ============
   {
     id: 'var-potato-charlotte',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     name: 'Charlotte',
     supplier: 'Potato House',
     price: 7.30,
@@ -59,7 +59,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-potato-heidi',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     name: 'Heidi Red',
     supplier: 'Potato House',
     price: 9.25,
@@ -68,7 +68,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-potato-colleen',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     name: 'Colleen (Organic Early)',
     supplier: 'Allotment',
     price: 2.50,
@@ -77,7 +77,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-potato-setanta',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     name: 'Setanta (Organic Main)',
     supplier: 'Allotment',
     price: 2.50,
@@ -88,7 +88,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ ONIONS ============
   {
     id: 'var-onion-keravel',
-    vegetableId: 'onions',
+    plantId: 'onions',
     name: 'Keravel Pink (Spring)',
     supplier: 'Organic Gardening',
     price: 11.99,
@@ -97,14 +97,14 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-onion-senshyu',
-    vegetableId: 'onions',
+    plantId: 'onions',
     name: 'Senshyu (White Autumn)',
     yearsUsed: [2025],
     notes: 'Japanese overwintering onion sets'
   },
   {
     id: 'var-onion-electric',
-    vegetableId: 'onions',
+    plantId: 'onions',
     name: 'Electric (Red Autumn)',
     supplier: 'Organic Gardening',
     price: 9.99,
@@ -113,7 +113,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-onion-centurion',
-    vegetableId: 'onions',
+    plantId: 'onions',
     name: 'Centurion',
     supplier: 'Organic Gardening',
     price: 9.99,
@@ -124,7 +124,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ SPRING ONIONS ============
   {
     id: 'var-spring-onion-parade',
-    vegetableId: 'spring-onions',
+    plantId: 'spring-onions',
     name: 'Parade (Organic)',
     supplier: 'Organic Gardening',
     price: 2.49,
@@ -133,7 +133,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-spring-onion-lilia',
-    vegetableId: 'spring-onions',
+    plantId: 'spring-onions',
     name: 'Lilia',
     supplier: 'Organic Gardening',
     price: 0.89,
@@ -144,14 +144,14 @@ export const myVarieties: PlantVariety[] = [
   // ============ GARLIC ============
   {
     id: 'var-garlic-picardy',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     name: 'Picardy Wight (Spring)',
     yearsUsed: [2024],
     notes: 'Spring planted garlic'
   },
   {
     id: 'var-garlic-kingsland',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     name: 'Kingsland Wight',
     supplier: 'Organic Gardening',
     price: 9.99,
@@ -160,7 +160,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-garlic-caulk',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     name: 'Caulk Wight (Hardneck)',
     supplier: 'Allotment',
     price: 2.50,
@@ -169,7 +169,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-garlic-flavor',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     name: 'Flavor',
     supplier: 'Organic Gardening',
     price: 9.99,
@@ -180,7 +180,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ LEEKS ============
   {
     id: 'var-leek-tape',
-    vegetableId: 'leeks',
+    plantId: 'leeks',
     name: 'Leeks Seeds Tape',
     supplier: 'Organic Gardening',
     price: 2.99,
@@ -189,7 +189,7 @@ export const myVarieties: PlantVariety[] = [
   },
   {
     id: 'var-leek-lancelot',
-    vegetableId: 'leeks',
+    plantId: 'leeks',
     name: 'Lancelot',
     supplier: 'Allotment',
     price: 4.00,
@@ -200,7 +200,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ CARROTS ============
   {
     id: 'var-carrot-nantes',
-    vegetableId: 'carrots',
+    plantId: 'carrots',
     name: 'Nantes 2 (Organic)',
     supplier: 'Organic Gardening',
     price: 1.99,
@@ -211,7 +211,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ BEETROOT ============
   {
     id: 'var-beetroot-rhonda',
-    vegetableId: 'beetroot',
+    plantId: 'beetroot',
     name: 'Rhonda',
     supplier: 'Organic Gardening',
     price: 2.99,
@@ -222,14 +222,14 @@ export const myVarieties: PlantVariety[] = [
   // ============ COURGETTES ============
   {
     id: 'var-courgette-defender',
-    vegetableId: 'courgettes',
+    plantId: 'courgettes',
     name: 'Defender F1',
     yearsUsed: [2024],
     notes: 'Very productive'
   },
   {
     id: 'var-courgette-wave',
-    vegetableId: 'courgettes',
+    plantId: 'courgettes',
     name: 'Wave Climber',
     supplier: 'Organic Gardening',
     price: 3.99,
@@ -240,7 +240,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ PUMPKIN ============
   {
     id: 'var-pumpkin-spooky',
-    vegetableId: 'pumpkin',
+    plantId: 'pumpkin',
     name: 'Spooky Face',
     yearsUsed: [2024],
     notes: 'Good for carving'
@@ -249,7 +249,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ SPINACH ============
   {
     id: 'var-spinach-palco',
-    vegetableId: 'spinach',
+    plantId: 'spinach',
     name: 'Palco F1',
     supplier: 'Organic Gardening',
     price: 2.49,
@@ -260,7 +260,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ CHARD ============
   {
     id: 'var-chard-rainbow',
-    vegetableId: 'chard',
+    plantId: 'chard',
     name: 'Organic Rainbow Chard',
     supplier: 'Organic Gardening',
     yearsUsed: [2024, 2025],
@@ -270,7 +270,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ LETTUCE ============
   {
     id: 'var-lettuce-marvel',
-    vegetableId: 'lettuce',
+    plantId: 'lettuce',
     name: 'Marvel of 4 Seasons (Organic)',
     supplier: 'Organic Gardening',
     yearsUsed: [2024, 2025],
@@ -280,7 +280,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ PAK CHOI (stored as chard type) ============
   {
     id: 'var-pak-choi-baby',
-    vegetableId: 'chard', // Using chard as proxy - pak choi not in database
+    plantId: 'chard', // Using chard as proxy - pak choi not in database
     name: 'Pak Choi Baby',
     supplier: 'Organic Gardening',
     price: 2.99,
@@ -291,7 +291,7 @@ export const myVarieties: PlantVariety[] = [
   // ============ CAULIFLOWER ============
   {
     id: 'var-cauliflower-skywalker',
-    vegetableId: 'cauliflower',
+    plantId: 'cauliflower',
     name: 'Skywalker F1 (Organic)',
     supplier: 'Organic Gardening',
     yearsUsed: [2024, 2025],
@@ -302,7 +302,7 @@ export const myVarieties: PlantVariety[] = [
   // Note: Sweetcorn not in main vegetable database
   // {
   //   id: 'var-sweetcorn-swift',
-  //   vegetableId: 'sweetcorn',
+  //   plantId: 'sweetcorn',
   //   name: 'Swift F1 Hybrid',
   //   supplier: 'Organic Gardening',
   //   yearsUsed: [2024, 2025],
@@ -311,8 +311,8 @@ export const myVarieties: PlantVariety[] = [
 ]
 
 // Helper functions
-export function getVarietiesByVegetable(vegetableId: string): PlantVariety[] {
-  return myVarieties.filter(v => v.vegetableId === vegetableId)
+export function getVarietiesByVegetable(plantId: string): PlantVariety[] {
+  return myVarieties.filter(v => v.plantId === plantId)
 }
 
 export function getVarietyById(varietyId: string): PlantVariety | undefined {

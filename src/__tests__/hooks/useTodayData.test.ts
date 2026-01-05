@@ -38,7 +38,6 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -52,7 +51,6 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -72,7 +70,6 @@ describe('useTodayData', () => {
       currentSeason: { beds: [] },
       isLoading: false,
       getTasksForMonth: vi.fn().mockReturnValue(mockTasks),
-      getProblemBeds: () => []
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -80,28 +77,10 @@ describe('useTodayData', () => {
     expect(result.current.maintenanceTasks).toEqual(mockTasks)
   })
 
-  it('should return problem beds', () => {
-    const mockProblemBeds = [
-      { id: 'C', name: 'Bed C', status: 'problem' as const }
-    ]
-
-    mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
-      currentSeason: { beds: [] },
-      isLoading: false,
-      getTasksForMonth: () => [],
-      getProblemBeds: vi.fn().mockReturnValue(mockProblemBeds)
-    })
-
-    const { result } = renderHook(() => useTodayData())
-
-    expect(result.current.problemBeds).toEqual(mockProblemBeds)
-  })
-
   it('should filter harvestReady plantings based on current month', () => {
     const mockPlanting = {
       id: 'planting-1',
-      vegetableId: 'peas',
+      plantId: 'peas',
       varietyName: 'Kelvedon Wonder'
     }
 
@@ -115,7 +94,6 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -139,7 +117,7 @@ describe('useTodayData', () => {
   it('should filter needsAttention plantings based on sowing/planting window', () => {
     const mockPlanting = {
       id: 'planting-2',
-      vegetableId: 'kale',
+      plantId: 'kale',
       varietyName: 'Dwarf Green'
     }
 
@@ -153,7 +131,6 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -177,7 +154,7 @@ describe('useTodayData', () => {
   it('should return empty arrays when no plantings match current month', () => {
     const mockPlanting = {
       id: 'planting-3',
-      vegetableId: 'garlic'
+      plantId: 'garlic'
     }
 
     mockUseAllotment.mockReturnValue({
@@ -190,7 +167,6 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -217,7 +193,6 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: true,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -228,7 +203,7 @@ describe('useTodayData', () => {
   it('should handle missing vegetable data gracefully', () => {
     const mockPlanting = {
       id: 'planting-unknown',
-      vegetableId: 'unknown-veg'
+      plantId: 'unknown-veg'
     }
 
     mockUseAllotment.mockReturnValue({
@@ -241,7 +216,6 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
-      getProblemBeds: () => []
     })
 
     mockGetVegetableById.mockReturnValue(undefined) // Vegetable not found

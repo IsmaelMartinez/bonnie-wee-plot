@@ -1,23 +1,16 @@
 'use client'
 
-import { Lightbulb, AlertTriangle, AlertCircle, CheckCircle2, Leaf, ArrowRight } from 'lucide-react'
+import { Lightbulb, AlertTriangle, CheckCircle2, Leaf, ArrowRight } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
-import { ROTATION_GROUP_DISPLAY, PROBLEM_BED_SUGGESTIONS } from '@/lib/rotation'
+import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { RotationPlan } from '@/types/garden-planner'
 
-interface ProblemBedSummary {
-  bedId: string
-  issue: string
-  suggestion: string
-}
-
 interface Year2026PlanningProps {
   plan2026: RotationPlan
-  problemBedsSummary: ProblemBedSummary[]
 }
 
-export default function Year2026Planning({ plan2026, problemBedsSummary }: Year2026PlanningProps) {
+export default function Year2026Planning({ plan2026 }: Year2026PlanningProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -42,32 +35,6 @@ export default function Year2026Planning({ plan2026, problemBedsSummary }: Year2
           </div>
         )}
       </div>
-
-      {/* Problem Beds Alert */}
-      {problemBedsSummary.length > 0 && (
-        <div className="zen-card p-4 bg-zen-ume-50 border-zen-ume-200 border-l-4 border-l-zen-ume-400">
-          <div className="flex items-center gap-2 text-zen-ume-700 mb-3">
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-display">Problem Beds Need Attention</span>
-          </div>
-          <div className="space-y-3">
-            {problemBedsSummary.map(problem => (
-              <div key={problem.bedId} className="bg-white rounded-zen p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="px-2 py-0.5 rounded text-white text-sm font-bold"
-                    style={{ backgroundColor: BED_COLORS[problem.bedId as keyof typeof BED_COLORS] }}
-                  >
-                    Bed {problem.bedId}
-                  </span>
-                  <span className="text-zen-ume-600 text-sm">{problem.issue}</span>
-                </div>
-                <p className="text-sm text-zen-ink-700 ml-1">{problem.suggestion}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* 2026 Bed Suggestions - Split by type */}
       <div className="space-y-6">
@@ -132,68 +99,6 @@ export default function Year2026Planning({ plan2026, problemBedsSummary }: Year2
               })}
           </div>
         </div>
-
-        {/* Problem Beds */}
-        {plan2026.suggestions.some(s => s.isProblemBed) && (
-          <div>
-            <h3 className="font-display text-zen-ink-800 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-zen-ume-500" />
-              Problem Beds - Special Attention
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {plan2026.suggestions
-                .filter(s => s.isProblemBed)
-                .map(suggestion => {
-                  const problemInfo = PROBLEM_BED_SUGGESTIONS[suggestion.bedId as keyof typeof PROBLEM_BED_SUGGESTIONS]
-
-                  return (
-                    <div key={suggestion.bedId} className="zen-card overflow-hidden border-2 border-zen-ume-200">
-                      <div
-                        className="px-4 py-3 text-white font-medium flex items-center justify-between"
-                        style={{ backgroundColor: BED_COLORS[suggestion.bedId] }}
-                      >
-                        <span>Bed {suggestion.bedId}</span>
-                        <span className="bg-white/20 px-2 py-0.5 rounded text-xs">Needs Attention</span>
-                      </div>
-                      <div className="p-4">
-                        <p className="text-zen-ume-600 text-sm mb-3 flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          {suggestion.problemNote || problemInfo?.issue}
-                        </p>
-
-                        <p className="text-sm text-zen-ink-700 mb-4">{suggestion.reason}</p>
-
-                        {problemInfo && (
-                          <div className="space-y-3">
-                            <div className="bg-zen-moss-50 rounded-zen p-3">
-                              <p className="text-xs text-zen-moss-700 font-medium mb-2">Perennial Options:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {problemInfo.perennialOptions.map(opt => (
-                                  <span key={opt} className="px-2 py-1 bg-zen-moss-100 text-zen-moss-800 rounded text-xs">
-                                    {opt}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="bg-zen-kitsune-50 rounded-zen p-3">
-                              <p className="text-xs text-zen-kitsune-700 font-medium mb-2">Annual Options (if retrying):</p>
-                              <div className="flex flex-wrap gap-1">
-                                {problemInfo.annualOptions.map(opt => (
-                                  <span key={opt} className="px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-800 rounded text-xs">
-                                    {opt}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-            </div>
-          </div>
-        )}
 
         {/* Perennial Beds */}
         {plan2026.suggestions.some(s => s.isPerennial) && (

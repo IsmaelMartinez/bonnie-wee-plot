@@ -22,7 +22,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed B2 (was "Bed 1") - 2024: Peas, French Beans
   {
     id: '2024-pea-jumbo',
-    vegetableId: 'peas',
+    plantId: 'peas',
     varietyName: 'Jumbo',
     bedId: 'B2',
     sowDate: '2024-03-16',
@@ -31,7 +31,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-pea-kelvedon',
-    vegetableId: 'peas',
+    plantId: 'peas',
     varietyName: 'Kelvedon Wonder',
     bedId: 'B2',
     sowDate: '2024-03-16',
@@ -40,7 +40,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-french-beans-b2',
-    vegetableId: 'french-beans',
+    plantId: 'french-beans',
     varietyName: 'French Beans',
     bedId: 'B2',
     sowDate: '2024-05-12',
@@ -50,7 +50,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed B1 (was "Bed 2") - 2024: Potatoes, Onions, Spring Onions
   {
     id: '2024-potato-charlotte',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     varietyName: 'Charlotte Seed',
     bedId: 'B1',
     sowDate: '2024-04-16',
@@ -59,7 +59,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-potato-heidi',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     varietyName: 'Heidi Red Seed',
     bedId: 'B1',
     sowDate: '2024-03-13',
@@ -68,7 +68,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-onion-keravel',
-    vegetableId: 'onions',
+    plantId: 'onions',
     varietyName: 'Keravel Pink (Spring)',
     bedId: 'B1',
     sowDate: '2024-03-09',
@@ -76,7 +76,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-spring-onion-parade',
-    vegetableId: 'spring-onions',
+    plantId: 'spring-onions',
     varietyName: 'Parade (Organic)',
     bedId: 'B1',
     sowDate: '2024-03-24',
@@ -86,7 +86,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed A (was "Bed 3") - 2024: Garlic, Carrots, Leeks
   {
     id: '2024-garlic-picardy',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     varietyName: 'Picardy Wight (Spring)',
     bedId: 'A',
     sowDate: '2024-02-17',
@@ -94,7 +94,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-carrots-nantes',
-    vegetableId: 'carrots',
+    plantId: 'carrots',
     varietyName: 'Nantes 2 (Organic)',
     bedId: 'A',
     sowDate: '2024-03-16',
@@ -102,7 +102,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-leeks-tape',
-    vegetableId: 'leeks',
+    plantId: 'leeks',
     varietyName: 'Leeks Seeds Tape',
     bedId: 'A',
     sowDate: '2024-04-20',
@@ -113,7 +113,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed C (problem bed) - 2024: Pumpkins, Courgettes (POOR results)
   {
     id: '2024-pumpkin-spooky',
-    vegetableId: 'pumpkin',
+    plantId: 'pumpkin',
     varietyName: 'Spooky Face Pumpkins',
     bedId: 'C',
     sowDate: '2024-04-21',
@@ -124,7 +124,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-courgette-defender',
-    vegetableId: 'courgettes',
+    plantId: 'courgettes',
     varietyName: 'Defender F1',
     bedId: 'C',
     sowDate: '2024-04-21',
@@ -137,7 +137,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed D (was "Bed 5") - 2024: Brassicas (late sown)
   {
     id: '2024-rainbow-chard',
-    vegetableId: 'chard',
+    plantId: 'chard',
     varietyName: 'Organic Rainbow Chard',
     bedId: 'D',
     sowDate: '2024-08-24',
@@ -146,7 +146,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-beetroot-rhonda',
-    vegetableId: 'beetroot',
+    plantId: 'beetroot',
     varietyName: 'Organic Beetroot Rhonda',
     bedId: 'D',
     sowDate: '2024-08-24',
@@ -155,7 +155,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-lettuce-marvel',
-    vegetableId: 'lettuce',
+    plantId: 'lettuce',
     varietyName: 'Organic Marvel of 4 Seasons',
     bedId: 'D',
     sowDate: '2024-08-24',
@@ -164,7 +164,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-cauliflower-skywalker',
-    vegetableId: 'cauliflower',
+    plantId: 'cauliflower',
     varietyName: 'Organic Skywalker F1',
     bedId: 'D',
     sowDate: '2024-08-24',
@@ -175,7 +175,7 @@ const season2024Plantings: PlantedVariety[] = [
   // Bed E - 2024: French Beans + Sunflowers (POOR - first year cultivating)
   {
     id: '2024-french-beans-e',
-    vegetableId: 'french-beans',
+    plantId: 'french-beans',
     varietyName: 'French Beans',
     bedId: 'E',
     success: 'poor',
@@ -183,7 +183,7 @@ const season2024Plantings: PlantedVariety[] = [
   },
   {
     id: '2024-sunflower-e',
-    vegetableId: 'sunflower',
+    plantId: 'sunflower',
     varietyName: 'Sunflower',
     bedId: 'E',
     success: 'fair',
@@ -239,7 +239,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed A (was "Bed 3") - 2025: Peas → transitioning to Strawberries
   {
     id: '2025-pea-kelvedon',
-    vegetableId: 'peas',
+    plantId: 'peas',
     varietyName: 'Kelvedon Wonder',
     bedId: 'A',
     success: 'good',
@@ -247,14 +247,14 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-spinach-palco',
-    vegetableId: 'spinach',
+    plantId: 'spinach',
     varietyName: 'Palco F1',
     bedId: 'A',
     notes: 'Organic Gardening'
   },
   {
     id: '2025-broad-bean-ratio',
-    vegetableId: 'broad-beans',
+    plantId: 'broad-beans',
     varietyName: 'Ratio',
     bedId: 'A',
     notes: 'Organic Gardening'
@@ -263,7 +263,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed B1 (was "Bed 2") - 2025: Pak choi, Cauliflower, Carrots (Brassicas)
   {
     id: '2025-pak-choi',
-    vegetableId: 'chard', // Using chard as proxy - pak choi not in database
+    plantId: 'chard', // Using chard as proxy - pak choi not in database
     varietyName: 'Pak Choi Baby',
     bedId: 'B1',
     success: 'good',
@@ -271,7 +271,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-cauliflower-skywalker',
-    vegetableId: 'cauliflower',
+    plantId: 'cauliflower',
     varietyName: 'Skywalker F1 (Organic)',
     bedId: 'B1',
     success: 'fair',
@@ -279,7 +279,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-carrots-nantes',
-    vegetableId: 'carrots',
+    plantId: 'carrots',
     varietyName: 'Nantes 2 (Organic)',
     bedId: 'B1',
     success: 'good',
@@ -289,7 +289,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed B1' (small bed above B1) - 2025: Strawberries (moving to A in 2026)
   {
     id: '2025-strawberry-b1prime',
-    vegetableId: 'strawberries',
+    plantId: 'strawberries',
     varietyName: 'Strawberries',
     bedId: 'B1-prime',
     success: 'good',
@@ -299,7 +299,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed B2 (was "Bed 1") - 2025: Garlic, Onion, Broad beans (Alliums)
   {
     id: '2025-garlic-kingsland',
-    vegetableId: 'garlic',
+    plantId: 'garlic',
     varietyName: 'Kingsland Wight',
     bedId: 'B2',
     sowDate: '2024-10-24',
@@ -308,7 +308,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-onion-senshyu',
-    vegetableId: 'onions',
+    plantId: 'onions',
     varietyName: 'Senshyu (White Autumn)',
     bedId: 'B2',
     sowDate: '2024-10-24',
@@ -317,7 +317,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-onion-electric',
-    vegetableId: 'onions',
+    plantId: 'onions',
     varietyName: 'Electric (Red Autumn)',
     bedId: 'B2',
     sowDate: '2024-10-24',
@@ -326,7 +326,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-onion-centurion',
-    vegetableId: 'onions',
+    plantId: 'onions',
     varietyName: 'Centurion',
     bedId: 'B2',
     success: 'good',
@@ -334,7 +334,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-spring-onion-lilia',
-    vegetableId: 'spring-onions',
+    plantId: 'spring-onions',
     varietyName: 'Lilia',
     bedId: 'B2',
     success: 'good',
@@ -342,7 +342,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-broad-bean-b2',
-    vegetableId: 'broad-beans',
+    plantId: 'broad-beans',
     varietyName: 'Ratio',
     bedId: 'B2',
     notes: 'Organic Gardening - interplanted'
@@ -351,7 +351,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed B2' (small bed above B2) - 2025: Peas (garlic didn't make it in time)
   {
     id: '2025-peas-b2prime',
-    vegetableId: 'peas',
+    plantId: 'peas',
     varietyName: 'Kelvedon Wonder',
     bedId: 'B2-prime',
     success: 'good',
@@ -361,7 +361,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed C (problem bed - shaded) - 2025: Peas, French Beans, Courgette (POOR)
   {
     id: '2025-peas-c',
-    vegetableId: 'peas',
+    plantId: 'peas',
     varietyName: 'Kelvedon Wonder',
     bedId: 'C',
     success: 'poor',
@@ -369,7 +369,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-french-beans-borlotti',
-    vegetableId: 'french-beans',
+    plantId: 'french-beans',
     varietyName: 'Borlotti Stokkievitsboon',
     bedId: 'C',
     success: 'fair',
@@ -377,7 +377,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-leeks-lancelot',
-    vegetableId: 'leeks',
+    plantId: 'leeks',
     varietyName: 'Lancelot',
     bedId: 'C',
     sowDate: '2025-06-01',
@@ -387,7 +387,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-courgette-wave',
-    vegetableId: 'courgettes',
+    plantId: 'courgettes',
     varietyName: 'Wave Climber',
     bedId: 'C',
     success: 'fair',
@@ -397,7 +397,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed D (was "Bed 5") - 2025: Potatoes (Solanaceae)
   {
     id: '2025-potato-colleen',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     varietyName: 'Colleen (Organic Early)',
     bedId: 'D',
     sowDate: '2025-02-01',
@@ -406,7 +406,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-potato-setanta',
-    vegetableId: 'potatoes',
+    plantId: 'potatoes',
     varietyName: 'Setanta (Organic Main)',
     bedId: 'D',
     sowDate: '2025-02-01',
@@ -417,7 +417,7 @@ const season2025Plantings: PlantedVariety[] = [
   // Bed E (problem bed - first year) - 2025: French Beans + Sunflowers (POOR)
   {
     id: '2025-french-beans-e',
-    vegetableId: 'french-beans',
+    plantId: 'french-beans',
     varietyName: 'French Beans',
     bedId: 'E',
     success: 'poor',
@@ -425,7 +425,7 @@ const season2025Plantings: PlantedVariety[] = [
   },
   {
     id: '2025-sunflower-e',
-    vegetableId: 'sunflower',
+    plantId: 'sunflower',
     varietyName: 'Medium Red Flower',
     bedId: 'E',
     success: 'fair',

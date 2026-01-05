@@ -44,7 +44,7 @@ export default function BedTabs({
       
       {/* Individual bed tabs */}
       {beds.map(bed => {
-        const plantCount = bed.cells.filter(c => c.vegetableId).length
+        const plantCount = bed.cells.filter(c => c.plantId).length
         const isActive = viewMode === 'single' && bed.id === activeBedId
         
         return (

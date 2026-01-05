@@ -18,7 +18,7 @@ interface BedEditorProps {
   bed: GridPlot
   canDelete: boolean
   showCalendar: boolean
-  onAssign: (cellId: string, vegetableId: string) => void
+  onAssign: (cellId: string, plantId: string) => void
   onClear: (cellId: string) => void
   onResize: (rows: number, cols: number) => void
   onClearAll: () => void
@@ -42,16 +42,16 @@ export default function BedEditor({
 
   // Detect rotation conflicts - multiple rotation groups in the same bed
   const rotationConflict = useMemo(() => {
-    const plantedCells = bed.cells.filter(c => c.vegetableId)
+    const plantedCells = bed.cells.filter(c => c.plantId)
     if (plantedCells.length === 0) return null
 
     const rotationGroups = new Map<RotationGroup, string[]>()
 
     for (const cell of plantedCells) {
-      const veg = getVegetableById(cell.vegetableId!)
+      const veg = getVegetableById(cell.plantId!)
       if (!veg) continue
 
-      const group = getRotationGroup(cell.vegetableId!)
+      const group = getRotationGroup(cell.plantId!)
       if (!group || group === 'permanent') continue
 
       const existing = rotationGroups.get(group) || []
@@ -74,11 +74,11 @@ export default function BedEditor({
 
   // Build context for AI about the bed's plantings
   const buildAllotmentContext = (): string => {
-    const plantedCells = bed.cells.filter(c => c.vegetableId)
+    const plantedCells = bed.cells.filter(c => c.plantId)
     if (plantedCells.length === 0) return `Bed "${bed.name}" has no plantings yet.`
 
     const plantNames = plantedCells
-      .map(c => getVegetableById(c.vegetableId!)?.name)
+      .map(c => getVegetableById(c.plantId!)?.name)
       .filter(Boolean)
       .join(', ')
 
@@ -109,12 +109,12 @@ export default function BedEditor({
   const getCompanionTips = (): { good: string[], bad: string[] } => {
     const good: string[] = []
     const bad: string[] = []
-    const plantedCells = bed.cells.filter(c => c.vegetableId)
+    const plantedCells = bed.cells.filter(c => c.plantId)
     
     for (let i = 0; i < plantedCells.length; i++) {
       for (let j = i + 1; j < plantedCells.length; j++) {
-        const veg1 = getVegetableById(plantedCells[i].vegetableId!)
-        const veg2 = getVegetableById(plantedCells[j].vegetableId!)
+        const veg1 = getVegetableById(plantedCells[i].plantId!)
+        const veg2 = getVegetableById(plantedCells[j].plantId!)
         if (!veg1 || !veg2) continue
         
         const compat = checkCompanionCompatibility(veg1.id, veg2.id)
@@ -215,8 +215,8 @@ export default function BedEditor({
               <div key={i} className="text-center text-gray-500 font-medium">{m}</div>
             ))}
           </div>
-          {bed.cells.filter(c => c.vegetableId).map(cell => {
-            const veg = getVegetableById(cell.vegetableId!)
+          {bed.cells.filter(c => c.plantId).map(cell => {
+            const veg = getVegetableById(cell.plantId!)
             if (!veg) return null
             return (
               <div key={cell.id} className="grid grid-cols-12 gap-1 mt-1">
@@ -237,7 +237,7 @@ export default function BedEditor({
               </div>
             )
           })}
-          {bed.cells.filter(c => c.vegetableId).length === 0 && (
+          {bed.cells.filter(c => c.plantId).length === 0 && (
             <p className="text-gray-400 text-sm mt-4">Add plants to see their calendar</p>
           )}
           <div className="flex gap-4 mt-4 text-xs text-gray-500">

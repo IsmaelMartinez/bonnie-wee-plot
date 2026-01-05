@@ -120,7 +120,7 @@ describe('validatePlacement', () => {
 
   it('should return good compatibility when placed near a companion', () => {
     const plot = createTestPlot([
-      {}, { vegetableId: 'onions' }, {},
+      {}, { plantId: 'onions' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
@@ -134,7 +134,7 @@ describe('validatePlacement', () => {
 
   it('should return bad compatibility with warnings when placed near avoided plant', () => {
     const plot = createTestPlot([
-      {}, { vegetableId: 'parsnips' }, {},
+      {}, { plantId: 'parsnips' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
@@ -204,7 +204,7 @@ describe('calculateCompanionScore', () => {
 
   it('should return higher score when near companions', () => {
     const plot = createTestPlot([
-      {}, { vegetableId: 'onions' }, {},
+      {}, { plantId: 'onions' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
@@ -216,7 +216,7 @@ describe('calculateCompanionScore', () => {
 
   it('should return lower score when near avoided plants', () => {
     const plot = createTestPlot([
-      {}, { vegetableId: 'parsnips' }, {},
+      {}, { plantId: 'parsnips' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
@@ -229,9 +229,9 @@ describe('calculateCompanionScore', () => {
   it('should clamp score between 0 and 100', () => {
     // Create plot with many bad neighbors
     const plot = createTestPlot([
-      { vegetableId: 'parsnips' }, { vegetableId: 'parsnips' }, { vegetableId: 'parsnips' },
-      { vegetableId: 'parsnips' }, {}, { vegetableId: 'parsnips' },
-      { vegetableId: 'parsnips' }, { vegetableId: 'parsnips' }, { vegetableId: 'parsnips' }
+      { plantId: 'parsnips' }, { plantId: 'parsnips' }, { plantId: 'parsnips' },
+      { plantId: 'parsnips' }, {}, { plantId: 'parsnips' },
+      { plantId: 'parsnips' }, { plantId: 'parsnips' }, { plantId: 'parsnips' }
     ])
     
     const score = calculateCompanionScore('carrots', plot.cells[4], plot)

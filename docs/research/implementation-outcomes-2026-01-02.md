@@ -142,11 +142,11 @@ Files Modified:
 - src/app/allotment/page.tsx:147-155 (useEffect hook for pre-selection)
 
 Implementation Details:
-- Triggers when vegetableId changes
+- Triggers when plantId changes
 - If exactly 1 matching variety AND varietyName is empty: pre-fill it
 - If 0 matching varieties: clear varietyName (switching vegetables)
 - User can still override by typing custom variety (preserves freeform input)
-- Dependencies: [vegetableId, matchingVarieties.length]
+- Dependencies: [plantId, matchingVarieties.length]
 
 Edge Cases Handled:
 - Only pre-selects if varietyName is empty (doesn't override user input)
@@ -309,7 +309,7 @@ useEffect(() => {
     // Clear variety if changing to vegetable with no varieties
     setVarietyName('')
   }
-}, [vegetableId, matchingVarieties.length])
+}, [plantId, matchingVarieties.length])
 ```
 
 ### Rotation Warning Logic

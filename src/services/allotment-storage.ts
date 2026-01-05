@@ -435,7 +435,7 @@ export function needsLegacyMigration(): boolean {
 function convertPlanting(legacy: PlantedVariety): Planting {
   return {
     id: legacy.id,
-    vegetableId: legacy.vegetableId,
+    plantId: legacy.plantId,
     varietyName: legacy.varietyName,
     sowDate: legacy.sowDate,
     transplantDate: legacy.transplantDate,

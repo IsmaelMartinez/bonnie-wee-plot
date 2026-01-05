@@ -13,7 +13,7 @@ export default function BedOverview({ beds, onSelectBed }: BedOverviewProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {beds.map(bed => {
-        const plantedCells = bed.cells.filter(c => c.vegetableId)
+        const plantedCells = bed.cells.filter(c => c.plantId)
         const plantCount = plantedCells.length
         const totalCells = bed.gridRows * bed.gridCols
 
@@ -44,7 +44,7 @@ export default function BedOverview({ beds, onSelectBed }: BedOverviewProps) {
               {Array.from({ length: bed.gridRows }, (_, row) =>
                 Array.from({ length: bed.gridCols }, (_, col) => {
                   const cell = bed.cells.find(c => c.row === row && c.col === col)
-                  const veg = cell?.vegetableId ? getVegetableById(cell.vegetableId) : null
+                  const veg = cell?.plantId ? getVegetableById(cell.plantId) : null
 
                   return (
                     <div
@@ -109,9 +109,9 @@ function getUniquePlants(bed: GridPlot) {
   const vegs: NonNullable<ReturnType<typeof getVegetableById>>[] = []
 
   for (const cell of bed.cells) {
-    if (cell.vegetableId && !vegIds.has(cell.vegetableId)) {
-      vegIds.add(cell.vegetableId)
-      const veg = getVegetableById(cell.vegetableId)
+    if (cell.plantId && !vegIds.has(cell.plantId)) {
+      vegIds.add(cell.plantId)
+      const veg = getVegetableById(cell.plantId)
       if (veg) vegs.push(veg)
     }
   }

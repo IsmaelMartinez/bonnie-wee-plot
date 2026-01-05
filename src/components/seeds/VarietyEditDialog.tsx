@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Dialog from '@/components/ui/Dialog'
-import { vegetables } from '@/lib/vegetable-database'
+import { vegetableIndex } from '@/lib/vegetables/index'
+import { getPlantEmoji } from '@/lib/plant-emoji'
+import { VegetableCategory, CATEGORY_INFO } from '@/types/garden-planner'
 import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
 
 interface VarietyEditDialogProps {
@@ -25,17 +27,18 @@ export default function VarietyEditDialog({
   mode,
   existingSuppliers = [],
 }: VarietyEditDialogProps) {
-  const [vegetableId, setVegetableId] = useState('')
+  const [plantId, setVegetableId] = useState('')
   const [name, setName] = useState('')
   const [supplier, setSupplier] = useState('')
   const [price, setPrice] = useState('')
   const [notes, setNotes] = useState('')
   const [selectedYears, setSelectedYears] = useState<Set<number>>(new Set())
+  const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
 
   // Reset form when dialog opens/closes or variety changes
   useEffect(() => {
     if (isOpen && mode === 'edit' && variety) {
-      setVegetableId(variety.vegetableId)
+      setVegetableId(variety.plantId)
       setName(variety.name)
       setSupplier(variety.supplier || '')
       setPrice(variety.price?.toString() || '')
@@ -62,14 +65,14 @@ export default function VarietyEditDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!vegetableId || !name.trim()) return
+    if (!plantId || !name.trim()) return
 
     const parsedPrice = price ? (isNaN(parseFloat(price)) ? undefined : parseFloat(price)) : undefined
     const yearsArray = Array.from(selectedYears).sort((a, b) => a - b)
 
     if (mode === 'add') {
       const newVariety: NewVariety = {
-        vegetableId,
+        plantId,
         name: name.trim(),
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
@@ -80,7 +83,7 @@ export default function VarietyEditDialog({
     } else if (variety) {
       const update: VarietyUpdate & { id: string } = {
         id: variety.id,
-        vegetableId,
+        plantId,
         name: name.trim(),
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
@@ -105,9 +108,9 @@ export default function VarietyEditDialog({
     })
   }
 
-  const sortedVegetables = [...vegetables].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  )
+  const filteredPlants = vegetableIndex
+    .filter(v => categoryFilter === 'all' || v.category === categoryFilter)
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   const datalistId = 'supplier-options'
 
@@ -119,23 +122,54 @@ export default function VarietyEditDialog({
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Category Filter Tabs */}
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCategoryFilter('all')}
+              className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+                categoryFilter === 'all'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              All Plants
+            </button>
+            {CATEGORY_INFO.map((info) => (
+              <button
+                key={info.id}
+                type="button"
+                onClick={() => setCategoryFilter(info.id)}
+                className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+                  categoryFilter === info.id
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {getPlantEmoji(info.id)} {info.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <label
             htmlFor="variety-vegetable-select"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Vegetable *
+            Plant *
           </label>
           <select
             id="variety-vegetable-select"
-            value={vegetableId}
+            value={plantId}
             onChange={(e) => setVegetableId(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
-            <option value="">Select a vegetable...</option>
-            {sortedVegetables.map(v => (
-              <option key={v.id} value={v.id}>{v.name}</option>
+            <option value="">Select a plant...</option>
+            {filteredPlants.map((plant) => (
+              <option key={plant.id} value={plant.id}>{plant.name}</option>
             ))}
           </select>
         </div>
@@ -256,7 +290,7 @@ export default function VarietyEditDialog({
           </button>
           <button
             type="submit"
-            disabled={!vegetableId || !name.trim()}
+            disabled={!plantId || !name.trim()}
             className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
           >
             {mode === 'add' ? 'Add Variety' : 'Save Changes'}

@@ -18,7 +18,7 @@ import {
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
-import { PhysicalBedId, RotationGroup, SoilMethod } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
 import { Planting, NewPlanting } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
@@ -62,6 +62,7 @@ export default function AllotmentPage() {
     getYears,
     selectBed,
     getBed,
+    getBedSeason,
     getPlantings,
     addPlanting,
     updatePlanting,
@@ -69,7 +70,6 @@ export default function AllotmentPage() {
     createSeason,
     deleteSeason,
     getRotationBeds,
-    getProblemBeds,
     getPerennialBeds,
     clearSaveError,
     reload,
@@ -80,7 +80,6 @@ export default function AllotmentPage() {
     updateBedNote,
     removeBedNote,
     updateRotationGroup,
-    updateSoilMethod,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -94,14 +93,11 @@ export default function AllotmentPage() {
 
   // Get bed data
   const selectedBedData = selectedBedId ? getBed(selectedBedId) : null
+  const selectedBedSeason = selectedBedId ? getBedSeason(selectedBedId) : null
   const selectedPlantings = selectedBedId ? getPlantings(selectedBedId) : []
   const selectedBedNotes = selectedBedId ? getBedNotes(selectedBedId) : []
   const allBeds = data?.layout.beds || []
   const permanentPlantingsCount = data?.layout.permanentPlantings.length || 0
-
-  // Infer "problem" status from note type (warning or error)
-  const hasProblemNote = selectedBedNotes.some(n => n.type === 'warning' || n.type === 'error')
-  const inferredStatus = hasProblemNote ? 'problem' : selectedBedData?.status
 
   // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
   const autoRotateInfo = useMemo(() => {
@@ -169,7 +165,7 @@ export default function AllotmentPage() {
     if (addSuggestedVegetables && autoRotateInfo.suggestedVegetables.length > 0) {
       autoRotateInfo.suggestedVegetables.slice(0, 3).forEach(vegId => {
         const newPlanting: NewPlanting = {
-          vegetableId: vegId,
+          plantId: vegId,
         }
         addPlanting(selectedBedId, newPlanting)
       })
@@ -382,35 +378,35 @@ export default function AllotmentPage() {
                   <div>
                     <h3 className="font-display text-zen-ink-800">{selectedBedData.name}</h3>
                     <div className={`text-xs flex items-center gap-1 ${
-                      inferredStatus === 'problem' ? 'text-zen-ume-600' :
-                      inferredStatus === 'perennial' ? 'text-zen-sakura-600' :
+                      selectedBedData.status === 'perennial' ? 'text-zen-sakura-600' :
                       'text-zen-moss-600'
                     }`}>
-                      {inferredStatus === 'problem' && <AlertTriangle className="w-3 h-3" />}
-                      {inferredStatus === 'perennial' && <Leaf className="w-3 h-3" />}
-                      {inferredStatus === 'problem' ? 'Problem' :
-                       inferredStatus === 'perennial' ? 'Perennial' :
-                       selectedBedData.rotationGroup || 'Rotation'}
+                      {selectedBedData.status === 'perennial' && <Leaf className="w-3 h-3" />}
+                      {selectedBedData.status === 'perennial' ? 'Perennial' :
+                       selectedBedSeason?.rotationGroup || 'Rotation'}
                     </div>
                   </div>
                 </div>
 
-                {/* Soil Method Selector */}
+                {/* Rotation Type Selector - for all beds */}
                 <div className="mb-4">
-                  <label htmlFor="soil-method" className="block text-xs font-medium text-zen-stone-500 mb-1">
-                    Soil Method
+                  <label htmlFor="rotation-type" className="block text-xs font-medium text-zen-stone-500 mb-1">
+                    Rotation Type
                   </label>
                   <select
-                    id="soil-method"
-                    value={selectedBedData.soilMethod || ''}
-                    onChange={(e) => updateSoilMethod(selectedBedId!, (e.target.value || undefined) as SoilMethod | undefined)}
+                    id="rotation-type"
+                    value={selectedBedSeason?.rotationGroup || ''}
+                    onChange={(e) => updateRotationGroup(selectedBedId!, e.target.value as RotationGroup)}
                     className="zen-select text-sm"
                   >
                     <option value="">Not specified</option>
-                    <option value="no-dig">No-dig</option>
-                    <option value="back-to-eden">Back to Eden</option>
-                    <option value="traditional">Traditional</option>
-                    <option value="raised-bed">Raised Bed</option>
+                    <option value="legumes">🫘 Legumes</option>
+                    <option value="brassicas">🥦 Brassicas</option>
+                    <option value="roots">🥕 Roots</option>
+                    <option value="solanaceae">🍅 Solanaceae</option>
+                    <option value="alliums">🧅 Alliums</option>
+                    <option value="cucurbits">🎃 Cucurbits</option>
+                    <option value="permanent">🌿 Permanent</option>
                   </select>
                 </div>
 
@@ -473,27 +469,25 @@ export default function AllotmentPage() {
                       <Sprout className="w-4 h-4 text-zen-moss-600" />
                       {selectedYear} Plantings
                     </h4>
-                    {selectedBedData.status !== 'perennial' && (
-                      <div className="flex items-center gap-1">
-                        {autoRotateInfo && (
-                          <button
-                            onClick={() => setShowAutoRotateDialog(true)}
-                            className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
-                            title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
-                          >
-                            <ArrowRight className="w-3 h-3" />
-                            Auto-rotate
-                          </button>
-                        )}
+                    <div className="flex items-center gap-1">
+                      {autoRotateInfo && (
                         <button
-                          onClick={() => setShowAddDialog(true)}
-                          className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
+                          onClick={() => setShowAutoRotateDialog(true)}
+                          className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
+                          title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
                         >
-                          <Plus className="w-3 h-3" />
-                          Add
+                          <ArrowRight className="w-3 h-3" />
+                          Auto-rotate
                         </button>
-                      </div>
-                    )}
+                      )}
+                      <button
+                        onClick={() => setShowAddDialog(true)}
+                        className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Add
+                      </button>
+                    </div>
                   </div>
 
                   {selectedPlantings.length > 0 ? (
@@ -510,9 +504,7 @@ export default function AllotmentPage() {
                     </div>
                   ) : (
                     <div className="text-sm text-zen-stone-400 italic">
-                      {selectedBedData.status === 'perennial'
-                        ? 'Perennial bed - see permanent plantings'
-                        : 'No plantings recorded. Click Add to start planning.'}
+                      No plantings recorded. Click Add to start planning.
                     </div>
                   )}
                 </div>
@@ -528,18 +520,12 @@ export default function AllotmentPage() {
                 {/* Quick Stats */}
                 <div className="mt-6 pt-6 border-t border-zen-stone-100">
                   <h4 className="font-medium text-zen-ink-700 mb-3">Quick Stats</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="bg-zen-moss-50 rounded-zen p-3 text-center">
                       <div className="text-2xl font-bold text-zen-moss-600">
                         {getRotationBeds().length}
                       </div>
                       <div className="text-xs text-zen-moss-700">Rotation Beds</div>
-                    </div>
-                    <div className="bg-zen-ume-50 rounded-zen p-3 text-center">
-                      <div className="text-2xl font-bold text-zen-ume-600">
-                        {getProblemBeds().length}
-                      </div>
-                      <div className="text-xs text-zen-ume-700">Problem Areas</div>
                     </div>
                     <div className="bg-zen-sakura-50 rounded-zen p-3 text-center">
                       <div className="text-2xl font-bold text-zen-sakura-600">
@@ -579,11 +565,9 @@ export default function AllotmentPage() {
                     <div className="text-left min-w-0">
                       <div className="font-medium text-zen-ink-700 text-sm truncate">{bed.name}</div>
                       <div className={`text-xs ${
-                        bed.status === 'problem' ? 'text-zen-ume-600' :
                         bed.status === 'perennial' ? 'text-zen-sakura-600' :
                         'text-zen-stone-500'
                       }`}>
-                        {bed.status === 'problem' && '⚠️ '}
                         {bed.rotationGroup || bed.status}
                       </div>
                     </div>
@@ -609,6 +593,7 @@ export default function AllotmentPage() {
           }}
           onCancel={() => setShowAddDialog(false)}
           existingPlantings={selectedPlantings}
+          selectedYear={selectedYear}
         />
       </Dialog>
 

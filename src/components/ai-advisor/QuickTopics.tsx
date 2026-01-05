@@ -13,7 +13,6 @@ function TopicButton({ suggestion, onSelect }: { suggestion: AISuggestion; onSel
   // Category-based styling
   const categoryStyles: Record<AISuggestion['category'], string> = {
     seasonal: 'border-l-amber-400',
-    problem: 'border-l-rose-400',
     harvest: 'border-l-orange-400',
     planting: 'border-l-emerald-400',
     maintenance: 'border-l-violet-400',
@@ -40,7 +39,6 @@ export default function QuickTopics({ onSelectTopic }: QuickTopicsProps) {
   const suggestions = generateAISuggestions({
     seasonalPhase: todayData.seasonalPhase,
     currentMonth: todayData.currentMonth,
-    problemBeds: todayData.problemBeds,
     harvestReady: todayData.harvestReady,
     needsAttention: todayData.needsAttention,
     maintenanceTasks: todayData.maintenanceTasks,
@@ -49,7 +47,6 @@ export default function QuickTopics({ onSelectTopic }: QuickTopicsProps) {
   const isPersonalized = hasPersonalizedData({
     seasonalPhase: todayData.seasonalPhase,
     currentMonth: todayData.currentMonth,
-    problemBeds: todayData.problemBeds,
     harvestReady: todayData.harvestReady,
     needsAttention: todayData.needsAttention,
     maintenanceTasks: todayData.maintenanceTasks,

@@ -20,10 +20,9 @@ import {
 } from '@/types/garden-planner'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
 import { getSeasonByYear, getRotationGroupForBed } from '@/data/historical-plans'
-import { 
-  physicalBeds, 
-  getBedById, 
-  getProblemBeds
+import {
+  physicalBeds,
+  getBedById,
 } from '@/data/allotment-layout'
 import { AllotmentData } from '@/types/unified-allotment'
 
@@ -39,11 +38,15 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
   'solanaceae': 'solanaceae',
   'alliums': 'alliums',
   'cucurbits': 'cucurbits',
-  'leafy-greens': 'roots',     // Often grouped with roots in rotation
-  'herbs': 'permanent',         // Perennials, don't need rotation
-  'berries': 'permanent',       // Perennials
-  'fruit-trees': 'permanent',   // Perennials
-  'other': 'roots'              // Sweetcorn etc - treat as roots for rotation
+  'leafy-greens': 'roots',         // Often grouped with roots in rotation
+  'herbs': 'permanent',             // Perennials, don't need rotation
+  'berries': 'permanent',           // Perennials
+  'fruit-trees': 'permanent',       // Perennials
+  'annual-flowers': 'permanent',    // Flowers don't need rotation
+  'perennial-flowers': 'permanent', // Flowers don't need rotation
+  'bulbs': 'permanent',             // Flowers don't need rotation
+  'climbers': 'permanent',          // Flowers don't need rotation
+  'other': 'roots'                  // Sweetcorn etc - treat as roots for rotation
 }
 
 /**
@@ -164,8 +167,8 @@ export const PROBLEM_BED_SUGGESTIONS: Record<string, ProblemBedSuggestion> = {
 /**
  * Get the rotation group for a vegetable
  */
-export function getRotationGroup(vegetableId: string): RotationGroup | undefined {
-  const veg = getVegetableById(vegetableId)
+export function getRotationGroup(plantId: string): RotationGroup | undefined {
+  const veg = getVegetableById(plantId)
   if (!veg) return undefined
   return ROTATION_GROUPS[veg.category]
 }
@@ -240,17 +243,17 @@ export function getSuggestedRotation(
  * Check if placing a vegetable violates rotation rules (same group within 2 years)
  */
 export function checkRotationViolation(
-  vegetableId: string,
+  plantId: string,
   plotId: string,
   year: number,
   history: RotationHistory[]
 ): PlacementWarning | null {
-  const rotationGroup = getRotationGroup(vegetableId)
+  const rotationGroup = getRotationGroup(plantId)
   
   // Permanent crops (herbs) don't need rotation
   if (!rotationGroup || rotationGroup === 'permanent') return null
   
-  const veg = getVegetableById(vegetableId)
+  const veg = getVegetableById(plantId)
   
   // Check history for this plot within last 2 years
   const recentHistory = history
@@ -280,8 +283,8 @@ export function checkRotationCompatibility(
 ): { compatible: boolean; warning?: string } {
   const bed = getBedById(bedId)
   
-  // Problem and perennial beds don't follow normal rotation
-  if (bed?.status === 'problem' || bed?.status === 'perennial') {
+  // Perennial beds don't follow normal rotation
+  if (bed?.status === 'perennial') {
     return { compatible: true }
   }
 
@@ -323,18 +326,18 @@ export function checkRotationCompatibility(
  * Higher score = better follows rotation principles
  */
 export function calculateRotationScore(
-  vegetableId: string,
+  plantId: string,
   plotId: string,
   year: number,
   history: RotationHistory[]
 ): number {
-  const rotationGroup = getRotationGroup(vegetableId)
+  const rotationGroup = getRotationGroup(plantId)
   
   // Permanent crops always get 75 (neutral-good)
   if (!rotationGroup || rotationGroup === 'permanent') return 75
   
   const suggestedGroup = getSuggestedRotation(plotId, year, history)
-  const violation = checkRotationViolation(vegetableId, plotId, year, history)
+  const violation = checkRotationViolation(plantId, plotId, year, history)
   
   // Perfect match with suggested rotation
   if (rotationGroup === suggestedGroup) return 100
@@ -365,8 +368,8 @@ export function getDominantRotationGroup(plot: GridPlot): RotationGroup | null {
   }
   
   for (const cell of plot.cells) {
-    if (cell.vegetableId) {
-      const group = getRotationGroup(cell.vegetableId)
+    if (cell.plantId) {
+      const group = getRotationGroup(cell.plantId)
       if (group) groupCounts[group]++
     }
   }
@@ -396,8 +399,8 @@ export function buildRotationHistoryEntry(
   if (!dominantGroup) return null
   
   const vegetables = plot.cells
-    .filter(c => c.vegetableId)
-    .map(c => c.vegetableId!)
+    .filter(c => c.plantId)
+    .map(c => c.plantId!)
   
   return {
     plotId: plot.id,
@@ -437,20 +440,6 @@ export function generateBedSuggestion(
 ): RotationSuggestion {
   const bed = getBedById(bedId)
   
-  // Handle problem beds differently
-  if (bed?.status === 'problem') {
-    const problemSuggestion = PROBLEM_BED_SUGGESTIONS[bedId]
-    return {
-      bedId,
-      previousGroup: previousYears[0]?.group || 'legumes',
-      suggestedGroup: 'permanent', // Suggest perennials for problem beds
-      reason: problemSuggestion?.recommendation || 'Problem bed - consider perennial plantings',
-      suggestedVegetables: problemSuggestion?.perennialOptions || [],
-      isProblemBed: true,
-      problemNote: problemSuggestion?.issue
-    }
-  }
-
   // Handle perennial beds
   if (bed?.status === 'perennial') {
     return {
@@ -516,20 +505,6 @@ export function generateBedSuggestionFromData(
 ): RotationSuggestion {
   const bed = beds.find(b => b.id === bedId)
   
-  // Handle problem beds differently
-  if (bed?.status === 'problem') {
-    const problemSuggestion = PROBLEM_BED_SUGGESTIONS[bedId]
-    return {
-      bedId,
-      previousGroup: previousYears[0]?.group || 'legumes',
-      suggestedGroup: 'permanent',
-      reason: problemSuggestion?.recommendation || 'Problem bed - consider perennial plantings',
-      suggestedVegetables: problemSuggestion?.perennialOptions || [],
-      isProblemBed: true,
-      problemNote: problemSuggestion?.issue
-    }
-  }
-
   // Handle perennial beds
   if (bed?.status === 'perennial') {
     return {
@@ -624,17 +599,11 @@ export function generateRotationPlan(
   }
 
   // Check for duplicate suggestions in rotation beds
-  const rotationSuggestions = suggestions.filter(s => !s.isProblemBed && !s.isPerennial)
+  const rotationSuggestions = suggestions.filter(s => !s.isPerennial)
   const suggestedGroups = rotationSuggestions.map(s => s.suggestedGroup)
   const duplicates = suggestedGroups.filter((g, i) => suggestedGroups.indexOf(g) !== i)
   if (duplicates.length > 0) {
     warnings.push(`Multiple beds suggested for ${duplicates.join(', ')} - consider adjusting`)
-  }
-
-  // Add problem bed warnings
-  const problemBedsList = getProblemBeds()
-  for (const bed of problemBedsList) {
-    warnings.push(`${bed.name} needs attention: ${bed.problemNotes}`)
   }
 
   return {
@@ -682,17 +651,11 @@ export function generateRotationPlanFromData(
   }
 
   // Check for duplicate suggestions in rotation beds
-  const rotationSuggestions = suggestions.filter(s => !s.isProblemBed && !s.isPerennial)
+  const rotationSuggestions = suggestions.filter(s => !s.isPerennial)
   const suggestedGroups = rotationSuggestions.map(s => s.suggestedGroup)
   const duplicates = suggestedGroups.filter((g, i) => suggestedGroups.indexOf(g) !== i)
   if (duplicates.length > 0) {
     warnings.push(`Multiple beds suggested for ${duplicates.join(', ')} - consider adjusting`)
-  }
-
-  // Add problem bed warnings
-  const problemBedsList = beds.filter(b => b.status === 'problem')
-  for (const bed of problemBedsList) {
-    warnings.push(`${bed.name} needs attention: ${bed.problemNotes}`)
   }
 
   return {
@@ -731,18 +694,6 @@ export function getBedRotationHistory(
   }))
 }
 
-/**
- * Get problem beds summary from unified data
- */
-export function getProblemBedsSummaryFromData(data: AllotmentData): string {
-  const problemBedsList = data.layout.beds.filter(b => b.status === 'problem')
-  if (problemBedsList.length === 0) return 'No problem beds identified.'
-  
-  return problemBedsList
-    .map(b => `${b.name}: ${b.problemNotes || 'Needs attention'}`)
-    .join('\n')
-}
-
 // ============ DISPLAY HELPERS ============
 
 /**
@@ -753,8 +704,6 @@ export function getBedStatusDisplay(bedId: PhysicalBedId): { status: string; col
   switch (bed?.status) {
     case 'rotation':
       return { status: 'In Rotation', color: 'green' }
-    case 'problem':
-      return { status: 'Needs Attention', color: 'red' }
     case 'perennial':
       return { status: 'Perennial', color: 'blue' }
     default:

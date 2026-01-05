@@ -36,7 +36,6 @@ export default function TodayDashboard() {
     currentMonth,
     seasonalPhase,
     maintenanceTasks,
-    problemBeds,
     harvestReady,
     needsAttention,
     isLoading,
@@ -91,7 +90,6 @@ export default function TodayDashboard() {
 
             {/* Garden Status */}
             <BedAlerts
-              problemBeds={problemBeds}
               harvestReady={harvestReady}
               needsAttention={needsAttention}
               theme={theme}
@@ -106,7 +104,6 @@ export default function TodayDashboard() {
             input={{
               seasonalPhase,
               currentMonth,
-              problemBeds,
               harvestReady,
               needsAttention,
               maintenanceTasks,

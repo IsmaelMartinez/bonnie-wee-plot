@@ -1,10 +1,10 @@
 'use client'
 
-import { Calendar, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { RotationGroup, PlantingSuccess, PhysicalBedId, PhysicalBed } from '@/types/garden-planner'
+import { RotationGroup, PlantingSuccess } from '@/types/garden-planner'
 import { SeasonRecord } from '@/types/unified-allotment'
 
 // Success badge colors
@@ -15,26 +15,12 @@ const SUCCESS_COLORS: Record<PlantingSuccess, { bg: string; text: string }> = {
   'poor': { bg: 'bg-zen-ume-100', text: 'text-zen-ume-700' }
 }
 
-// Get bed status info from passed beds array
-function getBedStatusInfo(bedId: PhysicalBedId, beds: PhysicalBed[]) {
-  const bed = beds.find(b => b.id === bedId)
-  if (!bed) return null
-
-  return {
-    status: bed.status,
-    isProblem: bed.status === 'problem',
-    isPerennial: bed.status === 'perennial',
-    problemNote: bed.problemNotes
-  }
-}
-
 interface SeasonViewProps {
   season: SeasonRecord
   year: number
-  beds: PhysicalBed[]
 }
 
-export default function SeasonView({ season, year, beds }: SeasonViewProps) {
+export default function SeasonView({ season, year }: SeasonViewProps) {
   return (
     <div className="space-y-6">
       {/* Season Summary */}
@@ -75,7 +61,7 @@ export default function SeasonView({ season, year, beds }: SeasonViewProps) {
           </div>
           <div className="text-center p-3 bg-zen-stone-50 rounded-zen">
             <p className="text-2xl font-display text-zen-ink-800">
-              {new Set(season.beds.flatMap(b => b.plantings.map(p => p.vegetableId))).size}
+              {new Set(season.beds.flatMap(b => b.plantings.map(p => p.plantId))).size}
             </p>
             <p className="text-sm text-zen-stone-500">Crop Types</p>
           </div>
@@ -92,14 +78,11 @@ export default function SeasonView({ season, year, beds }: SeasonViewProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {season.beds.map(bed => {
           const rotationDisplay = ROTATION_GROUP_DISPLAY[bed.rotationGroup as RotationGroup]
-          const bedInfo = getBedStatusInfo(bed.bedId, beds)
 
           return (
             <div
               key={bed.bedId}
-              className={`zen-card overflow-hidden ${
-                bedInfo?.isProblem ? 'ring-2 ring-zen-ume-300' : ''
-              }`}
+              className="zen-card overflow-hidden"
             >
               <div
                 className="px-4 py-3 text-white font-medium flex items-center justify-between"
@@ -107,27 +90,16 @@ export default function SeasonView({ season, year, beds }: SeasonViewProps) {
               >
                 <span className="flex items-center gap-2">
                   Bed {bed.bedId}
-                  {bedInfo?.isProblem && (
-                    <AlertCircle className="w-4 h-4" />
-                  )}
                 </span>
                 <span className="text-sm opacity-90 flex items-center gap-1">
                   {rotationDisplay?.emoji} {rotationDisplay?.name || bed.rotationGroup}
                 </span>
               </div>
 
-              {/* Problem Note */}
-              {bedInfo?.isProblem && bedInfo.problemNote && (
-                <div className="bg-zen-ume-50 px-4 py-2 text-xs text-zen-ume-700 flex items-center gap-2">
-                  <AlertTriangle className="w-3 h-3" />
-                  {bedInfo.problemNote}
-                </div>
-              )}
-
               <div className="p-4">
                 <div className="space-y-3">
                   {bed.plantings.map(planting => {
-                    const veg = getVegetableById(planting.vegetableId)
+                    const veg = getVegetableById(planting.plantId)
                     const successColor = planting.success ? SUCCESS_COLORS[planting.success] : null
 
                     return (
@@ -135,7 +107,7 @@ export default function SeasonView({ season, year, beds }: SeasonViewProps) {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-zen-ink-800">
-                              {veg?.name || planting.vegetableId}
+                              {veg?.name || planting.plantId}
                             </p>
                             {planting.success && successColor && (
                               <span className={`px-1.5 py-0.5 rounded text-xs ${successColor.bg} ${successColor.text}`}>

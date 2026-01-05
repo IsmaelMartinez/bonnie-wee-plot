@@ -18,15 +18,15 @@ export interface CompanionStatus {
  * Calculate companion status for a vegetable relative to existing plantings
  */
 export function getCompanionStatusForVegetable(
-  vegetableId: string,
+  plantId: string,
   existingPlantings: Planting[]
 ): CompanionStatus {
   const goods: string[] = []
   const bads: string[] = []
 
   for (const existing of existingPlantings) {
-    const compat = checkCompanionCompatibility(vegetableId, existing.vegetableId)
-    const existingVeg = getVegetableById(existing.vegetableId)
+    const compat = checkCompanionCompatibility(plantId, existing.plantId)
+    const existingVeg = getVegetableById(existing.plantId)
     if (compat === 'good' && existingVeg) goods.push(existingVeg.name)
     if (compat === 'bad' && existingVeg) bads.push(existingVeg.name)
   }
@@ -46,8 +46,8 @@ export function getCompanionStatusForPlanting(
 
   for (const other of otherPlantings) {
     if (other.id === planting.id) continue
-    const compat = checkCompanionCompatibility(planting.vegetableId, other.vegetableId)
-    const otherVeg = getVegetableById(other.vegetableId)
+    const compat = checkCompanionCompatibility(planting.plantId, other.plantId)
+    const otherVeg = getVegetableById(other.plantId)
     if (compat === 'good' && otherVeg) goods.push(otherVeg.name)
     if (compat === 'bad' && otherVeg) bads.push(otherVeg.name)
   }
@@ -75,12 +75,12 @@ export function getGoodCompanionsForBed(
  * Sort vegetables by companion compatibility (good companions first, bad last)
  */
 export function sortByCompanionCompatibility(
-  vegetableIds: string[],
+  plantIds: string[],
   existingPlantings: Planting[]
 ): string[] {
-  if (existingPlantings.length === 0) return vegetableIds
+  if (existingPlantings.length === 0) return plantIds
 
-  return [...vegetableIds].sort((a, b) => {
+  return [...plantIds].sort((a, b) => {
     const statusA = getCompanionStatusForVegetable(a, existingPlantings)
     const statusB = getCompanionStatusForVegetable(b, existingPlantings)
 
@@ -97,14 +97,14 @@ export function sortByCompanionCompatibility(
  * Returns status with 'good' | 'neutral' | 'bad' classification
  */
 export function getCompanionStatusByIds(
-  vegetableId: string,
+  plantId: string,
   plantedVegetableIds: string[]
 ): { status: 'good' | 'neutral' | 'bad'; goodWith: string[]; badWith: string[] } {
   const goodWith: string[] = []
   const badWith: string[] = []
 
   for (const plantedId of plantedVegetableIds) {
-    const compat = checkCompanionCompatibility(vegetableId, plantedId)
+    const compat = checkCompanionCompatibility(plantId, plantedId)
     const plantedVeg = getVegetableById(plantedId)
     if (compat === 'good' && plantedVeg) goodWith.push(plantedVeg.name)
     if (compat === 'bad' && plantedVeg) badWith.push(plantedVeg.name)

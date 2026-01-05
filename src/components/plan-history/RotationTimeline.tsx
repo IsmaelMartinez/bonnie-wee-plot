@@ -19,9 +19,7 @@ function getBedStatusInfo(bedId: PhysicalBedId, beds: PhysicalBed[]) {
 
   return {
     status: bed.status,
-    isProblem: bed.status === 'problem',
     isPerennial: bed.status === 'perennial',
-    problemNote: bed.problemNotes
   }
 }
 
@@ -53,7 +51,7 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
               const statusInfo = getBedStatusInfo(bedId, beds)
 
               return (
-                <tr key={bedId} className={`border-b border-zen-stone-100 last:border-0 ${statusInfo?.isProblem ? 'bg-zen-ume-50' : ''}`}>
+                <tr key={bedId} className="border-b border-zen-stone-100 last:border-0">
                   <td className="py-2 px-3">
                     <span
                       className="inline-block px-2 py-1 rounded text-white text-center text-xs font-medium"
@@ -64,11 +62,9 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
                   </td>
                   <td className="py-2 px-3">
                     <span className={`text-xs px-1.5 py-0.5 rounded ${
-                      statusInfo?.isProblem
-                        ? 'bg-zen-ume-100 text-zen-ume-700'
-                        : statusInfo?.isPerennial
-                          ? 'bg-zen-bamboo-100 text-zen-bamboo-700'
-                          : 'bg-zen-stone-100 text-zen-stone-600'
+                      statusInfo?.isPerennial
+                        ? 'bg-zen-bamboo-100 text-zen-bamboo-700'
+                        : 'bg-zen-stone-100 text-zen-stone-600'
                     }`}>
                       {bed?.status || 'unknown'}
                     </span>
@@ -100,9 +96,6 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
                       const suggestion = plan2026.suggestions.find(s => s.bedId === bedId)
                       if (!suggestion) return null
 
-                      if (suggestion.isProblemBed) {
-                        return <span title="Needs attention" className="text-zen-ume-400">?</span>
-                      }
                       if (suggestion.isPerennial) {
                         return <span title="Perennial - no change">🌳</span>
                       }
@@ -129,7 +122,6 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
           </span>
         ))}
         <span className="flex items-center gap-1 text-zen-ume-500">! = poor results</span>
-        <span className="flex items-center gap-1 text-zen-ume-400">? = needs attention</span>
       </div>
     </div>
   )

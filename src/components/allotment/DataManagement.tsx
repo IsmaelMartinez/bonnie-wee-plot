@@ -3,12 +3,21 @@
 import { useState, useRef, useCallback } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
+import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats } from '@/services/allotment-storage'
+import { saveVarietyData, loadVarietyData } from '@/services/variety-storage'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface DataManagementProps {
   data: AllotmentData | null
   onDataImported: () => void
+}
+
+interface CompleteExport {
+  allotment: AllotmentData
+  varieties: VarietyData
+  exportedAt: string
+  exportVersion: number
 }
 
 /**
@@ -24,22 +33,34 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
   // Get storage statistics
   const stats = getStorageStats()
 
-  // Export data as JSON file
+  // Export data as JSON file (includes both allotment and varieties)
   const handleExport = useCallback(() => {
     if (!data) return
-    
+
     try {
-      const exportData = {
-        ...data,
+      // Load varieties data
+      const varietyResult = loadVarietyData()
+      const varieties = varietyResult.success && varietyResult.data ? varietyResult.data : {
+        version: 2,
+        varieties: [],
+        meta: {
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      }
+
+      const exportData: CompleteExport = {
+        allotment: data,
+        varieties,
         exportedAt: new Date().toISOString(),
         exportVersion: CURRENT_SCHEMA_VERSION,
       }
-      
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
-        type: 'application/json' 
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
       })
       const url = URL.createObjectURL(blob)
-      
+
       // Create download link and trigger
       const a = document.createElement('a')
       a.href = url
@@ -53,71 +74,96 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
     }
   }, [data])
 
-  // Import data from JSON file
+  // Import data from JSON file (supports both old and new formats)
   const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-    
+
     setImportError(null)
     setImportSuccess(false)
-    
+
     const reader = new FileReader()
-    
+
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string
-        const importedData = JSON.parse(content) as AllotmentData
-        
-        // Basic validation
-        if (!importedData.version || !importedData.meta || !importedData.seasons) {
-          setImportError('Invalid backup file: missing required fields')
-          return
+        const parsed = JSON.parse(content)
+
+        let allotmentData: AllotmentData
+        let varietyData: VarietyData | null = null
+
+        // Check if this is the new format (has allotment + varieties)
+        if (parsed.allotment && parsed.varieties) {
+          const complete = parsed as CompleteExport
+          allotmentData = complete.allotment
+          varietyData = complete.varieties
+
+          // Check version compatibility
+          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
+            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
+            return
+          }
+        } else {
+          // Old format - just AllotmentData
+          allotmentData = parsed as AllotmentData
+
+          // Basic validation
+          if (!allotmentData.version || !allotmentData.meta || !allotmentData.seasons) {
+            setImportError('Invalid backup file: missing required fields')
+            return
+          }
+
+          // Check version compatibility
+          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
+            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
+            return
+          }
         }
-        
-        // Check version compatibility
-        if (importedData.version > CURRENT_SCHEMA_VERSION) {
-          setImportError(`Backup is from a newer version (v${importedData.version}). Please update the app first.`)
-          return
-        }
-        
-        // Remove export metadata before saving (destructure to omit export-only fields)
-        const { exportedAt: _, exportVersion: __, ...dataToSave } = importedData as AllotmentData & { exportedAt?: string; exportVersion?: number }
-        void _; void __;
-        
+
         // Update timestamps
-        const finalData: AllotmentData = {
-          ...dataToSave,
+        const finalAllotmentData: AllotmentData = {
+          ...allotmentData,
           meta: {
-            ...dataToSave.meta,
+            ...allotmentData.meta,
             updatedAt: new Date().toISOString(),
           }
         }
-        
-        // Save to localStorage
-        const result = saveAllotmentData(finalData)
-        
-        if (result.success) {
-          setImportSuccess(true)
-          setTimeout(() => {
-            setImportSuccess(false)
-            setIsOpen(false)
-            onDataImported()
-          }, 1500)
-        } else {
-          setImportError(result.error || 'Failed to save imported data')
+
+        // Save allotment data
+        const allotmentResult = saveAllotmentData(finalAllotmentData)
+
+        if (!allotmentResult.success) {
+          setImportError(allotmentResult.error || 'Failed to save allotment data')
+          return
         }
+
+        // Save variety data if present
+        if (varietyData) {
+          const varietyResult = saveVarietyData(varietyData)
+          if (!varietyResult.success) {
+            setImportError(varietyResult.error || 'Failed to save variety data')
+            return
+          }
+        }
+
+        setImportSuccess(true)
+        setTimeout(() => {
+          setImportSuccess(false)
+          setIsOpen(false)
+          onDataImported()
+        }, 1500)
       } catch (error) {
         console.error('Import failed:', error)
         setImportError('Invalid JSON file. Please select a valid backup file.')
       }
     }
-    
+
     reader.onerror = () => {
       setImportError('Failed to read file. Please try again.')
     }
-    
+
     reader.readAsText(file)
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -176,7 +222,7 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-sm font-medium text-gray-900 mb-2">Export Data</h3>
             <p className="text-sm text-gray-500 mb-3">
-              Download your allotment data as a JSON file. Includes all seasons, plantings, and settings.
+              Download your complete allotment data as a JSON file. Includes all seasons, plantings, seed varieties, and settings.
             </p>
             <button
               onClick={handleExport}

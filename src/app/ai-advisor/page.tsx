@@ -51,7 +51,7 @@ export default function AIAdvisorPage() {
   const { token, saveToken, clearToken } = useApiToken()
   
   // Load allotment data for context
-  const { data: allotmentData, currentSeason, selectedYear, getProblemBeds } = useAllotment()
+  const { data: allotmentData, currentSeason, selectedYear } = useAllotment()
   
   // Build allotment context string for AI
   const allotmentContext = useMemo(() => {
@@ -70,8 +70,8 @@ export default function AIAdvisorPage() {
       lines.push(`BEDS THIS YEAR (${selectedYear}):`)
       for (const bed of currentSeason.beds) {
         const plantingList = bed.plantings.map(p => {
-          const veg = getVegetableById(p.vegetableId)
-          const vegName = veg?.name || p.vegetableId
+          const veg = getVegetableById(p.plantId)
+          const vegName = veg?.name || p.plantId
           const variety = p.varietyName ? ` (${p.varietyName})` : ''
           const status = p.success ? ` [${p.success}]` : ''
           return `${vegName}${variety}${status}`
@@ -85,26 +85,16 @@ export default function AIAdvisorPage() {
       }
       lines.push('')
     }
-    
-    // Problem beds
-    const problemBeds = getProblemBeds()
-    if (problemBeds.length > 0) {
-      lines.push('PROBLEM BEDS:')
-      for (const bed of problemBeds) {
-        lines.push(`- ${bed.name}: ${bed.problemNotes || 'Needs attention'}`)
-      }
-      lines.push('')
-    }
-    
+
     // Layout summary
     const rotationBeds = allotmentData.layout.beds.filter(b => b.status === 'rotation')
     const perennialBeds = allotmentData.layout.beds.filter(b => b.status === 'perennial')
-    
-    lines.push(`LAYOUT: ${rotationBeds.length} rotation beds, ${problemBeds.length} problem beds, ${perennialBeds.length} perennial areas`)
+
+    lines.push(`LAYOUT: ${rotationBeds.length} rotation beds, ${perennialBeds.length} perennial areas`)
     lines.push(`PERMANENT PLANTINGS: ${allotmentData.layout.permanentPlantings.map(p => p.name).join(', ')}`)
     
     return lines.join('\n')
-  }, [allotmentData, currentSeason, selectedYear, getProblemBeds])
+  }, [allotmentData, currentSeason, selectedYear])
 
   // Update rate limit state
   const updateRateLimitState = useCallback(() => {

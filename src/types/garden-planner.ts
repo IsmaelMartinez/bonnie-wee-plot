@@ -21,7 +21,7 @@
  */
 
 // Vegetable Categories
-export type VegetableCategory = 
+export type VegetableCategory =
   | 'leafy-greens'
   | 'root-vegetables'
   | 'brassicas'
@@ -32,7 +32,11 @@ export type VegetableCategory =
   | 'herbs'
   | 'berries'
   | 'fruit-trees'
-  | 'other'        // Sweetcorn, etc.
+  | 'annual-flowers'      // Cosmos, sunflower, zinnia, marigold
+  | 'perennial-flowers'   // Lavender, echinacea, rudbeckia
+  | 'bulbs'               // Tulips, daffodils, dahlias
+  | 'climbers'            // Sweet peas, clematis, morning glory
+  | 'other'               // Sweetcorn, etc.
 
 // Sun requirements
 export type SunRequirement = 'full-sun' | 'partial-shade' | 'shade'
@@ -103,7 +107,7 @@ export interface MaintenanceInfo {
  */
 export interface PlannedVegetable {
   id: string                     // Unique ID for this planned instance
-  vegetableId: string            // Reference to Vegetable.id
+  plantId: string            // Reference to Vegetable.id
   quantity: number               // Number of plants planned
   plotId?: string                // Optional reference to GardenPlot.id
   plannedSowDate?: string        // ISO date string for planned sowing
@@ -143,7 +147,7 @@ export interface PlotCell {
   plotId: string          // Reference to parent plot
   row: number
   col: number
-  vegetableId?: string    // Reference to Vegetable.id
+  plantId?: string    // Reference to Vegetable.id
   plantedYear?: number    // Year this was planted (for rotation tracking)
 }
 
@@ -196,7 +200,7 @@ export interface AutoFillOptions {
 
 // Gap filler suggestion
 export interface GapSuggestion {
-  vegetableId: string
+  plantId: string
   reason: string
   score: number           // 0-100 suitability
   quickGrow: boolean      // < 45 days to harvest
@@ -307,7 +311,11 @@ export const CATEGORY_INFO: CategoryInfo[] = [
   { id: 'alliums', name: 'Alliums', icon: 'CircleDot', color: 'amber' },
   { id: 'herbs', name: 'Herbs', icon: 'Flower', color: 'emerald' },
   { id: 'berries', name: 'Berries', icon: 'Cherry', color: 'pink' },
-  { id: 'fruit-trees', name: 'Fruit Trees', icon: 'TreeDeciduous', color: 'rose' }
+  { id: 'fruit-trees', name: 'Fruit Trees', icon: 'TreeDeciduous', color: 'rose' },
+  { id: 'annual-flowers', name: 'Annual Flowers', icon: 'Flower2', color: 'fuchsia' },
+  { id: 'perennial-flowers', name: 'Perennial Flowers', icon: 'Sparkles', color: 'violet' },
+  { id: 'bulbs', name: 'Bulbs', icon: 'Droplet', color: 'indigo' },
+  { id: 'climbers', name: 'Climbers', icon: 'Scaling', color: 'purple' }
 ]
 
 // Default plot colors
@@ -336,18 +344,15 @@ export type PhysicalBedId =
   | 'E'           // Top left corner - Problem bed (retry)
   | 'raspberries' // Right side - Perennial area
 
-// Bed status - whether it's productive or has issues
-export type BedStatus = 'rotation' | 'problem' | 'perennial'
-
-// Soil management method for a bed
-export type SoilMethod = 'no-dig' | 'back-to-eden' | 'traditional' | 'raised-bed'
+// Bed status - whether it's in rotation or perennial
+export type BedStatus = 'rotation' | 'perennial'
 
 // Physical bed in the allotment layout
 export interface PhysicalBed {
   id: PhysicalBedId
   name: string                    // e.g., "Bed A - Legumes"
   description?: string
-  status: BedStatus               // Whether bed is in rotation, has problems, or is perennial
+  status: BedStatus               // Whether bed is in rotation or perennial
   gridPosition?: {                // Optional - not all beds have precise grid positions
     startRow: number
     startCol: number
@@ -355,8 +360,6 @@ export interface PhysicalBed {
     endCol: number
   }
   rotationGroup?: RotationGroup   // Primary rotation group for this bed
-  problemNotes?: string           // Notes about issues if status is 'problem'
-  soilMethod?: SoilMethod         // Optional - soil management method
 }
 
 // Permanent plantings (fruit trees, berries, etc.)
@@ -405,7 +408,7 @@ export interface AllotmentLayout {
 // User's specific seed varieties
 export interface PlantVariety {
   id: string
-  vegetableId: string             // Links to base vegetable (e.g., 'peas')
+  plantId: string             // Links to base vegetable (e.g., 'peas')
   name: string                    // e.g., "Kelvedon Wonder"
   supplier?: string               // e.g., "Organic Gardening"
   price?: number
@@ -424,7 +427,7 @@ export type PlantingSuccess = 'excellent' | 'good' | 'fair' | 'poor'
  */
 export interface PlantedVariety {
   id: string
-  vegetableId: string             // Reference to Vegetable.id
+  plantId: string             // Reference to Vegetable.id
   varietyId?: string              // Reference to PlantVariety.id
   varietyName: string             // Stored directly for historical reference
   bedId: PhysicalBedId

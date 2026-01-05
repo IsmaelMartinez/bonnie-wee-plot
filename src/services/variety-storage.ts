@@ -2,7 +2,6 @@
  * Variety Storage Service
  *
  * Handles all localStorage operations for the variety/seed tracking data.
- * Follows the same patterns as allotment-storage.ts.
  */
 
 import {
@@ -11,11 +10,11 @@ import {
   NewVariety,
   VarietyUpdate,
   StorageResult,
+  SeedStatus,
   VARIETY_STORAGE_KEY,
   VARIETY_SCHEMA_VERSION,
 } from '@/types/variety-data'
 import { generateId } from '@/lib/utils/id'
-import { myVarieties } from '@/data/my-varieties'
 
 // ============ CORE STORAGE OPERATIONS ============
 
@@ -45,7 +44,14 @@ export function loadVarietyData(): StorageResult<VarietyData> {
       return { success: false, error: 'Invalid data schema' }
     }
 
-    return { success: true, data: data as VarietyData }
+    // Migrate seedsByYear from boolean to SeedStatus if needed
+    const parsedData = data as VarietyData
+    parsedData.varieties = parsedData.varieties.map(v => ({
+      ...v,
+      seedsByYear: migrateSeedsByYear(v.seedsByYear as Record<number, boolean | SeedStatus>)
+    }))
+
+    return { success: true, data: parsedData }
   } catch (error) {
     console.error('Failed to load variety data:', error)
     return { success: false, error: 'Failed to load stored data' }
@@ -81,34 +87,15 @@ export function saveVarietyData(data: VarietyData): StorageResult<void> {
 }
 
 /**
- * Initialize variety storage with migration from legacy data if needed
+ * Initialize variety storage - load existing or create fresh
  */
 export function initializeVarietyStorage(): StorageResult<VarietyData> {
   const loadResult = loadVarietyData()
 
   if (loadResult.success && loadResult.data) {
-    // Run year migration if needed
-    const migratedData = migrateYearsIfNeeded(loadResult.data)
-    if (migratedData !== loadResult.data) {
-      saveVarietyData(migratedData)
-      return { success: true, data: migratedData }
-    }
     return loadResult
   }
 
-  // No existing data - check for legacy migration
-  if (needsLegacyMigration()) {
-    const migratedData = migrateFromLegacy()
-    const saveResult = saveVarietyData(migratedData)
-
-    if (!saveResult.success) {
-      return { success: false, error: 'Failed to save migrated data' }
-    }
-
-    return { success: true, data: migratedData }
-  }
-
-  // No legacy data either - create fresh
   const freshData = createEmptyVarietyData()
   const saveResult = saveVarietyData(freshData)
 
@@ -127,62 +114,6 @@ export function createEmptyVarietyData(): VarietyData {
   return {
     version: VARIETY_SCHEMA_VERSION,
     varieties: [],
-    haveSeeds: [],
-    meta: {
-      createdAt: now,
-      updatedAt: now,
-    },
-  }
-}
-
-/**
- * Check if migration from legacy my-varieties.ts is needed
- */
-export function needsLegacyMigration(): boolean {
-  // Legacy data exists if myVarieties has entries
-  return myVarieties.length > 0
-}
-
-/**
- * Migrate from legacy my-varieties.ts data
- * Also imports existing haveSeeds from old localStorage key
- */
-export function migrateFromLegacy(): VarietyData {
-  const now = new Date().toISOString()
-
-  const varieties: StoredVariety[] = myVarieties.map(legacy => ({
-    id: legacy.id,
-    vegetableId: legacy.vegetableId,
-    name: legacy.name,
-    supplier: legacy.supplier,
-    price: legacy.price,
-    notes: legacy.notes,
-    yearsUsed: legacy.yearsUsed,
-    plannedYears: [],
-  }))
-
-  // Import existing haveSeeds from old storage key
-  let haveSeeds: string[] = []
-  try {
-    const oldHaveSeeds = localStorage.getItem('community-allotment-seeds-have')
-    if (oldHaveSeeds) {
-      const parsed = JSON.parse(oldHaveSeeds)
-      if (Array.isArray(parsed)) {
-        // Only keep IDs that exist in our varieties
-        const validIds = new Set(varieties.map(v => v.id))
-        haveSeeds = parsed.filter((id): id is string =>
-          typeof id === 'string' && validIds.has(id)
-        )
-      }
-    }
-  } catch {
-    // Ignore errors, start with empty haveSeeds
-  }
-
-  return {
-    version: VARIETY_SCHEMA_VERSION,
-    varieties,
-    haveSeeds,
     meta: {
       createdAt: now,
       updatedAt: now,
@@ -198,13 +129,14 @@ export function migrateFromLegacy(): VarietyData {
 export function addVariety(data: VarietyData, variety: NewVariety): VarietyData {
   const newVariety: StoredVariety = {
     id: generateId('variety'),
-    vegetableId: variety.vegetableId,
+    plantId: variety.plantId,
     name: variety.name,
     supplier: variety.supplier,
     price: variety.price,
     notes: variety.notes,
     yearsUsed: [],
     plannedYears: variety.plannedYears || [],
+    seedsByYear: {},  // Initialize empty - user will mark seeds per year
   }
 
   return {
@@ -236,7 +168,6 @@ export function removeVariety(data: VarietyData, id: string): VarietyData {
   return {
     ...data,
     varieties: data.varieties.filter(v => v.id !== id),
-    haveSeeds: data.haveSeeds.filter(seedId => seedId !== id),
   }
 }
 
@@ -275,19 +206,81 @@ export function getVarietiesForYear(data: VarietyData, year: number): StoredVari
   )
 }
 
-// ============ HAVE SEEDS ============
+// ============ HAVE SEEDS (PER-YEAR) ============
 
 /**
- * Toggle whether user has seeds for a variety
+ * Cycle seed status for a variety in a specific year
+ * Cycles: none → ordered → have → none
  */
-export function toggleHaveSeeds(data: VarietyData, varietyId: string): VarietyData {
-  const hasSeeds = data.haveSeeds.includes(varietyId)
+export function toggleHaveSeedsForYear(
+  data: VarietyData,
+  varietyId: string,
+  year: number
+): VarietyData {
   return {
     ...data,
-    haveSeeds: hasSeeds
-      ? data.haveSeeds.filter(id => id !== varietyId)
-      : [...data.haveSeeds, varietyId],
+    varieties: data.varieties.map(v => {
+      if (v.id !== varietyId) return v
+
+      const current = v.seedsByYear[year] || 'none'
+
+      // Cycle to next state
+      const next: Record<SeedStatus, SeedStatus> = {
+        'none': 'ordered',
+        'ordered': 'have',
+        'have': 'none'
+      }
+
+      const nextState = next[current]
+
+      // Remove entry when cycling back to 'none'
+      if (nextState === 'none') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [year]: _, ...rest } = v.seedsByYear
+        return { ...v, seedsByYear: rest }
+      }
+
+      return {
+        ...v,
+        seedsByYear: { ...v.seedsByYear, [year]: nextState }
+      }
+    }),
   }
+}
+
+/**
+ * Check if user has seeds for a variety in a specific year
+ * Returns true ONLY for 'have' status
+ */
+export function hasSeedsForYear(variety: StoredVariety, year: number): boolean {
+  return variety.seedsByYear?.[year] === 'have'
+}
+
+/**
+ * Check if variety needs seeds for a specific year
+ * Returns true for 'none' or 'ordered' status
+ */
+export function needsSeedsForYear(variety: StoredVariety, year: number): boolean {
+  const status = variety.seedsByYear?.[year] || 'none'
+  return status === 'none' || status === 'ordered'
+}
+
+/**
+ * Get varieties that have seeds for a specific year
+ */
+export function getVarietiesWithSeedsForYear(data: VarietyData, year: number): StoredVariety[] {
+  return data.varieties.filter(v => hasSeedsForYear(v, year))
+}
+
+/**
+ * Get varieties that need seeds for a specific year
+ * (planned or used but don't have seeds)
+ */
+export function getVarietiesNeedingSeedsForYear(data: VarietyData, year: number): StoredVariety[] {
+  return data.varieties.filter(v =>
+    (v.plannedYears.includes(year) || v.yearsUsed.includes(year)) &&
+    needsSeedsForYear(v, year)
+  )
 }
 
 // ============ QUERIES ============
@@ -297,9 +290,9 @@ export function toggleHaveSeeds(data: VarietyData, varietyId: string): VarietyDa
  */
 export function getVarietiesByVegetable(
   data: VarietyData,
-  vegetableId: string
+  plantId: string
 ): StoredVariety[] {
-  return data.varieties.filter(v => v.vegetableId === vegetableId)
+  return data.varieties.filter(v => v.plantId === plantId)
 }
 
 /**
@@ -313,15 +306,43 @@ export function getSuppliers(data: VarietyData): string[] {
 }
 
 /**
- * Calculate total spend for varieties used in a specific year
+ * Calculate total spend for varieties used or planned in a specific year
  */
 export function getTotalSpendForYear(data: VarietyData, year: number): number {
   return data.varieties
-    .filter(v => v.yearsUsed.includes(year) && v.price !== undefined)
+    .filter(v =>
+      (v.yearsUsed.includes(year) || v.plannedYears.includes(year)) &&
+      v.price !== undefined
+    )
     .reduce((sum, v) => sum + (v.price || 0), 0)
 }
 
 // ============ VALIDATION ============
+
+/**
+ * Migrate seedsByYear from boolean to SeedStatus
+ * Handles backward compatibility with old data format
+ * Note: 'none' status is represented by absence in the record
+ */
+function migrateSeedsByYear(
+  seedsByYear: Record<number, boolean | SeedStatus>
+): Record<number, SeedStatus> {
+  const migrated: Record<number, SeedStatus> = {}
+
+  for (const [year, value] of Object.entries(seedsByYear)) {
+    if (typeof value === 'boolean') {
+      // Only keep 'have' status, discard false values (represented by absence)
+      if (value) {
+        migrated[parseInt(year)] = 'have'
+      }
+    } else if (value !== 'none') {
+      // Keep existing SeedStatus values, but remove 'none' entries
+      migrated[parseInt(year)] = value
+    }
+  }
+
+  return migrated
+}
 
 /**
  * Validate that data conforms to VarietyData schema
@@ -333,7 +354,6 @@ function validateVarietyData(data: unknown): boolean {
 
   if (typeof obj.version !== 'number') return false
   if (!Array.isArray(obj.varieties)) return false
-  if (!Array.isArray(obj.haveSeeds)) return false
   if (!obj.meta || typeof obj.meta !== 'object') return false
 
   const meta = obj.meta as Record<string, unknown>
@@ -354,40 +374,3 @@ function isQuotaExceededError(error: unknown): boolean {
   return false
 }
 
-// ============ YEAR MIGRATION ============
-
-/**
- * Migrate past planned years to yearsUsed
- *
- * This function runs automatically on app load to move years from plannedYears
- * to yearsUsed when they become historical (year < current year).
- *
- * Uses lastMigrationYear to ensure migration only runs once per year.
- */
-export function migrateYearsIfNeeded(data: VarietyData): VarietyData {
-  const currentYear = new Date().getFullYear()
-
-  // Check if migration needed
-  if (data.lastMigrationYear && data.lastMigrationYear >= currentYear) {
-    return data // Already migrated for this year
-  }
-
-  return {
-    ...data,
-    lastMigrationYear: currentYear,
-    varieties: data.varieties.map(variety => {
-      // Move past years from plannedYears to yearsUsed
-      const pastYears = variety.plannedYears.filter(year => year < currentYear)
-      const futureYears = variety.plannedYears.filter(year => year >= currentYear)
-
-      // Merge into yearsUsed, avoiding duplicates
-      const mergedYearsUsed = [...new Set([...variety.yearsUsed, ...pastYears])].sort()
-
-      return {
-        ...variety,
-        yearsUsed: mergedYearsUsed,
-        plannedYears: futureYears,
-      }
-    }),
-  }
-}

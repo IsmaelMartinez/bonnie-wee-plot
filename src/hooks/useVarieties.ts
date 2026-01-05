@@ -23,12 +23,13 @@ import {
   updateVariety as storageUpdateVariety,
   removeVariety as storageRemoveVariety,
   togglePlannedYear as storageTogglePlannedYear,
-  toggleHaveSeeds as storageToggleHaveSeeds,
+  toggleHaveSeedsForYear as storageToggleHaveSeedsForYear,
+  hasSeedsForYear as storageHasSeedsForYear,
   getVarietiesForYear as storageGetVarietiesForYear,
   getSuppliers as storageGetSuppliers,
   getTotalSpendForYear as storageGetTotalSpendForYear,
 } from '@/services/variety-storage'
-import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
+import { usePersistedStorage, SaveStatus } from './usePersistedStorage'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from './usePersistedStorage'
@@ -47,31 +48,17 @@ export interface UseVarietiesActions {
   updateVariety: (id: string, updates: VarietyUpdate) => void
   removeVariety: (id: string) => void
   togglePlannedYear: (varietyId: string, year: number) => void
-  toggleHaveSeeds: (varietyId: string) => void
+  toggleHaveSeedsForYear: (varietyId: string, year: number) => void
+  hasSeedsForYear: (varietyId: string, year: number) => boolean
+  getSeedsStatsForYear: (year: number) => { have: number; need: number }
   getDisplayVarieties: () => StoredVariety[]
   getSuppliers: () => string[]
   getTotalSpendForYear: (year: number) => number
-  hasSeeds: (varietyId: string) => boolean
   reload: () => void
   flushSave: () => void
 }
 
 export type UseVarietiesReturn = UseVarietiesState & UseVarietiesActions
-
-// ============ STORAGE OPTIONS ============
-
-const loadVarieties = (): StorageResult<VarietyData> => {
-  return initializeVarietyStorage()
-}
-
-const saveVarieties = (data: VarietyData): StorageResult<void> => {
-  return saveVarietyData(data)
-}
-
-const validateVarieties = (): StorageResult<VarietyData> => {
-  // Use loadVarietyData which performs validation
-  return loadVarietyData()
-}
 
 // ============ HOOK IMPLEMENTATION ============
 
@@ -88,9 +75,9 @@ export function useVarieties(): UseVarietiesReturn {
     flushSave,
   } = usePersistedStorage<VarietyData>({
     storageKey: VARIETY_STORAGE_KEY,
-    load: loadVarieties,
-    save: saveVarieties,
-    validate: validateVarieties,
+    load: initializeVarietyStorage,
+    save: saveVarietyData,
+    validate: loadVarietyData,
   })
 
   // ============ CRUD ============
@@ -117,9 +104,9 @@ export function useVarieties(): UseVarietiesReturn {
     setData(storageTogglePlannedYear(data, varietyId, year))
   }, [data, setData])
 
-  const toggleHaveSeeds = useCallback((varietyId: string) => {
+  const toggleHaveSeedsForYear = useCallback((varietyId: string, year: number) => {
     if (!data) return
-    setData(storageToggleHaveSeeds(data, varietyId))
+    setData(storageToggleHaveSeedsForYear(data, varietyId, year))
   }, [data, setData])
 
   // ============ QUERIES ============
@@ -142,9 +129,32 @@ export function useVarieties(): UseVarietiesReturn {
     return storageGetTotalSpendForYear(data, year)
   }, [data])
 
-  const hasSeeds = useCallback((varietyId: string): boolean => {
+  const hasSeedsForYear = useCallback((varietyId: string, year: number): boolean => {
     if (!data) return false
-    return data.haveSeeds.includes(varietyId)
+    const variety = data.varieties.find(v => v.id === varietyId)
+    return variety ? storageHasSeedsForYear(variety, year) : false
+  }, [data])
+
+  const getSeedsStatsForYear = useCallback((year: number): { have: number; need: number } => {
+    if (!data) return { have: 0, need: 0 }
+
+    // Get varieties for the specified year (not selectedYear)
+    const varietiesForYear = storageGetVarietiesForYear(data, year)
+
+    let have = 0
+    let need = 0
+
+    varietiesForYear.forEach(v => {
+      const status = v.seedsByYear?.[year] || 'none'
+
+      if (status === 'have') {
+        have++
+      } else if (status === 'ordered' || status === 'none') {
+        need++
+      }
+    })
+
+    return { have, need }
   }, [data])
 
   return {
@@ -158,11 +168,12 @@ export function useVarieties(): UseVarietiesReturn {
     updateVariety,
     removeVariety,
     togglePlannedYear,
-    toggleHaveSeeds,
+    toggleHaveSeedsForYear,
+    hasSeedsForYear,
+    getSeedsStatsForYear,
     getDisplayVarieties,
     getSuppliers,
     getTotalSpendForYear,
-    hasSeeds,
     reload,
     flushSave,
   }

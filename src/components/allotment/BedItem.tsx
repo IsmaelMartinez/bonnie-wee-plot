@@ -1,6 +1,5 @@
 'use client'
 
-import { AlertTriangle } from 'lucide-react'
 import { GridItemConfig } from '@/data/allotment-layout'
 import { Planting } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
@@ -20,7 +19,7 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
 
     // Get first planting's vegetable and show its emoji
     const firstPlanting = plantings[0]
-    const veg = getVegetableById(firstPlanting.vegetableId)
+    const veg = getVegetableById(firstPlanting.plantId)
     if (veg) {
       return getPlantEmoji(veg.category)
     }
@@ -82,14 +81,6 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
       {item.label && (
         <div className={`text-xs font-bold ${textColor} text-center px-1 leading-tight`}>
           {item.label}
-        </div>
-      )}
-      
-      {/* Problem indicator */}
-      {item.isProblem && (
-        <div className={`flex items-center gap-0.5 text-[10px] ${textColor} opacity-80`}>
-          <AlertTriangle className="w-2.5 h-2.5" />
-          <span>Problem</span>
         </div>
       )}
 

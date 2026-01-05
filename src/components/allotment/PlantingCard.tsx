@@ -20,7 +20,7 @@ export default function PlantingCard({
   onUpdateSuccess,
   otherPlantings = []
 }: PlantingCardProps) {
-  const veg = getVegetableById(planting.vegetableId)
+  const veg = getVegetableById(planting.plantId)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { goods, bads } = getCompanionStatusForPlanting(planting, otherPlantings)
 
@@ -30,7 +30,7 @@ export default function PlantingCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="font-medium text-zen-ink-800">
-              {veg?.name || planting.vegetableId}
+              {veg?.name || planting.plantId}
             </div>
             {planting.varietyName && (
               <div className="text-xs text-zen-stone-500">{planting.varietyName}</div>
@@ -87,7 +87,7 @@ export default function PlantingCard({
           {/* Actions - always visible for accessibility and mobile */}
           <div className="flex items-center gap-1 shrink-0">
             <label htmlFor={`success-${planting.id}`} className="sr-only">
-              Rate success for {veg?.name || planting.vegetableId}
+              Rate success for {veg?.name || planting.plantId}
             </label>
             <select
               id={`success-${planting.id}`}
@@ -105,7 +105,7 @@ export default function PlantingCard({
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="p-1.5 text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500"
-              aria-label={`Delete ${veg?.name || planting.vegetableId}`}
+              aria-label={`Delete ${veg?.name || planting.plantId}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -119,7 +119,7 @@ export default function PlantingCard({
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={onDelete}
         title="Delete Planting"
-        message={`Are you sure you want to delete "${veg?.name || planting.vegetableId}"${planting.varietyName ? ` (${planting.varietyName})` : ''}? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${veg?.name || planting.plantId}"${planting.varietyName ? ` (${planting.varietyName})` : ''}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Keep"
         variant="danger"

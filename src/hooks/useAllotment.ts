@@ -23,7 +23,7 @@ import {
   GardenEvent,
   NewGardenEvent,
 } from '@/types/unified-allotment'
-import { PhysicalBedId, RotationGroup, PhysicalBed, SoilMethod } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, PhysicalBed } from '@/types/garden-planner'
 import {
   initializeStorage,
   saveAllotmentData,
@@ -56,7 +56,6 @@ import {
   addBedNote as storageAddBedNote,
   updateBedNote as storageUpdateBedNote,
   removeBedNote as storageRemoveBedNote,
-  updateBedSoilMethod as storageUpdateSoilMethod,
   getGardenEvents,
   addGardenEvent as storageAddGardenEvent,
   removeGardenEvent as storageRemoveGardenEvent,
@@ -108,9 +107,7 @@ export interface UseAllotmentActions {
   
   // Layout helpers
   getRotationBeds: () => PhysicalBed[]
-  getProblemBeds: () => PhysicalBed[]
   getPerennialBeds: () => PhysicalBed[]
-  updateSoilMethod: (bedId: PhysicalBedId, soilMethod: SoilMethod | undefined) => void
   
   // Rotation history
   getRotationHistory: (bedId: PhysicalBedId) => Array<{ year: number; group: RotationGroup }>
@@ -296,20 +293,10 @@ export function useAllotment(): UseAllotmentReturn {
     return getRotationBeds(data)
   }, [data])
 
-  const getProblemBeds = useCallback(() => {
-    if (!data) return []
-    return getBedsByStatus(data, 'problem')
-  }, [data])
-
   const getPerennialBeds = useCallback(() => {
     if (!data) return []
     return getBedsByStatus(data, 'perennial')
   }, [data])
-
-  const updateSoilMethod = useCallback((bedId: PhysicalBedId, soilMethod: SoilMethod | undefined) => {
-    if (!data) return
-    setData(storageUpdateSoilMethod(data, bedId, soilMethod))
-  }, [data, setData])
 
   // ============ ROTATION HISTORY ============
 
@@ -438,9 +425,7 @@ export function useAllotment(): UseAllotmentReturn {
     deleteSeason: deleteSeasonData,
     updateSeasonNotes,
     getRotationBeds: getRotationBedsData,
-    getProblemBeds,
     getPerennialBeds,
-    updateSoilMethod,
     getRotationHistory: getRotationHistoryData,
     getRecentRotation: getRecentRotationData,
     getMaintenanceTasks: getMaintenanceTasksData,

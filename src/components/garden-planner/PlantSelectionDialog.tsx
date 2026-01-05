@@ -13,7 +13,7 @@ interface PlantSelectionDialogProps {
   isOpen: boolean
   currentVegetable: Vegetable | null
   plantedVegetableIds: string[]
-  onSelect: (vegetableId: string) => void
+  onSelect: (plantId: string) => void
   onRemove: () => void
   onClose: () => void
 }

@@ -109,18 +109,18 @@ export interface BedSeason {
  */
 export interface Planting {
   id: string                         // Unique ID (generated)
-  vegetableId: string                // Reference to Vegetable.id from database
+  plantId: string                    // Reference to Vegetable.id from database
   varietyName?: string               // "Kelvedon Wonder", "Nantes 2", etc.
-  
+
   // Dates (all optional)
   sowDate?: string                   // ISO date string
   transplantDate?: string            // ISO date string
   harvestDate?: string               // ISO date string
-  
+
   // Outcome tracking
   success?: PlantingSuccess
   notes?: string                     // Free-form notes
-  
+
   // Optional quantity
   quantity?: number
 }

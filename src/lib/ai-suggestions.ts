@@ -11,15 +11,12 @@ import {
   Bug,
   Sprout,
   Calendar,
-  AlertTriangle,
   Carrot,
   Scissors,
   Recycle,
-  HelpCircle,
 } from 'lucide-react'
 import { SeasonalPhase } from '@/lib/seasons'
 import { MaintenanceTask, Planting } from '@/types/unified-allotment'
-import { PhysicalBed } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 
 export interface AISuggestion {
@@ -27,7 +24,7 @@ export interface AISuggestion {
   title: string
   query: string
   priority: number // Higher = more relevant
-  category: 'seasonal' | 'problem' | 'harvest' | 'planting' | 'maintenance' | 'general'
+  category: 'seasonal' | 'harvest' | 'planting' | 'maintenance' | 'general'
 }
 
 // Static fallback topics for when there's no personalized data
@@ -118,38 +115,6 @@ function getSeasonalSuggestions(phase: SeasonalPhase, month: number): AISuggesti
 }
 
 /**
- * Generate suggestions based on problem beds
- */
-function getProblemBedSuggestions(problemBeds: PhysicalBed[]): AISuggestion[] {
-  if (problemBeds.length === 0) return []
-
-  const suggestions: AISuggestion[] = []
-
-  // General problem bed question
-  suggestions.push({
-    icon: AlertTriangle,
-    title: 'Problem Beds',
-    query: `I have ${problemBeds.length} problem bed${problemBeds.length > 1 ? 's' : ''} in my allotment. What perennials or shade-tolerant crops could work in difficult areas?`,
-    priority: 85,
-    category: 'problem',
-  })
-
-  // Specific problem bed if notes available
-  const bedWithNotes = problemBeds.find(b => b.problemNotes)
-  if (bedWithNotes) {
-    suggestions.push({
-      icon: HelpCircle,
-      title: `Bed ${bedWithNotes.id} Help`,
-      query: `My ${bedWithNotes.name} has issues: ${bedWithNotes.problemNotes}. What would you suggest I grow there?`,
-      priority: 90,
-      category: 'problem',
-    })
-  }
-
-  return suggestions
-}
-
-/**
  * Generate suggestions based on harvest-ready plantings
  */
 function getHarvestSuggestions(harvestReady: Planting[]): AISuggestion[] {
@@ -159,7 +124,7 @@ function getHarvestSuggestions(harvestReady: Planting[]): AISuggestion[] {
 
   // Get unique vegetable names
   const veggies = harvestReady
-    .map(p => getVegetableById(p.vegetableId)?.name)
+    .map(p => getVegetableById(p.plantId)?.name)
     .filter((name): name is string => !!name)
   const uniqueVeggies = [...new Set(veggies)]
 
@@ -197,7 +162,7 @@ function getPlantingSuggestions(needsAttention: Planting[]): AISuggestion[] {
 
   // Get unique vegetable names
   const veggies = needsAttention
-    .map(p => getVegetableById(p.vegetableId)?.name)
+    .map(p => getVegetableById(p.plantId)?.name)
     .filter((name): name is string => !!name)
   const uniqueVeggies = [...new Set(veggies)]
 
@@ -253,7 +218,6 @@ function getMaintenanceSuggestions(tasks: MaintenanceTask[]): AISuggestion[] {
 export interface GenerateSuggestionsInput {
   seasonalPhase: SeasonalPhase
   currentMonth: number
-  problemBeds: PhysicalBed[]
   harvestReady: Planting[]
   needsAttention: Planting[]
   maintenanceTasks: MaintenanceTask[]
@@ -269,7 +233,6 @@ export function generateAISuggestions(
 ): AISuggestion[] {
   const allSuggestions: AISuggestion[] = [
     ...getSeasonalSuggestions(input.seasonalPhase, input.currentMonth),
-    ...getProblemBedSuggestions(input.problemBeds),
     ...getHarvestSuggestions(input.harvestReady),
     ...getPlantingSuggestions(input.needsAttention),
     ...getMaintenanceSuggestions(input.maintenanceTasks),
@@ -292,7 +255,6 @@ export function generateAISuggestions(
  */
 export function hasPersonalizedData(input: GenerateSuggestionsInput): boolean {
   return (
-    input.problemBeds.length > 0 ||
     input.harvestReady.length > 0 ||
     input.needsAttention.length > 0 ||
     input.maintenanceTasks.length > 0

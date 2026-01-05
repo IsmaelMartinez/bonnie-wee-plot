@@ -196,7 +196,7 @@ export default function ThisMonthPage() {
     
     const allPlantings: Array<{
       bedId: string
-      vegetableId: string
+      plantId: string
       vegetableName: string
       varietyName?: string
       harvestMonths: number[]
@@ -206,11 +206,11 @@ export default function ThisMonthPage() {
     
     for (const bed of currentSeason.beds) {
       for (const planting of bed.plantings) {
-        const veg = getVegetableById(planting.vegetableId)
+        const veg = getVegetableById(planting.plantId)
         if (veg) {
           allPlantings.push({
             bedId: bed.bedId,
-            vegetableId: planting.vegetableId,
+            plantId: planting.plantId,
             vegetableName: veg.name,
             varietyName: planting.varietyName,
             harvestMonths: veg.planting?.harvestMonths || [],
@@ -256,7 +256,7 @@ export default function ThisMonthPage() {
       bedId: string
       bedName: string
       bedColor: string
-      vegetableId: string
+      plantId: string
       varietyName?: string
     }> = []
 
@@ -270,7 +270,7 @@ export default function ThisMonthPage() {
           bedId: bed.bedId,
           bedName,
           bedColor,
-          vegetableId: planting.vegetableId,
+          plantId: planting.plantId,
           varietyName: planting.varietyName
         })
       }
