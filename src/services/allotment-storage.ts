@@ -27,6 +27,7 @@ import {
 import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
+import { syncPlantingToVariety } from './variety-allotment-sync'
 
 // Import legacy data for migration
 import { physicalBeds, permanentPlantings, infrastructure } from '@/data/allotment-layout'
@@ -781,18 +782,21 @@ export function addPlanting(
     ...planting,
     id: generatePlantingId(),
   }
-  
+
+  // Sync to variety database
+  syncPlantingToVariety(newPlanting, year)
+
   return {
     ...data,
     seasons: data.seasons.map(season => {
       if (season.year !== year) return season
-      
+
       return {
         ...season,
         updatedAt: new Date().toISOString(),
         beds: season.beds.map(bed => {
           if (bed.bedId !== bedId) return bed
-          
+
           return {
             ...bed,
             plantings: [...bed.plantings, newPlanting],

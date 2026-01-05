@@ -87,6 +87,12 @@ export function initializeVarietyStorage(): StorageResult<VarietyData> {
   const loadResult = loadVarietyData()
 
   if (loadResult.success && loadResult.data) {
+    // Run year migration if needed
+    const migratedData = migrateYearsIfNeeded(loadResult.data)
+    if (migratedData !== loadResult.data) {
+      saveVarietyData(migratedData)
+      return { success: true, data: migratedData }
+    }
     return loadResult
   }
 
@@ -346,4 +352,42 @@ function isQuotaExceededError(error: unknown): boolean {
     if (error.code === 1014 || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') return true
   }
   return false
+}
+
+// ============ YEAR MIGRATION ============
+
+/**
+ * Migrate past planned years to yearsUsed
+ *
+ * This function runs automatically on app load to move years from plannedYears
+ * to yearsUsed when they become historical (year < current year).
+ *
+ * Uses lastMigrationYear to ensure migration only runs once per year.
+ */
+export function migrateYearsIfNeeded(data: VarietyData): VarietyData {
+  const currentYear = new Date().getFullYear()
+
+  // Check if migration needed
+  if (data.lastMigrationYear && data.lastMigrationYear >= currentYear) {
+    return data // Already migrated for this year
+  }
+
+  return {
+    ...data,
+    lastMigrationYear: currentYear,
+    varieties: data.varieties.map(variety => {
+      // Move past years from plannedYears to yearsUsed
+      const pastYears = variety.plannedYears.filter(year => year < currentYear)
+      const futureYears = variety.plannedYears.filter(year => year >= currentYear)
+
+      // Merge into yearsUsed, avoiding duplicates
+      const mergedYearsUsed = [...new Set([...variety.yearsUsed, ...pastYears])].sort()
+
+      return {
+        ...variety,
+        yearsUsed: mergedYearsUsed,
+        plannedYears: futureYears,
+      }
+    }),
+  }
 }

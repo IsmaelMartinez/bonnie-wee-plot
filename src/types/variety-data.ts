@@ -13,6 +13,7 @@ export interface VarietyData {
   version: number
   varieties: StoredVariety[]
   haveSeeds: string[]  // Global - IDs of varieties user has
+  lastMigrationYear?: number  // Track when year migration last ran
   meta: { createdAt: string; updatedAt: string }
 }
 
