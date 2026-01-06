@@ -30,7 +30,6 @@ const SUPPLIER_URLS: Record<string, string> = {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const AVAILABLE_YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
 
 // Helper to get next seed status in cycle
 function getNextStatus(current: SeedStatus): SeedStatus {
@@ -72,11 +71,14 @@ function SeedsPageContent() {
     removeVariety,
     togglePlannedYear,
     toggleHaveSeedsForYear,
+    getAvailableYears,
     getSeedsStatsForYear,
     getDisplayVarieties,
     getSuppliers,
     getTotalSpendForYear,
   } = useVarieties()
+
+  const availableYears = getAvailableYears()
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -213,7 +215,7 @@ function SeedsPageContent() {
             >
               All
             </button>
-            {AVAILABLE_YEARS.map(year => (
+            {availableYears.map(year => (
               <button
                 key={year}
                 onClick={() => setSelectedYear(year)}

@@ -50,6 +50,7 @@ export interface UseVarietiesActions {
   togglePlannedYear: (varietyId: string, year: number) => void
   toggleHaveSeedsForYear: (varietyId: string, year: number) => void
   hasSeedsForYear: (varietyId: string, year: number) => boolean
+  getAvailableYears: () => number[]
   getSeedsStatsForYear: (year: number) => { have: number; need: number }
   getDisplayVarieties: () => StoredVariety[]
   getSuppliers: () => string[]
@@ -135,6 +136,38 @@ export function useVarieties(): UseVarietiesReturn {
     return variety ? storageHasSeedsForYear(variety, year) : false
   }, [data])
 
+  const getAvailableYears = useCallback((): number[] => {
+    if (!data) {
+      // Fallback to standard 3-year window
+      const currentYear = new Date().getFullYear()
+      return [currentYear + 1, currentYear, currentYear - 1]
+    }
+
+    const yearsSet = new Set<number>()
+
+    // Collect years from variety data
+    data.varieties.forEach(v => {
+      // Add years from plannedYears
+      v.plannedYears.forEach(year => yearsSet.add(year))
+
+      // Add years from seedsByYear
+      if (v.seedsByYear) {
+        Object.keys(v.seedsByYear).forEach(yearStr => {
+          yearsSet.add(parseInt(yearStr))
+        })
+      }
+    })
+
+    // Add the standard 3-year window
+    const currentYear = new Date().getFullYear()
+    yearsSet.add(currentYear - 1)
+    yearsSet.add(currentYear)
+    yearsSet.add(currentYear + 1)
+
+    // Return sorted descending
+    return Array.from(yearsSet).sort((a, b) => b - a)
+  }, [data])
+
   const getSeedsStatsForYear = useCallback((year: number): { have: number; need: number } => {
     if (!data) return { have: 0, need: 0 }
 
@@ -170,6 +203,7 @@ export function useVarieties(): UseVarietiesReturn {
     togglePlannedYear,
     toggleHaveSeedsForYear,
     hasSeedsForYear,
+    getAvailableYears,
     getSeedsStatsForYear,
     getDisplayVarieties,
     getSuppliers,
