@@ -1,4 +1,6 @@
-# Excel Import Guide
+# Excel Import Guide (Temporary Migration Tool)
+
+> **Note**: This Excel import script is a **temporary migration tool** for users moving from Excel-based planning to the app's native system. Once you've imported your historical data, use the app's built-in export/import feature (DataManagement component) for all future backups and data transfers.
 
 ## Overview
 

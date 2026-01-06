@@ -51,7 +51,7 @@ Other features use simple localStorage for state persistence:
 
 | Key | Purpose | Data Structure |
 |-----|---------|----------------|
-| `community-allotment-seeds-have` | Seed inventory tracking | `string[]` (variety IDs user has) |
+| `community-allotment-varieties` | Seed variety tracking with per-year status | `VarietyData` (varieties with seedsByYear) |
 | `allotment-grid-layout` | Custom bed grid positions | Layout positions for react-grid-layout |
 
 ### 2. Session Storage (API Tokens)
@@ -71,18 +71,25 @@ sessionStorage.setItem('aitor_api_token', apiToken.trim())
 - **No database required** - Simplified deployment and maintenance
 - **Offline capability** - localStorage works without network
 - **Privacy** - Personal data stays in user's browser
-- **Export/Import** - Users can backup and share garden plans
+- **Export/Import** - Users can backup and share garden plans via JSON
 - **Fast operations** - No network latency for local data
 
 ### Negative
 - **No cross-device sync** - localStorage is device-specific
 - **Storage limits** - localStorage limited to ~5-10MB
 - **Data loss risk** - Clearing browser data loses garden plans
-- **No real-time collaboration** - JSON file doesn't support concurrent edits
-- **Scaling limitations** - JSON file doesn't scale for high traffic
+- **No real-time collaboration** - No concurrent editing support
 
 ### Mitigations
-- Export/Import feature allows manual backup
+- **Export/Import feature** (`DataManagement` component) allows backup/restore
+  - Exports complete state: allotment data + seed varieties in single JSON file
+  - Automatic backup created before each import
+  - Backward compatible with old format (allotment-only)
+  - File format: `{ allotment: AllotmentData, varieties: VarietyData, exportedAt, exportVersion }`
+- **Temporary Excel import** (`scripts/excel-to-backup.py`) for one-time migration
+  - Converts Excel planning workbooks to standard backup format
+  - 50+ plant name mappings (peas, onions, cosmos, etc.)
+  - Will be deprecated once users migrate to native export/import system
 - Clear documentation about data storage limitations
 
 ## Future Considerations

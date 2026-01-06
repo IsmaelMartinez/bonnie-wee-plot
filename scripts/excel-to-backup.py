@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Convert Allotment Planning Workbook to complete backup format.
+TEMPORARY MIGRATION TOOL - Convert Excel Workbook to App Backup Format
+
+This script is a one-time migration tool for users moving from Excel-based
+planning to the app's native system. After migrating, use the app's built-in
+export/import feature (DataManagement component) for backups.
+
+Converts Allotment Planning Workbook to complete backup format.
 Outputs the same format as the app's export function.
+
 Usage: python excel-to-backup.py <excel-file> <output-json>
 """
 
