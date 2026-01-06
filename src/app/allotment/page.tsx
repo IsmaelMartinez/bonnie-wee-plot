@@ -91,6 +91,9 @@ export default function AllotmentPage() {
   const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : new Date().getFullYear()
   const canCreateNextYear = !availableYears.includes(nextYear)
 
+  // Check if we can add 2024 as a historical year
+  const canCreate2024 = !availableYears.includes(2024)
+
   // Get bed data
   const selectedBedData = selectedBedId ? getBed(selectedBedId) : null
   const selectedBedSeason = selectedBedId ? getBedSeason(selectedBedId) : null
@@ -278,6 +281,17 @@ export default function AllotmentPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
+
+          {canCreate2024 && (
+            <button
+              onClick={() => createSeason(2024, 'Historical records from 2024')}
+              className="px-4 py-2 rounded-zen font-medium bg-zen-stone-100 text-zen-stone-600 hover:bg-zen-stone-200 transition flex items-center gap-1"
+              title="Add 2024 historical data"
+            >
+              <Plus className="w-4 h-4" />
+              2024
+            </button>
+          )}
 
           {availableYears.map(year => (
             <div key={year} className="relative group">
