@@ -21,13 +21,30 @@ import {
   BedNoteUpdate,
   GardenEvent,
   NewGardenEvent,
+  StoredVariety,
+  NewVariety,
+  VarietyUpdate,
+  SeedStatus,
+  AllotmentItemRef,
   STORAGE_KEY,
   CURRENT_SCHEMA_VERSION,
+  // v9 types for unified area system
+  Area,
+  BedArea,
+  PermanentArea,
+  InfrastructureArea,
+  PermanentUnderplanting,
+  NewPermanentUnderplanting,
+  SeasonalUnderplanting,
+  NewSeasonalUnderplanting,
+  CareLogEntry,
+  NewCareLogEntry,
+  PermanentSeason,
 } from '@/types/unified-allotment'
-import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan } from '@/types/garden-planner'
+import { PhysicalBedId, RotationGroup, PlantedVariety, SeasonPlan, PermanentPlanting, InfrastructureItem } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
-import { syncPlantingToVariety } from './variety-allotment-sync'
+// Note: variety-allotment-sync.ts removed - varieties now embedded in AllotmentData
 
 // Import legacy data for migration
 import { physicalBeds, permanentPlantings, infrastructure } from '@/data/allotment-layout'
@@ -141,6 +158,7 @@ function attemptDataRepair(data: unknown): AllotmentData | null {
         ...(obj.layout && typeof obj.layout === 'object' ? obj.layout as object : {}),
       },
       seasons: Array.isArray(obj.seasons) ? obj.seasons as AllotmentData['seasons'] : [],
+      varieties: Array.isArray(obj.varieties) ? obj.varieties as AllotmentData['varieties'] : [],
     }
     
     // Validate the repaired data
@@ -204,12 +222,26 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     }
     
     const validData = data as AllotmentData
-    
+
     // Check version and migrate if needed
     if (validData.version !== CURRENT_SCHEMA_VERSION) {
       const migrated = migrateSchema(validData)
       saveAllotmentData(migrated)
       return { success: true, data: migrated }
+    }
+
+    // Ensure permanentPlantings is populated (repair if somehow cleared)
+    if (!validData.layout.permanentPlantings || validData.layout.permanentPlantings.length === 0) {
+      console.log('Repairing: populating empty permanentPlantings from default layout')
+      const repaired = {
+        ...validData,
+        layout: {
+          ...validData.layout,
+          permanentPlantings: permanentPlantings,
+        },
+      }
+      saveAllotmentData(repaired)
+      return { success: true, data: repaired }
     }
 
     return { success: true, data: validData }
@@ -413,7 +445,164 @@ function migrateSchema(data: AllotmentData): AllotmentData {
     console.log('Migrated to schema v5: added gardenEvents')
   }
 
+  // Version 5 -> 6: Add varieties array (consolidated from separate storage)
+  if (migrated.version < 6) {
+    migrated.varieties = migrated.varieties || []
+    console.log('Migrated to schema v6: added varieties')
+  }
+
+  // Version 6 -> 7: Add plantId to permanent plantings for vegetable database lookup
+  if (migrated.version < 7) {
+    // Map permanent planting IDs to vegetable database IDs
+    const PERMANENT_TO_PLANT_ID: Record<string, string> = {
+      'apple-north': 'apple-tree',
+      'apple-south-west': 'apple-tree',
+      'apple-south': 'apple-tree',
+      'cherry-tree': 'cherry-tree',
+      'damson': 'damson-tree',
+      'raspberries-main': 'raspberry',
+      'blueberry': 'blueberry',
+      'gooseberry': 'gooseberry',
+      'blackcurrant': 'blackcurrant',
+      'rhubarb': 'rhubarb',
+      'strawberries-damson': 'strawberry',
+      'strawberries-b1prime': 'strawberry',
+      'oregano': 'oregano',
+      'herbs-shed': 'mixed-herbs',
+    }
+
+    // If permanentPlantings is empty, populate from default layout
+    if (!migrated.layout.permanentPlantings || migrated.layout.permanentPlantings.length === 0) {
+      migrated.layout.permanentPlantings = permanentPlantings.map(planting => {
+        const plantId = PERMANENT_TO_PLANT_ID[planting.id]
+        return plantId ? { ...planting, plantId } : planting
+      })
+      console.log('Migrated to schema v7: populated permanentPlantings from default layout')
+    } else {
+      // Add plantId to existing permanentPlantings
+      migrated.layout.permanentPlantings = migrated.layout.permanentPlantings.map(planting => {
+        const plantId = PERMANENT_TO_PLANT_ID[planting.id]
+        return plantId ? { ...planting, plantId } : planting
+      })
+      console.log('Migrated to schema v7: added plantId to permanent plantings')
+    }
+
+    // If infrastructure is empty, populate from default layout
+    if (!migrated.layout.infrastructure || migrated.layout.infrastructure.length === 0) {
+      migrated.layout.infrastructure = infrastructure
+      console.log('Migrated to schema v7: populated infrastructure from default layout')
+    }
+  }
+
+  // Version 8 -> 9: Unified Area System with underplantings and care logging
+  if (migrated.version < 9) {
+    const v9Data = migrateToV9(migrated)
+    v9Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v9: unified area system with underplantings and care logging')
+    return v9Data
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
+  return migrated
+}
+
+/**
+ * Migrate from v8 to v9: Unified Area System
+ * - Converts beds, permanentPlantings, infrastructure to unified areas array
+ * - Detects existing underplantings (strawberries-damson)
+ * - Initializes PermanentSeason for each permanent area in each year
+ */
+function migrateToV9(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // Map permanent planting types to PermanentArea plantingType
+  const TYPE_MAP: Record<string, PermanentArea['plantingType']> = {
+    'fruit-tree': 'fruit-tree',
+    'berry': 'berry',
+    'perennial-veg': 'perennial-veg',
+    'herb': 'herb',
+  }
+
+  // Convert beds to BedArea
+  const bedAreas: BedArea[] = migrated.layout.beds.map(bed => ({
+    id: bed.id,
+    type: 'bed' as const,
+    name: bed.name,
+    description: bed.description,
+    status: bed.status,
+    rotationGroup: bed.rotationGroup,
+    gridPosition: bed.gridPosition,
+  }))
+
+  // Convert permanentPlantings to PermanentArea
+  const permanentAreas: PermanentArea[] = migrated.layout.permanentPlantings.map(p => ({
+    id: p.id,
+    type: 'permanent' as const,
+    name: p.name,
+    description: p.notes,
+    plantingType: TYPE_MAP[p.type] || 'perennial-veg',
+    plantId: p.plantId,
+    variety: p.variety,
+    plantedYear: p.plantedYear,
+    gridPosition: p.gridPosition ? {
+      startRow: p.gridPosition.row,
+      startCol: p.gridPosition.col,
+      endRow: p.gridPosition.row,
+      endCol: p.gridPosition.col,
+    } : undefined,
+  }))
+
+  // Convert infrastructure to InfrastructureArea
+  const infrastructureAreas: InfrastructureArea[] = migrated.layout.infrastructure.map(i => ({
+    id: i.id,
+    type: 'infrastructure' as const,
+    name: i.name,
+    infrastructureType: i.type,
+    gridPosition: i.gridPosition,
+  }))
+
+  // Combine all areas
+  const areas: Area[] = [...bedAreas, ...permanentAreas, ...infrastructureAreas]
+
+  // Detect underplantings from existing data
+  // strawberries-damson is a separate permanent planting but should be an underplanting of damson
+  const permanentUnderplantings: PermanentUnderplanting[] = []
+  const UNDERPLANTING_PATTERNS: Array<{ childId: string; parentId: string; plantId: string }> = [
+    { childId: 'strawberries-damson', parentId: 'damson', plantId: 'strawberry' },
+  ]
+
+  for (const pattern of UNDERPLANTING_PATTERNS) {
+    const child = migrated.layout.permanentPlantings.find(p => p.id === pattern.childId)
+    if (child) {
+      permanentUnderplantings.push({
+        id: generateId('underplanting'),
+        parentAreaId: pattern.parentId,
+        plantId: pattern.plantId,
+        variety: child.variety,
+        plantedYear: child.plantedYear,
+        notes: child.notes,
+      })
+    }
+  }
+
+  // Initialize PermanentSeason for each permanent area in each existing year
+  const permanentAreaIds = permanentAreas.map(a => a.id)
+  migrated.seasons = migrated.seasons.map(season => ({
+    ...season,
+    permanents: permanentAreaIds.map(areaId => ({
+      areaId,
+      careLogs: [],
+      underplantings: [],
+    })),
+  }))
+
+  // Update layout with unified areas
+  migrated.layout = {
+    ...migrated.layout,
+    areas,
+    permanentUnderplantings,
+  }
+
   return migrated
 }
 
@@ -544,9 +733,9 @@ export function migrateFromLegacyData(): AllotmentData {
     id, name, description, status, rotationGroup,
   }))
 
-  // Create initial data structure
-  const data: AllotmentData = {
-    version: CURRENT_SCHEMA_VERSION,
+  // Create initial data structure (v8 format first)
+  const v8Data: AllotmentData = {
+    version: 8, // Start as v8 so we can apply v9 migration
     meta: {
       name: 'My Edinburgh Allotment',
       location: 'Edinburgh, Scotland',
@@ -560,7 +749,12 @@ export function migrateFromLegacyData(): AllotmentData {
     },
     seasons,
     currentYear, // Use actual current year, not hardcoded 2025
+    varieties: [], // Empty array - users will add their own varieties
   }
+
+  // Apply v9 migration to add unified areas, underplantings, and permanent seasons
+  const data = migrateToV9(v8Data)
+  data.version = CURRENT_SCHEMA_VERSION
 
   return data
 }
@@ -649,10 +843,20 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
       }
     })
 
+  // Initialize permanent seasons for all permanent areas (v9)
+  const permanentAreaIds = (data.layout.areas || [])
+    .filter((a): a is PermanentArea => a.type === 'permanent')
+    .map(a => a.id)
+
   const newSeason: SeasonRecord = {
     year: input.year,
     status: input.status || 'planned',
     beds: bedSeasons,
+    permanents: permanentAreaIds.map(areaId => ({
+      areaId,
+      careLogs: [],
+      underplantings: [],
+    })),
     notes: input.notes,
     createdAt: now,
     updatedAt: now,
@@ -746,15 +950,20 @@ export function updateBedRotationGroup(
     ...data,
     seasons: data.seasons.map(season => {
       if (season.year !== year) return season
-      
+
+      // Check if the bed exists in this season
+      const existingBed = season.beds.find(b => b.bedId === bedId)
+
       return {
         ...season,
         updatedAt: new Date().toISOString(),
-        beds: season.beds.map(bed => 
-          bed.bedId === bedId 
-            ? { ...bed, rotationGroup }
-            : bed
-        ),
+        beds: existingBed
+          ? season.beds.map(bed =>
+              bed.bedId === bedId
+                ? { ...bed, rotationGroup }
+                : bed
+            )
+          : [...season.beds, { bedId, rotationGroup, plantings: [] }],
       }
     }),
   }
@@ -782,9 +991,6 @@ export function addPlanting(
     ...planting,
     id: generatePlantingId(),
   }
-
-  // Sync to variety database
-  syncPlantingToVariety(newPlanting, year)
 
   return {
     ...data,
@@ -1073,6 +1279,140 @@ export function removeGardenEvent(
 
 // ============ LAYOUT OPERATIONS ============
 
+// ============ BACKWARD COMPATIBILITY HELPERS (v9) ============
+
+/**
+ * Get beds from unified areas array (v9 backward compatibility)
+ * Falls back to legacy layout.beds if areas not available
+ */
+export function getBedsFromAreas(data: AllotmentData): import('@/types/garden-planner').PhysicalBed[] {
+  if (data.layout.areas && data.layout.areas.length > 0) {
+    return data.layout.areas
+      .filter((a): a is BedArea => a.type === 'bed')
+      .map(a => ({
+        id: a.id as PhysicalBedId,
+        name: a.name,
+        description: a.description,
+        status: a.status,
+        rotationGroup: a.rotationGroup,
+        gridPosition: a.gridPosition,
+      }))
+  }
+  return data.layout.beds
+}
+
+/**
+ * Get permanent plantings from unified areas array (v9 backward compatibility)
+ * Falls back to legacy layout.permanentPlantings if areas not available
+ */
+export function getPermanentPlantingsFromAreas(data: AllotmentData): PermanentPlanting[] {
+  if (data.layout.areas && data.layout.areas.length > 0) {
+    return data.layout.areas
+      .filter((a): a is PermanentArea => a.type === 'permanent')
+      .map(a => ({
+        id: a.id,
+        name: a.name,
+        type: a.plantingType,
+        plantId: a.plantId,
+        variety: a.variety,
+        plantedYear: a.plantedYear,
+        notes: a.description,
+        gridPosition: a.gridPosition ? {
+          row: a.gridPosition.startRow,
+          col: a.gridPosition.startCol,
+        } : undefined,
+      }))
+  }
+  return data.layout.permanentPlantings
+}
+
+/**
+ * Get infrastructure from unified areas array (v9 backward compatibility)
+ * Falls back to legacy layout.infrastructure if areas not available
+ */
+export function getInfrastructureFromAreas(data: AllotmentData): InfrastructureItem[] {
+  if (data.layout.areas && data.layout.areas.length > 0) {
+    return data.layout.areas
+      .filter((a): a is InfrastructureArea => a.type === 'infrastructure')
+      .map(a => ({
+        id: a.id,
+        type: a.infrastructureType,
+        name: a.name,
+        gridPosition: a.gridPosition,
+      }))
+  }
+  return data.layout.infrastructure
+}
+
+/**
+ * Get an area by ID from the unified areas array
+ */
+export function getAreaById(data: AllotmentData, id: string): Area | undefined {
+  return data.layout.areas?.find(a => a.id === id)
+}
+
+/**
+ * Get areas by type from the unified areas array
+ */
+export function getAreasByType<T extends Area['type']>(
+  data: AllotmentData,
+  type: T
+): Extract<Area, { type: T }>[] {
+  return (data.layout.areas || []).filter((a): a is Extract<Area, { type: T }> => a.type === type)
+}
+
+/**
+ * Resolved item from an AllotmentItemRef
+ */
+export type ResolvedItem =
+  | { type: 'bed'; item: import('@/types/garden-planner').PhysicalBed }
+  | { type: 'permanent'; item: PermanentPlanting }
+  | { type: 'infrastructure'; item: InfrastructureItem }
+  | null
+
+/**
+ * Resolve an AllotmentItemRef to the actual item data
+ * Returns null if the item is not found
+ */
+export function resolveItemRef(data: AllotmentData, ref: AllotmentItemRef): ResolvedItem {
+  switch (ref.type) {
+    case 'bed': {
+      const bed = data.layout.beds.find(b => b.id === ref.id)
+      return bed ? { type: 'bed', item: bed } : null
+    }
+    case 'permanent': {
+      const planting = data.layout.permanentPlantings.find(p => p.id === ref.id)
+      return planting ? { type: 'permanent', item: planting } : null
+    }
+    case 'infrastructure': {
+      const infra = data.layout.infrastructure.find(i => i.id === ref.id)
+      return infra ? { type: 'infrastructure', item: infra } : null
+    }
+    default:
+      return null
+  }
+}
+
+/**
+ * Get a permanent planting by ID
+ */
+export function getPermanentPlantingById(
+  data: AllotmentData,
+  id: string
+): PermanentPlanting | undefined {
+  return data.layout.permanentPlantings.find(p => p.id === id)
+}
+
+/**
+ * Get an infrastructure item by ID
+ */
+export function getInfrastructureById(
+  data: AllotmentData,
+  id: string
+): InfrastructureItem | undefined {
+  return data.layout.infrastructure.find(i => i.id === id)
+}
+
 /**
  * Get a bed by ID
  */
@@ -1268,5 +1608,903 @@ export function removeStorageItem(key: string): boolean {
   } catch {
     return false
   }
+}
+
+// ============ VARIETY OPERATIONS ============
+
+/**
+ * Generate a unique ID for a variety
+ */
+export function generateVarietyId(): string {
+  return generateId('variety')
+}
+
+/**
+ * Get all varieties
+ */
+export function getVarieties(data: AllotmentData): StoredVariety[] {
+  return data.varieties || []
+}
+
+/**
+ * Get a variety by ID
+ */
+export function getVarietyById(data: AllotmentData, id: string): StoredVariety | undefined {
+  return data.varieties?.find(v => v.id === id)
+}
+
+/**
+ * Get varieties for a specific vegetable/plant
+ */
+export function getVarietiesByPlant(data: AllotmentData, plantId: string): StoredVariety[] {
+  return (data.varieties || []).filter(v => v.plantId === plantId)
+}
+
+/**
+ * Add a new variety
+ */
+export function addVariety(data: AllotmentData, variety: NewVariety): AllotmentData {
+  const newVariety: StoredVariety = {
+    id: generateVarietyId(),
+    plantId: variety.plantId,
+    name: variety.name,
+    supplier: variety.supplier,
+    price: variety.price,
+    notes: variety.notes,
+    yearsUsed: [],
+    plannedYears: variety.plannedYears || [],
+    seedsByYear: variety.seedsByYear || {},
+  }
+
+  return {
+    ...data,
+    varieties: [...(data.varieties || []), newVariety],
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Update an existing variety
+ */
+export function updateVariety(
+  data: AllotmentData,
+  id: string,
+  updates: VarietyUpdate
+): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v =>
+      v.id === id ? { ...v, ...updates } : v
+    ),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Remove a variety
+ */
+export function removeVariety(data: AllotmentData, id: string): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).filter(v => v.id !== id),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Toggle whether a variety is planned for a specific year
+ */
+export function togglePlannedYear(
+  data: AllotmentData,
+  varietyId: string,
+  year: number
+): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v => {
+      if (v.id !== varietyId) return v
+
+      const hasYear = v.plannedYears.includes(year)
+      return {
+        ...v,
+        plannedYears: hasYear
+          ? v.plannedYears.filter(y => y !== year)
+          : [...v.plannedYears, year].sort((a, b) => a - b),
+      }
+    }),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Cycle seed status for a variety in a specific year
+ * Cycles: none → ordered → have → none
+ */
+export function toggleHaveSeedsForYear(
+  data: AllotmentData,
+  varietyId: string,
+  year: number
+): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v => {
+      if (v.id !== varietyId) return v
+
+      const current = v.seedsByYear[year] || 'none'
+      const next: Record<SeedStatus, SeedStatus> = {
+        'none': 'ordered',
+        'ordered': 'have',
+        'have': 'none'
+      }
+      const nextState = next[current]
+
+      // Remove entry when cycling back to 'none'
+      if (nextState === 'none') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [year]: _, ...rest } = v.seedsByYear
+        return { ...v, seedsByYear: rest }
+      }
+
+      return {
+        ...v,
+        seedsByYear: { ...v.seedsByYear, [year]: nextState }
+      }
+    }),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Check if user has seeds for a variety in a specific year
+ */
+export function hasSeedsForYear(variety: StoredVariety, year: number): boolean {
+  return variety.seedsByYear?.[year] === 'have'
+}
+
+/**
+ * Get varieties planned or used for a specific year
+ */
+export function getVarietiesForYear(data: AllotmentData, year: number): StoredVariety[] {
+  return (data.varieties || []).filter(
+    v => v.yearsUsed.includes(year) || v.plannedYears.includes(year)
+  )
+}
+
+/**
+ * Get unique list of suppliers
+ */
+export function getSuppliers(data: AllotmentData): string[] {
+  const suppliers = (data.varieties || [])
+    .map(v => v.supplier)
+    .filter((s): s is string => s !== undefined)
+  return [...new Set(suppliers)].sort()
+}
+
+/**
+ * Calculate total spend for varieties used or planned in a specific year
+ */
+export function getTotalSpendForYear(data: AllotmentData, year: number): number {
+  return (data.varieties || [])
+    .filter(v =>
+      (v.yearsUsed.includes(year) || v.plannedYears.includes(year)) &&
+      v.price !== undefined
+    )
+    .reduce((sum, v) => sum + (v.price || 0), 0)
+}
+
+/**
+ * Get all years that have variety data (used or planned)
+ */
+export function getAvailableVarietyYears(data: AllotmentData): number[] {
+  const years = new Set<number>()
+  for (const v of data.varieties || []) {
+    v.yearsUsed.forEach(y => years.add(y))
+    v.plannedYears.forEach(y => years.add(y))
+  }
+  return [...years].sort((a, b) => b - a)
+}
+
+/**
+ * Get seed stats for a specific year
+ */
+export function getSeedsStatsForYear(
+  data: AllotmentData,
+  year: number
+): { total: number; have: number; ordered: number; none: number } {
+  const varieties = getVarietiesForYear(data, year)
+  let have = 0
+  let ordered = 0
+  let none = 0
+
+  for (const v of varieties) {
+    const status = v.seedsByYear[year] || 'none'
+    if (status === 'have') have++
+    else if (status === 'ordered') ordered++
+    else none++
+  }
+
+  return { total: varieties.length, have, ordered, none }
+}
+
+// ============ UNIFIED AREA CRUD OPERATIONS (v9) ============
+
+/**
+ * Add a new area to the unified areas array
+ */
+export function addArea(
+  data: AllotmentData,
+  area: Omit<Area, 'id'>
+): { data: AllotmentData; areaId: string } {
+  const id = generateId()
+  const newArea = { ...area, id } as Area
+
+  const areas = data.layout.areas || []
+
+  return {
+    data: {
+      ...data,
+      layout: {
+        ...data.layout,
+        areas: [...areas, newArea],
+      },
+    },
+    areaId: id,
+  }
+}
+
+/**
+ * Update an existing area
+ */
+export function updateArea(
+  data: AllotmentData,
+  areaId: string,
+  updates: Partial<Omit<Area, 'id' | 'type'>>
+): AllotmentData {
+  const areas = data.layout.areas || []
+  const areaIndex = areas.findIndex(a => a.id === areaId)
+
+  if (areaIndex === -1) {
+    return data
+  }
+
+  const updatedArea = { ...areas[areaIndex], ...updates }
+  const newAreas = [...areas]
+  newAreas[areaIndex] = updatedArea as Area
+
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      areas: newAreas,
+    },
+  }
+}
+
+/**
+ * Remove an area from the unified areas array
+ * Also removes any associated underplantings and permanent seasons
+ */
+export function removeArea(data: AllotmentData, areaId: string): AllotmentData {
+  const areas = data.layout.areas || []
+  const permanentUnderplantings = data.layout.permanentUnderplantings || []
+
+  // Remove underplantings that have this area as parent
+  const filteredUnderplantings = permanentUnderplantings.filter(
+    u => u.parentAreaId !== areaId
+  )
+
+  // Remove permanent seasons for this area from all seasons
+  const updatedSeasons = data.seasons.map(season => ({
+    ...season,
+    permanents: (season.permanents || []).filter(p => p.areaId !== areaId),
+  }))
+
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      areas: areas.filter(a => a.id !== areaId),
+      permanentUnderplantings: filteredUnderplantings,
+    },
+    seasons: updatedSeasons,
+  }
+}
+
+/**
+ * Convert an area to a different type
+ * Preserves common fields (id, name, description, gridPosition)
+ * Initializes type-specific fields with defaults
+ */
+export function convertAreaType(
+  data: AllotmentData,
+  areaId: string,
+  newType: Area['type'],
+  typeConfig?: Partial<BedArea | PermanentArea | InfrastructureArea>
+): AllotmentData {
+  const areas = data.layout.areas || []
+  const areaIndex = areas.findIndex(a => a.id === areaId)
+
+  if (areaIndex === -1) {
+    return data
+  }
+
+  const oldArea = areas[areaIndex]
+
+  // If already the same type, no change
+  if (oldArea.type === newType) {
+    return data
+  }
+
+  // Preserve common fields
+  const baseFields = {
+    id: oldArea.id,
+    name: oldArea.name,
+    description: oldArea.description,
+    gridPosition: oldArea.gridPosition,
+  }
+
+  let newArea: Area
+
+  switch (newType) {
+    case 'bed':
+      newArea = {
+        ...baseFields,
+        type: 'bed',
+        status: 'rotation',
+        rotationGroup: (typeConfig as Partial<BedArea>)?.rotationGroup,
+      } as BedArea
+      break
+    case 'permanent':
+      newArea = {
+        ...baseFields,
+        type: 'permanent',
+        plantingType: (typeConfig as Partial<PermanentArea>)?.plantingType || 'perennial-veg',
+        plantId: (typeConfig as Partial<PermanentArea>)?.plantId,
+        variety: (typeConfig as Partial<PermanentArea>)?.variety,
+        plantedYear: (typeConfig as Partial<PermanentArea>)?.plantedYear,
+      } as PermanentArea
+      break
+    case 'infrastructure':
+      newArea = {
+        ...baseFields,
+        type: 'infrastructure',
+        infrastructureType: (typeConfig as Partial<InfrastructureArea>)?.infrastructureType || 'other',
+      } as InfrastructureArea
+      break
+  }
+
+  const newAreas = [...areas]
+  newAreas[areaIndex] = newArea
+
+  // If converting to permanent, initialize permanent seasons for all years
+  let updatedSeasons = data.seasons
+  if (newType === 'permanent') {
+    updatedSeasons = data.seasons.map(season => {
+      const permanents = season.permanents || []
+      const existingPerm = permanents.find(p => p.areaId === areaId)
+      if (!existingPerm) {
+        return {
+          ...season,
+          permanents: [
+            ...permanents,
+            {
+              areaId,
+              careLogs: [],
+              underplantings: [],
+            },
+          ],
+        }
+      }
+      return season
+    })
+  }
+
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      areas: newAreas,
+    },
+    seasons: updatedSeasons,
+  }
+}
+
+// ============ UNDERPLANTING CRUD OPERATIONS ============
+
+/**
+ * Add a permanent underplanting (persists across years)
+ */
+export function addPermanentUnderplanting(
+  data: AllotmentData,
+  underplanting: NewPermanentUnderplanting
+): { data: AllotmentData; underplantingId: string } {
+  const id = generateId()
+  const newUnderplanting: PermanentUnderplanting = { ...underplanting, id }
+
+  const permanentUnderplantings = data.layout.permanentUnderplantings || []
+
+  return {
+    data: {
+      ...data,
+      layout: {
+        ...data.layout,
+        permanentUnderplantings: [...permanentUnderplantings, newUnderplanting],
+      },
+    },
+    underplantingId: id,
+  }
+}
+
+/**
+ * Update a permanent underplanting
+ */
+export function updatePermanentUnderplanting(
+  data: AllotmentData,
+  underplantingId: string,
+  updates: Partial<Omit<PermanentUnderplanting, 'id'>>
+): AllotmentData {
+  const permanentUnderplantings = data.layout.permanentUnderplantings || []
+  const index = permanentUnderplantings.findIndex(u => u.id === underplantingId)
+
+  if (index === -1) {
+    return data
+  }
+
+  const updated = { ...permanentUnderplantings[index], ...updates }
+  const newUnderplantings = [...permanentUnderplantings]
+  newUnderplantings[index] = updated
+
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      permanentUnderplantings: newUnderplantings,
+    },
+  }
+}
+
+/**
+ * Remove a permanent underplanting
+ */
+export function removePermanentUnderplanting(
+  data: AllotmentData,
+  underplantingId: string
+): AllotmentData {
+  const permanentUnderplantings = data.layout.permanentUnderplantings || []
+
+  return {
+    ...data,
+    layout: {
+      ...data.layout,
+      permanentUnderplantings: permanentUnderplantings.filter(u => u.id !== underplantingId),
+    },
+  }
+}
+
+/**
+ * Get permanent underplantings for a specific area
+ */
+export function getPermanentUnderplantingsForArea(
+  data: AllotmentData,
+  parentAreaId: string
+): PermanentUnderplanting[] {
+  return (data.layout.permanentUnderplantings || []).filter(
+    u => u.parentAreaId === parentAreaId
+  )
+}
+
+/**
+ * Add a seasonal underplanting (tracked per year)
+ */
+export function addSeasonalUnderplanting(
+  data: AllotmentData,
+  year: number,
+  parentAreaId: string,
+  planting: NewSeasonalUnderplanting
+): { data: AllotmentData; underplantingId: string } {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return { data, underplantingId: '' }
+  }
+
+  const id = generateId()
+  const newUnderplanting: SeasonalUnderplanting = {
+    ...planting,
+    id,
+    parentAreaId,
+  }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === parentAreaId)
+
+  let updatedPermanents: PermanentSeason[]
+
+  if (permIndex === -1) {
+    // Create new permanent season entry
+    updatedPermanents = [
+      ...permanents,
+      {
+        areaId: parentAreaId,
+        careLogs: [],
+        underplantings: [newUnderplanting],
+      },
+    ]
+  } else {
+    // Add to existing permanent season
+    updatedPermanents = [...permanents]
+    updatedPermanents[permIndex] = {
+      ...permanents[permIndex],
+      underplantings: [...permanents[permIndex].underplantings, newUnderplanting],
+    }
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    data: {
+      ...data,
+      seasons: updatedSeasons,
+    },
+    underplantingId: id,
+  }
+}
+
+/**
+ * Remove a seasonal underplanting
+ */
+export function removeSeasonalUnderplanting(
+  data: AllotmentData,
+  year: number,
+  parentAreaId: string,
+  underplantingId: string
+): AllotmentData {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return data
+  }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === parentAreaId)
+
+  if (permIndex === -1) {
+    return data
+  }
+
+  const updatedPermanents = [...permanents]
+  updatedPermanents[permIndex] = {
+    ...permanents[permIndex],
+    underplantings: permanents[permIndex].underplantings.filter(
+      u => u.id !== underplantingId
+    ),
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    ...data,
+    seasons: updatedSeasons,
+  }
+}
+
+/**
+ * Get seasonal underplantings for an area in a specific year
+ */
+export function getSeasonalUnderplantingsForArea(
+  data: AllotmentData,
+  year: number,
+  parentAreaId: string
+): SeasonalUnderplanting[] {
+  const season = data.seasons.find(s => s.year === year)
+  if (!season) return []
+
+  const permSeason = (season.permanents || []).find(p => p.areaId === parentAreaId)
+  return permSeason?.underplantings || []
+}
+
+// ============ CARE LOG CRUD OPERATIONS ============
+
+/**
+ * Add a care log entry for a permanent area
+ */
+export function addCareLogEntry(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  entry: NewCareLogEntry
+): { data: AllotmentData; entryId: string } {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return { data, entryId: '' }
+  }
+
+  const id = generateId()
+  const newEntry: CareLogEntry = { ...entry, id }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === areaId)
+
+  let updatedPermanents: PermanentSeason[]
+
+  if (permIndex === -1) {
+    // Create new permanent season entry
+    updatedPermanents = [
+      ...permanents,
+      {
+        areaId,
+        careLogs: [newEntry],
+        underplantings: [],
+      },
+    ]
+  } else {
+    // Add to existing permanent season
+    updatedPermanents = [...permanents]
+    updatedPermanents[permIndex] = {
+      ...permanents[permIndex],
+      careLogs: [...permanents[permIndex].careLogs, newEntry],
+    }
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    data: {
+      ...data,
+      seasons: updatedSeasons,
+    },
+    entryId: id,
+  }
+}
+
+/**
+ * Update a care log entry
+ */
+export function updateCareLogEntry(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  entryId: string,
+  updates: Partial<Omit<CareLogEntry, 'id'>>
+): AllotmentData {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return data
+  }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === areaId)
+
+  if (permIndex === -1) {
+    return data
+  }
+
+  const careLogs = permanents[permIndex].careLogs
+  const logIndex = careLogs.findIndex(l => l.id === entryId)
+
+  if (logIndex === -1) {
+    return data
+  }
+
+  const updatedLogs = [...careLogs]
+  updatedLogs[logIndex] = { ...careLogs[logIndex], ...updates }
+
+  const updatedPermanents = [...permanents]
+  updatedPermanents[permIndex] = {
+    ...permanents[permIndex],
+    careLogs: updatedLogs,
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    ...data,
+    seasons: updatedSeasons,
+  }
+}
+
+/**
+ * Remove a care log entry
+ */
+export function removeCareLogEntry(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  entryId: string
+): AllotmentData {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return data
+  }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === areaId)
+
+  if (permIndex === -1) {
+    return data
+  }
+
+  const updatedPermanents = [...permanents]
+  updatedPermanents[permIndex] = {
+    ...permanents[permIndex],
+    careLogs: permanents[permIndex].careLogs.filter(l => l.id !== entryId),
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    ...data,
+    seasons: updatedSeasons,
+  }
+}
+
+/**
+ * Get care logs for an area in a specific year
+ */
+export function getCareLogsForArea(
+  data: AllotmentData,
+  year: number,
+  areaId: string
+): CareLogEntry[] {
+  const season = data.seasons.find(s => s.year === year)
+  if (!season) return []
+
+  const permSeason = (season.permanents || []).find(p => p.areaId === areaId)
+  return permSeason?.careLogs || []
+}
+
+/**
+ * Get all care logs for an area across all years
+ */
+export function getAllCareLogsForArea(
+  data: AllotmentData,
+  areaId: string
+): Array<{ year: number; entry: CareLogEntry }> {
+  const result: Array<{ year: number; entry: CareLogEntry }> = []
+
+  for (const season of data.seasons) {
+    const permSeason = (season.permanents || []).find(p => p.areaId === areaId)
+    if (permSeason) {
+      for (const entry of permSeason.careLogs) {
+        result.push({ year: season.year, entry })
+      }
+    }
+  }
+
+  return result.sort((a, b) => new Date(b.entry.date).getTime() - new Date(a.entry.date).getTime())
+}
+
+/**
+ * Log a harvest for a permanent area (convenience function)
+ */
+export function logHarvest(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  quantity: number,
+  unit: string,
+  date?: string
+): { data: AllotmentData; entryId: string } {
+  return addCareLogEntry(data, year, areaId, {
+    type: 'harvest',
+    date: date || new Date().toISOString().split('T')[0],
+    quantity,
+    unit,
+  })
+}
+
+/**
+ * Get total harvest for an area in a specific year
+ */
+export function getHarvestTotal(
+  data: AllotmentData,
+  year: number,
+  areaId: string
+): { quantity: number; unit: string } | null {
+  const careLogs = getCareLogsForArea(data, year, areaId)
+  const harvests = careLogs.filter(l => l.type === 'harvest' && l.quantity !== undefined)
+
+  if (harvests.length === 0) {
+    return null
+  }
+
+  // Assume all harvests use the same unit (use first unit found)
+  const unit = harvests[0].unit || 'units'
+  const total = harvests.reduce((sum, h) => sum + (h.quantity || 0), 0)
+
+  return { quantity: total, unit }
+}
+
+/**
+ * Update season notes for a permanent area
+ */
+export function updatePermanentSeasonNotes(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  notes: string
+): AllotmentData {
+  const seasonIndex = data.seasons.findIndex(s => s.year === year)
+
+  if (seasonIndex === -1) {
+    return data
+  }
+
+  const season = data.seasons[seasonIndex]
+  const permanents = season.permanents || []
+  const permIndex = permanents.findIndex(p => p.areaId === areaId)
+
+  let updatedPermanents: PermanentSeason[]
+
+  if (permIndex === -1) {
+    updatedPermanents = [
+      ...permanents,
+      {
+        areaId,
+        careLogs: [],
+        underplantings: [],
+        seasonNotes: notes,
+      },
+    ]
+  } else {
+    updatedPermanents = [...permanents]
+    updatedPermanents[permIndex] = {
+      ...permanents[permIndex],
+      seasonNotes: notes,
+    }
+  }
+
+  const updatedSeasons = [...data.seasons]
+  updatedSeasons[seasonIndex] = {
+    ...season,
+    permanents: updatedPermanents,
+  }
+
+  return {
+    ...data,
+    seasons: updatedSeasons,
+  }
+}
+
+/**
+ * Get the permanent season record for an area in a specific year
+ */
+export function getPermanentSeason(
+  data: AllotmentData,
+  year: number,
+  areaId: string
+): PermanentSeason | undefined {
+  const season = data.seasons.find(s => s.year === year)
+  if (!season) return undefined
+
+  return (season.permanents || []).find(p => p.areaId === areaId)
 }
 
