@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Map,
-  Sprout,
   History,
   AlertTriangle,
   Leaf,
@@ -15,7 +14,6 @@ import {
   TreeDeciduous,
   Users
 } from 'lucide-react'
-import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
@@ -26,27 +24,19 @@ import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import DataManagement from '@/components/allotment/DataManagement'
 import SaveIndicator from '@/components/ui/SaveIndicator'
-import BedNotes from '@/components/allotment/BedNotes'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
-import PlantingCard from '@/components/allotment/PlantingCard'
+import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
 
-// Helper to get rotation info for a bed
-function getRotationIndicator(
+// Helper to get previous year's rotation group for a bed
+function getPreviousYearRotationGroup(
   bedId: PhysicalBedId,
   currentYear: number,
   seasons: { year: number; beds: { bedId: PhysicalBedId; rotationGroup: RotationGroup }[] }[]
-): { lastYear: RotationGroup; suggested: RotationGroup } | null {
-  // Find last year's rotation group from seasons
+): RotationGroup | null {
   const lastYearSeason = seasons.find(s => s.year === currentYear - 1)
   const lastYearBed = lastYearSeason?.beds.find(b => b.bedId === bedId)
-
-  if (!lastYearBed?.rotationGroup) return null
-
-  const lastYear = lastYearBed.rotationGroup
-  const suggested = getNextRotationGroup(lastYear)
-
-  return { lastYear, suggested }
+  return lastYearBed?.rotationGroup || null
 }
 
 export default function AllotmentPage() {
@@ -55,12 +45,13 @@ export default function AllotmentPage() {
     currentSeason,
     selectedYear,
     selectedBedId,
+    selectedItemRef,
     isLoading,
     saveError,
     isSyncedFromOtherTab,
     selectYear,
     getYears,
-    selectBed,
+    selectItem,
     getBed,
     getBedSeason,
     getPlantings,
@@ -80,6 +71,8 @@ export default function AllotmentPage() {
     updateBedNote,
     removeBedNote,
     updateRotationGroup,
+    getPermanentPlanting,
+    getInfrastructureItem,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -94,13 +87,19 @@ export default function AllotmentPage() {
   // Check if we can add 2024 as a historical year
   const canCreate2024 = !availableYears.includes(2024)
 
-  // Get bed data
-  const selectedBedData = selectedBedId ? getBed(selectedBedId) : null
-  const selectedBedSeason = selectedBedId ? getBedSeason(selectedBedId) : null
   const selectedPlantings = selectedBedId ? getPlantings(selectedBedId) : []
-  const selectedBedNotes = selectedBedId ? getBedNotes(selectedBedId) : []
-  const allBeds = data?.layout.beds || []
-  const permanentPlantingsCount = data?.layout.permanentPlantings.length || 0
+
+  // Quick stats for empty state
+  const quickStats = useMemo(() => ({
+    rotationBeds: getRotationBeds().length,
+    perennialBeds: getPerennialBeds().length,
+    permanentPlantings: data?.layout.permanentPlantings.length || 0,
+  }), [getRotationBeds, getPerennialBeds, data?.layout.permanentPlantings.length])
+
+  // Helper to get previous year rotation for current bed
+  const getPreviousRotation = useCallback((bedId: PhysicalBedId): RotationGroup | null => {
+    return getPreviousYearRotationGroup(bedId, selectedYear, data?.seasons || [])
+  }, [selectedYear, data?.seasons])
 
   // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
   const autoRotateInfo = useMemo(() => {
@@ -371,224 +370,36 @@ export default function AllotmentPage() {
 
               {/* Draggable Grid Layout */}
               <AllotmentGrid
-                onBedSelect={(bedId) => selectBed(bedId as PhysicalBedId)}
-                selectedBed={selectedBedId}
+                onItemSelect={selectItem}
+                selectedItemRef={selectedItemRef}
                 getPlantingsForBed={getPlantings}
               />
             </div>
           </div>
 
-          {/* Sidebar - Bed Details */}
+          {/* Sidebar - Item Details */}
           <div className="lg:col-span-1">
-            {selectedBedData ? (
-              <div className="zen-card p-6 sticky top-20">
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="w-12 h-12 rounded-zen-lg flex items-center justify-center text-white text-xl font-bold"
-                    style={{ backgroundColor: BED_COLORS[selectedBedId!] }}
-                  >
-                    {selectedBedId?.replace('-prime', "'")}
-                  </div>
-                  <div>
-                    <h3 className="font-display text-zen-ink-800">{selectedBedData.name}</h3>
-                    <div className={`text-xs flex items-center gap-1 ${
-                      selectedBedData.status === 'perennial' ? 'text-zen-sakura-600' :
-                      'text-zen-moss-600'
-                    }`}>
-                      {selectedBedData.status === 'perennial' && <Leaf className="w-3 h-3" />}
-                      {selectedBedData.status === 'perennial' ? 'Perennial' :
-                       selectedBedSeason?.rotationGroup || 'Rotation'}
-                    </div>
-                  </div>
-                </div>
+            <ItemDetailSwitcher
+              selectedItemRef={selectedItemRef}
+              getBed={getBed}
+              getBedSeason={getBedSeason}
+              getPlantings={getPlantings}
+              getBedNotes={getBedNotes}
+              getPermanentPlanting={getPermanentPlanting}
+              getInfrastructureItem={getInfrastructureItem}
+              getPreviousYearRotation={getPreviousRotation}
+              selectedYear={selectedYear}
+              onAddPlanting={() => setShowAddDialog(true)}
+              onDeletePlanting={handleDeletePlanting}
+              onUpdateSuccess={handleUpdateSuccess}
+              onAddNote={(note) => selectedBedId && addBedNote(selectedBedId, note)}
+              onUpdateNote={(noteId, updates) => selectedBedId && updateBedNote(selectedBedId, noteId, updates)}
+              onRemoveNote={(noteId) => selectedBedId && removeBedNote(selectedBedId, noteId)}
+              onUpdateRotation={(group) => selectedBedId && updateRotationGroup(selectedBedId, group)}
+              onAutoRotate={() => setShowAutoRotateDialog(true)}
+              quickStats={quickStats}
+            />
 
-                {/* Rotation Type Selector - for all beds */}
-                <div className="mb-4">
-                  <label htmlFor="rotation-type" className="block text-xs font-medium text-zen-stone-500 mb-1">
-                    Rotation Type
-                  </label>
-                  <select
-                    id="rotation-type"
-                    value={selectedBedSeason?.rotationGroup || ''}
-                    onChange={(e) => updateRotationGroup(selectedBedId!, e.target.value as RotationGroup)}
-                    className="zen-select text-sm"
-                  >
-                    <option value="">Not specified</option>
-                    <option value="legumes">🫘 Legumes</option>
-                    <option value="brassicas">🥦 Brassicas</option>
-                    <option value="roots">🥕 Roots</option>
-                    <option value="solanaceae">🍅 Solanaceae</option>
-                    <option value="alliums">🧅 Alliums</option>
-                    <option value="cucurbits">🎃 Cucurbits</option>
-                    <option value="permanent">🌿 Permanent</option>
-                  </select>
-                </div>
-
-                {/* Rotation Indicator for rotation beds */}
-                {selectedBedData.status === 'rotation' && (() => {
-                  const rotationInfo = getRotationIndicator(
-                    selectedBedId!,
-                    selectedYear,
-                    data?.seasons || []
-                  )
-                  if (!rotationInfo) return null
-                  const lastDisplay = ROTATION_GROUP_DISPLAY[rotationInfo.lastYear]
-                  const nextDisplay = ROTATION_GROUP_DISPLAY[rotationInfo.suggested]
-                  // Get suggested vegetables for this rotation group (Spike 2)
-                  const suggestedVegIds = getVegetablesForRotationGroup(rotationInfo.suggested)
-                  const suggestedVegNames = suggestedVegIds
-                    .slice(0, 4)
-                    .map(id => getVegetableById(id)?.name)
-                    .filter(Boolean)
-                  return (
-                    <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3 mb-4">
-                      <div className="text-xs text-zen-kitsune-700 font-medium mb-1">Rotation Guide</div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="flex items-center gap-1">
-                          <span>{lastDisplay?.emoji}</span>
-                          <span className="text-zen-stone-600">{selectedYear - 1}: {lastDisplay?.name}</span>
-                        </span>
-                        <ArrowRight className="w-4 h-4 text-zen-kitsune-500" />
-                        <span className="flex items-center gap-1 font-medium text-zen-kitsune-700">
-                          <span>{nextDisplay?.emoji}</span>
-                          <span>{selectedYear}: {nextDisplay?.name}</span>
-                        </span>
-                      </div>
-                      {/* Suggested vegetables (Spike 2) */}
-                      {suggestedVegNames.length > 0 && (
-                        <div className="text-xs text-zen-stone-500 mt-2">
-                          Consider: {suggestedVegNames.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()}
-
-                <p className="text-sm text-zen-stone-600 mb-4">{selectedBedData.description}</p>
-
-                {/* Bed Note for this year */}
-                <div className="mb-4">
-                  <BedNotes
-                    notes={selectedBedNotes}
-                    onAdd={(note) => addBedNote(selectedBedId!, note)}
-                    onUpdate={(noteId, updates) => updateBedNote(selectedBedId!, noteId, updates)}
-                    onRemove={(noteId) => removeBedNote(selectedBedId!, noteId)}
-                  />
-                </div>
-
-                {/* Plantings section with Add button */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-zen-ink-700 flex items-center gap-2">
-                      <Sprout className="w-4 h-4 text-zen-moss-600" />
-                      {selectedYear} Plantings
-                    </h4>
-                    <div className="flex items-center gap-1">
-                      {autoRotateInfo && (
-                        <button
-                          onClick={() => setShowAutoRotateDialog(true)}
-                          className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
-                          title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
-                        >
-                          <ArrowRight className="w-3 h-3" />
-                          Auto-rotate
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setShowAddDialog(true)}
-                        className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add
-                      </button>
-                    </div>
-                  </div>
-
-                  {selectedPlantings.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedPlantings.map(p => (
-                        <PlantingCard
-                          key={p.id}
-                          planting={p}
-                          onDelete={() => handleDeletePlanting(p.id)}
-                          onUpdateSuccess={(success) => handleUpdateSuccess(p.id, success)}
-                          otherPlantings={selectedPlantings}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-zen-stone-400 italic">
-                      No plantings recorded. Click Add to start planning.
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="zen-card p-6 sticky top-20">
-                <div className="text-center text-zen-stone-400">
-                  <Map className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="font-medium text-zen-ink-600">Select a bed</p>
-                  <p className="text-sm">Click on any bed in the layout to see its details and manage plantings</p>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="mt-6 pt-6 border-t border-zen-stone-100">
-                  <h4 className="font-medium text-zen-ink-700 mb-3">Quick Stats</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-zen-moss-50 rounded-zen p-3 text-center">
-                      <div className="text-2xl font-bold text-zen-moss-600">
-                        {getRotationBeds().length}
-                      </div>
-                      <div className="text-xs text-zen-moss-700">Rotation Beds</div>
-                    </div>
-                    <div className="bg-zen-sakura-50 rounded-zen p-3 text-center">
-                      <div className="text-2xl font-bold text-zen-sakura-600">
-                        {getPerennialBeds().length}
-                      </div>
-                      <div className="text-xs text-zen-sakura-700">Perennials</div>
-                    </div>
-                    <div className="bg-zen-kitsune-50 rounded-zen p-3 text-center">
-                      <div className="text-2xl font-bold text-zen-kitsune-600">
-                        {permanentPlantingsCount}
-                      </div>
-                      <div className="text-xs text-zen-kitsune-700">Permanent</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Bed Legend */}
-            <div className="zen-card p-6 mt-4">
-              <h4 className="font-medium text-zen-ink-700 mb-3">All Beds</h4>
-              <div className="space-y-2">
-                {allBeds.map(bed => (
-                  <button
-                    key={bed.id}
-                    onClick={() => selectBed(bed.id)}
-                    className={`w-full flex items-center gap-2 p-2 rounded-zen transition hover:bg-zen-stone-50 ${
-                      selectedBedId === bed.id ? 'bg-zen-stone-100' : ''
-                    }`}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-zen flex items-center justify-center text-white text-xs font-bold shrink-0"
-                      style={{ backgroundColor: BED_COLORS[bed.id] }}
-                    >
-                      {bed.id.replace('-prime', "'")}
-                    </div>
-                    <div className="text-left min-w-0">
-                      <div className="font-medium text-zen-ink-700 text-sm truncate">{bed.name}</div>
-                      <div className={`text-xs ${
-                        bed.status === 'perennial' ? 'text-zen-sakura-600' :
-                        'text-zen-stone-500'
-                      }`}>
-                        {bed.rotationGroup || bed.status}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </main>
@@ -629,7 +440,10 @@ export default function AllotmentPage() {
       />
 
       {/* Auto-rotate Dialog */}
-      {autoRotateInfo && selectedBedData && (() => {
+      {autoRotateInfo && selectedBedId && (() => {
+        const bedData = getBed(selectedBedId)
+        if (!bedData) return null
+
         const previousDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]
         const suggestedDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]
         const suggestedVegNames = autoRotateInfo.suggestedVegetables
@@ -642,7 +456,7 @@ export default function AllotmentPage() {
             isOpen={showAutoRotateDialog}
             onClose={() => setShowAutoRotateDialog(false)}
             title="Auto-rotate Bed for Soil Health"
-            description={`Rotate ${selectedBedData.name} to maintain healthy soil and prevent disease buildup.`}
+            description={`Rotate ${bedData.name} to maintain healthy soil and prevent disease buildup.`}
           >
             <div className="space-y-4">
               {/* Rotation Flow */}
