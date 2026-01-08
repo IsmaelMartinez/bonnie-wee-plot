@@ -2,18 +2,18 @@
 
 import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
-import { PhysicalBedId, RotationGroup, RotationPlan, PhysicalBed } from '@/types/garden-planner'
-import { SeasonRecord } from '@/types/unified-allotment'
+import { PhysicalBedId, RotationPlan, RotationGroup } from '@/types/garden-planner'
+import { SeasonRecord, BedArea } from '@/types/unified-allotment'
 
 interface RotationTimelineProps {
   availableYears: number[]
   seasons: SeasonRecord[]
-  beds: PhysicalBed[]
+  beds: BedArea[]
   plan2026: RotationPlan
 }
 
 // Get bed status info
-function getBedStatusInfo(bedId: PhysicalBedId, beds: PhysicalBed[]) {
+function getBedStatusInfo(bedId: PhysicalBedId, beds: BedArea[]) {
   const bed = beds.find(b => b.id === bedId)
   if (!bed) return null
 
@@ -48,14 +48,14 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
           <tbody>
             {allBedIds.map(bedId => {
               const bed = beds.find(b => b.id === bedId)
-              const statusInfo = getBedStatusInfo(bedId, beds)
+              const statusInfo = getBedStatusInfo(bedId as PhysicalBedId, beds)
 
               return (
                 <tr key={bedId} className="border-b border-zen-stone-100 last:border-0">
                   <td className="py-2 px-3">
                     <span
                       className="inline-block px-2 py-1 rounded text-white text-center text-xs font-medium"
-                      style={{ backgroundColor: BED_COLORS[bedId] }}
+                      style={{ backgroundColor: BED_COLORS[bedId as PhysicalBedId] }}
                     >
                       {bedId}
                     </span>

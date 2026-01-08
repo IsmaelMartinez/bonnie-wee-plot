@@ -20,7 +20,7 @@ import {
 import GuideCTA from '@/components/GuideCTA'
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
-import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
+import { getVegetableById, getMaintenanceForMonth, getMaintenanceForPlantIds, type MaintenanceTask } from '@/lib/vegetable-database'
 import {
   scotlandMonthlyCalendar,
   MONTH_KEYS,
@@ -29,7 +29,7 @@ import {
 } from '@/data/scotland-calendar'
 import { BED_COLORS, getBedById } from '@/data/allotment-layout'
 import { PhysicalBedId } from '@/types/garden-planner'
-import { Scissors, Droplet, TreeDeciduous } from 'lucide-react'
+import { Scissors, Droplet, TreeDeciduous, Layers } from 'lucide-react'
 
 // Month selector button component
 function MonthButton({
@@ -174,7 +174,7 @@ export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
   
   // Load allotment data for personalization
-  const { data: allotmentData, currentSeason, selectedYear, isLoading } = useAllotment()
+  const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreas } = useAllotment()
   
   // Auto-select current month on page load
   useEffect(() => {
@@ -189,6 +189,23 @@ export default function ThisMonthPage() {
     const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
     return getMaintenanceForMonth(monthIndex)
   }, [selectedMonth])
+
+  // Get personalized maintenance for user's permanent plantings (trees, berries, perennials)
+  const personalizedMaintenance = useMemo(() => {
+    const permanentAreas = getAreas('permanent')
+    if (permanentAreas.length === 0) return { tasks: [], plantings: [] }
+
+    const plantIds = permanentAreas
+      .filter(p => p.plantId)
+      .map(p => p.plantId as string)
+
+    if (plantIds.length === 0) return { tasks: [], plantings: permanentAreas }
+
+    const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
+    const tasks = getMaintenanceForPlantIds(plantIds, monthIndex)
+
+    return { tasks, plantings: permanentAreas }
+  }, [getAreas, selectedMonth])
   
   // Get personalized tasks based on user's plantings
   const personalizedData = useMemo(() => {
@@ -484,15 +501,65 @@ export default function ThisMonthPage() {
           </div>
         </div>
         
-        {/* Trees & Shrubs Maintenance Section */}
+        {/* Personalized Trees & Perennials Maintenance */}
+        {!isLoading && personalizedMaintenance.plantings.length > 0 && (
+          <div className="zen-card p-6 mb-8 border-zen-sakura-200 bg-zen-sakura-50/30">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <TreeDeciduous className="w-5 h-5 text-zen-sakura-600 mr-2" />
+                <h3 className="font-display text-zen-ink-800">Your Trees & Perennials</h3>
+              </div>
+              <Link
+                href="/allotment"
+                className="text-sm text-zen-sakura-600 hover:text-zen-sakura-700"
+              >
+                View in Allotment →
+              </Link>
+            </div>
+
+            {/* List user's permanent plantings */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {personalizedMaintenance.plantings.map((planting) => (
+                <span
+                  key={planting.id}
+                  className="inline-flex items-center px-2 py-1 rounded-zen bg-white/70 border border-zen-sakura-200 text-sm text-zen-ink-700"
+                >
+                  {planting.plantingType === 'fruit-tree' && '🌳'}
+                  {planting.plantingType === 'berry' && '🫐'}
+                  {planting.plantingType === 'perennial-veg' && '🥬'}
+                  {planting.plantingType === 'herb' && '🌿'}
+                  <span className="ml-1">{planting.name}</span>
+                </span>
+              ))}
+            </div>
+
+            {/* Personalized maintenance tasks */}
+            {personalizedMaintenance.tasks.length > 0 ? (
+              <div>
+                <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Tasks for {data.month}</h4>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {personalizedMaintenance.tasks.map((task, index) => (
+                    <MaintenanceCard key={`personal-${task.vegetable.id}-${task.type}-${index}`} task={task} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-zen-stone-500 italic">
+                No specific maintenance tasks for your trees and perennials this month.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Generic Trees & Shrubs Maintenance Section */}
         {maintenanceTasks.length > 0 && (
           <div className="zen-card p-6 mb-8">
             <div className="flex items-center mb-4">
               <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
-              <h3 className="font-display text-zen-ink-800">Trees & Perennials Care</h3>
+              <h3 className="font-display text-zen-ink-800">All Trees & Perennials Care</h3>
             </div>
             <p className="text-zen-stone-600 text-sm mb-4">
-              Maintenance tasks for your fruit trees, berry bushes, and perennials this month.
+              General maintenance tasks for fruit trees, berry bushes, and perennials this month.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {maintenanceTasks.map((task, index) => (
@@ -501,6 +568,22 @@ export default function ThisMonthPage() {
             </div>
           </div>
         )}
+
+        {/* Soil Care - Featured Section */}
+        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-zen-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <Layers className="w-6 h-6 text-amber-700" />
+            </div>
+            <div>
+              <h3 className="font-display text-zen-ink-800 mb-2">Soil Care</h3>
+              <p className="text-amber-900 leading-relaxed">{data.soilCare}</p>
+              <p className="text-xs text-amber-700 mt-3 italic">
+                Healthy soil grows healthy plants. Feed the soil, and it feeds you.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Specialization Tips */}
         <div className="mb-8">

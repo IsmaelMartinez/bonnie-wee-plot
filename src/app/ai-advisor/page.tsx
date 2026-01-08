@@ -51,7 +51,7 @@ export default function AIAdvisorPage() {
   const { token, saveToken, clearToken } = useApiToken()
   
   // Load allotment data for context
-  const { data: allotmentData, currentSeason, selectedYear } = useAllotment()
+  const { data: allotmentData, currentSeason, selectedYear, getAreas } = useAllotment()
   
   // Build allotment context string for AI
   const allotmentContext = useMemo(() => {
@@ -86,15 +86,17 @@ export default function AIAdvisorPage() {
       lines.push('')
     }
 
-    // Layout summary
-    const rotationBeds = allotmentData.layout.beds.filter(b => b.status === 'rotation')
-    const perennialBeds = allotmentData.layout.beds.filter(b => b.status === 'perennial')
+    // Layout summary - using Areas system
+    const bedAreas = getAreas('bed')
+    const rotationBeds = bedAreas.filter(b => b.status === 'rotation')
+    const perennialBeds = bedAreas.filter(b => b.status === 'perennial')
+    const permanentAreas = getAreas('permanent')
 
     lines.push(`LAYOUT: ${rotationBeds.length} rotation beds, ${perennialBeds.length} perennial areas`)
-    lines.push(`PERMANENT PLANTINGS: ${allotmentData.layout.permanentPlantings.map(p => p.name).join(', ')}`)
-    
+    lines.push(`PERMANENT PLANTINGS: ${permanentAreas.map(p => p.name).join(', ')}`)
+
     return lines.join('\n')
-  }, [allotmentData, currentSeason, selectedYear])
+  }, [allotmentData, currentSeason, selectedYear, getAreas])
 
   // Update rate limit state
   const updateRateLimitState = useCallback(() => {

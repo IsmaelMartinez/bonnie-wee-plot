@@ -25,10 +25,18 @@ function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): Allot
       updatedAt: '2025-01-01T00:00:00.000Z',
     },
     layout: {
+      areas: [
+        { id: 'A', type: 'bed', name: 'Bed A', status: 'rotation', rotationGroup: 'legumes', gridPosition: { startRow: 0, startCol: 0, endRow: 1, endCol: 1 }, description: 'Test bed' },
+        { id: 'test-tree', type: 'permanent', name: 'Test Tree', plantingType: 'fruit-tree', plantId: 'apple-tree', gridPosition: { startRow: 0, startCol: 0, endRow: 0, endCol: 0 } },
+      ],
+      permanentUnderplantings: [],
+      // Legacy arrays for backward compatibility
       beds: [
         { id: 'A', name: 'Bed A', status: 'rotation', rotationGroup: 'legumes', gridPosition: { startRow: 0, startCol: 0, endRow: 1, endCol: 1 }, description: 'Test bed' },
       ],
-      permanentPlantings: [],
+      permanentPlantings: [
+        { id: 'test-tree', name: 'Test Tree', type: 'fruit-tree', plantId: 'apple-tree', gridPosition: { row: 0, col: 0 } },
+      ],
       infrastructure: [],
     },
     seasons: [
@@ -36,10 +44,12 @@ function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): Allot
         year: 2025,
         status: 'current',
         beds: [{ bedId: 'A', rotationGroup: 'brassicas', plantings: [] }],
+        permanents: [{ areaId: 'test-tree', careLogs: [], underplantings: [] }],
         createdAt: '2025-01-01T00:00:00.000Z',
         updatedAt: '2025-01-01T00:00:00.000Z',
       },
     ],
+    varieties: [],
     ...overrides,
   }
 }
@@ -146,16 +156,20 @@ describe('Data Repair', () => {
       version: 1,
       currentYear: 2025,
       meta: { name: 'Test' },
-      layout: { beds: [] },
+      layout: { beds: [] }, // Missing areas, permanentUnderplantings, and other fields
       seasons: []
     }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithPartialLayout))
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(true)
+    // Legacy arrays should be defaulted
     expect(result.data?.layout.permanentPlantings).toEqual([])
     expect(result.data?.layout.infrastructure).toEqual([])
+    // Required v9+ fields should be populated
+    expect(result.data?.layout.areas).toBeDefined()
+    expect(result.data?.layout.permanentUnderplantings).toBeDefined()
   })
 
   it('repairs invalid seasons array with empty array', () => {

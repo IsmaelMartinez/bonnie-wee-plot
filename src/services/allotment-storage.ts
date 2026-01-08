@@ -91,19 +91,62 @@ export function validateAllotmentData(data: unknown): ValidationResult {
     }
   }
   
-  // Validate layout
+  // Validate layout - accepts EITHER legacy arrays OR unified areas array
   if (!obj.layout || typeof obj.layout !== 'object') {
     errors.push('Missing or invalid "layout" field (expected object)')
   } else {
     const layout = obj.layout as Record<string, unknown>
-    if (!Array.isArray(layout.beds)) {
-      errors.push('Missing or invalid "layout.beds" field (expected array)')
+    const hasLegacyArrays = Array.isArray(layout.beds) &&
+                           Array.isArray(layout.permanentPlantings) &&
+                           Array.isArray(layout.infrastructure)
+    const hasAreasArray = Array.isArray(layout.areas) && (layout.areas as unknown[]).length > 0
+
+    // Must have at least one of: legacy arrays OR areas array
+    if (!hasLegacyArrays && !hasAreasArray) {
+      errors.push('Layout must have either legacy arrays (beds, permanentPlantings, infrastructure) or unified "areas" array')
     }
-    if (!Array.isArray(layout.permanentPlantings)) {
-      errors.push('Missing or invalid "layout.permanentPlantings" field (expected array)')
-    }
-    if (!Array.isArray(layout.infrastructure)) {
-      errors.push('Missing or invalid "layout.infrastructure" field (expected array)')
+
+    // Validate areas array if present
+    if (hasAreasArray) {
+      const areas = layout.areas as unknown[]
+      const seenIds = new Set<string>()
+      areas.forEach((area, index) => {
+        if (!area || typeof area !== 'object') {
+          errors.push(`Area at index ${index} is not an object`)
+          return
+        }
+        const a = area as Record<string, unknown>
+
+        // Validate required fields
+        if (typeof a.id !== 'string') {
+          errors.push(`Area at index ${index}: missing or invalid "id" field`)
+        } else {
+          if (seenIds.has(a.id)) {
+            errors.push(`Area at index ${index}: duplicate id "${a.id}"`)
+          }
+          seenIds.add(a.id)
+        }
+
+        if (!['bed', 'permanent', 'infrastructure'].includes(a.type as string)) {
+          errors.push(`Area at index ${index}: invalid "type" field (expected bed, permanent, or infrastructure)`)
+        }
+
+        if (typeof a.name !== 'string') {
+          errors.push(`Area at index ${index}: missing or invalid "name" field`)
+        }
+
+        // Type-specific validation
+        if (a.type === 'bed') {
+          if (!['rotation', 'perennial'].includes(a.status as string)) {
+            errors.push(`Area at index ${index}: bed must have valid "status" (rotation or perennial)`)
+          }
+        }
+        if (a.type === 'permanent') {
+          if (!['fruit-tree', 'berry', 'perennial-veg', 'herb'].includes(a.plantingType as string)) {
+            errors.push(`Area at index ${index}: permanent area must have valid "plantingType"`)
+          }
+        }
+      })
     }
   }
   
@@ -133,13 +176,18 @@ export function validateAllotmentData(data: unknown): ValidationResult {
 /**
  * Attempt to repair common data issues
  * Returns repaired data or null if unrepairable
+ * Supports dual-mode: accepts data with legacy arrays OR areas array
  */
 function attemptDataRepair(data: unknown): AllotmentData | null {
   if (!data || typeof data !== 'object') return null
-  
+
   const obj = data as Record<string, unknown>
-  
+
   try {
+    // Check if layout has areas or legacy arrays
+    const layout = obj.layout && typeof obj.layout === 'object' ? obj.layout as Record<string, unknown> : {}
+    const hasAreas = Array.isArray(layout.areas) && (layout.areas as unknown[]).length > 0
+
     // Ensure required fields have defaults
     const repaired: AllotmentData = {
       version: typeof obj.version === 'number' ? obj.version : CURRENT_SCHEMA_VERSION,
@@ -152,22 +200,30 @@ function attemptDataRepair(data: unknown): AllotmentData | null {
         ...(obj.meta && typeof obj.meta === 'object' ? obj.meta as object : {}),
       },
       layout: {
+        // v9+ requires areas and permanentUnderplantings
+        areas: [],
+        permanentUnderplantings: [],
+        // Legacy arrays must all be present for backward compatibility validation
         beds: [],
         permanentPlantings: [],
         infrastructure: [],
+        // Spread existing layout to preserve any existing data (overrides defaults)
         ...(obj.layout && typeof obj.layout === 'object' ? obj.layout as object : {}),
       },
       seasons: Array.isArray(obj.seasons) ? obj.seasons as AllotmentData['seasons'] : [],
       varieties: Array.isArray(obj.varieties) ? obj.varieties as AllotmentData['varieties'] : [],
     }
-    
+
+    // If we have areas but empty legacy arrays, that's valid in dual-mode
+    // The validation will pass because areas array is present
+
     // Validate the repaired data
     const validation = validateAllotmentData(repaired)
     if (validation.valid) {
-      console.warn('Data was repaired with defaults')
+      console.warn(`Data was repaired with defaults (mode: ${hasAreas ? 'areas' : 'legacy'})`)
       return repaired
     }
-    
+
     return null
   } catch {
     return null
@@ -223,11 +279,21 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     
     const validData = data as AllotmentData
 
+    // Check for incomplete migration and resume if needed
+    if (validData.meta.migrationState) {
+      console.log(`Detected incomplete migration to v${validData.meta.migrationState.targetVersion}, resuming...`)
+      const migrated = migrateSchema(validData)
+      const cleaned = clearMigrationState(migrated)
+      saveAllotmentData(cleaned)
+      return { success: true, data: cleaned }
+    }
+
     // Check version and migrate if needed
     if (validData.version !== CURRENT_SCHEMA_VERSION) {
       const migrated = migrateSchema(validData)
-      saveAllotmentData(migrated)
-      return { success: true, data: migrated }
+      const cleaned = clearMigrationState(migrated)
+      saveAllotmentData(cleaned)
+      return { success: true, data: cleaned }
     }
 
     // Ensure permanentPlantings is populated (repair if somehow cleared)
@@ -240,6 +306,15 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
           permanentPlantings: permanentPlantings,
         },
       }
+      saveAllotmentData(repaired)
+      return { success: true, data: repaired }
+    }
+
+    // Ensure areas is populated (v9 unified system)
+    if (!validData.layout.areas || validData.layout.areas.length === 0) {
+      console.log('Repairing: populating empty areas from legacy arrays')
+      // Use migrateToV9 directly since the version check in migrateSchema would skip it
+      const repaired = migrateToV9(validData)
       saveAllotmentData(repaired)
       return { success: true, data: repaired }
     }
@@ -376,9 +451,74 @@ export function clearAllotmentData(): StorageResult<void> {
 // ============ SCHEMA MIGRATION ============
 
 /**
+ * Create a backup before migration for recovery
+ * Stored with version suffix to allow multiple backups
+ */
+function createMigrationBackup(data: AllotmentData): void {
+  const backupKey = `${STORAGE_KEY}-backup-v${data.version}`
+  try {
+    localStorage.setItem(backupKey, JSON.stringify(data))
+    console.log(`Created migration backup: ${backupKey}`)
+  } catch (error) {
+    console.warn('Failed to create migration backup:', error)
+  }
+}
+
+/**
+ * Restore from backup if available
+ */
+export function restoreFromBackup(version: number): StorageResult<AllotmentData> {
+  const backupKey = `${STORAGE_KEY}-backup-v${version}`
+  try {
+    const backup = localStorage.getItem(backupKey)
+    if (!backup) {
+      return { success: false, error: `No backup found for version ${version}` }
+    }
+    const data = JSON.parse(backup) as AllotmentData
+    return { success: true, data }
+  } catch (error) {
+    console.error('Failed to restore from backup:', error)
+    return { success: false, error: 'Failed to restore backup' }
+  }
+}
+
+/**
+ * List available backup versions
+ */
+export function getAvailableBackups(): number[] {
+  const backups: number[] = []
+  const prefix = `${STORAGE_KEY}-backup-v`
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key?.startsWith(prefix)) {
+      const version = parseInt(key.slice(prefix.length), 10)
+      if (!isNaN(version)) {
+        backups.push(version)
+      }
+    }
+  }
+  return backups.sort((a, b) => b - a)
+}
+
+/**
+ * Clear migration state after successful completion
+ */
+function clearMigrationState(data: AllotmentData): AllotmentData {
+  if (!data.meta.migrationState) return data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { migrationState, ...cleanMeta } = data.meta
+  return { ...data, meta: cleanMeta }
+}
+
+/**
  * Migrate data from older schema versions
  */
 function migrateSchema(data: AllotmentData): AllotmentData {
+  // Create backup before any migration
+  if (data.version < CURRENT_SCHEMA_VERSION) {
+    createMigrationBackup(data)
+  }
+
   const migrated = { ...data }
 
   // Version 1 -> 2: Add maintenance tasks array
@@ -429,11 +569,13 @@ function migrateSchema(data: AllotmentData): AllotmentData {
     })
 
     // Remove problemNotes from layout.beds (create new objects without the field)
-    migrated.layout = {
-      ...migrated.layout,
-      beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup }) => ({
-        id, name, description, status, rotationGroup,
-      })),
+    if (migrated.layout.beds) {
+      migrated.layout = {
+        ...migrated.layout,
+        beds: migrated.layout.beds.map(({ id, name, description, status, rotationGroup }) => ({
+          id, name, description, status, rotationGroup,
+        })),
+      }
     }
 
     console.log('Migrated to schema v4: problemNotes converted to BedNotes for 2025')
@@ -523,8 +665,8 @@ function migrateToV9(data: AllotmentData): AllotmentData {
     'herb': 'herb',
   }
 
-  // Convert beds to BedArea
-  const bedAreas: BedArea[] = migrated.layout.beds.map(bed => ({
+  // Convert beds to BedArea (legacy arrays are optional in v9+)
+  const bedAreas: BedArea[] = (migrated.layout.beds || []).map(bed => ({
     id: bed.id,
     type: 'bed' as const,
     name: bed.name,
@@ -535,7 +677,7 @@ function migrateToV9(data: AllotmentData): AllotmentData {
   }))
 
   // Convert permanentPlantings to PermanentArea
-  const permanentAreas: PermanentArea[] = migrated.layout.permanentPlantings.map(p => ({
+  const permanentAreas: PermanentArea[] = (migrated.layout.permanentPlantings || []).map(p => ({
     id: p.id,
     type: 'permanent' as const,
     name: p.name,
@@ -553,7 +695,7 @@ function migrateToV9(data: AllotmentData): AllotmentData {
   }))
 
   // Convert infrastructure to InfrastructureArea
-  const infrastructureAreas: InfrastructureArea[] = migrated.layout.infrastructure.map(i => ({
+  const infrastructureAreas: InfrastructureArea[] = (migrated.layout.infrastructure || []).map(i => ({
     id: i.id,
     type: 'infrastructure' as const,
     name: i.name,
@@ -572,7 +714,7 @@ function migrateToV9(data: AllotmentData): AllotmentData {
   ]
 
   for (const pattern of UNDERPLANTING_PATTERNS) {
-    const child = migrated.layout.permanentPlantings.find(p => p.id === pattern.childId)
+    const child = (migrated.layout.permanentPlantings || []).find(p => p.id === pattern.childId)
     if (child) {
       permanentUnderplantings.push({
         id: generateId('underplanting'),
@@ -733,8 +875,10 @@ export function migrateFromLegacyData(): AllotmentData {
     id, name, description, status, rotationGroup,
   }))
 
-  // Create initial data structure (v8 format first)
-  const v8Data: AllotmentData = {
+  // Create initial data structure (v8 format first, then migrate to v9)
+  // Using 'as AllotmentData' because v8 format lacks areas/permanentUnderplantings
+  // which are added by migrateToV9() below
+  const v8Data = {
     version: 8, // Start as v8 so we can apply v9 migration
     meta: {
       name: 'My Edinburgh Allotment',
@@ -750,7 +894,7 @@ export function migrateFromLegacyData(): AllotmentData {
     seasons,
     currentYear, // Use actual current year, not hardcoded 2025
     varieties: [], // Empty array - users will add their own varieties
-  }
+  } as unknown as AllotmentData
 
   // Apply v9 migration to add unified areas, underplantings, and permanent seasons
   const data = migrateToV9(v8Data)
@@ -819,7 +963,9 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
   const previousSeason = data.seasons.find(s => s.year === previousYear)
 
   // Create bed seasons for all rotation beds (not perennial)
-  const bedSeasons: BedSeason[] = data.layout.beds
+  // Uses unified areas system
+  const bedAreas = getAreasByType(data, 'bed')
+  const bedSeasons: BedSeason[] = bedAreas
     .filter(bed => bed.status !== 'perennial')
     .map(bed => {
       // Auto-rotate based on previous year, if it exists
@@ -837,7 +983,7 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
       })
 
       return {
-        bedId: bed.id,
+        bedId: bed.id as PhysicalBedId,
         rotationGroup,
         plantings: [],
       }
@@ -1298,7 +1444,7 @@ export function getBedsFromAreas(data: AllotmentData): import('@/types/garden-pl
         gridPosition: a.gridPosition,
       }))
   }
-  return data.layout.beds
+  return data.layout.beds || []
 }
 
 /**
@@ -1323,7 +1469,7 @@ export function getPermanentPlantingsFromAreas(data: AllotmentData): PermanentPl
         } : undefined,
       }))
   }
-  return data.layout.permanentPlantings
+  return data.layout.permanentPlantings || []
 }
 
 /**
@@ -1341,24 +1487,172 @@ export function getInfrastructureFromAreas(data: AllotmentData): InfrastructureI
         gridPosition: a.gridPosition,
       }))
   }
-  return data.layout.infrastructure
+  return data.layout.infrastructure || []
 }
 
 /**
  * Get an area by ID from the unified areas array
+ * Falls back to constructing from legacy arrays if areas not available
  */
 export function getAreaById(data: AllotmentData, id: string): Area | undefined {
-  return data.layout.areas?.find(a => a.id === id)
+  // First try unified areas array
+  if (data.layout.areas && data.layout.areas.length > 0) {
+    return data.layout.areas.find(a => a.id === id)
+  }
+
+  // Fallback: construct area from legacy arrays
+  const bed = (data.layout.beds || []).find(b => b.id === id)
+  if (bed) {
+    return {
+      id: bed.id,
+      type: 'bed',
+      name: bed.name,
+      description: bed.description,
+      status: bed.status,
+      rotationGroup: bed.rotationGroup,
+      gridPosition: bed.gridPosition,
+    } as BedArea
+  }
+
+  const permanent = (data.layout.permanentPlantings || []).find(p => p.id === id)
+  if (permanent) {
+    const TYPE_MAP: Record<string, PermanentArea['plantingType']> = {
+      'fruit-tree': 'fruit-tree',
+      'berry': 'berry',
+      'perennial-veg': 'perennial-veg',
+      'herb': 'herb',
+    }
+    const mappedType = TYPE_MAP[permanent.type]
+    if (!mappedType) {
+      console.warn(`Unknown permanent planting type "${permanent.type}" for "${permanent.id}", defaulting to "perennial-veg"`)
+    }
+    return {
+      id: permanent.id,
+      type: 'permanent',
+      name: permanent.name,
+      description: permanent.notes,
+      plantingType: mappedType || 'perennial-veg',
+      plantId: permanent.plantId,
+      variety: permanent.variety,
+      plantedYear: permanent.plantedYear,
+      gridPosition: permanent.gridPosition ? {
+        startRow: permanent.gridPosition.row,
+        startCol: permanent.gridPosition.col,
+        endRow: permanent.gridPosition.row,
+        endCol: permanent.gridPosition.col,
+      } : undefined,
+    } as PermanentArea
+  }
+
+  const infra = (data.layout.infrastructure || []).find(i => i.id === id)
+  if (infra) {
+    return {
+      id: infra.id,
+      type: 'infrastructure',
+      name: infra.name,
+      infrastructureType: infra.type,
+      gridPosition: infra.gridPosition,
+    } as InfrastructureArea
+  }
+
+  return undefined
 }
 
 /**
  * Get areas by type from the unified areas array
+ * Falls back to constructing from legacy arrays if areas not available
  */
 export function getAreasByType<T extends Area['type']>(
   data: AllotmentData,
   type: T
 ): Extract<Area, { type: T }>[] {
-  return (data.layout.areas || []).filter((a): a is Extract<Area, { type: T }> => a.type === type)
+  // First try unified areas array
+  if (data.layout.areas && data.layout.areas.length > 0) {
+    return data.layout.areas.filter((a): a is Extract<Area, { type: T }> => a.type === type)
+  }
+
+  // Fallback: construct areas from legacy arrays
+  if (type === 'bed') {
+    return (data.layout.beds || []).map(bed => ({
+      id: bed.id,
+      type: 'bed' as const,
+      name: bed.name,
+      description: bed.description,
+      status: bed.status,
+      rotationGroup: bed.rotationGroup,
+      gridPosition: bed.gridPosition,
+    })) as Extract<Area, { type: T }>[]
+  }
+
+  if (type === 'permanent') {
+    const TYPE_MAP: Record<string, PermanentArea['plantingType']> = {
+      'fruit-tree': 'fruit-tree',
+      'berry': 'berry',
+      'perennial-veg': 'perennial-veg',
+      'herb': 'herb',
+    }
+    return (data.layout.permanentPlantings || []).map(p => {
+      const mappedType = TYPE_MAP[p.type]
+      if (!mappedType) {
+        console.warn(`Unknown permanent planting type "${p.type}" for "${p.id}", defaulting to "perennial-veg"`)
+      }
+      return {
+        id: p.id,
+        type: 'permanent' as const,
+        name: p.name,
+        description: p.notes,
+        plantingType: mappedType || 'perennial-veg',
+        plantId: p.plantId,
+        variety: p.variety,
+        plantedYear: p.plantedYear,
+        gridPosition: p.gridPosition ? {
+          startRow: p.gridPosition.row,
+          startCol: p.gridPosition.col,
+          endRow: p.gridPosition.row,
+          endCol: p.gridPosition.col,
+        } : undefined,
+      }
+    }) as Extract<Area, { type: T }>[]
+  }
+
+  if (type === 'infrastructure') {
+    return (data.layout.infrastructure || []).map(i => ({
+      id: i.id,
+      type: 'infrastructure' as const,
+      name: i.name,
+      infrastructureType: i.type,
+      gridPosition: i.gridPosition,
+    })) as Extract<Area, { type: T }>[]
+  }
+
+  return []
+}
+
+/**
+ * Get a bed area by ID
+ * Type-safe getter that returns BedArea or undefined
+ */
+export function getBedAreaById(data: AllotmentData, bedId: string): BedArea | undefined {
+  const area = getAreaById(data, bedId)
+  return area?.type === 'bed' ? area : undefined
+}
+
+/**
+ * Get a permanent area by ID
+ * Type-safe getter that returns PermanentArea or undefined
+ */
+export function getPermanentAreaById(data: AllotmentData, id: string): PermanentArea | undefined {
+  const area = getAreaById(data, id)
+  return area?.type === 'permanent' ? area : undefined
+}
+
+/**
+ * Get an infrastructure area by ID
+ * Type-safe getter that returns InfrastructureArea or undefined
+ */
+export function getInfrastructureAreaById(data: AllotmentData, id: string): InfrastructureArea | undefined {
+  const area = getAreaById(data, id)
+  return area?.type === 'infrastructure' ? area : undefined
 }
 
 /**
@@ -1373,19 +1667,20 @@ export type ResolvedItem =
 /**
  * Resolve an AllotmentItemRef to the actual item data
  * Returns null if the item is not found
+ * Uses unified areas system with backward compatibility
  */
 export function resolveItemRef(data: AllotmentData, ref: AllotmentItemRef): ResolvedItem {
   switch (ref.type) {
     case 'bed': {
-      const bed = data.layout.beds.find(b => b.id === ref.id)
+      const bed = getBedById(data, ref.id as PhysicalBedId)
       return bed ? { type: 'bed', item: bed } : null
     }
     case 'permanent': {
-      const planting = data.layout.permanentPlantings.find(p => p.id === ref.id)
+      const planting = getPermanentPlantingById(data, ref.id)
       return planting ? { type: 'permanent', item: planting } : null
     }
     case 'infrastructure': {
-      const infra = data.layout.infrastructure.find(i => i.id === ref.id)
+      const infra = getInfrastructureById(data, ref.id)
       return infra ? { type: 'infrastructure', item: infra } : null
     }
     default:
@@ -1395,51 +1690,112 @@ export function resolveItemRef(data: AllotmentData, ref: AllotmentItemRef): Reso
 
 /**
  * Get a permanent planting by ID
+ * Thin wrapper around getPermanentAreaById for backward compatibility
  */
 export function getPermanentPlantingById(
   data: AllotmentData,
   id: string
 ): PermanentPlanting | undefined {
-  return data.layout.permanentPlantings.find(p => p.id === id)
+  const area = getPermanentAreaById(data, id)
+  if (!area) return undefined
+
+  // Convert PermanentArea to legacy PermanentPlanting
+  return {
+    id: area.id,
+    name: area.name,
+    type: area.plantingType,
+    plantId: area.plantId,
+    variety: area.variety,
+    plantedYear: area.plantedYear,
+    notes: area.description,
+    gridPosition: area.gridPosition ? {
+      row: area.gridPosition.startRow,
+      col: area.gridPosition.startCol,
+    } : undefined,
+  }
 }
 
 /**
  * Get an infrastructure item by ID
+ * Thin wrapper around getInfrastructureAreaById for backward compatibility
  */
 export function getInfrastructureById(
   data: AllotmentData,
   id: string
 ): InfrastructureItem | undefined {
-  return data.layout.infrastructure.find(i => i.id === id)
+  const area = getInfrastructureAreaById(data, id)
+  if (!area) return undefined
+
+  // Convert InfrastructureArea to legacy InfrastructureItem
+  return {
+    id: area.id,
+    type: area.infrastructureType,
+    name: area.name,
+    gridPosition: area.gridPosition,
+  }
 }
 
 /**
  * Get a bed by ID
+ * Thin wrapper around getBedAreaById for backward compatibility
  */
 export function getBedById(
   data: AllotmentData,
   bedId: PhysicalBedId
 ): import('@/types/garden-planner').PhysicalBed | undefined {
-  return data.layout.beds.find(b => b.id === bedId)
+  const area = getBedAreaById(data, bedId)
+  if (!area) return undefined
+
+  // Convert BedArea to legacy PhysicalBed
+  return {
+    id: area.id as PhysicalBedId,
+    name: area.name,
+    description: area.description,
+    status: area.status,
+    rotationGroup: area.rotationGroup,
+    gridPosition: area.gridPosition,
+  }
 }
 
 /**
  * Get beds by status
+ * Uses unified areas system with backward compatibility
  */
 export function getBedsByStatus(
   data: AllotmentData,
   status: import('@/types/garden-planner').BedStatus
 ): import('@/types/garden-planner').PhysicalBed[] {
-  return data.layout.beds.filter(b => b.status === status)
+  const bedAreas = getAreasByType(data, 'bed')
+  return bedAreas
+    .filter(b => b.status === status)
+    .map(area => ({
+      id: area.id as PhysicalBedId,
+      name: area.name,
+      description: area.description,
+      status: area.status,
+      rotationGroup: area.rotationGroup,
+      gridPosition: area.gridPosition,
+    }))
 }
 
 /**
  * Get all rotation beds (excludes perennial)
+ * Uses unified areas system with backward compatibility
  */
 export function getRotationBeds(
   data: AllotmentData
 ): import('@/types/garden-planner').PhysicalBed[] {
-  return data.layout.beds.filter(b => b.status !== 'perennial')
+  const bedAreas = getAreasByType(data, 'bed')
+  return bedAreas
+    .filter(b => b.status !== 'perennial')
+    .map(area => ({
+      id: area.id as PhysicalBedId,
+      name: area.name,
+      description: area.description,
+      status: area.status,
+      rotationGroup: area.rotationGroup,
+      gridPosition: area.gridPosition,
+    }))
 }
 
 // ============ ROTATION HISTORY ============
@@ -1911,29 +2267,125 @@ export function removeArea(data: AllotmentData, areaId: string): AllotmentData {
 }
 
 /**
+ * Result of area type conversion validation
+ */
+export interface ConversionValidationResult {
+  isValid: boolean
+  warnings: string[]
+  errors: string[]
+}
+
+/**
+ * Result of area type conversion
+ */
+export interface ConversionResult {
+  data: AllotmentData
+  validation: ConversionValidationResult
+}
+
+/**
+ * Validate an area type conversion before applying it
+ */
+export function validateAreaConversion(
+  data: AllotmentData,
+  areaId: string,
+  newType: Area['type']
+): ConversionValidationResult {
+  const warnings: string[] = []
+  const errors: string[] = []
+
+  const area = getAreaById(data, areaId)
+  if (!area) {
+    errors.push(`Area "${areaId}" not found`)
+    return { isValid: false, warnings, errors }
+  }
+
+  if (area.type === newType) {
+    errors.push(`Area is already of type "${newType}"`)
+    return { isValid: false, warnings, errors }
+  }
+
+  // Check for data that will be affected by conversion
+  if (area.type === 'bed') {
+    // Bed → something else: check for existing plantings
+    const bedSeasons = data.seasons.filter(s =>
+      s.beds.some(b => b.bedId === areaId && b.plantings.length > 0)
+    )
+    if (bedSeasons.length > 0) {
+      const years = bedSeasons.map(s => s.year).join(', ')
+      warnings.push(`Bed has plantings in years: ${years}. Planting history will be archived.`)
+    }
+  }
+
+  if (area.type === 'permanent') {
+    // Permanent → something else: check for care logs
+    const permSeasons = data.seasons.filter(s =>
+      s.permanents?.some(p => p.areaId === areaId && p.careLogs.length > 0)
+    )
+    if (permSeasons.length > 0) {
+      const years = permSeasons.map(s => s.year).join(', ')
+      warnings.push(`Area has care logs in years: ${years}. Care history will be converted to notes.`)
+    }
+
+    // Check for underplantings
+    const hasUnderplantings = data.layout.permanentUnderplantings?.some(
+      u => u.parentAreaId === areaId
+    )
+    if (hasUnderplantings) {
+      warnings.push('Area has permanent underplantings that will be orphaned.')
+    }
+  }
+
+  return { isValid: true, warnings, errors }
+}
+
+/**
+ * Suggest a rotation group based on permanent planting type
+ * Used when converting permanent → bed
+ */
+function suggestRotationGroupFromPermanent(plantingType: PermanentArea['plantingType']): RotationGroup {
+  switch (plantingType) {
+    case 'herb':
+      return 'alliums' // Herbs often pair well with alliums
+    case 'perennial-veg':
+      return 'legumes' // Good to start fresh with nitrogen fixers
+    case 'berry':
+    case 'fruit-tree':
+      return 'legumes' // Start fresh after fruit removal
+    default:
+      return 'legumes'
+  }
+}
+
+/**
  * Convert an area to a different type
  * Preserves common fields (id, name, description, gridPosition)
- * Initializes type-specific fields with defaults
+ * Handles data migration for seasonal records
  */
 export function convertAreaType(
   data: AllotmentData,
   areaId: string,
   newType: Area['type'],
   typeConfig?: Partial<BedArea | PermanentArea | InfrastructureArea>
-): AllotmentData {
+): ConversionResult {
+  const validation = validateAreaConversion(data, areaId, newType)
+
+  if (!validation.isValid) {
+    return { data, validation }
+  }
+
   const areas = data.layout.areas || []
   const areaIndex = areas.findIndex(a => a.id === areaId)
 
+  // Defensive check - validation should have caught this, but be safe
   if (areaIndex === -1) {
-    return data
+    return {
+      data,
+      validation: { isValid: false, warnings: [], errors: [`Area "${areaId}" not found`] }
+    }
   }
 
   const oldArea = areas[areaIndex]
-
-  // If already the same type, no change
-  if (oldArea.type === newType) {
-    return data
-  }
 
   // Preserve common fields
   const baseFields = {
@@ -1944,68 +2396,160 @@ export function convertAreaType(
   }
 
   let newArea: Area
+  let updatedSeasons = data.seasons
 
   switch (newType) {
-    case 'bed':
+    case 'bed': {
+      // Determine rotation group
+      let rotationGroup: RotationGroup = 'legumes'
+      if ((typeConfig as Partial<BedArea>)?.rotationGroup) {
+        rotationGroup = (typeConfig as Partial<BedArea>).rotationGroup!
+      } else if (oldArea.type === 'permanent') {
+        rotationGroup = suggestRotationGroupFromPermanent((oldArea as PermanentArea).plantingType)
+      }
+
       newArea = {
         ...baseFields,
         type: 'bed',
         status: 'rotation',
-        rotationGroup: (typeConfig as Partial<BedArea>)?.rotationGroup,
+        rotationGroup,
       } as BedArea
+
+      // Convert permanent → bed: Initialize bed seasons and migrate care logs
+      if (oldArea.type === 'permanent') {
+        updatedSeasons = data.seasons.map(season => {
+          const permSeason = season.permanents?.find(p => p.areaId === areaId)
+          const beds = season.beds || []
+          const existingBed = beds.find(b => b.bedId === areaId)
+
+          if (!existingBed) {
+            // Create new bed season, converting care logs to notes
+            const notes: BedNote[] = []
+            if (permSeason?.careLogs && permSeason.careLogs.length > 0) {
+              const now = new Date().toISOString()
+              notes.push({
+                id: generateId('note'),
+                type: 'info',
+                createdAt: now,
+                updatedAt: now,
+                content: `Converted from permanent planting. Previous care: ${permSeason.careLogs
+                  .map(log => `${log.type} on ${log.date}${log.description ? ': ' + log.description : ''}`)
+                  .join('; ')}`,
+              })
+            }
+
+            return {
+              ...season,
+              beds: [
+                ...beds,
+                {
+                  bedId: areaId as PhysicalBedId,
+                  rotationGroup,
+                  plantings: [],
+                  notes: notes.length > 0 ? notes : undefined,
+                },
+              ],
+              // Remove from permanents
+              permanents: season.permanents?.filter(p => p.areaId !== areaId),
+            }
+          }
+          return season
+        })
+      }
       break
-    case 'permanent':
+    }
+
+    case 'permanent': {
       newArea = {
         ...baseFields,
         type: 'permanent',
         plantingType: (typeConfig as Partial<PermanentArea>)?.plantingType || 'perennial-veg',
         plantId: (typeConfig as Partial<PermanentArea>)?.plantId,
         variety: (typeConfig as Partial<PermanentArea>)?.variety,
-        plantedYear: (typeConfig as Partial<PermanentArea>)?.plantedYear,
+        plantedYear: (typeConfig as Partial<PermanentArea>)?.plantedYear || new Date().getFullYear(),
       } as PermanentArea
+
+      // Convert bed → permanent: Archive plantings and initialize permanent seasons
+      updatedSeasons = data.seasons.map(season => {
+        const bedSeason = season.beds.find(b => b.bedId === areaId)
+        const permanents = season.permanents || []
+        const existingPerm = permanents.find(p => p.areaId === areaId)
+
+        if (!existingPerm) {
+          // Create new permanent season
+          const careLogs: CareLogEntry[] = []
+
+          // Archive planting history as a note in the first care log
+          if (bedSeason?.plantings && bedSeason.plantings.length > 0) {
+            const plantingSummary = bedSeason.plantings
+              .map(p => {
+                const name = p.varietyName || p.plantId
+                const status = p.success ? ` (${p.success})` : ''
+                return `${name}${status}`
+              })
+              .join(', ')
+
+            careLogs.push({
+              id: generateId('care'),
+              type: 'observation',
+              date: new Date().toISOString().split('T')[0],
+              description: `Previous bed plantings (${season.year}): ${plantingSummary}`,
+            })
+          }
+
+          return {
+            ...season,
+            permanents: [
+              ...permanents,
+              {
+                areaId,
+                careLogs,
+                underplantings: [],
+              },
+            ],
+            // Remove from beds
+            beds: season.beds.filter(b => b.bedId !== areaId),
+          }
+        }
+        return season
+      })
       break
-    case 'infrastructure':
+    }
+
+    case 'infrastructure': {
       newArea = {
         ...baseFields,
         type: 'infrastructure',
         infrastructureType: (typeConfig as Partial<InfrastructureArea>)?.infrastructureType || 'other',
       } as InfrastructureArea
+
+      // Remove from both bed and permanent seasons
+      updatedSeasons = data.seasons.map(season => ({
+        ...season,
+        beds: season.beds.filter(b => b.bedId !== areaId),
+        permanents: season.permanents?.filter(p => p.areaId !== areaId),
+      }))
       break
+    }
   }
 
   const newAreas = [...areas]
   newAreas[areaIndex] = newArea
 
-  // If converting to permanent, initialize permanent seasons for all years
-  let updatedSeasons = data.seasons
-  if (newType === 'permanent') {
-    updatedSeasons = data.seasons.map(season => {
-      const permanents = season.permanents || []
-      const existingPerm = permanents.find(p => p.areaId === areaId)
-      if (!existingPerm) {
-        return {
-          ...season,
-          permanents: [
-            ...permanents,
-            {
-              areaId,
-              careLogs: [],
-              underplantings: [],
-            },
-          ],
-        }
-      }
-      return season
-    })
-  }
-
   return {
-    ...data,
-    layout: {
-      ...data.layout,
-      areas: newAreas,
+    data: {
+      ...data,
+      layout: {
+        ...data.layout,
+        areas: newAreas,
+      },
+      seasons: updatedSeasons,
+      meta: {
+        ...data.meta,
+        updatedAt: new Date().toISOString(),
+      },
     },
-    seasons: updatedSeasons,
+    validation,
   }
 }
 

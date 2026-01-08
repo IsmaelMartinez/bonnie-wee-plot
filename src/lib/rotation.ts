@@ -6,17 +6,16 @@
  * Handles both grid plots and physical bed layouts.
  */
 
-import { 
-  VegetableCategory, 
-  RotationGroup, 
+import {
+  VegetableCategory,
+  RotationGroup,
   RotationHistory,
   GridPlot,
   PlacementWarning,
-  RotationSuggestion, 
+  RotationSuggestion,
   RotationPlan,
   PhysicalBedId,
-  SeasonPlan,
-  PhysicalBed
+  SeasonPlan
 } from '@/types/garden-planner'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
 import { getSeasonByYear, getRotationGroupForBed } from '@/data/historical-plans'
@@ -24,7 +23,8 @@ import {
   physicalBeds,
   getBedById,
 } from '@/data/allotment-layout'
-import { AllotmentData } from '@/types/unified-allotment'
+import { AllotmentData, BedArea } from '@/types/unified-allotment'
+import { getAreasByType } from '@/services/allotment-storage'
 
 // ============ CONSTANTS ============
 
@@ -500,7 +500,7 @@ export function generateBedSuggestion(
  */
 export function generateBedSuggestionFromData(
   bedId: PhysicalBedId,
-  beds: PhysicalBed[],
+  beds: BedArea[],
   previousYears: { year: number; group: RotationGroup }[]
 ): RotationSuggestion {
   const bed = beds.find(b => b.id === bedId)
@@ -620,14 +620,14 @@ export function generateRotationPlanFromData(
   targetYear: number,
   data: AllotmentData
 ): RotationPlan {
-  const beds = data.layout.beds
+  const beds = getAreasByType(data, 'bed')
   const suggestions: RotationSuggestion[] = []
   const warnings: string[] = []
 
   // Build history for each bed from seasons
   for (const bed of beds) {
     const bedHistory: { year: number; group: RotationGroup }[] = []
-    
+
     for (const season of data.seasons) {
       const bedSeason = season.beds.find(b => b.bedId === bed.id)
       if (bedSeason) {
@@ -638,7 +638,7 @@ export function generateRotationPlanFromData(
       }
     }
 
-    const suggestion = generateBedSuggestionFromData(bed.id, beds, bedHistory)
+    const suggestion = generateBedSuggestionFromData(bed.id as PhysicalBedId, beds, bedHistory)
     suggestions.push(suggestion)
 
     // Check for rotation warnings (only for rotation beds)

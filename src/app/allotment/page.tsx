@@ -52,7 +52,6 @@ export default function AllotmentPage() {
     selectYear,
     getYears,
     selectItem,
-    getBed,
     getBedSeason,
     getPlantings,
     addPlanting,
@@ -71,8 +70,11 @@ export default function AllotmentPage() {
     updateBedNote,
     removeBedNote,
     updateRotationGroup,
-    getPermanentPlanting,
-    getInfrastructureItem,
+    // v9 Area getters
+    getBedArea,
+    getPermanentArea,
+    getInfrastructureArea,
+    getAreas,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -93,8 +95,8 @@ export default function AllotmentPage() {
   const quickStats = useMemo(() => ({
     rotationBeds: getRotationBeds().length,
     perennialBeds: getPerennialBeds().length,
-    permanentPlantings: data?.layout.permanentPlantings.length || 0,
-  }), [getRotationBeds, getPerennialBeds, data?.layout.permanentPlantings.length])
+    permanentPlantings: getAreas('permanent').length,
+  }), [getRotationBeds, getPerennialBeds, getAreas])
 
   // Helper to get previous year rotation for current bed
   const getPreviousRotation = useCallback((bedId: PhysicalBedId): RotationGroup | null => {
@@ -381,12 +383,12 @@ export default function AllotmentPage() {
           <div className="lg:col-span-1">
             <ItemDetailSwitcher
               selectedItemRef={selectedItemRef}
-              getBed={getBed}
+              getBedArea={getBedArea}
               getBedSeason={getBedSeason}
               getPlantings={getPlantings}
               getBedNotes={getBedNotes}
-              getPermanentPlanting={getPermanentPlanting}
-              getInfrastructureItem={getInfrastructureItem}
+              getPermanentArea={getPermanentArea}
+              getInfrastructureArea={getInfrastructureArea}
               getPreviousYearRotation={getPreviousRotation}
               selectedYear={selectedYear}
               onAddPlanting={() => setShowAddDialog(true)}
@@ -441,7 +443,7 @@ export default function AllotmentPage() {
 
       {/* Auto-rotate Dialog */}
       {autoRotateInfo && selectedBedId && (() => {
-        const bedData = getBed(selectedBedId)
+        const bedData = getBedArea(selectedBedId)
         if (!bedData) return null
 
         const previousDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]
