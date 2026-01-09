@@ -367,6 +367,7 @@ export interface PermanentPlanting {
   id: string
   name: string                    // e.g., "Apple Tree (North)"
   type: 'fruit-tree' | 'berry' | 'perennial-veg' | 'herb'
+  plantId?: string                // Reference to vegetable database
   variety?: string                // e.g., "Discovery"
   plantedYear?: number
   gridPosition?: {
@@ -379,7 +380,7 @@ export interface PermanentPlanting {
 // Infrastructure items (shed, compost, paths)
 export interface InfrastructureItem {
   id: string
-  type: 'shed' | 'compost' | 'water-butt' | 'path' | 'greenhouse' | 'other'
+  type: 'shed' | 'compost' | 'water-butt' | 'path' | 'greenhouse' | 'pond' | 'wildlife' | 'other'
   name: string
   gridPosition?: {
     startRow: number
@@ -493,5 +494,23 @@ export interface RotationPlan {
   year: number
   suggestions: RotationSuggestion[]
   warnings: string[]              // Any rotation conflicts or issues
+}
+
+// ============ UNIFIED ITEM SELECTION TYPES ============
+
+/**
+ * Type discriminator for allotment items (unified selection system)
+ * - 'bed': rotation or perennial beds
+ * - 'permanent': fruit trees, berries, perennial vegetables
+ * - 'infrastructure': shed, compost, paths, etc.
+ */
+export type AllotmentItemType = 'bed' | 'permanent' | 'infrastructure'
+
+/**
+ * Reference to any item in the allotment (for unified selection)
+ */
+export interface AllotmentItemRef {
+  type: AllotmentItemType
+  id: string
 }
 

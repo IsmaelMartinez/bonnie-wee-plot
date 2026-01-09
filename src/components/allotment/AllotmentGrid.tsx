@@ -8,7 +8,7 @@ import {
   LAYOUT_STORAGE_KEY,
   GridItemConfig
 } from '@/data/allotment-layout'
-import { PhysicalBedId } from '@/types/garden-planner'
+import { PhysicalBedId, AllotmentItemRef } from '@/types/garden-planner'
 import { Planting } from '@/types/unified-allotment'
 import BedItem from './BedItem'
 
@@ -16,8 +16,8 @@ import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 
 interface AllotmentGridProps {
-  onBedSelect?: (bedId: PhysicalBedId | null) => void
-  selectedBed?: PhysicalBedId | null
+  onItemSelect?: (ref: AllotmentItemRef | null) => void
+  selectedItemRef?: AllotmentItemRef | null
   getPlantingsForBed?: (bedId: PhysicalBedId) => Planting[]
 }
 
@@ -66,7 +66,7 @@ function mergeLayoutWithConfig(
   })
 }
 
-export default function AllotmentGrid({ onBedSelect, selectedBed, getPlantingsForBed }: AllotmentGridProps) {
+export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed }: AllotmentGridProps) {
   const [items, setItems] = useState<GridItemConfig[]>(DEFAULT_GRID_LAYOUT)
   const [isEditing, setIsEditing] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -123,11 +123,20 @@ export default function AllotmentGrid({ onBedSelect, selectedBed, getPlantingsFo
     localStorage.removeItem(LAYOUT_STORAGE_KEY)
   }
 
-  // Handle bed click
+  // Handle item click - convert grid item to AllotmentItemRef
   const handleItemClick = (item: GridItemConfig) => {
-    if (item.bedId && onBedSelect) {
-      onBedSelect(item.bedId)
+    if (!onItemSelect) return
+
+    // Determine the item type based on grid item type
+    if (item.bedId) {
+      // All beds (rotation or perennial) are type 'bed'
+      onItemSelect({ type: 'bed', id: item.bedId })
+    } else if (item.type === 'perennial' || item.type === 'tree') {
+      onItemSelect({ type: 'permanent', id: item.i })
+    } else if (item.type === 'infrastructure') {
+      onItemSelect({ type: 'infrastructure', id: item.i })
     }
+    // Areas like 'grass', 'flowers', 'wildish' are not selectable
   }
 
   const cols = 12
@@ -209,15 +218,22 @@ export default function AllotmentGrid({ onBedSelect, selectedBed, getPlantingsFo
         >
           {items.map(item => {
             const plantings = item.bedId && getPlantingsForBed ? getPlantingsForBed(item.bedId) : []
+            // Check if this item is selected based on the unified selection ref
+            const isSelected = selectedItemRef && (
+              (item.bedId && selectedItemRef.type === 'bed' && selectedItemRef.id === item.bedId) ||
+              ((item.type === 'perennial' || item.type === 'tree') && selectedItemRef.type === 'permanent' && selectedItemRef.id === item.i) ||
+              (item.type === 'infrastructure' && selectedItemRef.type === 'infrastructure' && selectedItemRef.id === item.i)
+            )
+            const isClickable = item.bedId || item.type === 'perennial' || item.type === 'tree' || item.type === 'infrastructure'
             return (
               <div
                 key={item.i}
                 onClick={() => handleItemClick(item)}
-                className={item.bedId ? 'cursor-pointer' : ''}
+                className={isClickable ? 'cursor-pointer' : ''}
               >
                 <BedItem
                   item={item}
-                  isSelected={selectedBed === item.bedId}
+                  isSelected={!!isSelected}
                   isEditing={isEditing}
                   plantings={plantings}
                 />
