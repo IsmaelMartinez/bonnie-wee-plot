@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Sprout, Plus, ArrowRight, Leaf } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Sprout, Plus, ArrowRight, Leaf, Pencil } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
@@ -9,6 +9,8 @@ import { RotationGroup } from '@/types/garden-planner'
 import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
+import EditAreaForm from '@/components/allotment/EditAreaForm'
+import Dialog from '@/components/ui/Dialog'
 
 interface BedDetailPanelProps {
   area: Area
@@ -25,6 +27,8 @@ interface BedDetailPanelProps {
   onRemoveNote: (noteId: string) => void
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
+  onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  existingAreas: Area[]
 }
 
 export default function BedDetailPanel({
@@ -42,7 +46,10 @@ export default function BedDetailPanel({
   onRemoveNote,
   onUpdateRotation,
   onAutoRotate,
+  onUpdateArea,
+  existingAreas,
 }: BedDetailPanelProps) {
+  const [isEditMode, setIsEditMode] = useState(false)
   // Determine if this is a rotation bed (vs perennial bed)
   const isRotationBed = area.kind === 'rotation-bed'
 
@@ -77,26 +84,39 @@ export default function BedDetailPanel({
     return { lastYear: previousYearRotation, suggested, lastDisplay, nextDisplay, suggestedVegNames }
   }, [previousYearRotation, isRotationBed])
 
+  const handleEditSubmit = (areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
+    onUpdateArea(areaId, updates)
+    setIsEditMode(false)
+  }
+
   return (
-    <div className="zen-card p-6 sticky top-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="w-12 h-12 rounded-zen-lg flex items-center justify-center text-white text-xl font-bold"
-          style={{ backgroundColor: area.color || BED_COLORS[area.id] || '#6b7280' }}
-        >
-          {area.icon || area.id.replace('-prime', "'").slice(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
-          <div className={`text-xs flex items-center gap-1 ${
-            !isRotationBed ? 'text-zen-sakura-600' : 'text-zen-moss-600'
-          }`}>
-            {!isRotationBed && <Leaf className="w-3 h-3" />}
-            {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
+    <>
+      <div className="zen-card p-6 sticky top-20">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="w-12 h-12 rounded-zen-lg flex items-center justify-center text-white text-xl font-bold"
+            style={{ backgroundColor: area.color || BED_COLORS[area.id] || '#6b7280' }}
+          >
+            {area.icon || area.id.replace('-prime', "'").slice(0, 2).toUpperCase()}
           </div>
+          <div className="flex-1">
+            <h3 className="font-display text-zen-ink-800">{area.name}</h3>
+            <div className={`text-xs flex items-center gap-1 ${
+              !isRotationBed ? 'text-zen-sakura-600' : 'text-zen-moss-600'
+            }`}>
+              {!isRotationBed && <Leaf className="w-3 h-3" />}
+              {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
+            </div>
+          </div>
+          <button
+            onClick={() => setIsEditMode(true)}
+            className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+            title="Edit area details"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
         </div>
-      </div>
 
       {/* Rotation Type Selector */}
       <div className="mb-4">
@@ -205,5 +225,22 @@ export default function BedDetailPanel({
         )}
       </div>
     </div>
+
+    {/* Edit Dialog */}
+    <Dialog
+      isOpen={isEditMode}
+      onClose={() => setIsEditMode(false)}
+      title="Edit Area"
+      description="Update the details for this area."
+      maxWidth="lg"
+    >
+      <EditAreaForm
+        area={area}
+        onSubmit={handleEditSubmit}
+        onCancel={() => setIsEditMode(false)}
+        existingAreas={existingAreas}
+      />
+    </Dialog>
+  </>
   )
 }

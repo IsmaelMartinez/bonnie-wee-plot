@@ -76,6 +76,7 @@ export default function AllotmentPage() {
     getAreasByKind,
     getAllAreas,
     addArea,
+    updateArea,
     archiveArea,
   } = useAllotment()
 
@@ -416,6 +417,8 @@ export default function AllotmentPage() {
               onUpdateRotation={(group) => selectedBedId && updateRotationGroup(selectedBedId, group)}
               onAutoRotate={() => setShowAutoRotateDialog(true)}
               onArchiveArea={handleArchiveArea}
+              onUpdateArea={updateArea}
+              existingAreas={getAllAreas()}
               quickStats={quickStats}
             />
 

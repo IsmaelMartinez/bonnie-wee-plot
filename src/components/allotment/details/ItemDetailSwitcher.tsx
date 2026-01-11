@@ -34,6 +34,8 @@ interface ItemDetailSwitcherProps {
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
   onArchiveArea: (areaId: string) => void
+  onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  existingAreas: Area[]
   // Quick stats for empty state
   quickStats: QuickStats
 }
@@ -86,6 +88,8 @@ export default function ItemDetailSwitcher({
   onUpdateRotation,
   onAutoRotate,
   onArchiveArea,
+  onUpdateArea,
+  existingAreas,
   quickStats,
 }: ItemDetailSwitcherProps) {
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
@@ -123,12 +127,14 @@ export default function ItemDetailSwitcher({
         onRemoveNote={onRemoveNote}
         onUpdateRotation={onUpdateRotation}
         onAutoRotate={onAutoRotate}
+        onUpdateArea={onUpdateArea}
+        existingAreas={existingAreas}
       />
     )
   } else if (isPermanentPlanting) {
-    detailPanel = <PermanentDetailPanel area={area} />
+    detailPanel = <PermanentDetailPanel area={area} onUpdateArea={onUpdateArea} existingAreas={existingAreas} />
   } else if (isInfrastructure) {
-    detailPanel = <InfrastructureDetailPanel area={area} />
+    detailPanel = <InfrastructureDetailPanel area={area} onUpdateArea={onUpdateArea} existingAreas={existingAreas} />
   } else {
     return <EmptyState stats={quickStats} />
   }

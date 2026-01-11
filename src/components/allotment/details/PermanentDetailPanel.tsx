@@ -1,16 +1,20 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers } from 'lucide-react'
+import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers, Pencil } from 'lucide-react'
 import { Area, AreaKind } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import CareLogSection from './CareLogSection'
 import HarvestTracker from './HarvestTracker'
 import UnderplantingsList from './UnderplantingsList'
+import EditAreaForm from '@/components/allotment/EditAreaForm'
+import Dialog from '@/components/ui/Dialog'
 
 interface PermanentDetailPanelProps {
   area: Area
+  onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  existingAreas: Area[]
 }
 
 // Map v10 area.kind to display config
@@ -23,7 +27,8 @@ const KIND_CONFIG: Partial<Record<AreaKind, { icon: typeof TreeDeciduous; label:
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export default function PermanentDetailPanel({ area }: PermanentDetailPanelProps) {
+export default function PermanentDetailPanel({ area, onUpdateArea, existingAreas }: PermanentDetailPanelProps) {
+  const [isEditMode, setIsEditMode] = useState(false)
   const config = KIND_CONFIG[area.kind] || { icon: Leaf, label: 'Area', color: 'zen-stone' }
   const Icon = config.icon
 
@@ -48,21 +53,34 @@ export default function PermanentDetailPanel({ area }: PermanentDetailPanelProps
     }
   }, [vegetableData, currentMonth])
 
+  const handleEditSubmit = (areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
+    onUpdateArea(areaId, updates)
+    setIsEditMode(false)
+  }
+
   return (
-    <div className="zen-card p-6 sticky top-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`w-12 h-12 rounded-zen-lg flex items-center justify-center bg-${config.color}-100`}>
-          <Icon className={`w-6 h-6 text-${config.color}-600`} />
-        </div>
-        <div>
-          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
-          <div className={`text-xs text-${config.color}-600 flex items-center gap-1`}>
-            {config.label}
-            {area.primaryPlant?.variety && <span className="text-zen-stone-400">- {area.primaryPlant.variety}</span>}
+    <>
+      <div className="zen-card p-6 sticky top-20">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`w-12 h-12 rounded-zen-lg flex items-center justify-center bg-${config.color}-100`}>
+            <Icon className={`w-6 h-6 text-${config.color}-600`} />
           </div>
+          <div className="flex-1">
+            <h3 className="font-display text-zen-ink-800">{area.name}</h3>
+            <div className={`text-xs text-${config.color}-600 flex items-center gap-1`}>
+              {config.label}
+              {area.primaryPlant?.variety && <span className="text-zen-stone-400">- {area.primaryPlant.variety}</span>}
+            </div>
+          </div>
+          <button
+            onClick={() => setIsEditMode(true)}
+            className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+            title="Edit area details"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
         </div>
-      </div>
 
       {/* Description/Notes */}
       {area.description && (
@@ -231,5 +249,22 @@ export default function PermanentDetailPanel({ area }: PermanentDetailPanelProps
         </div>
       )}
     </div>
+
+    {/* Edit Dialog */}
+    <Dialog
+      isOpen={isEditMode}
+      onClose={() => setIsEditMode(false)}
+      title="Edit Area"
+      description="Update the details for this area."
+      maxWidth="lg"
+    >
+      <EditAreaForm
+        area={area}
+        onSubmit={handleEditSubmit}
+        onCancel={() => setIsEditMode(false)}
+        existingAreas={existingAreas}
+      />
+    </Dialog>
+  </>
   )
 }

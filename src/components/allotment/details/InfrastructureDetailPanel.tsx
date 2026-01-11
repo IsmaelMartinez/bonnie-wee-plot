@@ -1,13 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Warehouse, Droplets, ExternalLink, Recycle, Footprints, HelpCircle, Flower2, Fish, Bird } from 'lucide-react'
+import { Warehouse, Droplets, ExternalLink, Recycle, Footprints, HelpCircle, Flower2, Fish, Bird, Pencil } from 'lucide-react'
 import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
 import { useCompost } from '@/hooks/useCompost'
+import EditAreaForm from '@/components/allotment/EditAreaForm'
+import Dialog from '@/components/ui/Dialog'
 
 interface InfrastructureDetailPanelProps {
   area: Area
+  onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  existingAreas: Area[]
 }
 
 const SUBTYPE_CONFIG: Record<InfrastructureSubtype, { icon: typeof Warehouse; label: string; color: string }> = {
@@ -94,24 +98,38 @@ function CompostSummary() {
   )
 }
 
-export default function InfrastructureDetailPanel({ area }: InfrastructureDetailPanelProps) {
+export default function InfrastructureDetailPanel({ area, onUpdateArea, existingAreas }: InfrastructureDetailPanelProps) {
+  const [isEditMode, setIsEditMode] = useState(false)
   const subtype = area.infrastructureSubtype || 'other'
   const config = SUBTYPE_CONFIG[subtype]
   const Icon = config.icon
   const isCompost = subtype === 'compost'
 
+  const handleEditSubmit = (areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
+    onUpdateArea(areaId, updates)
+    setIsEditMode(false)
+  }
+
   return (
-    <div className="zen-card p-6 sticky top-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`w-12 h-12 rounded-zen-lg flex items-center justify-center bg-${config.color}-100`}>
-          <Icon className={`w-6 h-6 text-${config.color}-600`} />
+    <>
+      <div className="zen-card p-6 sticky top-20">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`w-12 h-12 rounded-zen-lg flex items-center justify-center bg-${config.color}-100`}>
+            <Icon className={`w-6 h-6 text-${config.color}-600`} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-display text-zen-ink-800">{area.name}</h3>
+            <div className={`text-xs text-${config.color}-600`}>{config.label}</div>
+          </div>
+          <button
+            onClick={() => setIsEditMode(true)}
+            className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+            title="Edit area details"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
         </div>
-        <div>
-          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
-          <div className={`text-xs text-${config.color}-600`}>{config.label}</div>
-        </div>
-      </div>
 
       {/* Type-specific description */}
       <p className="text-sm text-zen-stone-600 mb-4">
@@ -141,5 +159,22 @@ export default function InfrastructureDetailPanel({ area }: InfrastructureDetail
       )}
 
     </div>
+
+    {/* Edit Dialog */}
+    <Dialog
+      isOpen={isEditMode}
+      onClose={() => setIsEditMode(false)}
+      title="Edit Area"
+      description="Update the details for this area."
+      maxWidth="lg"
+    >
+      <EditAreaForm
+        area={area}
+        onSubmit={handleEditSubmit}
+        onCancel={() => setIsEditMode(false)}
+        existingAreas={existingAreas}
+      />
+    </Dialog>
+  </>
   )
 }
