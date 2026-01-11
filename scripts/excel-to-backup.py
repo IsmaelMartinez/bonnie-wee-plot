@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 """
-TEMPORARY MIGRATION TOOL - Convert Excel Workbook to App Backup Format
+TEMPORARY MIGRATION TOOL - Convert Excel Workbook to App Backup Format (v10)
 
 This script is a one-time migration tool for users moving from Excel-based
 planning to the app's native system. After migrating, use the app's built-in
 export/import feature (DataManagement component) for backups.
 
-Converts Allotment Planning Workbook to complete backup format.
+Converts Allotment Planning Workbook to v10 backup format with unified areas.
 Outputs the same format as the app's export function.
 
-Usage: python excel-to-backup.py <excel-file> <output-json>
+Updated for v10 unified areas system:
+- Uses 'areas' array instead of separate beds/permanentPlantings/infrastructure
+- Seasons use 'areas' instead of 'beds'
+- Includes gridPosition for layout
+- All areas are AreaKind type (rotation-bed, perennial-bed, etc.)
+
+Usage: python3 excel-to-backup.py <excel-file> <output-json>
+
+Requirements:
+  pip install pandas openpyxl
 """
 
 import pandas as pd
@@ -322,10 +331,74 @@ def main():
             'updatedAt': now
         })
 
-    # Build complete backup format
+    # Build v10 unified areas from beds
+    # Default grid positions for common beds
+    grid_positions = {
+        'E': {'x': 0, 'y': 0, 'w': 2, 'h': 2},
+        'C': {'x': 0, 'y': 4, 'w': 2, 'h': 3},
+        'B2-prime': {'x': 2, 'y': 2, 'w': 2, 'h': 2},
+        'B2': {'x': 2, 'y': 4, 'w': 2, 'h': 4},
+        'B1-prime': {'x': 4, 'y': 2, 'w': 2, 'h': 2},
+        'B1': {'x': 4, 'y': 4, 'w': 2, 'h': 4},
+        'A': {'x': 8, 'y': 2, 'w': 2, 'h': 2},
+        'raspberries': {'x': 8, 'y': 4, 'w': 2, 'h': 4},
+        'D': {'x': 2, 'y': 9, 'w': 4, 'h': 3},
+    }
+
+    areas = []
+    for bed_id in ['A', 'B1', 'B2', 'B1-prime', 'B2-prime', 'C', 'D', 'E', 'raspberries']:
+        kind = 'perennial-bed' if bed_id == 'raspberries' else 'rotation-bed'
+        icon = '🍇' if bed_id == 'raspberries' else '🌱'
+
+        area = {
+            'id': bed_id,
+            'name': f'Bed {bed_id}' if bed_id != 'raspberries' else 'Raspberries',
+            'kind': kind,
+            'canHavePlantings': True,
+            'icon': icon,
+            'color': 'zen-moss',
+            'createdAt': now
+        }
+
+        # Add grid position if available
+        if bed_id in grid_positions:
+            area['gridPosition'] = grid_positions[bed_id]
+
+        # Add rotation group for first season if we have data
+        if seasons_map and kind == 'rotation-bed':
+            first_year = min(seasons_map.keys())
+            if bed_id in seasons_map.get(first_year, {}):
+                plantings = seasons_map[first_year][bed_id]
+                area['rotationGroup'] = infer_rotation_group(plantings)
+
+        areas.append(area)
+
+    # Convert seasons from old 'beds' format to new 'areas' format
+    seasons_v10 = []
+    for year in sorted(seasons_map.keys()):
+        area_seasons = []
+        for bed_id in sorted(seasons_map[year].keys()):
+            plantings = seasons_map[year][bed_id]
+            area_seasons.append({
+                'areaId': bed_id,
+                'rotationGroup': infer_rotation_group(plantings),
+                'plantings': plantings,
+                'notes': []
+            })
+
+        seasons_v10.append({
+            'year': year,
+            'status': 'historical',
+            'areas': area_seasons,  # v10: renamed from 'beds' to 'areas'
+            'notes': 'Imported from Excel',
+            'createdAt': now,
+            'updatedAt': now
+        })
+
+    # Build complete backup format (v10)
     output = {
         'allotment': {
-            'version': 5,
+            'version': 10,  # Updated to v10
             'meta': {
                 'name': 'My Allotment',
                 'location': 'Scotland',
@@ -333,23 +406,13 @@ def main():
                 'updatedAt': now
             },
             'layout': {
-                'beds': [
-                    {'id': 'A', 'name': 'Bed A', 'status': 'rotation'},
-                    {'id': 'B1', 'name': 'Bed B1', 'status': 'rotation'},
-                    {'id': 'B2', 'name': 'Bed B2', 'status': 'rotation'},
-                    {'id': 'B1-prime', 'name': 'Bed B1\'', 'status': 'rotation'},
-                    {'id': 'B2-prime', 'name': 'Bed B2\'', 'status': 'rotation'},
-                    {'id': 'C', 'name': 'Bed C', 'status': 'rotation'},
-                    {'id': 'D', 'name': 'Bed D', 'status': 'rotation'},
-                    {'id': 'E', 'name': 'Bed E', 'status': 'rotation'},
-                    {'id': 'raspberries', 'name': 'Raspberries', 'status': 'perennial'}
-                ],
-                'permanentPlantings': [],
-                'infrastructure': []
+                'areas': areas  # v10: unified areas array
             },
-            'seasons': seasons_output,
+            'seasons': seasons_v10,
             'currentYear': max(seasons_map.keys()) if seasons_map else 2025,
-            'maintenanceTasks': []
+            'varieties': [],  # Embedded varieties (will merge from varieties section)
+            'maintenanceTasks': [],
+            'gardenEvents': []
         },
         'varieties': {
             'version': 2,
@@ -360,7 +423,7 @@ def main():
             }
         },
         'exportedAt': now,
-        'exportVersion': 5
+        'exportVersion': 10  # Updated to v10
     }
 
     with open(output_file, 'w') as f:

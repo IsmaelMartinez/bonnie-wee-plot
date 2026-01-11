@@ -1,0 +1,837 @@
+{
+  "allotment": {
+    "version": 10,
+    "meta": {
+      "name": "My Allotment",
+      "location": "Scotland",
+      "createdAt": "2026-01-11T13:41:49.312425Z",
+      "updatedAt": "2026-01-11T13:41:49.312425Z"
+    },
+    "layout": {
+      "areas": [
+        {
+          "id": "A",
+          "name": "Bed A",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 8,
+            "y": 2,
+            "w": 2,
+            "h": 2
+          },
+          "rotationGroup": "roots"
+        },
+        {
+          "id": "B1",
+          "name": "Bed B1",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 4,
+            "y": 4,
+            "w": 2,
+            "h": 4
+          },
+          "rotationGroup": "alliums"
+        },
+        {
+          "id": "B2",
+          "name": "Bed B2",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 2,
+            "y": 4,
+            "w": 2,
+            "h": 4
+          }
+        },
+        {
+          "id": "B1-prime",
+          "name": "Bed B1-prime",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 4,
+            "y": 2,
+            "w": 2,
+            "h": 2
+          }
+        },
+        {
+          "id": "B2-prime",
+          "name": "Bed B2-prime",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 2,
+            "y": 2,
+            "w": 2,
+            "h": 2
+          }
+        },
+        {
+          "id": "C",
+          "name": "Bed C",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 0,
+            "y": 4,
+            "w": 2,
+            "h": 3
+          },
+          "rotationGroup": "legumes"
+        },
+        {
+          "id": "D",
+          "name": "Bed D",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 2,
+            "y": 9,
+            "w": 4,
+            "h": 3
+          },
+          "rotationGroup": "cucurbits"
+        },
+        {
+          "id": "E",
+          "name": "Bed E",
+          "kind": "rotation-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf31",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 2
+          }
+        },
+        {
+          "id": "raspberries",
+          "name": "Raspberries",
+          "kind": "perennial-bed",
+          "canHavePlantings": true,
+          "icon": "\ud83c\udf47",
+          "color": "zen-moss",
+          "createdAt": "2026-01-11T13:41:49.312425Z",
+          "gridPosition": {
+            "x": 8,
+            "y": 4,
+            "w": 2,
+            "h": 4
+          }
+        }
+      ]
+    },
+    "seasons": [
+      {
+        "year": 2024,
+        "status": "historical",
+        "areas": [
+          {
+            "areaId": "A",
+            "rotationGroup": "roots",
+            "plantings": [
+              {
+                "id": "planting-sk9a6gvt",
+                "plantId": "garlic",
+                "varietyName": "Garlic Picardy Wight (Spring)",
+                "sowDate": "2024-02-17"
+              },
+              {
+                "id": "planting-1740304x",
+                "plantId": "chard",
+                "varietyName": "Organic Rainbow Chard"
+              },
+              {
+                "id": "planting-pvw1a3zq",
+                "plantId": "beetroot",
+                "varietyName": "Organic Beetroot Rhonda"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "B1",
+            "rotationGroup": "alliums",
+            "plantings": [
+              {
+                "id": "planting-z1erck3z",
+                "plantId": "onion",
+                "varietyName": "Onion (Spring) Keravel Pink"
+              },
+              {
+                "id": "planting-b2ldvyqd",
+                "plantId": "onion",
+                "varietyName": "Spring Onion Parade (Organic)"
+              },
+              {
+                "id": "planting-bpapxmyr",
+                "plantId": "potato",
+                "varietyName": "Charlotte Seed"
+              },
+              {
+                "id": "planting-3v775xro",
+                "plantId": "potato",
+                "varietyName": "Heidi Red Seed"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "C",
+            "rotationGroup": "legumes",
+            "plantings": [
+              {
+                "id": "planting-h2o2fau9",
+                "plantId": "leek",
+                "varietyName": "Leeks Seeds Tape"
+              },
+              {
+                "id": "planting-mhqlmice",
+                "plantId": "broad-beans",
+                "varietyName": "PEA Jumbo"
+              },
+              {
+                "id": "planting-4496tnn5",
+                "plantId": "broad-beans",
+                "varietyName": "PEA Kelvedon Wonder"
+              },
+              {
+                "id": "planting-ur3d8rxk",
+                "plantId": "broad-beans",
+                "varietyName": "French beans"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "D",
+            "rotationGroup": "cucurbits",
+            "plantings": [
+              {
+                "id": "planting-vrcxi9al",
+                "plantId": "pumpkin",
+                "varietyName": "Spooky face Pumpkins"
+              },
+              {
+                "id": "planting-aznzh1l9",
+                "plantId": "courgette",
+                "varietyName": "Defender F1"
+              },
+              {
+                "id": "planting-ohpwa289",
+                "plantId": "lettuce",
+                "varietyName": "Organic Marvel of 4 seasons"
+              },
+              {
+                "id": "planting-arkrj0eh",
+                "plantId": "cauliflower",
+                "varietyName": "Organic Skywalker F1"
+              }
+            ],
+            "notes": []
+          }
+        ],
+        "notes": "Imported from Excel",
+        "createdAt": "2026-01-11T13:41:49.312425Z",
+        "updatedAt": "2026-01-11T13:41:49.312425Z"
+      },
+      {
+        "year": 2025,
+        "status": "historical",
+        "areas": [
+          {
+            "areaId": "A",
+            "rotationGroup": "legumes",
+            "plantings": [
+              {
+                "id": "planting-2hvdv6gb",
+                "plantId": "peas",
+                "varietyName": "Pea Kelvedon Wonder"
+              },
+              {
+                "id": "planting-f935v7kw",
+                "plantId": "broad-beans",
+                "varietyName": "Broad Bean 'Ratio'"
+              },
+              {
+                "id": "planting-4m43xc15",
+                "plantId": "spinach",
+                "varietyName": "Spinach 'Palco' F1"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "B1",
+            "rotationGroup": "alliums",
+            "plantings": [
+              {
+                "id": "planting-3t7rku5c",
+                "plantId": "onion",
+                "varietyName": "White Senshyn",
+                "sowDate": "2024-10-24"
+              },
+              {
+                "id": "planting-7tqm1lxu",
+                "plantId": "onion",
+                "varietyName": "Red Electric",
+                "sowDate": "2024-10-24"
+              },
+              {
+                "id": "planting-585otsay",
+                "plantId": "onion",
+                "varietyName": "Onion 'Centurion'"
+              },
+              {
+                "id": "planting-39l4mbkr",
+                "plantId": "onion",
+                "varietyName": "Spring Onion 'Lilia'"
+              },
+              {
+                "id": "planting-j1yktkuo",
+                "plantId": "garlic",
+                "varietyName": "Kings land",
+                "sowDate": "2024-10-24"
+              },
+              {
+                "id": "planting-my668hgt",
+                "plantId": "garlic",
+                "varietyName": "Caulk Wight"
+              },
+              {
+                "id": "planting-mmfn46cr",
+                "plantId": "garlic",
+                "varietyName": "Garlic 'Flavor'"
+              },
+              {
+                "id": "planting-24yzsppj",
+                "plantId": "beetroot",
+                "varietyName": "Rhonda"
+              },
+              {
+                "id": "planting-8cj077zg",
+                "plantId": "cauliflower",
+                "varietyName": "Organic Skywalker F1"
+              },
+              {
+                "id": "planting-ivf1az0c",
+                "plantId": "pak-choi",
+                "varietyName": "Pak Choi Baby"
+              },
+              {
+                "id": "planting-y1oo7npr",
+                "plantId": "carrot",
+                "varietyName": "Carrot Nantes 2 (Organic)"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "C",
+            "rotationGroup": "alliums",
+            "plantings": [
+              {
+                "id": "planting-vorh7kb1",
+                "plantId": "leek",
+                "varietyName": "Lancelot"
+              },
+              {
+                "id": "planting-8spy56pv",
+                "plantId": "broad-beans",
+                "varietyName": "French Borlotti Stokkievitsboon"
+              },
+              {
+                "id": "planting-7qrd61uc",
+                "plantId": "courgette",
+                "varietyName": "Wave Climber"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "areaId": "D",
+            "rotationGroup": "roots",
+            "plantings": [
+              {
+                "id": "planting-5pm3jxcg",
+                "plantId": "potato",
+                "varietyName": "Colleen (early)"
+              },
+              {
+                "id": "planting-d66uxv91",
+                "plantId": "potato",
+                "varietyName": "Setenta (main)"
+              }
+            ],
+            "notes": []
+          }
+        ],
+        "notes": "Imported from Excel",
+        "createdAt": "2026-01-11T13:41:49.312425Z",
+        "updatedAt": "2026-01-11T13:41:49.312425Z"
+      }
+    ],
+    "currentYear": 2025,
+    "varieties": [],
+    "maintenanceTasks": [],
+    "gardenEvents": []
+  },
+  "varieties": {
+    "version": 2,
+    "varieties": [
+      {
+        "id": "variety-xsbzea1h",
+        "plantId": "potato",
+        "name": "Charlotte Seed",
+        "supplier": "Potato House",
+        "price": 7.3,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-f5isr4gl",
+        "plantId": "potato",
+        "name": "Heidi Red Seed",
+        "supplier": "Potato House",
+        "price": 9.25,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-f02t4upe",
+        "plantId": "carrot",
+        "name": "Carrot Nantes 2 (Organic)",
+        "supplier": "Organic Gardening",
+        "price": 1.99,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-x5m0a5fs",
+        "plantId": "onion",
+        "name": "Onion (Spring) Keravel Pink",
+        "supplier": "Organic Gardening",
+        "price": 11.99,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-ui4wwjpt",
+        "plantId": "onion",
+        "name": "Spring Onion Parade (Organic)",
+        "supplier": "Organic Gardening",
+        "price": 2.49,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-ezsxi5no",
+        "plantId": "leek",
+        "name": "Leeks Seeds Tape",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2024
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2024": "have"
+        }
+      },
+      {
+        "id": "variety-78aeckrj",
+        "plantId": "onion",
+        "name": "https://www.rhs.org.uk/plants/147978/allium-cepa-electric-pbr/details",
+        "supplier": "Organic Gardening",
+        "price": 9.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-up29ysz1",
+        "plantId": "onion",
+        "name": "https://www.rhs.org.uk/plants/280724/allium-cepa-senshyu-yellow/details",
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "ordered"
+        }
+      },
+      {
+        "id": "variety-bv1rc3iy",
+        "plantId": "garlic",
+        "name": "https://www.organiccatalogue.com/potatoes-onions-garlic/garlic-bulbs-plants/-garlic-bulbs-kingsland-wight_mh-74725",
+        "supplier": "Organic Gardening",
+        "price": 9.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-f101ox3g",
+        "plantId": "potato",
+        "name": "Organic Colleen",
+        "supplier": "Allotment",
+        "price": 2.5,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-48zphy7w",
+        "plantId": "potato",
+        "name": "Organic Setanta",
+        "supplier": "Allotment",
+        "price": 2.5,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-h7g7phvt",
+        "plantId": "garlic",
+        "name": "Caulk Wight (hardneck)",
+        "supplier": "Allotment",
+        "price": 2.5,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "ordered"
+        }
+      },
+      {
+        "id": "variety-qrwvqoxk",
+        "plantId": "leek",
+        "name": "Lancelot    Approximately 50 in bunch",
+        "supplier": "Allotment",
+        "price": 4.0,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-b5i177x8",
+        "plantId": "peas",
+        "name": "Pea Kelvedon Wonder",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-uel1bnkr",
+        "plantId": "pak-choi",
+        "name": "Pak Choi Baby",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-d2hcynie",
+        "plantId": "courgette",
+        "name": "Wave Climber",
+        "supplier": "Organic Gardening",
+        "price": 3.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-sn719ytp",
+        "plantId": "beetroot",
+        "name": "Rhonda",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-jf10wn05",
+        "plantId": "french-beans",
+        "name": "Borlotti Stokkievitsboon",
+        "supplier": "Organic Gardening",
+        "price": 3.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-k6w0sv3b",
+        "plantId": "broad-beans",
+        "name": "Broad Bean 'Ratio'",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-j5w1vzvg",
+        "plantId": "onion",
+        "name": "Onion 'Centurion'",
+        "supplier": "Organic Gardening",
+        "price": 9.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-wmvpnvza",
+        "plantId": "garlic",
+        "name": "Garlic 'Flavor'",
+        "supplier": "Organic Gardening",
+        "price": 9.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "ordered"
+        }
+      },
+      {
+        "id": "variety-kcovkyti",
+        "plantId": "spring-onions",
+        "name": "Spring Onion 'Lilia'",
+        "supplier": "Organic Gardening",
+        "price": 0.89,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-ptgg842m",
+        "plantId": "spinach",
+        "name": "Spinach 'Palco' F1",
+        "supplier": "Organic Gardening",
+        "price": 2.49,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-eafd00xe",
+        "plantId": "sweet-pea",
+        "name": "Sweet Pea 'Old Fashioned Mixed'",
+        "supplier": "Organic Gardening",
+        "price": 0.89,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-hsaegtyi",
+        "plantId": "cornflower",
+        "name": "Cornflower 'Blue Diadem'",
+        "supplier": "Organic Gardening",
+        "price": 2.49,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-1bnadcsb",
+        "plantId": "marigold",
+        "name": "Red - Marigold (Afro-French) 'Zenith Mixed' F1",
+        "supplier": "Organic Gardening",
+        "price": 0.89,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-hk5pwnoz",
+        "plantId": "sunflower",
+        "name": "Sunflower 'Medium Red Flower'",
+        "supplier": "Organic Gardening",
+        "price": 2.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-kuf7sifl",
+        "plantId": "marigold",
+        "name": "Marigold (Dwarf French) 'Disco'",
+        "supplier": "Organic Gardening",
+        "price": 0.89,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-cflmd930",
+        "plantId": "cosmos",
+        "name": "Cosmos 'Sonata Mixed'",
+        "supplier": "Organic Gardening",
+        "price": 0.89,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      },
+      {
+        "id": "variety-nz6fpqp6",
+        "plantId": "zinnia",
+        "name": "Zinnia 'Dahlia Flowered Mixed'",
+        "supplier": "Organic Gardening",
+        "price": 1.99,
+        "yearsUsed": [
+          2025
+        ],
+        "plannedYears": [],
+        "seedsByYear": {
+          "2025": "have"
+        }
+      }
+    ],
+    "meta": {
+      "createdAt": "2026-01-11T13:41:49.312425Z",
+      "updatedAt": "2026-01-11T13:41:49.312425Z"
+    }
+  },
+  "exportedAt": "2026-01-11T13:41:49.312425Z",
+  "exportVersion": 10
+}
