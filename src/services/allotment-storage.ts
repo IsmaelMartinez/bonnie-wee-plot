@@ -49,9 +49,8 @@ import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
 // Note: variety-allotment-sync.ts removed - varieties now embedded in AllotmentData
 
-// Import legacy data for migration
-import { physicalBeds, permanentPlantings, infrastructure } from '@/data/allotment-layout'
-import { season2024, season2025 } from '@/data/historical-plans'
+// Import legacy data for migration (empty arrays for fresh start, but needed for old data migrations)
+import { permanentPlantings, infrastructure } from '@/data/allotment-layout'
 
 // ============ SCHEMA VALIDATION ============
 
@@ -982,7 +981,11 @@ interface LegacySeasonRecord {
 /**
  * Convert a legacy SeasonPlan to the legacy SeasonRecord format (v8)
  * This is then further migrated to v10 by the migration chain
+ *
+ * NOTE: Currently unused - kept for potential future historical data import feature
+ * @ts-ignore - Keeping for reference
  */
+// @ts-expect-error - Unused but kept for potential future use
 function convertSeason(legacy: SeasonPlan, status: 'historical' | 'current'): LegacySeasonRecord {
   // Group plantings by bed ID
   const bedMap = new Map<PhysicalBedId, BedSeason>()
@@ -1007,102 +1010,40 @@ function convertSeason(legacy: SeasonPlan, status: 'historical' | 'current'): Le
 }
 
 /**
- * Create initial AllotmentData from legacy hardcoded data
+ * Create initial AllotmentData for fresh installation
+ * Starts completely empty - users add areas through the UI
  */
 export function migrateFromLegacyData(): AllotmentData {
   const now = new Date().toISOString()
   const currentYear = new Date().getFullYear()
 
-  // Problem notes to migrate to BedNotes for 2025
-  const problemNotesMap: Record<string, string> = {
-    'C': 'Too shaded by apple tree. Peas did poorly. Consider shade-tolerant perennials like asparagus or rhubarb expansion.',
-    'E': 'French beans + sunflowers competition failed. Retry with just beans or consider perennials.',
-    'raspberries': 'Area is too large - plan to reduce and reclaim space for rotation beds.',
+  // Create a single empty season for the current year
+  const currentSeason: SeasonRecord = {
+    year: currentYear,
+    status: 'current',
+    areas: [], // No areas yet - completely empty start
+    createdAt: now,
+    updatedAt: now,
   }
 
-  // Convert legacy seasons and add BedNotes for 2025
-  const convertedSeason2024 = convertSeason(season2024, 'historical')
-  const convertedSeason2025 = convertSeason(season2025, currentYear === 2025 ? 'current' : 'historical')
-
-  // Add BedNotes to 2025 season (using legacy format before migration)
-  const season2025WithNotes: LegacySeasonRecord = {
-    ...convertedSeason2025,
-    beds: convertedSeason2025.beds.map(bed => {
-      const problemNote = problemNotesMap[bed.bedId]
-      if (!problemNote) return bed
-
-      return {
-        ...bed,
-        notes: [{
-          id: generateId('note'),
-          content: problemNote,
-          type: 'warning' as const,
-          createdAt: now,
-          updatedAt: now,
-        }],
-      }
-    }),
-  }
-
-  const seasons: LegacySeasonRecord[] = [convertedSeason2024, season2025WithNotes]
-
-  // If current year is after 2025, create a season for it with auto-rotation
-  if (currentYear > 2025) {
-    const currentYearBeds: BedSeason[] = physicalBeds
-      .filter(bed => bed.status !== 'perennial')
-      .map(bed => {
-        // Find 2025 bed to auto-rotate from
-        const previousBed = season2025WithNotes.beds.find(b => b.bedId === bed.id)
-        const rotationGroup = previousBed?.rotationGroup
-          ? getNextRotationGroup(previousBed.rotationGroup)
-          : bed.rotationGroup || 'legumes'
-        return {
-          bedId: bed.id,
-          rotationGroup,
-          plantings: [],
-        }
-      })
-
-    const currentYearSeason: LegacySeasonRecord = {
-      year: currentYear,
-      status: 'current',
-      beds: currentYearBeds,
-      createdAt: now,
-      updatedAt: now,
-    }
-    seasons.push(currentYearSeason)
-  }
-
-  // Remove problemNotes from beds in layout (create new objects without the field)
-  const bedsWithoutProblemNotes = physicalBeds.map(({ id, name, description, status, rotationGroup }) => ({
-    id, name, description, status, rotationGroup,
-  }))
-
-  // Create initial data structure (v8 format first, then migrate to v9)
-  // Using 'as AllotmentData' because v8 format lacks areas/permanentUnderplantings
-  // which are added by migrateToV9() below
-  const v8Data = {
-    version: 8, // Start as v8 so we can apply v9 migration
+  // Create minimal v10 data structure
+  const v10Data: AllotmentData = {
+    version: CURRENT_SCHEMA_VERSION,
     meta: {
-      name: 'My Edinburgh Allotment',
-      location: 'Edinburgh, Scotland',
+      name: 'My Allotment',
+      location: '',
       createdAt: now,
       updatedAt: now,
     },
     layout: {
-      beds: bedsWithoutProblemNotes,
-      permanentPlantings: permanentPlantings,
-      infrastructure: infrastructure,
+      areas: [], // No areas - users add via AddAreaForm
     },
-    seasons,
-    currentYear, // Use actual current year, not hardcoded 2025
-    varieties: [], // Empty array - users will add their own varieties
-  } as unknown as AllotmentData
-
-  // Apply full migration chain: v8 -> v9 -> v10
-  const v9Data = migrateToV9(v8Data)
-  const v10Data = migrateToV10(v9Data)
-  v10Data.version = CURRENT_SCHEMA_VERSION
+    seasons: [currentSeason],
+    currentYear,
+    varieties: [], // Empty - users add via Seeds page
+    maintenanceTasks: [], // Empty - no perennials yet
+    gardenEvents: [], // Empty - users add as needed
+  }
 
   return v10Data
 }

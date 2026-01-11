@@ -224,18 +224,18 @@ describe('Legacy Migration', () => {
     vi.mocked(localStorage.setItem).mockClear()
   })
 
-  it('migrates from legacy data if no existing data', () => {
+  it('creates empty allotment data if no existing data', () => {
     vi.mocked(localStorage.getItem).mockReturnValue(null)
     vi.mocked(localStorage.setItem).mockImplementation(() => {})
 
     const result = initializeStorage()
 
     expect(result.success).toBe(true)
-    expect(result.data?.meta.name).toBe('My Edinburgh Allotment')
+    expect(result.data?.meta.name).toBe('My Allotment')
     expect(localStorage.setItem).toHaveBeenCalled()
   })
 
-  it('initialized data uses v10 unified areas', () => {
+  it('initialized data uses v10 unified areas (empty start)', () => {
     vi.mocked(localStorage.getItem).mockReturnValue(null)
     vi.mocked(localStorage.setItem).mockImplementation(() => {})
 
@@ -244,8 +244,8 @@ describe('Legacy Migration', () => {
     expect(result.success).toBe(true)
     expect(result.data?.layout.areas).toBeDefined()
     expect(Array.isArray(result.data?.layout.areas)).toBe(true)
-    // Should have rotation beds, trees, etc. all in unified areas array
-    expect(result.data?.layout.areas.some(a => a.kind === 'rotation-bed')).toBe(true)
+    // Fresh install starts with no areas - users add via UI
+    expect(result.data?.layout.areas.length).toBe(0)
   })
 
   it('seasons use areas array not beds', () => {
