@@ -66,8 +66,8 @@ describe('useTodayData', () => {
     ]
 
     mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
-      currentSeason: { beds: [] },
+      data: { layout: { areas: [] } },
+      currentSeason: { areas: [] },
       isLoading: false,
       getTasksForMonth: vi.fn().mockReturnValue(mockTasks),
     })
@@ -85,11 +85,11 @@ describe('useTodayData', () => {
     }
 
     mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
+      data: { layout: { areas: [] } },
       currentSeason: {
         year: 2025,
-        beds: [
-          { bedId: 'A', rotationGroup: 'legumes', plantings: [mockPlanting] }
+        areas: [
+          { areaId: 'bed-a', rotationGroup: 'legumes', plantings: [mockPlanting] }
         ]
       },
       isLoading: false,
@@ -122,11 +122,11 @@ describe('useTodayData', () => {
     }
 
     mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
+      data: { layout: { areas: [] } },
       currentSeason: {
         year: 2025,
-        beds: [
-          { bedId: 'B1', rotationGroup: 'brassicas', plantings: [mockPlanting] }
+        areas: [
+          { areaId: 'bed-b1', rotationGroup: 'brassicas', plantings: [mockPlanting] }
         ]
       },
       isLoading: false,
@@ -158,11 +158,11 @@ describe('useTodayData', () => {
     }
 
     mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
+      data: { layout: { areas: [] } },
       currentSeason: {
         year: 2025,
-        beds: [
-          { bedId: 'B2', rotationGroup: 'alliums', plantings: [mockPlanting] }
+        areas: [
+          { areaId: 'bed-b2', rotationGroup: 'alliums', plantings: [mockPlanting] }
         ]
       },
       isLoading: false,
@@ -207,11 +207,11 @@ describe('useTodayData', () => {
     }
 
     mockUseAllotment.mockReturnValue({
-      data: { layout: { beds: [] } },
+      data: { layout: { areas: [] } },
       currentSeason: {
         year: 2025,
-        beds: [
-          { bedId: 'A', rotationGroup: 'legumes', plantings: [mockPlanting] }
+        areas: [
+          { areaId: 'bed-a', rotationGroup: 'legumes', plantings: [mockPlanting] }
         ]
       },
       isLoading: false,

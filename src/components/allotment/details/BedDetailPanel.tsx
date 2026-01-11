@@ -5,33 +5,31 @@ import { Sprout, Plus, ArrowRight, Leaf } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
-import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
-import { Planting, BedSeason, BedNote, NewBedNote, BedNoteUpdate, BedArea } from '@/types/unified-allotment'
+import { RotationGroup } from '@/types/garden-planner'
+import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
 
 interface BedDetailPanelProps {
-  bed: BedArea
-  bedId: PhysicalBedId
-  bedSeason: BedSeason | null
+  area: Area
+  areaSeason: AreaSeason | null
   plantings: Planting[]
-  notes: BedNote[]
+  notes: AreaNote[]
   selectedYear: number
   previousYearRotation?: RotationGroup | null
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
   onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
-  onAddNote: (note: NewBedNote) => void
-  onUpdateNote: (noteId: string, updates: BedNoteUpdate) => void
+  onAddNote: (note: NewAreaNote) => void
+  onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
   onRemoveNote: (noteId: string) => void
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
 }
 
 export default function BedDetailPanel({
-  bed,
-  bedId,
-  bedSeason,
+  area,
+  areaSeason,
   plantings,
   notes,
   selectedYear,
@@ -45,6 +43,9 @@ export default function BedDetailPanel({
   onUpdateRotation,
   onAutoRotate,
 }: BedDetailPanelProps) {
+  // Determine if this is a rotation bed (vs perennial bed)
+  const isRotationBed = area.kind === 'rotation-bed'
+
   // Compute auto-rotate info
   const autoRotateInfo = useMemo(() => {
     if (!previousYearRotation) return null
@@ -62,7 +63,7 @@ export default function BedDetailPanel({
 
   // Compute rotation indicator
   const rotationInfo = useMemo(() => {
-    if (!previousYearRotation || bed.status !== 'rotation') return null
+    if (!previousYearRotation || !isRotationBed) return null
 
     const suggested = getNextRotationGroup(previousYearRotation)
     const lastDisplay = ROTATION_GROUP_DISPLAY[previousYearRotation]
@@ -74,7 +75,7 @@ export default function BedDetailPanel({
       .filter(Boolean)
 
     return { lastYear: previousYearRotation, suggested, lastDisplay, nextDisplay, suggestedVegNames }
-  }, [previousYearRotation, bed.status])
+  }, [previousYearRotation, isRotationBed])
 
   return (
     <div className="zen-card p-6 sticky top-20">
@@ -82,17 +83,17 @@ export default function BedDetailPanel({
       <div className="flex items-center gap-3 mb-4">
         <div
           className="w-12 h-12 rounded-zen-lg flex items-center justify-center text-white text-xl font-bold"
-          style={{ backgroundColor: BED_COLORS[bedId] }}
+          style={{ backgroundColor: area.color || BED_COLORS[area.id] || '#6b7280' }}
         >
-          {bedId.replace('-prime', "'")}
+          {area.icon || area.id.replace('-prime', "'").slice(0, 2).toUpperCase()}
         </div>
         <div>
-          <h3 className="font-display text-zen-ink-800">{bed.name}</h3>
+          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
           <div className={`text-xs flex items-center gap-1 ${
-            bed.status === 'perennial' ? 'text-zen-sakura-600' : 'text-zen-moss-600'
+            !isRotationBed ? 'text-zen-sakura-600' : 'text-zen-moss-600'
           }`}>
-            {bed.status === 'perennial' && <Leaf className="w-3 h-3" />}
-            {bed.status === 'perennial' ? 'Perennial' : bedSeason?.rotationGroup || 'Rotation'}
+            {!isRotationBed && <Leaf className="w-3 h-3" />}
+            {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
           </div>
         </div>
       </div>
@@ -104,7 +105,7 @@ export default function BedDetailPanel({
         </label>
         <select
           id="rotation-type"
-          value={bedSeason?.rotationGroup || ''}
+          value={areaSeason?.rotationGroup || ''}
           onChange={(e) => onUpdateRotation(e.target.value as RotationGroup)}
           className="zen-select text-sm"
         >
@@ -143,7 +144,9 @@ export default function BedDetailPanel({
       )}
 
       {/* Description */}
-      <p className="text-sm text-zen-stone-600 mb-4">{bed.description}</p>
+      {area.description && (
+        <p className="text-sm text-zen-stone-600 mb-4">{area.description}</p>
+      )}
 
       {/* Bed Notes */}
       <div className="mb-4">

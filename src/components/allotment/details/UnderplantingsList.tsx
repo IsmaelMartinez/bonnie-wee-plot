@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Layers, Leaf, X, Check, Calendar } from 'lucide-react'
+import { Plus, Layers, Leaf, X, Check } from 'lucide-react'
 import { useAllotment } from '@/hooks/useAllotment'
-import { NewPermanentUnderplanting, NewSeasonalUnderplanting } from '@/types/unified-allotment'
+import { NewPlanting, Planting } from '@/types/unified-allotment'
 import { vegetableIndex, VegetableIndex } from '@/lib/vegetables'
 
 interface UnderplantingsListProps {
@@ -11,60 +11,45 @@ interface UnderplantingsListProps {
   parentAreaName: string
 }
 
-type UnderplantingType = 'permanent' | 'seasonal'
-
+/**
+ * UnderplantingsList - Shows plantings for a non-rotation area
+ *
+ * In v10, all areas can have plantings. This component displays
+ * and manages plantings for permanent areas (trees, berries, etc.)
+ * where you might plant things underneath (strawberries under apple tree,
+ * herbs around berries, etc.)
+ */
 export default function UnderplantingsList({ parentAreaId, parentAreaName }: UnderplantingsListProps) {
   const {
-    getPermanentUnderplantings,
-    getSeasonalUnderplantings,
-    addPermanentUnderplanting,
-    addSeasonalUnderplanting,
-    removePermanentUnderplanting,
-    removeSeasonalUnderplanting,
+    getPlantings,
+    addPlanting,
+    removePlanting,
     selectedYear,
   } = useAllotment()
 
   const [isAdding, setIsAdding] = useState(false)
-  const [underplantingType, setUnderplantingType] = useState<UnderplantingType>('permanent')
   const [selectedPlantId, setSelectedPlantId] = useState('')
   const [variety, setVariety] = useState('')
 
-  const permanentUnderplantings = getPermanentUnderplantings(parentAreaId)
-  const seasonalUnderplantings = getSeasonalUnderplantings(parentAreaId)
+  const plantings = getPlantings(parentAreaId)
 
   const handleAdd = () => {
     if (!selectedPlantId) return
 
-    if (underplantingType === 'permanent') {
-      const newUnderplanting: NewPermanentUnderplanting = {
-        parentAreaId,
-        plantId: selectedPlantId,
-        variety: variety || undefined,
-        plantedYear: new Date().getFullYear(),
-      }
-      addPermanentUnderplanting(newUnderplanting)
-    } else {
-      const newUnderplanting: NewSeasonalUnderplanting = {
-        plantId: selectedPlantId,
-        varietyName: variety || undefined,
-      }
-      addSeasonalUnderplanting(parentAreaId, newUnderplanting)
+    const newPlanting: NewPlanting = {
+      plantId: selectedPlantId,
+      varietyName: variety || undefined,
     }
+    addPlanting(parentAreaId, newPlanting)
 
     setSelectedPlantId('')
     setVariety('')
     setIsAdding(false)
   }
 
-  const handleRemovePermanent = (id: string) => {
-    if (confirm('Remove this permanent underplanting?')) {
-      removePermanentUnderplanting(id)
-    }
-  }
-
-  const handleRemoveSeasonal = (id: string) => {
-    if (confirm('Remove this seasonal underplanting?')) {
-      removeSeasonalUnderplanting(parentAreaId, id)
+  const handleRemove = (plantingId: string) => {
+    if (confirm('Remove this planting?')) {
+      removePlanting(parentAreaId, plantingId)
     }
   }
 
@@ -73,15 +58,13 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
     return plant?.name || plantId
   }
 
-  const hasUnderplantings = permanentUnderplantings.length > 0 || seasonalUnderplantings.length > 0
-
   return (
     <div className="bg-zen-water-50 rounded-zen p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-zen-water-600" />
           <h4 className="text-sm font-medium text-zen-water-700">
-            Underplantings
+            Plantings ({selectedYear})
           </h4>
         </div>
         {!isAdding && (
@@ -97,16 +80,6 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
 
       {isAdding && (
         <div className="mb-3 p-2 bg-white rounded-zen border border-zen-water-200">
-          <div className="flex gap-2 mb-2">
-            <select
-              value={underplantingType}
-              onChange={e => setUnderplantingType(e.target.value as UnderplantingType)}
-              className="text-xs px-2 py-1 border border-zen-stone-200 rounded-zen"
-            >
-              <option value="permanent">Permanent</option>
-              <option value="seasonal">Seasonal ({selectedYear})</option>
-            </select>
-          </div>
           <select
             value={selectedPlantId}
             onChange={e => setSelectedPlantId(e.target.value)}
@@ -144,70 +117,32 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
         </div>
       )}
 
-      {!hasUnderplantings ? (
+      {plantings.length === 0 ? (
         <p className="text-xs text-zen-water-500 italic">
-          No underplantings under {parentAreaName}.
+          No plantings in {parentAreaName} for {selectedYear}.
         </p>
       ) : (
-        <div className="space-y-2">
-          {permanentUnderplantings.length > 0 && (
-            <div>
-              <div className="text-xs text-zen-stone-500 mb-1">Permanent</div>
-              <div className="space-y-1">
-                {permanentUnderplantings.map(u => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between text-xs bg-white rounded px-2 py-1 group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Leaf className="w-3 h-3 text-zen-moss-500" />
-                      <span className="text-zen-ink-700">{getPlantName(u.plantId)}</span>
-                      {u.variety && (
-                        <span className="text-zen-stone-400">({u.variety})</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleRemovePermanent(u.id)}
-                      className="opacity-0 group-hover:opacity-100 text-zen-stone-400 hover:text-zen-sakura-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+        <div className="space-y-1">
+          {plantings.map((planting: Planting) => (
+            <div
+              key={planting.id}
+              className="flex items-center justify-between text-xs bg-white rounded px-2 py-1 group"
+            >
+              <div className="flex items-center gap-2">
+                <Leaf className="w-3 h-3 text-zen-moss-500" />
+                <span className="text-zen-ink-700">{getPlantName(planting.plantId)}</span>
+                {planting.varietyName && (
+                  <span className="text-zen-stone-400">({planting.varietyName})</span>
+                )}
               </div>
+              <button
+                onClick={() => handleRemove(planting.id)}
+                className="opacity-0 group-hover:opacity-100 text-zen-stone-400 hover:text-zen-sakura-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
             </div>
-          )}
-
-          {seasonalUnderplantings.length > 0 && (
-            <div>
-              <div className="flex items-center gap-1 text-xs text-zen-stone-500 mb-1">
-                <Calendar className="w-3 h-3" />
-                {selectedYear}
-              </div>
-              <div className="space-y-1">
-                {seasonalUnderplantings.map(u => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between text-xs bg-white rounded px-2 py-1 group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Leaf className="w-3 h-3 text-zen-kitsune-500" />
-                      <span className="text-zen-ink-700">{getPlantName(u.plantId)}</span>
-                      {u.varietyName && (
-                        <span className="text-zen-stone-400">({u.varietyName})</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleRemoveSeasonal(u.id)}
-                      className="opacity-0 group-hover:opacity-100 text-zen-stone-400 hover:text-zen-sakura-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       )}
     </div>

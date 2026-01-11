@@ -16,8 +16,8 @@ import {
 } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
-import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
-import { Planting, NewPlanting } from '@/types/unified-allotment'
+import { RotationGroup } from '@/types/garden-planner'
+import { Planting, NewPlanting, AreaSeason } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
@@ -26,17 +26,18 @@ import DataManagement from '@/components/allotment/DataManagement'
 import SaveIndicator from '@/components/ui/SaveIndicator'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
+import AddAreaForm from '@/components/allotment/AddAreaForm'
 import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
 
-// Helper to get previous year's rotation group for a bed
+// Helper to get previous year's rotation group for an area
 function getPreviousYearRotationGroup(
-  bedId: PhysicalBedId,
+  areaId: string,
   currentYear: number,
-  seasons: { year: number; beds: { bedId: PhysicalBedId; rotationGroup: RotationGroup }[] }[]
+  seasons: { year: number; areas: AreaSeason[] }[]
 ): RotationGroup | null {
   const lastYearSeason = seasons.find(s => s.year === currentYear - 1)
-  const lastYearBed = lastYearSeason?.beds.find(b => b.bedId === bedId)
-  return lastYearBed?.rotationGroup || null
+  const lastYearArea = lastYearSeason?.areas.find(a => a.areaId === areaId)
+  return lastYearArea?.rotationGroup || null
 }
 
 export default function AllotmentPage() {
@@ -52,7 +53,7 @@ export default function AllotmentPage() {
     selectYear,
     getYears,
     selectItem,
-    getBedSeason,
+    getAreaSeason,
     getPlantings,
     addPlanting,
     updatePlanting,
@@ -65,19 +66,21 @@ export default function AllotmentPage() {
     reload,
     saveStatus,
     lastSavedAt,
-    getBedNotes,
-    addBedNote,
-    updateBedNote,
-    removeBedNote,
+    getAreaNotes,
+    addAreaNote,
+    updateAreaNote,
+    removeAreaNote,
     updateRotationGroup,
-    // v9 Area getters
-    getBedArea,
-    getPermanentArea,
-    getInfrastructureArea,
-    getAreas,
+    // v10 Area getters
+    getArea,
+    getAreasByKind,
+    getAllAreas,
+    addArea,
+    archiveArea,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showAddAreaDialog, setShowAddAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
 
@@ -95,12 +98,12 @@ export default function AllotmentPage() {
   const quickStats = useMemo(() => ({
     rotationBeds: getRotationBeds().length,
     perennialBeds: getPerennialBeds().length,
-    permanentPlantings: getAreas('permanent').length,
-  }), [getRotationBeds, getPerennialBeds, getAreas])
+    permanentPlantings: getAreasByKind('tree').length + getAreasByKind('berry').length,
+  }), [getRotationBeds, getPerennialBeds, getAreasByKind])
 
-  // Helper to get previous year rotation for current bed
-  const getPreviousRotation = useCallback((bedId: PhysicalBedId): RotationGroup | null => {
-    return getPreviousYearRotationGroup(bedId, selectedYear, data?.seasons || [])
+  // Helper to get previous year rotation for current area
+  const getPreviousRotation = useCallback((areaId: string): RotationGroup | null => {
+    return getPreviousYearRotationGroup(areaId, selectedYear, data?.seasons || [])
   }, [selectedYear, data?.seasons])
 
   // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
@@ -113,10 +116,10 @@ export default function AllotmentPage() {
     const previousSeason = data.seasons.find(s => s.year === previousYear)
     if (!previousSeason) return null
 
-    const previousBedSeason = previousSeason.beds.find(b => b.bedId === selectedBedId)
-    if (!previousBedSeason?.rotationGroup) return null
+    const previousAreaSeason = previousSeason.areas.find((a: AreaSeason) => a.areaId === selectedBedId)
+    if (!previousAreaSeason?.rotationGroup) return null
 
-    const previousGroup = previousBedSeason.rotationGroup
+    const previousGroup = previousAreaSeason.rotationGroup
     const suggestedGroup = getNextRotationGroup(previousGroup)
     const suggestedVegetables = getVegetablesForRotationGroup(suggestedGroup)
 
@@ -157,6 +160,11 @@ export default function AllotmentPage() {
 
   const handleCreateNextYear = () => {
     createSeason(nextYear, `Planning for ${nextYear} season`)
+  }
+
+  const handleArchiveArea = (areaId: string) => {
+    archiveArea(areaId)
+    selectItem(null) // Clear selection after archiving
   }
 
   const handleAutoRotate = (addSuggestedVegetables: boolean) => {
@@ -365,16 +373,26 @@ export default function AllotmentPage() {
           {/* Main Layout */}
           <div className="lg:col-span-2">
             <div className="zen-card p-6">
-              <h2 className="text-lg font-display text-zen-ink-700 mb-4 flex items-center gap-2">
-                <Leaf className="w-5 h-5 text-zen-moss-600" />
-                Plot Overview - {selectedYear}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-display text-zen-ink-700 flex items-center gap-2">
+                  <Leaf className="w-5 h-5 text-zen-moss-600" />
+                  Plot Overview - {selectedYear}
+                </h2>
+                <button
+                  onClick={() => setShowAddAreaDialog(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Area
+                </button>
+              </div>
 
               {/* Draggable Grid Layout */}
               <AllotmentGrid
                 onItemSelect={selectItem}
                 selectedItemRef={selectedItemRef}
                 getPlantingsForBed={getPlantings}
+                areas={getAllAreas()}
               />
             </div>
           </div>
@@ -383,22 +401,21 @@ export default function AllotmentPage() {
           <div className="lg:col-span-1">
             <ItemDetailSwitcher
               selectedItemRef={selectedItemRef}
-              getBedArea={getBedArea}
-              getBedSeason={getBedSeason}
+              getArea={getArea}
+              getAreaSeason={getAreaSeason}
               getPlantings={getPlantings}
-              getBedNotes={getBedNotes}
-              getPermanentArea={getPermanentArea}
-              getInfrastructureArea={getInfrastructureArea}
+              getAreaNotes={getAreaNotes}
               getPreviousYearRotation={getPreviousRotation}
               selectedYear={selectedYear}
               onAddPlanting={() => setShowAddDialog(true)}
               onDeletePlanting={handleDeletePlanting}
               onUpdateSuccess={handleUpdateSuccess}
-              onAddNote={(note) => selectedBedId && addBedNote(selectedBedId, note)}
-              onUpdateNote={(noteId, updates) => selectedBedId && updateBedNote(selectedBedId, noteId, updates)}
-              onRemoveNote={(noteId) => selectedBedId && removeBedNote(selectedBedId, noteId)}
+              onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
+              onUpdateNote={(noteId, updates) => selectedBedId && updateAreaNote(selectedBedId, noteId, updates)}
+              onRemoveNote={(noteId) => selectedBedId && removeAreaNote(selectedBedId, noteId)}
               onUpdateRotation={(group) => selectedBedId && updateRotationGroup(selectedBedId, group)}
               onAutoRotate={() => setShowAutoRotateDialog(true)}
+              onArchiveArea={handleArchiveArea}
               quickStats={quickStats}
             />
 
@@ -424,6 +441,24 @@ export default function AllotmentPage() {
         />
       </Dialog>
 
+      {/* Add Area Dialog */}
+      <Dialog
+        isOpen={showAddAreaDialog}
+        onClose={() => setShowAddAreaDialog(false)}
+        title="Add New Area"
+        description="Add a new bed, tree, or other area to your allotment."
+        maxWidth="lg"
+      >
+        <AddAreaForm
+          onSubmit={(area) => {
+            addArea(area)
+            setShowAddAreaDialog(false)
+          }}
+          onCancel={() => setShowAddAreaDialog(false)}
+          existingAreas={getAllAreas()}
+        />
+      </Dialog>
+
       {/* Delete Year Confirmation */}
       <ConfirmDialog
         isOpen={yearToDelete !== null}
@@ -443,8 +478,8 @@ export default function AllotmentPage() {
 
       {/* Auto-rotate Dialog */}
       {autoRotateInfo && selectedBedId && (() => {
-        const bedData = getBedArea(selectedBedId)
-        if (!bedData) return null
+        const areaData = getArea(selectedBedId)
+        if (!areaData) return null
 
         const previousDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]
         const suggestedDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]
@@ -458,7 +493,7 @@ export default function AllotmentPage() {
             isOpen={showAutoRotateDialog}
             onClose={() => setShowAutoRotateDialog(false)}
             title="Auto-rotate Bed for Soil Health"
-            description={`Rotate ${bedData.name} to maintain healthy soil and prevent disease buildup.`}
+            description={`Rotate ${areaData.name} to maintain healthy soil and prevent disease buildup.`}
           >
             <div className="space-y-4">
               {/* Rotation Flow */}

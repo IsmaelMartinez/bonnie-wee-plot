@@ -20,15 +20,15 @@ import {
 import GuideCTA from '@/components/GuideCTA'
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
-import { getVegetableById, getMaintenanceForMonth, getMaintenanceForPlantIds, type MaintenanceTask } from '@/lib/vegetable-database'
+import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
+import { Area, AreaSeason } from '@/types/unified-allotment'
 import {
   scotlandMonthlyCalendar,
   MONTH_KEYS,
   getCurrentMonthKey,
   type MonthKey
 } from '@/data/scotland-calendar'
-import { BED_COLORS, getBedById } from '@/data/allotment-layout'
-import { PhysicalBedId } from '@/types/garden-planner'
+import { BED_COLORS } from '@/data/allotment-layout'
 import { Scissors, Droplet, TreeDeciduous, Layers } from 'lucide-react'
 
 // Month selector button component
@@ -172,18 +172,18 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
 
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
-  
+
   // Load allotment data for personalization
-  const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreas } = useAllotment()
-  
+  const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreasByKind } = useAllotment()
+
   // Auto-select current month on page load
   useEffect(() => {
     setSelectedMonth(getCurrentMonthKey())
   }, [])
-  
+
   const data = scotlandMonthlyCalendar[selectedMonth]
   const isCurrentMonth = selectedMonth === getCurrentMonthKey()
-  
+
   // Get maintenance tasks for trees, shrubs, and perennials this month
   const maintenanceTasks = useMemo(() => {
     const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
@@ -192,27 +192,33 @@ export default function ThisMonthPage() {
 
   // Get personalized maintenance for user's permanent plantings (trees, berries, perennials)
   const personalizedMaintenance = useMemo(() => {
-    const permanentAreas = getAreas('permanent')
-    if (permanentAreas.length === 0) return { tasks: [], plantings: [] }
+    const treeAreas = getAreasByKind('tree')
+    const berryAreas = getAreasByKind('berry')
+    const herbAreas = getAreasByKind('herb')
+    const permanentAreas: Area[] = [...treeAreas, ...berryAreas, ...herbAreas]
+    if (permanentAreas.length === 0) return { tasks: [] as MaintenanceTask[], plantings: [] as Area[] }
 
     const plantIds = permanentAreas
-      .filter(p => p.plantId)
-      .map(p => p.plantId as string)
+      .filter((p: Area) => p.primaryPlant?.plantId)
+      .map((p: Area) => p.primaryPlant!.plantId)
 
-    if (plantIds.length === 0) return { tasks: [], plantings: permanentAreas }
+    if (plantIds.length === 0) return { tasks: [] as MaintenanceTask[], plantings: permanentAreas }
 
+    // Get maintenance tasks for the month
     const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
-    const tasks = getMaintenanceForPlantIds(plantIds, monthIndex)
+    const allTasks = getMaintenanceForMonth(monthIndex)
+    // Filter to user's plants
+    const tasks = allTasks.filter(t => plantIds.includes(t.vegetable.id))
 
     return { tasks, plantings: permanentAreas }
-  }, [getAreas, selectedMonth])
+  }, [getAreasByKind, selectedMonth])
   
   // Get personalized tasks based on user's plantings
   const personalizedData = useMemo(() => {
     if (!currentSeason || !allotmentData) return null
-    
+
     const allPlantings: Array<{
-      bedId: string
+      areaId: string
       plantId: string
       vegetableName: string
       varietyName?: string
@@ -220,13 +226,13 @@ export default function ThisMonthPage() {
       sowMonths: number[]
       category: string
     }> = []
-    
-    for (const bed of currentSeason.beds) {
-      for (const planting of bed.plantings) {
+
+    for (const areaSeason of currentSeason.areas) {
+      for (const planting of areaSeason.plantings) {
         const veg = getVegetableById(planting.plantId)
         if (veg) {
           allPlantings.push({
-            bedId: bed.bedId,
+            areaId: areaSeason.areaId,
             plantId: planting.plantId,
             vegetableName: veg.name,
             varietyName: planting.varietyName,
@@ -237,28 +243,28 @@ export default function ThisMonthPage() {
         }
       }
     }
-    
+
     // Get month index (1-12) for comparison
     const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
-    
+
     // Get plantings that might be ready to harvest this month
     const readyToHarvest = allPlantings.filter(p => {
       // Check if current month is within harvest months
-      return p.harvestMonths.includes(monthIndex) || 
-             p.harvestMonths.includes(monthIndex + 1) || 
+      return p.harvestMonths.includes(monthIndex) ||
+             p.harvestMonths.includes(monthIndex + 1) ||
              p.harvestMonths.includes(monthIndex - 1)
     })
-    
+
     // Get plantings that need attention (sowing season)
     const needsAttention = allPlantings.filter(p => {
-      return p.sowMonths.includes(monthIndex) || 
+      return p.sowMonths.includes(monthIndex) ||
              p.sowMonths.includes(monthIndex + 1) ||
              p.sowMonths.includes(monthIndex - 1)
     })
-    
+
     return {
       plantingCount: allPlantings.length,
-      bedCount: currentSeason.beds.filter(b => b.plantings.length > 0).length,
+      areaCount: currentSeason.areas.filter((a: AreaSeason) => a.plantings.length > 0).length,
       readyToHarvest: readyToHarvest.slice(0, 4),
       needsAttention: needsAttention.slice(0, 4),
       allPlantings: allPlantings.slice(0, 6)
@@ -267,7 +273,7 @@ export default function ThisMonthPage() {
 
   // Build calendar plantings data
   const calendarPlantings = useMemo(() => {
-    if (!currentSeason) return []
+    if (!currentSeason || !allotmentData) return []
 
     const entries: Array<{
       bedId: string
@@ -277,14 +283,14 @@ export default function ThisMonthPage() {
       varietyName?: string
     }> = []
 
-    for (const bed of currentSeason.beds) {
-      const bedInfo = getBedById(bed.bedId as PhysicalBedId)
-      const bedColor = BED_COLORS[bed.bedId as PhysicalBedId] || '#9ca3af'
-      const bedName = bedInfo?.name || `Bed ${bed.bedId}`
+    for (const areaSeason of currentSeason.areas) {
+      const area = allotmentData.layout.areas.find((a: Area) => a.id === areaSeason.areaId)
+      const bedColor = area?.color || BED_COLORS[areaSeason.areaId] || '#9ca3af'
+      const bedName = area?.name || `Area ${areaSeason.areaId}`
 
-      for (const planting of bed.plantings) {
+      for (const planting of areaSeason.plantings) {
         entries.push({
-          bedId: bed.bedId,
+          bedId: areaSeason.areaId,
           bedName,
           bedColor,
           plantId: planting.plantId,
@@ -294,7 +300,7 @@ export default function ThisMonthPage() {
     }
 
     return entries
-  }, [currentSeason])
+  }, [currentSeason, allotmentData])
   
   return (
     <div className="min-h-screen bg-zen-stone-50 zen-texture">
@@ -367,8 +373,8 @@ export default function ThisMonthPage() {
                 <div className="text-xs text-zen-stone-600">Plantings in {selectedYear}</div>
               </div>
               <div className="bg-white/60 rounded-zen p-3 text-center">
-                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.bedCount}</div>
-                <div className="text-xs text-zen-stone-600">Active Beds</div>
+                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.areaCount}</div>
+                <div className="text-xs text-zen-stone-600">Active Areas</div>
               </div>
               <div className="bg-white/60 rounded-zen p-3 text-center">
                 <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.readyToHarvest.length}</div>
@@ -384,7 +390,7 @@ export default function ThisMonthPage() {
                   {personalizedData.allPlantings.map((p, i) => (
                     <PersonalizedPlanting
                       key={i}
-                      bedId={p.bedId}
+                      bedId={p.areaId}
                       vegetableName={p.vegetableName}
                       varietyName={p.varietyName}
                     />
@@ -519,16 +525,16 @@ export default function ThisMonthPage() {
 
             {/* List user's permanent plantings */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {personalizedMaintenance.plantings.map((planting) => (
+              {personalizedMaintenance.plantings.map((area: Area) => (
                 <span
-                  key={planting.id}
+                  key={area.id}
                   className="inline-flex items-center px-2 py-1 rounded-zen bg-white/70 border border-zen-sakura-200 text-sm text-zen-ink-700"
                 >
-                  {planting.plantingType === 'fruit-tree' && '🌳'}
-                  {planting.plantingType === 'berry' && '🫐'}
-                  {planting.plantingType === 'perennial-veg' && '🥬'}
-                  {planting.plantingType === 'herb' && '🌿'}
-                  <span className="ml-1">{planting.name}</span>
+                  {area.kind === 'tree' && '🌳'}
+                  {area.kind === 'berry' && '🫐'}
+                  {area.kind === 'perennial-bed' && '🥬'}
+                  {area.kind === 'herb' && '🌿'}
+                  <span className="ml-1">{area.name}</span>
                 </span>
               ))}
             </div>
@@ -577,7 +583,9 @@ export default function ThisMonthPage() {
             </div>
             <div>
               <h3 className="font-display text-zen-ink-800 mb-2">Soil Care</h3>
-              <p className="text-amber-900 leading-relaxed">{data.soilCare}</p>
+              <p className="text-amber-900 leading-relaxed">
+                Add compost and organic matter to improve soil structure. Mulch bare soil to retain moisture and suppress weeds.
+              </p>
               <p className="text-xs text-amber-700 mt-3 italic">
                 Healthy soil grows healthy plants. Feed the soil, and it feeds you.
               </p>

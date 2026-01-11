@@ -3,14 +3,14 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { Warehouse, Droplets, ExternalLink, Recycle, Footprints, HelpCircle, Flower2, Fish, Bird } from 'lucide-react'
-import { InfrastructureArea } from '@/types/unified-allotment'
+import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
 import { useCompost } from '@/hooks/useCompost'
 
 interface InfrastructureDetailPanelProps {
-  item: InfrastructureArea
+  area: Area
 }
 
-const TYPE_CONFIG: Record<InfrastructureArea['infrastructureType'], { icon: typeof Warehouse; label: string; color: string }> = {
+const SUBTYPE_CONFIG: Record<InfrastructureSubtype, { icon: typeof Warehouse; label: string; color: string }> = {
   'shed': { icon: Warehouse, label: 'Shed', color: 'zen-stone' },
   'compost': { icon: Recycle, label: 'Compost', color: 'zen-kitsune' },
   'water-butt': { icon: Droplets, label: 'Water Storage', color: 'zen-water' },
@@ -94,10 +94,11 @@ function CompostSummary() {
   )
 }
 
-export default function InfrastructureDetailPanel({ item }: InfrastructureDetailPanelProps) {
-  const config = TYPE_CONFIG[item.infrastructureType] || TYPE_CONFIG.other
+export default function InfrastructureDetailPanel({ area }: InfrastructureDetailPanelProps) {
+  const subtype = area.infrastructureSubtype || 'other'
+  const config = SUBTYPE_CONFIG[subtype]
   const Icon = config.icon
-  const isCompost = item.infrastructureType === 'compost'
+  const isCompost = subtype === 'compost'
 
   return (
     <div className="zen-card p-6 sticky top-20">
@@ -107,21 +108,21 @@ export default function InfrastructureDetailPanel({ item }: InfrastructureDetail
           <Icon className={`w-6 h-6 text-${config.color}-600`} />
         </div>
         <div>
-          <h3 className="font-display text-zen-ink-800">{item.name}</h3>
+          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
           <div className={`text-xs text-${config.color}-600`}>{config.label}</div>
         </div>
       </div>
 
       {/* Type-specific description */}
       <p className="text-sm text-zen-stone-600 mb-4">
-        {item.infrastructureType === 'shed' && 'Store tools and garden supplies.'}
-        {item.infrastructureType === 'water-butt' && 'Collect rainwater for irrigation.'}
-        {item.infrastructureType === 'path' && 'Access route through the allotment.'}
-        {item.infrastructureType === 'greenhouse' && 'Protected growing space.'}
-        {item.infrastructureType === 'compost' && 'Recycle garden and kitchen waste.'}
-        {item.infrastructureType === 'pond' && 'Water feature supporting wildlife and beneficial insects.'}
-        {item.infrastructureType === 'wildlife' && 'Habitat area for pollinators and beneficial creatures.'}
-        {item.infrastructureType === 'other' && 'Part of your allotment layout.'}
+        {subtype === 'shed' && 'Store tools and garden supplies.'}
+        {subtype === 'water-butt' && 'Collect rainwater for irrigation.'}
+        {subtype === 'path' && 'Access route through the allotment.'}
+        {subtype === 'greenhouse' && 'Protected growing space.'}
+        {subtype === 'compost' && 'Recycle garden and kitchen waste.'}
+        {subtype === 'pond' && 'Water feature supporting wildlife and beneficial insects.'}
+        {subtype === 'wildlife' && 'Habitat area for pollinators and beneficial creatures.'}
+        {subtype === 'other' && 'Part of your allotment layout.'}
       </p>
 
       {/* Compost-specific content */}

@@ -51,52 +51,52 @@ export default function AIAdvisorPage() {
   const { token, saveToken, clearToken } = useApiToken()
   
   // Load allotment data for context
-  const { data: allotmentData, currentSeason, selectedYear, getAreas } = useAllotment()
-  
+  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind } = useAllotment()
+
   // Build allotment context string for AI
   const allotmentContext = useMemo(() => {
     if (!allotmentData) return ''
-    
+
     const lines: string[] = []
-    
+
     // Basic info
     lines.push(`ALLOTMENT: ${allotmentData.meta.name}`)
     lines.push(`LOCATION: ${allotmentData.meta.location || 'Edinburgh, Scotland'}`)
     lines.push(`CURRENT SEASON: ${selectedYear}`)
     lines.push('')
-    
+
     // Current season plantings
     if (currentSeason) {
       lines.push(`BEDS THIS YEAR (${selectedYear}):`)
-      for (const bed of currentSeason.beds) {
-        const plantingList = bed.plantings.map(p => {
+      for (const areaSeason of currentSeason.areas) {
+        const plantingList = areaSeason.plantings.map((p: { plantId: string; varietyName?: string; success?: string }) => {
           const veg = getVegetableById(p.plantId)
           const vegName = veg?.name || p.plantId
           const variety = p.varietyName ? ` (${p.varietyName})` : ''
           const status = p.success ? ` [${p.success}]` : ''
           return `${vegName}${variety}${status}`
         }).join(', ')
-        
+
         if (plantingList) {
-          lines.push(`- Bed ${bed.bedId}: ${bed.rotationGroup} - ${plantingList}`)
+          lines.push(`- ${areaSeason.areaId}: ${areaSeason.rotationGroup || 'N/A'} - ${plantingList}`)
         } else {
-          lines.push(`- Bed ${bed.bedId}: ${bed.rotationGroup} - (empty/not planted yet)`)
+          lines.push(`- ${areaSeason.areaId}: ${areaSeason.rotationGroup || 'N/A'} - (empty/not planted yet)`)
         }
       }
       lines.push('')
     }
 
-    // Layout summary - using Areas system
-    const bedAreas = getAreas('bed')
-    const rotationBeds = bedAreas.filter(b => b.status === 'rotation')
-    const perennialBeds = bedAreas.filter(b => b.status === 'perennial')
-    const permanentAreas = getAreas('permanent')
+    // Layout summary - using v10 Areas system
+    const rotationBeds = getAreasByKind('rotation-bed')
+    const perennialBeds = getAreasByKind('perennial-bed')
+    const treeAreas = getAreasByKind('tree')
+    const berryAreas = getAreasByKind('berry')
 
     lines.push(`LAYOUT: ${rotationBeds.length} rotation beds, ${perennialBeds.length} perennial areas`)
-    lines.push(`PERMANENT PLANTINGS: ${permanentAreas.map(p => p.name).join(', ')}`)
+    lines.push(`PERMANENT PLANTINGS: ${[...treeAreas, ...berryAreas].map(p => p.name).join(', ')}`)
 
     return lines.join('\n')
-  }, [allotmentData, currentSeason, selectedYear, getAreas])
+  }, [allotmentData, currentSeason, selectedYear, getAreasByKind])
 
   // Update rate limit state
   const updateRateLimitState = useCallback(() => {

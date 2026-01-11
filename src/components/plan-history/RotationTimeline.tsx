@@ -2,43 +2,43 @@
 
 import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
-import { PhysicalBedId, RotationPlan, RotationGroup } from '@/types/garden-planner'
-import { SeasonRecord, BedArea } from '@/types/unified-allotment'
+import { RotationPlan, RotationGroup } from '@/types/garden-planner'
+import { SeasonRecord, Area, AreaSeason } from '@/types/unified-allotment'
 
 interface RotationTimelineProps {
   availableYears: number[]
   seasons: SeasonRecord[]
-  beds: BedArea[]
+  areas: Area[]
   plan2026: RotationPlan
 }
 
-// Get bed status info
-function getBedStatusInfo(bedId: PhysicalBedId, beds: BedArea[]) {
-  const bed = beds.find(b => b.id === bedId)
-  if (!bed) return null
+// Get area status info
+function getAreaStatusInfo(areaId: string, areas: Area[]) {
+  const area = areas.find(a => a.id === areaId)
+  if (!area) return null
 
   return {
-    status: bed.status,
-    isPerennial: bed.status === 'perennial',
+    kind: area.kind,
+    isPerennial: area.kind !== 'rotation-bed',
   }
 }
 
-export default function RotationTimeline({ availableYears, seasons, beds, plan2026 }: RotationTimelineProps) {
-  // Get all bed IDs from the beds array
-  const allBedIds = beds.map(b => b.id)
+export default function RotationTimeline({ availableYears, seasons, areas, plan2026 }: RotationTimelineProps) {
+  // Get all area IDs from the areas array
+  const allAreaIds = areas.map(a => a.id)
 
   // Helper to get season by year
   const getSeasonByYear = (year: number) => seasons.find(s => s.year === year)
 
   return (
     <div className="mt-8 zen-card p-6">
-      <h3 className="font-display text-zen-ink-800 mb-4">Rotation Timeline - All Beds</h3>
+      <h3 className="font-display text-zen-ink-800 mb-4">Rotation Timeline - All Areas</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zen-stone-200">
-              <th className="text-left py-2 px-3 text-zen-stone-600">Bed</th>
-              <th className="text-left py-2 px-3 text-zen-stone-600">Status</th>
+              <th className="text-left py-2 px-3 text-zen-stone-600">Area</th>
+              <th className="text-left py-2 px-3 text-zen-stone-600">Type</th>
               {availableYears.slice().reverse().map(year => (
                 <th key={year} className="text-center py-2 px-3 text-zen-stone-600">{year}</th>
               ))}
@@ -46,18 +46,18 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
             </tr>
           </thead>
           <tbody>
-            {allBedIds.map(bedId => {
-              const bed = beds.find(b => b.id === bedId)
-              const statusInfo = getBedStatusInfo(bedId as PhysicalBedId, beds)
+            {allAreaIds.map(areaId => {
+              const area = areas.find(a => a.id === areaId)
+              const statusInfo = getAreaStatusInfo(areaId, areas)
 
               return (
-                <tr key={bedId} className="border-b border-zen-stone-100 last:border-0">
+                <tr key={areaId} className="border-b border-zen-stone-100 last:border-0">
                   <td className="py-2 px-3">
                     <span
                       className="inline-block px-2 py-1 rounded text-white text-center text-xs font-medium"
-                      style={{ backgroundColor: BED_COLORS[bedId as PhysicalBedId] }}
+                      style={{ backgroundColor: BED_COLORS[areaId] || '#666' }}
                     >
-                      {bedId}
+                      {area?.name || areaId}
                     </span>
                   </td>
                   <td className="py-2 px-3">
@@ -66,14 +66,14 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
                         ? 'bg-zen-bamboo-100 text-zen-bamboo-700'
                         : 'bg-zen-stone-100 text-zen-stone-600'
                     }`}>
-                      {bed?.status || 'unknown'}
+                      {area?.kind || 'unknown'}
                     </span>
                   </td>
                   {availableYears.slice().reverse().map(year => {
                     const season = getSeasonByYear(year)
-                    const bedPlan = season?.beds.find(b => b.bedId === bedId)
-                    const display = bedPlan ? ROTATION_GROUP_DISPLAY[bedPlan.rotationGroup as RotationGroup] : null
-                    const hasPoor = bedPlan?.plantings.some(p => p.success === 'poor')
+                    const areaSeason = season?.areas.find((a: AreaSeason) => a.areaId === areaId)
+                    const display = areaSeason ? ROTATION_GROUP_DISPLAY[areaSeason.rotationGroup as RotationGroup] : null
+                    const hasPoor = areaSeason?.plantings.some(p => p.success === 'poor')
 
                     return (
                       <td key={year} className="text-center py-2 px-3">
@@ -93,7 +93,7 @@ export default function RotationTimeline({ availableYears, seasons, beds, plan20
                   })}
                   <td className="text-center py-2 px-3">
                     {(() => {
-                      const suggestion = plan2026.suggestions.find(s => s.bedId === bedId)
+                      const suggestion = plan2026.suggestions.find(s => s.areaId === areaId)
                       if (!suggestion) return null
 
                       if (suggestion.isPerennial) {

@@ -3,34 +3,35 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers } from 'lucide-react'
-import { PermanentArea } from '@/types/unified-allotment'
+import { Area, AreaKind } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import CareLogSection from './CareLogSection'
 import HarvestTracker from './HarvestTracker'
 import UnderplantingsList from './UnderplantingsList'
 
 interface PermanentDetailPanelProps {
-  planting: PermanentArea
+  area: Area
 }
 
-const TYPE_CONFIG = {
-  'fruit-tree': { icon: TreeDeciduous, label: 'Fruit Tree', color: 'zen-moss' },
+// Map v10 area.kind to display config
+const KIND_CONFIG: Partial<Record<AreaKind, { icon: typeof TreeDeciduous; label: string; color: string }>> = {
+  'tree': { icon: TreeDeciduous, label: 'Fruit Tree', color: 'zen-moss' },
   'berry': { icon: Leaf, label: 'Berry', color: 'zen-sakura' },
-  'perennial-veg': { icon: Leaf, label: 'Perennial Vegetable', color: 'zen-water' },
+  'perennial-bed': { icon: Leaf, label: 'Perennial Vegetable', color: 'zen-water' },
   'herb': { icon: Leaf, label: 'Herb', color: 'zen-kitsune' },
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export default function PermanentDetailPanel({ planting }: PermanentDetailPanelProps) {
-  const config = TYPE_CONFIG[planting.plantingType]
+export default function PermanentDetailPanel({ area }: PermanentDetailPanelProps) {
+  const config = KIND_CONFIG[area.kind] || { icon: Leaf, label: 'Area', color: 'zen-stone' }
   const Icon = config.icon
 
-  // Get vegetable data if plantId is set
+  // Get vegetable data if primaryPlant.plantId is set
   const vegetableData = useMemo(() => {
-    if (!planting.plantId) return null
-    return getVegetableById(planting.plantId)
-  }, [planting.plantId])
+    if (!area.primaryPlant?.plantId) return null
+    return getVegetableById(area.primaryPlant.plantId)
+  }, [area.primaryPlant?.plantId])
 
   // Get current month (1-12)
   const currentMonth = new Date().getMonth() + 1
@@ -55,24 +56,24 @@ export default function PermanentDetailPanel({ planting }: PermanentDetailPanelP
           <Icon className={`w-6 h-6 text-${config.color}-600`} />
         </div>
         <div>
-          <h3 className="font-display text-zen-ink-800">{planting.name}</h3>
+          <h3 className="font-display text-zen-ink-800">{area.name}</h3>
           <div className={`text-xs text-${config.color}-600 flex items-center gap-1`}>
             {config.label}
-            {planting.variety && <span className="text-zen-stone-400">- {planting.variety}</span>}
+            {area.primaryPlant?.variety && <span className="text-zen-stone-400">- {area.primaryPlant.variety}</span>}
           </div>
         </div>
       </div>
 
       {/* Description/Notes */}
-      {planting.description && (
-        <p className="text-sm text-zen-stone-600 mb-4">{planting.description}</p>
+      {area.description && (
+        <p className="text-sm text-zen-stone-600 mb-4">{area.description}</p>
       )}
 
       {/* Planted Year */}
-      {planting.plantedYear && (
+      {area.primaryPlant?.plantedYear && (
         <div className="flex items-center gap-2 text-sm text-zen-stone-500 mb-4">
           <Calendar className="w-4 h-4" />
-          <span>Planted in {planting.plantedYear}</span>
+          <span>Planted in {area.primaryPlant.plantedYear}</span>
         </div>
       )}
 
@@ -118,9 +119,9 @@ export default function PermanentDetailPanel({ planting }: PermanentDetailPanelP
 
       {/* Care Logging Section */}
       <div className="space-y-3 mb-4">
-        <HarvestTracker areaId={planting.id} />
-        <CareLogSection areaId={planting.id} />
-        <UnderplantingsList parentAreaId={planting.id} parentAreaName={planting.name} />
+        <HarvestTracker areaId={area.id} />
+        <CareLogSection areaId={area.id} />
+        <UnderplantingsList parentAreaId={area.id} parentAreaName={area.name} />
       </div>
 
       {/* Vegetable Info */}

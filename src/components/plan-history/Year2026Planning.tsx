@@ -52,12 +52,12 @@ export default function Year2026Planning({ plan2026 }: Year2026PlanningProps) {
                 const suggDisplay = ROTATION_GROUP_DISPLAY[suggestion.suggestedGroup]
 
                 return (
-                  <div key={suggestion.bedId} className="zen-card overflow-hidden">
+                  <div key={suggestion.areaId} className="zen-card overflow-hidden">
                     <div
                       className="px-4 py-3 text-white font-medium"
-                      style={{ backgroundColor: BED_COLORS[suggestion.bedId] }}
+                      style={{ backgroundColor: BED_COLORS[suggestion.areaId] }}
                     >
-                      Bed {suggestion.bedId}
+                      Bed {suggestion.areaId}
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-3">
@@ -111,12 +111,12 @@ export default function Year2026Planning({ plan2026 }: Year2026PlanningProps) {
               {plan2026.suggestions
                 .filter(s => s.isPerennial)
                 .map(suggestion => (
-                  <div key={suggestion.bedId} className="zen-card overflow-hidden border border-zen-bamboo-200">
+                  <div key={suggestion.areaId} className="zen-card overflow-hidden border border-zen-bamboo-200">
                     <div
                       className="px-4 py-3 text-white font-medium"
-                      style={{ backgroundColor: BED_COLORS[suggestion.bedId] }}
+                      style={{ backgroundColor: BED_COLORS[suggestion.areaId] }}
                     >
-                      {suggestion.bedId === 'raspberries' ? 'Raspberry Area' : `Bed ${suggestion.bedId}`}
+                      {suggestion.areaId === 'raspberries' ? 'Raspberry Area' : `Bed ${suggestion.areaId}`}
                     </div>
                     <div className="p-4">
                       <p className="text-sm text-zen-stone-600">{suggestion.reason}</p>

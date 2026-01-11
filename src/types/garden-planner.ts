@@ -332,22 +332,21 @@ export const PLOT_COLORS = [
 
 // ============ ALLOTMENT LAYOUT & HISTORY TYPES ============
 
-// Physical bed identifiers - expanded to include all areas
-export type PhysicalBedId = 
-  | 'A'           // Far right, next to berries - Peas → Strawberries
-  | 'B1'          // Center-right column - Pak choi, Cauliflower, Carrots
-  | 'B1-prime'    // Top of B1 column - Strawberries + garlic
-  | 'B2'          // Center-left column - Garlic, Onion, Broad beans
-  | 'B2-prime'    // Top of B2 column - New garlic
-  | 'C'           // Under apple tree - Problem bed (shaded)
-  | 'D'           // Lower center - Potatoes
-  | 'E'           // Top left corner - Problem bed (retry)
-  | 'raspberries' // Right side - Perennial area
+/**
+ * @deprecated Use Area.id (string) from unified-allotment.ts instead.
+ * Kept as string alias for backward compatibility during migration.
+ */
+export type PhysicalBedId = string
 
-// Bed status - whether it's in rotation or perennial
+/**
+ * @deprecated Use Area.kind from unified-allotment.ts instead.
+ */
 export type BedStatus = 'rotation' | 'perennial'
 
-// Physical bed in the allotment layout
+/**
+ * @deprecated Use Area from unified-allotment.ts instead.
+ * Physical bed in the allotment layout (legacy type for migration)
+ */
 export interface PhysicalBed {
   id: PhysicalBedId
   name: string                    // e.g., "Bed A - Legumes"
@@ -362,7 +361,10 @@ export interface PhysicalBed {
   rotationGroup?: RotationGroup   // Primary rotation group for this bed
 }
 
-// Permanent plantings (fruit trees, berries, etc.)
+/**
+ * @deprecated Use Area from unified-allotment.ts instead.
+ * Permanent plantings (fruit trees, berries, etc.) - legacy type for migration
+ */
 export interface PermanentPlanting {
   id: string
   name: string                    // e.g., "Apple Tree (North)"
@@ -377,7 +379,10 @@ export interface PermanentPlanting {
   notes?: string
 }
 
-// Infrastructure items (shed, compost, paths)
+/**
+ * @deprecated Use Area from unified-allotment.ts instead.
+ * Infrastructure items (shed, compost, paths) - legacy type for migration
+ */
 export interface InfrastructureItem {
   id: string
   type: 'shed' | 'compost' | 'water-butt' | 'path' | 'greenhouse' | 'pond' | 'wildlife' | 'other'
@@ -477,9 +482,11 @@ export interface AllotmentHistoryData {
 
 // ============ ROTATION SUGGESTION TYPES ============
 
-// Rotation suggestion for planning next year
+/**
+ * Rotation suggestion for planning next year
+ */
 export interface RotationSuggestion {
-  bedId: PhysicalBedId
+  areaId: string                    // Reference to Area.id (was bedId: PhysicalBedId)
   previousGroup: RotationGroup
   suggestedGroup: RotationGroup
   reason: string
@@ -500,14 +507,14 @@ export interface RotationPlan {
 
 /**
  * Type discriminator for allotment items (unified selection system)
- * - 'bed': rotation or perennial beds
- * - 'permanent': fruit trees, berries, perennial vegetables
- * - 'infrastructure': shed, compost, paths, etc.
+ * v10: All items are now 'area' type
+ * @deprecated v9 types kept for backward compatibility
  */
-export type AllotmentItemType = 'bed' | 'permanent' | 'infrastructure'
+export type AllotmentItemType = 'area' | 'bed' | 'permanent' | 'infrastructure'
 
 /**
  * Reference to any item in the allotment (for unified selection)
+ * In v10, all items are areas
  */
 export interface AllotmentItemRef {
   type: AllotmentItemType

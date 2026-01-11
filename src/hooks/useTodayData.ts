@@ -12,7 +12,7 @@ import { useMemo } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { MaintenanceTask, Planting } from '@/types/unified-allotment'
+import { MaintenanceTask, Planting, AreaSeason } from '@/types/unified-allotment'
 
 export interface TodayData {
   currentMonth: number
@@ -54,8 +54,8 @@ export function useTodayData(): TodayData {
 
     const result: Array<{ planting: Planting; harvestMonths: number[]; sowMonths: number[] }> = []
 
-    for (const bed of currentSeason.beds) {
-      for (const planting of bed.plantings) {
+    for (const area of currentSeason.areas) {
+      for (const planting of (area as AreaSeason).plantings) {
         const vegetable = getVegetableById(planting.plantId)
         if (vegetable) {
           const harvestMonths = vegetable.planting?.harvestMonths || []

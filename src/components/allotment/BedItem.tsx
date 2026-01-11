@@ -4,6 +4,7 @@ import { GridItemConfig } from '@/data/allotment-layout'
 import { Planting } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPlantEmoji } from '@/lib/plant-emoji'
+import { getColorValue } from '@/lib/colors'
 
 interface BedItemProps {
   item: GridItemConfig
@@ -31,8 +32,8 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
   // Determine text color based on background brightness
   const getTextColor = (bgColor?: string) => {
     if (!bgColor) return 'text-gray-700'
-    // Simple luminance check - dark backgrounds get light text
-    const hex = bgColor.replace('#', '')
+    // Convert semantic color name to hex if needed
+    const hex = getColorValue(bgColor).replace('#', '')
     const r = parseInt(hex.slice(0, 2), 16)
     const g = parseInt(hex.slice(2, 4), 16)
     const b = parseInt(hex.slice(4, 6), 16)
@@ -66,8 +67,8 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
         ${isEditing ? 'hover:opacity-80' : item.bedId ? 'hover:scale-[1.02] hover:shadow-lg' : ''}
         ${item.type === 'path' ? 'rounded-md' : ''}
       `}
-      style={{ 
-        backgroundColor: item.color || '#e5e7eb',
+      style={{
+        backgroundColor: getColorValue(item.color),
       }}
     >
       {/* Icon - shows planting icon if available */}

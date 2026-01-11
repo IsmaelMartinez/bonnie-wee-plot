@@ -11,32 +11,25 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   AllotmentData,
   SeasonRecord,
-  BedSeason,
+  AreaSeason,
   Planting,
   NewPlanting,
   PlantingUpdate,
   MaintenanceTask,
   NewMaintenanceTask,
-  BedNote,
-  NewBedNote,
-  BedNoteUpdate,
+  AreaNote,
+  NewAreaNote,
+  AreaNoteUpdate,
   GardenEvent,
   NewGardenEvent,
   StoredVariety,
   NewVariety,
   VarietyUpdate,
-  // v9 types for unified area system
+  // v10 unified Area type
   Area,
-  BedArea,
-  PermanentArea,
-  InfrastructureArea,
-  PermanentUnderplanting,
-  NewPermanentUnderplanting,
-  SeasonalUnderplanting,
-  NewSeasonalUnderplanting,
+  AreaKind,
   CareLogEntry,
   NewCareLogEntry,
-  PermanentSeason,
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PhysicalBed, AllotmentItemRef, AllotmentItemType, PermanentPlanting, InfrastructureItem } from '@/types/garden-planner'
 import {
@@ -45,7 +38,7 @@ import {
   validateAllotmentData,
   getSeasonByYear,
   getAvailableYears,
-  getBedSeason,
+  getAreaSeason as storageGetAreaSeason,
   addPlanting as storageAddPlanting,
   updatePlanting as storageUpdatePlanting,
   removePlanting as storageRemovePlanting,
@@ -53,24 +46,23 @@ import {
   removeSeason,
   updateSeason,
   setCurrentYear,
-  updateBedRotationGroup,
-  getPlantingsForBed,
+  updateAreaRotationGroup as storageUpdateAreaRotationGroup,
+  getPlantingsForArea as storageGetPlantingsForArea,
   getBedById,
-  getBedsByStatus,
-  getRotationBeds,
-  getRotationHistory,
-  getRecentRotation,
+  getRotationBeds as storageGetRotationBeds,
+  getRotationHistory as storageGetRotationHistory,
+  getRecentRotation as storageGetRecentRotation,
   getMaintenanceTasks,
   getTasksForMonth,
-  getTasksForPlanting,
+  getTasksForArea as storageGetTasksForArea,
   addMaintenanceTask as storageAddTask,
   updateMaintenanceTask as storageUpdateTask,
   completeMaintenanceTask as storageCompleteTask,
   removeMaintenanceTask as storageRemoveTask,
-  getBedNotes,
-  addBedNote as storageAddBedNote,
-  updateBedNote as storageUpdateBedNote,
-  removeBedNote as storageRemoveBedNote,
+  getAreaNotes as storageGetAreaNotes,
+  addAreaNote as storageAddAreaNote,
+  updateAreaNote as storageUpdateAreaNote,
+  removeAreaNote as storageRemoveAreaNote,
   getGardenEvents,
   addGardenEvent as storageAddGardenEvent,
   removeGardenEvent as storageRemoveGardenEvent,
@@ -87,30 +79,20 @@ import {
   getTotalSpendForYear as storageGetTotalSpendForYear,
   getAvailableVarietyYears as storageGetAvailableVarietyYears,
   getSeedsStatsForYear as storageGetSeedsStatsForYear,
-  // Unified item operations
+  // Legacy unified item operations (for backward compatibility)
   getPermanentPlantingById,
   getInfrastructureById,
-  // v9 unified area operations
+  // v10 unified area operations
   getAreaById,
-  getAreasByType,
-  getBedAreaById,
-  getPermanentAreaById,
-  getInfrastructureAreaById,
+  getAreasByKind as storageGetAreasByKind,
+  getAllAreas as storageGetAllAreas,
   addArea as storageAddArea,
   updateArea as storageUpdateArea,
   removeArea as storageRemoveArea,
-  convertAreaType as storageConvertAreaType,
-  validateAreaConversion,
-  type ConversionValidationResult,
-  // v9 underplanting operations
-  addPermanentUnderplanting as storageAddPermanentUnderplanting,
-  updatePermanentUnderplanting as storageUpdatePermanentUnderplanting,
-  removePermanentUnderplanting as storageRemovePermanentUnderplanting,
-  getPermanentUnderplantingsForArea,
-  addSeasonalUnderplanting as storageAddSeasonalUnderplanting,
-  removeSeasonalUnderplanting as storageRemoveSeasonalUnderplanting,
-  getSeasonalUnderplantingsForArea,
-  // v9 care log operations
+  archiveArea as storageArchiveArea,
+  restoreArea as storageRestoreArea,
+  changeAreaKind as storageChangeAreaKind,
+  // v10 care log operations
   addCareLogEntry as storageAddCareLogEntry,
   updateCareLogEntry as storageUpdateCareLogEntry,
   removeCareLogEntry as storageRemoveCareLogEntry,
@@ -118,9 +100,8 @@ import {
   getAllCareLogsForArea,
   logHarvest as storageLogHarvest,
   getHarvestTotal,
-  updatePermanentSeasonNotes as storageUpdatePermanentSeasonNotes,
-  getPermanentSeason,
 } from '@/services/allotment-storage'
+import { syncPlantingToVariety } from '@/services/variety-allotment-sync'
 import { STORAGE_KEY } from '@/types/unified-allotment'
 import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
 
@@ -155,46 +136,46 @@ export interface UseAllotmentActions {
   getInfrastructureItem: (id: string) => InfrastructureItem | undefined
 
   // Bed selection (legacy - prefer selectItem for new code)
-  selectBed: (bedId: PhysicalBedId | null) => void
-  getBed: (bedId: PhysicalBedId) => PhysicalBed | undefined
-  
-  // Planting CRUD
-  addPlanting: (bedId: PhysicalBedId, planting: NewPlanting) => void
-  updatePlanting: (bedId: PhysicalBedId, plantingId: string, updates: PlantingUpdate) => void
-  removePlanting: (bedId: PhysicalBedId, plantingId: string) => void
-  getPlantings: (bedId: PhysicalBedId) => Planting[]
-  
-  // Bed season operations
-  getBedSeason: (bedId: PhysicalBedId) => BedSeason | undefined
-  updateRotationGroup: (bedId: PhysicalBedId, group: RotationGroup) => void
-  
+  selectBed: (bedId: string | null) => void
+  getBed: (bedId: string) => PhysicalBed | undefined
+
+  // Planting CRUD (v10: works with any area)
+  addPlanting: (areaId: string, planting: NewPlanting) => void
+  updatePlanting: (areaId: string, plantingId: string, updates: PlantingUpdate) => void
+  removePlanting: (areaId: string, plantingId: string) => void
+  getPlantings: (areaId: string) => Planting[]
+
+  // Area season operations (v10)
+  getAreaSeason: (areaId: string) => AreaSeason | undefined
+  updateRotationGroup: (areaId: string, group: RotationGroup) => void
+
   // Season operations
   createSeason: (year: number, notes?: string) => void
   deleteSeason: (year: number) => void
   updateSeasonNotes: (notes: string) => void
-  
+
   // Layout helpers
-  getRotationBeds: () => PhysicalBed[]
-  getPerennialBeds: () => PhysicalBed[]
-  
+  getRotationBeds: () => Area[]
+  getPerennialBeds: () => Area[]
+
   // Rotation history
-  getRotationHistory: (bedId: PhysicalBedId) => Array<{ year: number; group: RotationGroup }>
-  getRecentRotation: (bedId: PhysicalBedId, years?: number) => RotationGroup[]
-  
+  getRotationHistory: (areaId: string) => Array<{ year: number; group: RotationGroup }>
+  getRecentRotation: (areaId: string, years?: number) => RotationGroup[]
+
   // Maintenance tasks
   getMaintenanceTasks: () => MaintenanceTask[]
   getTasksForMonth: (month: number) => MaintenanceTask[]
-  getTasksForPlanting: (plantingId: string) => MaintenanceTask[]
+  getTasksForArea: (areaId: string) => MaintenanceTask[]
   addMaintenanceTask: (task: NewMaintenanceTask) => void
   updateMaintenanceTask: (taskId: string, updates: Partial<Omit<MaintenanceTask, 'id'>>) => void
   completeMaintenanceTask: (taskId: string) => void
   removeMaintenanceTask: (taskId: string) => void
 
-  // Bed notes
-  getBedNotes: (bedId: PhysicalBedId) => BedNote[]
-  addBedNote: (bedId: PhysicalBedId, note: NewBedNote) => void
-  updateBedNote: (bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => void
-  removeBedNote: (bedId: PhysicalBedId, noteId: string) => void
+  // Area notes (v10)
+  getAreaNotes: (areaId: string) => AreaNote[]
+  addAreaNote: (areaId: string, note: NewAreaNote) => void
+  updateAreaNote: (areaId: string, noteId: string, updates: AreaNoteUpdate) => void
+  removeAreaNote: (areaId: string, noteId: string) => void
 
   // Garden events
   getGardenEvents: () => GardenEvent[]
@@ -215,28 +196,18 @@ export interface UseAllotmentActions {
   getAvailableVarietyYears: () => number[]
   getSeedsStatsForYear: (year: number) => { total: number; have: number; ordered: number; none: number }
 
-  // v9 unified area operations
+  // v10 unified area operations
   getArea: (id: string) => Area | undefined
-  getAreas: <T extends Area['type']>(type: T) => Extract<Area, { type: T }>[]
-  getBedArea: (bedId: string) => BedArea | undefined
-  getPermanentArea: (id: string) => PermanentArea | undefined
-  getInfrastructureArea: (id: string) => InfrastructureArea | undefined
+  getAreasByKind: (kind: AreaKind) => Area[]
+  getAllAreas: () => Area[]
   addArea: (area: Omit<Area, 'id'>) => string
-  updateArea: (areaId: string, updates: Partial<Omit<Area, 'id' | 'type'>>) => void
+  updateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
   removeArea: (areaId: string) => void
-  convertAreaType: (areaId: string, newType: Area['type'], typeConfig?: Partial<BedArea | PermanentArea | InfrastructureArea>) => ConversionValidationResult
-  validateAreaConversion: (areaId: string, newType: Area['type']) => ConversionValidationResult
+  archiveArea: (areaId: string) => void
+  restoreArea: (areaId: string) => void
+  changeAreaKind: (areaId: string, newKind: AreaKind, options?: { rotationGroup?: RotationGroup }) => void
 
-  // v9 underplanting operations
-  addPermanentUnderplanting: (underplanting: NewPermanentUnderplanting) => string
-  updatePermanentUnderplanting: (underplantingId: string, updates: Partial<Omit<PermanentUnderplanting, 'id'>>) => void
-  removePermanentUnderplanting: (underplantingId: string) => void
-  getPermanentUnderplantings: (parentAreaId: string) => PermanentUnderplanting[]
-  addSeasonalUnderplanting: (parentAreaId: string, planting: NewSeasonalUnderplanting) => string
-  removeSeasonalUnderplanting: (parentAreaId: string, underplantingId: string) => void
-  getSeasonalUnderplantings: (parentAreaId: string) => SeasonalUnderplanting[]
-
-  // v9 care log operations
+  // v10 care log operations
   addCareLog: (areaId: string, entry: NewCareLogEntry) => string
   updateCareLog: (areaId: string, entryId: string, updates: Partial<Omit<CareLogEntry, 'id'>>) => void
   removeCareLog: (areaId: string, entryId: string) => void
@@ -244,8 +215,6 @@ export interface UseAllotmentActions {
   getAllCareLogs: (areaId: string) => Array<{ year: number; entry: CareLogEntry }>
   logHarvest: (areaId: string, quantity: number, unit: string, date?: string) => string
   getHarvestTotal: (areaId: string) => { quantity: number; unit: string } | null
-  updatePermanentSeasonNotes: (areaId: string, notes: string) => void
-  getPermanentSeason: (areaId: string) => PermanentSeason | undefined
 
   // Data operations
   reload: () => void
@@ -381,7 +350,18 @@ export function useAllotment(): UseAllotmentReturn {
 
   const addPlanting = useCallback((bedId: PhysicalBedId, planting: NewPlanting) => {
     if (!data) return
-    setData(storageAddPlanting(data, selectedYear, bedId, planting))
+
+    // Add planting to allotment storage
+    const updatedData = storageAddPlanting(data, selectedYear, bedId, planting)
+    setData(updatedData)
+
+    // Sync to variety storage
+    const areaSeason = storageGetAreaSeason(updatedData, selectedYear, bedId)
+    const addedPlanting = areaSeason?.plantings[areaSeason.plantings.length - 1]
+
+    if (addedPlanting) {
+      syncPlantingToVariety(addedPlanting, selectedYear)
+    }
   }, [data, selectedYear, setData])
 
   const updatePlanting = useCallback((bedId: PhysicalBedId, plantingId: string, updates: PlantingUpdate) => {
@@ -394,21 +374,21 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRemovePlanting(data, selectedYear, bedId, plantingId))
   }, [data, selectedYear, setData])
 
-  const getPlantings = useCallback((bedId: PhysicalBedId) => {
+  const getPlantings = useCallback((areaId: string) => {
     if (!data) return []
-    return getPlantingsForBed(data, selectedYear, bedId)
+    return storageGetPlantingsForArea(data, selectedYear, areaId)
   }, [data, selectedYear])
 
-  // ============ BED SEASON OPERATIONS ============
+  // ============ AREA SEASON OPERATIONS (v10) ============
 
-  const getBedSeasonData = useCallback((bedId: PhysicalBedId) => {
+  const getAreaSeasonData = useCallback((areaId: string) => {
     if (!data) return undefined
-    return getBedSeason(data, selectedYear, bedId)
+    return storageGetAreaSeason(data, selectedYear, areaId)
   }, [data, selectedYear])
 
-  const updateRotationGroup = useCallback((bedId: PhysicalBedId, group: RotationGroup) => {
+  const updateRotationGroup = useCallback((areaId: string, group: RotationGroup) => {
     if (!data) return
-    setData(updateBedRotationGroup(data, selectedYear, bedId, group))
+    setData(storageUpdateAreaRotationGroup(data, selectedYear, areaId, group))
   }, [data, selectedYear, setData])
 
   // ============ SEASON OPERATIONS ============
@@ -435,26 +415,26 @@ export function useAllotment(): UseAllotmentReturn {
 
   // ============ LAYOUT HELPERS ============
 
-  const getRotationBedsData = useCallback(() => {
+  const getRotationBedsData = useCallback((): Area[] => {
     if (!data) return []
-    return getRotationBeds(data)
+    return storageGetRotationBeds(data)
   }, [data])
 
-  const getPerennialBeds = useCallback(() => {
+  const getPerennialBeds = useCallback((): Area[] => {
     if (!data) return []
-    return getBedsByStatus(data, 'perennial')
+    return storageGetAreasByKind(data, 'perennial-bed')
   }, [data])
 
   // ============ ROTATION HISTORY ============
 
-  const getRotationHistoryData = useCallback((bedId: PhysicalBedId) => {
+  const getRotationHistoryData = useCallback((areaId: string) => {
     if (!data) return []
-    return getRotationHistory(data, bedId)
+    return storageGetRotationHistory(data, areaId)
   }, [data])
 
-  const getRecentRotationData = useCallback((bedId: PhysicalBedId, years: number = 3) => {
+  const getRecentRotationData = useCallback((areaId: string, years: number = 3) => {
     if (!data) return []
-    return getRecentRotation(data, bedId, years)
+    return storageGetRecentRotation(data, areaId, years)
   }, [data])
 
   // ============ DATA REFRESH ============
@@ -480,9 +460,9 @@ export function useAllotment(): UseAllotmentReturn {
     return getTasksForMonth(data, month)
   }, [data])
 
-  const getTasksForPlantingData = useCallback((plantingId: string): MaintenanceTask[] => {
+  const getTasksForAreaData = useCallback((areaId: string): MaintenanceTask[] => {
     if (!data) return []
-    return getTasksForPlanting(data, plantingId)
+    return storageGetTasksForArea(data, areaId)
   }, [data])
 
   const addTask = useCallback((task: NewMaintenanceTask) => {
@@ -505,26 +485,26 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRemoveTask(data, taskId))
   }, [data, setData])
 
-  // ============ BED NOTES ============
+  // ============ AREA NOTES (v10) ============
 
-  const getBedNotesData = useCallback((bedId: PhysicalBedId): BedNote[] => {
+  const getAreaNotesData = useCallback((areaId: string): AreaNote[] => {
     if (!data) return []
-    return getBedNotes(data, selectedYear, bedId)
+    return storageGetAreaNotes(data, selectedYear, areaId)
   }, [data, selectedYear])
 
-  const addBedNoteData = useCallback((bedId: PhysicalBedId, note: NewBedNote) => {
+  const addAreaNoteData = useCallback((areaId: string, note: NewAreaNote) => {
     if (!data) return
-    setData(storageAddBedNote(data, selectedYear, bedId, note))
+    setData(storageAddAreaNote(data, selectedYear, areaId, note))
   }, [data, selectedYear, setData])
 
-  const updateBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string, updates: BedNoteUpdate) => {
+  const updateAreaNoteData = useCallback((areaId: string, noteId: string, updates: AreaNoteUpdate) => {
     if (!data) return
-    setData(storageUpdateBedNote(data, selectedYear, bedId, noteId, updates))
+    setData(storageUpdateAreaNote(data, selectedYear, areaId, noteId, updates))
   }, [data, selectedYear, setData])
 
-  const removeBedNoteData = useCallback((bedId: PhysicalBedId, noteId: string) => {
+  const removeAreaNoteData = useCallback((areaId: string, noteId: string) => {
     if (!data) return
-    setData(storageRemoveBedNote(data, selectedYear, bedId, noteId))
+    setData(storageRemoveAreaNote(data, selectedYear, areaId, noteId))
   }, [data, selectedYear, setData])
 
   // ============ GARDEN EVENTS ============
@@ -616,31 +596,21 @@ export function useAllotment(): UseAllotmentReturn {
     return storageGetSeedsStatsForYear(data, year)
   }, [data])
 
-  // ============ V9 UNIFIED AREA OPERATIONS ============
+  // ============ V10 UNIFIED AREA OPERATIONS ============
 
   const getAreaData = useCallback((id: string): Area | undefined => {
     if (!data) return undefined
     return getAreaById(data, id)
   }, [data])
 
-  const getAreasData = useCallback(<T extends Area['type']>(type: T): Extract<Area, { type: T }>[] => {
+  const getAreasByKindData = useCallback((kind: AreaKind): Area[] => {
     if (!data) return []
-    return getAreasByType(data, type)
+    return storageGetAreasByKind(data, kind)
   }, [data])
 
-  const getBedAreaData = useCallback((bedId: string): BedArea | undefined => {
-    if (!data) return undefined
-    return getBedAreaById(data, bedId)
-  }, [data])
-
-  const getPermanentAreaData = useCallback((id: string): PermanentArea | undefined => {
-    if (!data) return undefined
-    return getPermanentAreaById(data, id)
-  }, [data])
-
-  const getInfrastructureAreaData = useCallback((id: string): InfrastructureArea | undefined => {
-    if (!data) return undefined
-    return getInfrastructureAreaById(data, id)
+  const getAllAreasData = useCallback((): Area[] => {
+    if (!data) return []
+    return storageGetAllAreas(data)
   }, [data])
 
   const addAreaData = useCallback((area: Omit<Area, 'id'>): string => {
@@ -650,7 +620,7 @@ export function useAllotment(): UseAllotmentReturn {
     return result.areaId
   }, [data, setData])
 
-  const updateAreaData = useCallback((areaId: string, updates: Partial<Omit<Area, 'id' | 'type'>>) => {
+  const updateAreaData = useCallback((areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
     if (!data) return
     setData(storageUpdateArea(data, areaId, updates))
   }, [data, setData])
@@ -660,75 +630,22 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRemoveArea(data, areaId))
   }, [data, setData])
 
-  const validateAreaConversionData = useCallback((
-    areaId: string,
-    newType: Area['type']
-  ): ConversionValidationResult => {
-    if (!data) return { isValid: false, warnings: [], errors: ['No data loaded'] }
-    return validateAreaConversion(data, areaId, newType)
-  }, [data])
-
-  const convertAreaTypeData = useCallback((
-    areaId: string,
-    newType: Area['type'],
-    typeConfig?: Partial<BedArea | PermanentArea | InfrastructureArea>
-  ): ConversionValidationResult => {
-    if (!data) return { isValid: false, warnings: [], errors: ['No data loaded'] }
-    const result = storageConvertAreaType(data, areaId, newType, typeConfig)
-    if (result.validation.isValid) {
-      setData(result.data)
-    }
-    return result.validation
-  }, [data, setData])
-
-  // ============ V9 UNDERPLANTING OPERATIONS ============
-
-  const addPermanentUnderplantingData = useCallback((underplanting: NewPermanentUnderplanting): string => {
-    if (!data) return ''
-    const result = storageAddPermanentUnderplanting(data, underplanting)
-    setData(result.data)
-    return result.underplantingId
-  }, [data, setData])
-
-  const updatePermanentUnderplantingData = useCallback((
-    underplantingId: string,
-    updates: Partial<Omit<PermanentUnderplanting, 'id'>>
-  ) => {
+  const archiveAreaData = useCallback((areaId: string) => {
     if (!data) return
-    setData(storageUpdatePermanentUnderplanting(data, underplantingId, updates))
+    setData(storageArchiveArea(data, areaId))
   }, [data, setData])
 
-  const removePermanentUnderplantingData = useCallback((underplantingId: string) => {
+  const restoreAreaData = useCallback((areaId: string) => {
     if (!data) return
-    setData(storageRemovePermanentUnderplanting(data, underplantingId))
+    setData(storageRestoreArea(data, areaId))
   }, [data, setData])
 
-  const getPermanentUnderplantingsData = useCallback((parentAreaId: string): PermanentUnderplanting[] => {
-    if (!data) return []
-    return getPermanentUnderplantingsForArea(data, parentAreaId)
-  }, [data])
-
-  const addSeasonalUnderplantingData = useCallback((
-    parentAreaId: string,
-    planting: NewSeasonalUnderplanting
-  ): string => {
-    if (!data) return ''
-    const result = storageAddSeasonalUnderplanting(data, selectedYear, parentAreaId, planting)
-    setData(result.data)
-    return result.underplantingId
-  }, [data, selectedYear, setData])
-
-  const removeSeasonalUnderplantingData = useCallback((parentAreaId: string, underplantingId: string) => {
+  const changeAreaKindData = useCallback((areaId: string, newKind: AreaKind, options?: { rotationGroup?: RotationGroup }) => {
     if (!data) return
-    setData(storageRemoveSeasonalUnderplanting(data, selectedYear, parentAreaId, underplantingId))
-  }, [data, selectedYear, setData])
+    setData(storageChangeAreaKind(data, areaId, newKind, options))
+  }, [data, setData])
 
-  const getSeasonalUnderplantingsData = useCallback((parentAreaId: string): SeasonalUnderplanting[] => {
-    if (!data) return []
-    return getSeasonalUnderplantingsForArea(data, selectedYear, parentAreaId)
-  }, [data, selectedYear])
-
-  // ============ V9 CARE LOG OPERATIONS ============
+  // ============ V10 CARE LOG OPERATIONS ============
 
   const addCareLogData = useCallback((areaId: string, entry: NewCareLogEntry): string => {
     if (!data) return ''
@@ -778,16 +695,6 @@ export function useAllotment(): UseAllotmentReturn {
     return getHarvestTotal(data, selectedYear, areaId)
   }, [data, selectedYear])
 
-  const updatePermanentSeasonNotesData = useCallback((areaId: string, notes: string) => {
-    if (!data) return
-    setData(storageUpdatePermanentSeasonNotes(data, selectedYear, areaId, notes))
-  }, [data, selectedYear, setData])
-
-  const getPermanentSeasonData = useCallback((areaId: string): PermanentSeason | undefined => {
-    if (!data) return undefined
-    return getPermanentSeason(data, selectedYear, areaId)
-  }, [data, selectedYear])
-
   return {
     // State
     data,
@@ -802,42 +709,64 @@ export function useAllotment(): UseAllotmentReturn {
     saveStatus,
     lastSavedAt,
 
-    // Actions
+    // Year navigation
     selectYear,
     getYears,
+
+    // Unified item selection
     selectItem,
     getSelectedItemType,
     getPermanentPlanting: getPermanentPlantingData,
     getInfrastructureItem: getInfrastructureItemData,
+
+    // Legacy bed selection
     selectBed,
     getBed,
+
+    // Planting CRUD
     addPlanting,
     updatePlanting,
     removePlanting,
     getPlantings,
-    getBedSeason: getBedSeasonData,
+
+    // Area season operations (v10)
+    getAreaSeason: getAreaSeasonData,
     updateRotationGroup,
+
+    // Season operations
     createSeason,
     deleteSeason: deleteSeasonData,
     updateSeasonNotes,
+
+    // Layout helpers
     getRotationBeds: getRotationBedsData,
     getPerennialBeds,
+
+    // Rotation history
     getRotationHistory: getRotationHistoryData,
     getRecentRotation: getRecentRotationData,
+
+    // Maintenance tasks
     getMaintenanceTasks: getMaintenanceTasksData,
     getTasksForMonth: getTasksForMonthData,
-    getTasksForPlanting: getTasksForPlantingData,
+    getTasksForArea: getTasksForAreaData,
     addMaintenanceTask: addTask,
     updateMaintenanceTask: updateTask,
     completeMaintenanceTask: completeTask,
     removeMaintenanceTask: removeTask,
-    getBedNotes: getBedNotesData,
-    addBedNote: addBedNoteData,
-    updateBedNote: updateBedNoteData,
-    removeBedNote: removeBedNoteData,
+
+    // Area notes (v10)
+    getAreaNotes: getAreaNotesData,
+    addAreaNote: addAreaNoteData,
+    updateAreaNote: updateAreaNoteData,
+    removeAreaNote: removeAreaNoteData,
+
+    // Garden events
     getGardenEvents: getGardenEventsData,
     addGardenEvent: addGardenEventData,
     removeGardenEvent: removeGardenEventData,
+
+    // Variety operations
     getVarieties: getVarietiesData,
     getVarietiesForYear: getVarietiesForYearData,
     addVariety: addVarietyData,
@@ -850,26 +779,19 @@ export function useAllotment(): UseAllotmentReturn {
     getTotalSpendForYear: getTotalSpendForYearData,
     getAvailableVarietyYears: getAvailableVarietyYearsData,
     getSeedsStatsForYear: getSeedsStatsForYearData,
-    // v9 unified area operations
+
+    // v10 unified area operations
     getArea: getAreaData,
-    getAreas: getAreasData,
-    getBedArea: getBedAreaData,
-    getPermanentArea: getPermanentAreaData,
-    getInfrastructureArea: getInfrastructureAreaData,
+    getAreasByKind: getAreasByKindData,
+    getAllAreas: getAllAreasData,
     addArea: addAreaData,
     updateArea: updateAreaData,
     removeArea: removeAreaData,
-    convertAreaType: convertAreaTypeData,
-    validateAreaConversion: validateAreaConversionData,
-    // v9 underplanting operations
-    addPermanentUnderplanting: addPermanentUnderplantingData,
-    updatePermanentUnderplanting: updatePermanentUnderplantingData,
-    removePermanentUnderplanting: removePermanentUnderplantingData,
-    getPermanentUnderplantings: getPermanentUnderplantingsData,
-    addSeasonalUnderplanting: addSeasonalUnderplantingData,
-    removeSeasonalUnderplanting: removeSeasonalUnderplantingData,
-    getSeasonalUnderplantings: getSeasonalUnderplantingsData,
-    // v9 care log operations
+    archiveArea: archiveAreaData,
+    restoreArea: restoreAreaData,
+    changeAreaKind: changeAreaKindData,
+
+    // v10 care log operations
     addCareLog: addCareLogData,
     updateCareLog: updateCareLogData,
     removeCareLog: removeCareLogData,
@@ -877,8 +799,8 @@ export function useAllotment(): UseAllotmentReturn {
     getAllCareLogs: getAllCareLogsData,
     logHarvest: logHarvestData,
     getHarvestTotal: getHarvestTotalData,
-    updatePermanentSeasonNotes: updatePermanentSeasonNotesData,
-    getPermanentSeason: getPermanentSeasonData,
+
+    // Data operations
     reload,
     flushSave,
     clearSaveError,

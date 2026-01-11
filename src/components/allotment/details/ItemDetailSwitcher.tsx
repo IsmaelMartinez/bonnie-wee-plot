@@ -1,8 +1,10 @@
 'use client'
 
-import { Map } from 'lucide-react'
-import { AllotmentItemRef, PhysicalBedId, RotationGroup } from '@/types/garden-planner'
-import { Planting, BedSeason, BedNote, NewBedNote, BedNoteUpdate, BedArea, PermanentArea, InfrastructureArea } from '@/types/unified-allotment'
+import { useState } from 'react'
+import { Map, Trash2 } from 'lucide-react'
+import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
+import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { ConfirmDialog } from '@/components/ui/Dialog'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
 import InfrastructureDetailPanel from './InfrastructureDetailPanel'
@@ -15,24 +17,23 @@ interface QuickStats {
 
 interface ItemDetailSwitcherProps {
   selectedItemRef: AllotmentItemRef | null
-  // Data getters - using Area types
-  getBedArea: (bedId: string) => BedArea | undefined
-  getBedSeason: (bedId: PhysicalBedId) => BedSeason | undefined
-  getPlantings: (bedId: PhysicalBedId) => Planting[]
-  getBedNotes: (bedId: PhysicalBedId) => BedNote[]
-  getPermanentArea: (id: string) => PermanentArea | undefined
-  getInfrastructureArea: (id: string) => InfrastructureArea | undefined
-  getPreviousYearRotation: (bedId: PhysicalBedId) => RotationGroup | null
-  // Event handlers for beds
+  // v10 unified getters
+  getArea: (id: string) => Area | undefined
+  getAreaSeason: (areaId: string) => AreaSeason | undefined
+  getPlantings: (areaId: string) => Planting[]
+  getAreaNotes: (areaId: string) => AreaNote[]
+  getPreviousYearRotation: (areaId: string) => RotationGroup | null
+  // Event handlers
   selectedYear: number
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
   onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
-  onAddNote: (note: NewBedNote) => void
-  onUpdateNote: (noteId: string, updates: BedNoteUpdate) => void
+  onAddNote: (note: NewAreaNote) => void
+  onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
   onRemoveNote: (noteId: string) => void
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
+  onArchiveArea: (areaId: string) => void
   // Quick stats for empty state
   quickStats: QuickStats
 }
@@ -70,12 +71,10 @@ function EmptyState({ stats }: { stats: QuickStats }) {
 
 export default function ItemDetailSwitcher({
   selectedItemRef,
-  getBedArea,
-  getBedSeason,
+  getArea,
+  getAreaSeason,
   getPlantings,
-  getBedNotes,
-  getPermanentArea,
-  getInfrastructureArea,
+  getAreaNotes,
   getPreviousYearRotation,
   selectedYear,
   onAddPlanting,
@@ -86,27 +85,36 @@ export default function ItemDetailSwitcher({
   onRemoveNote,
   onUpdateRotation,
   onAutoRotate,
+  onArchiveArea,
   quickStats,
 }: ItemDetailSwitcherProps) {
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
+
   if (!selectedItemRef) {
     return <EmptyState stats={quickStats} />
   }
 
-  // Bed detail panel
-  if (selectedItemRef.type === 'bed') {
-    const bedId = selectedItemRef.id as PhysicalBedId
-    const bed = getBedArea(bedId)
-    if (!bed) return <EmptyState stats={quickStats} />
+  // Get the area by ID
+  const area = getArea(selectedItemRef.id)
+  if (!area) return <EmptyState stats={quickStats} />
 
-    return (
+  // Route based on area.kind
+  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
+  const isPermanentPlanting = area.kind === 'tree' || area.kind === 'berry' || area.kind === 'herb'
+  const isInfrastructure = area.kind === 'infrastructure'
+
+  // Determine which detail panel to render
+  let detailPanel: React.ReactNode = null
+
+  if (isRotationOrPerennialBed) {
+    detailPanel = (
       <BedDetailPanel
-        bed={bed}
-        bedId={bedId}
-        bedSeason={getBedSeason(bedId) || null}
-        plantings={getPlantings(bedId)}
-        notes={getBedNotes(bedId)}
+        area={area}
+        areaSeason={getAreaSeason(area.id) || null}
+        plantings={getPlantings(area.id)}
+        notes={getAreaNotes(area.id)}
         selectedYear={selectedYear}
-        previousYearRotation={getPreviousYearRotation(bedId)}
+        previousYearRotation={getPreviousYearRotation(area.id)}
         onAddPlanting={onAddPlanting}
         onDeletePlanting={onDeletePlanting}
         onUpdateSuccess={onUpdateSuccess}
@@ -117,23 +125,43 @@ export default function ItemDetailSwitcher({
         onAutoRotate={onAutoRotate}
       />
     )
+  } else if (isPermanentPlanting) {
+    detailPanel = <PermanentDetailPanel area={area} />
+  } else if (isInfrastructure) {
+    detailPanel = <InfrastructureDetailPanel area={area} />
+  } else {
+    return <EmptyState stats={quickStats} />
   }
 
-  // Permanent planting detail panel
-  if (selectedItemRef.type === 'permanent') {
-    const planting = getPermanentArea(selectedItemRef.id)
-    if (!planting) return <EmptyState stats={quickStats} />
-
-    return <PermanentDetailPanel planting={planting} />
+  const handleArchiveConfirm = () => {
+    onArchiveArea(area.id)
+    setShowArchiveConfirm(false)
   }
 
-  // Infrastructure detail panel
-  if (selectedItemRef.type === 'infrastructure') {
-    const item = getInfrastructureArea(selectedItemRef.id)
-    if (!item) return <EmptyState stats={quickStats} />
+  return (
+    <div className="space-y-4">
+      {detailPanel}
 
-    return <InfrastructureDetailPanel item={item} />
-  }
+      {/* Archive/Delete Section */}
+      <div className="zen-card p-4">
+        <button
+          onClick={() => setShowArchiveConfirm(true)}
+          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Remove this area</span>
+        </button>
+      </div>
 
-  return <EmptyState stats={quickStats} />
+      <ConfirmDialog
+        isOpen={showArchiveConfirm}
+        onClose={() => setShowArchiveConfirm(false)}
+        onConfirm={handleArchiveConfirm}
+        title="Remove Area"
+        message={`Are you sure you want to remove "${area.name}"? This will archive the area and hide it from the layout. Historical data will be preserved.`}
+        confirmText="Remove"
+        variant="danger"
+      />
+    </div>
+  )
 }

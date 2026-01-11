@@ -19,7 +19,7 @@ import SeasonView from '@/components/plan-history/SeasonView'
 import RotationTimeline from '@/components/plan-history/RotationTimeline'
 
 export default function PlanHistoryPage() {
-  const { data, isLoading, getYears, getAreas } = useAllotment()
+  const { data, isLoading, getYears, getAllAreas } = useAllotment()
   const availableYears = getYears()
 
   const [selectedYear, setSelectedYear] = useState<number | 'next'>(() => {
@@ -162,7 +162,7 @@ export default function PlanHistoryPage() {
           <RotationTimeline
             availableYears={availableYears}
             seasons={data.seasons}
-            beds={getAreas('bed')}
+            areas={getAllAreas()}
             plan2026={nextYearPlan}
           />
         )}

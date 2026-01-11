@@ -23,8 +23,8 @@ import {
   physicalBeds,
   getBedById,
 } from '@/data/allotment-layout'
-import { AllotmentData, BedArea } from '@/types/unified-allotment'
-import { getAreasByType } from '@/services/allotment-storage'
+import { AllotmentData, Area } from '@/types/unified-allotment'
+import { getAreasByKind } from '@/services/allotment-storage'
 
 // ============ CONSTANTS ============
 
@@ -443,7 +443,7 @@ export function generateBedSuggestion(
   // Handle perennial beds
   if (bed?.status === 'perennial') {
     return {
-      bedId,
+      areaId: bedId,
       previousGroup: 'permanent',
       suggestedGroup: 'permanent',
       reason: 'Perennial bed - maintain existing plantings',
@@ -459,7 +459,7 @@ export function generateBedSuggestion(
   if (!mostRecent) {
     // No history - suggest legumes as a good starting point
     return {
-      bedId,
+      areaId: bedId,
       previousGroup: 'legumes',
       suggestedGroup: 'legumes',
       reason: 'No planting history - legumes are a good starting point to fix nitrogen',
@@ -487,7 +487,7 @@ export function generateBedSuggestion(
   }
 
   return {
-    bedId,
+    areaId: bedId,
     previousGroup: mostRecent.group,
     suggestedGroup: finalSuggestion,
     reason,
@@ -496,22 +496,22 @@ export function generateBedSuggestion(
 }
 
 /**
- * Generate rotation suggestion for a single bed using unified data
+ * Generate rotation suggestion for a single area using unified data
  */
-export function generateBedSuggestionFromData(
-  bedId: PhysicalBedId,
-  beds: BedArea[],
+export function generateAreaSuggestionFromData(
+  areaId: string,
+  areas: Area[],
   previousYears: { year: number; group: RotationGroup }[]
 ): RotationSuggestion {
-  const bed = beds.find(b => b.id === bedId)
-  
-  // Handle perennial beds
-  if (bed?.status === 'perennial') {
+  const area = areas.find(a => a.id === areaId)
+
+  // Handle non-rotation areas
+  if (area?.kind !== 'rotation-bed') {
     return {
-      bedId,
+      areaId,
       previousGroup: 'permanent',
       suggestedGroup: 'permanent',
-      reason: 'Perennial bed - maintain existing plantings',
+      reason: 'Non-rotation area - maintain existing plantings',
       suggestedVegetables: [],
       isPerennial: true
     }
@@ -520,10 +520,10 @@ export function generateBedSuggestionFromData(
   // Get the most recent year's rotation group
   const sortedYears = [...previousYears].sort((a, b) => b.year - a.year)
   const mostRecent = sortedYears[0]
-  
+
   if (!mostRecent) {
     return {
-      bedId,
+      areaId,
       previousGroup: 'legumes',
       suggestedGroup: 'legumes',
       reason: 'No planting history - legumes are a good starting point to fix nitrogen',
@@ -532,7 +532,7 @@ export function generateBedSuggestionFromData(
   }
 
   const suggestedGroup = getNextRotationGroup(mostRecent.group)
-  
+
   const recentGroups = sortedYears.slice(0, 3).map(y => y.group)
   let finalSuggestion = suggestedGroup
   let reason = getRotationReason(mostRecent.group, suggestedGroup)
@@ -549,7 +549,7 @@ export function generateBedSuggestionFromData(
   }
 
   return {
-    bedId,
+    areaId,
     previousGroup: mostRecent.group,
     suggestedGroup: finalSuggestion,
     reason,
@@ -620,42 +620,45 @@ export function generateRotationPlanFromData(
   targetYear: number,
   data: AllotmentData
 ): RotationPlan {
-  const beds = getAreasByType(data, 'bed')
+  // Get rotation beds (and perennial beds for completeness)
+  const rotationAreas = getAreasByKind(data, 'rotation-bed')
+  const perennialAreas = getAreasByKind(data, 'perennial-bed')
+  const allBedAreas = [...rotationAreas, ...perennialAreas]
   const suggestions: RotationSuggestion[] = []
   const warnings: string[] = []
 
-  // Build history for each bed from seasons
-  for (const bed of beds) {
-    const bedHistory: { year: number; group: RotationGroup }[] = []
+  // Build history for each area from seasons
+  for (const area of allBedAreas) {
+    const areaHistory: { year: number; group: RotationGroup }[] = []
 
     for (const season of data.seasons) {
-      const bedSeason = season.beds.find(b => b.bedId === bed.id)
-      if (bedSeason) {
-        bedHistory.push({
+      const areaSeason = season.areas.find(a => a.areaId === area.id)
+      if (areaSeason?.rotationGroup) {
+        areaHistory.push({
           year: season.year,
-          group: bedSeason.rotationGroup
+          group: areaSeason.rotationGroup
         })
       }
     }
 
-    const suggestion = generateBedSuggestionFromData(bed.id as PhysicalBedId, beds, bedHistory)
+    const suggestion = generateAreaSuggestionFromData(area.id, allBedAreas, areaHistory)
     suggestions.push(suggestion)
 
     // Check for rotation warnings (only for rotation beds)
-    if (bed.status === 'rotation' && bedHistory.length >= 2) {
-      const sorted = bedHistory.sort((a, b) => b.year - a.year)
+    if (area.kind === 'rotation-bed' && areaHistory.length >= 2) {
+      const sorted = areaHistory.sort((a, b) => b.year - a.year)
       if (sorted[0]?.group === sorted[1]?.group) {
-        warnings.push(`Bed ${bed.id}: Same crop family grown two years in a row - consider rotating`)
+        warnings.push(`${area.name}: Same crop family grown two years in a row - consider rotating`)
       }
     }
   }
 
-  // Check for duplicate suggestions in rotation beds
+  // Check for duplicate suggestions in rotation areas
   const rotationSuggestions = suggestions.filter(s => !s.isPerennial)
   const suggestedGroups = rotationSuggestions.map(s => s.suggestedGroup)
   const duplicates = suggestedGroups.filter((g, i) => suggestedGroups.indexOf(g) !== i)
   if (duplicates.length > 0) {
-    warnings.push(`Multiple beds suggested for ${duplicates.join(', ')} - consider adjusting`)
+    warnings.push(`Multiple areas suggested for ${duplicates.join(', ')} - consider adjusting`)
   }
 
   return {

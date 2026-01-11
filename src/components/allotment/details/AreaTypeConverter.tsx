@@ -1,91 +1,87 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRightLeft, TreeDeciduous, Grid3X3, Warehouse, X, Check } from 'lucide-react'
+import { ArrowRightLeft, TreeDeciduous, Grid3X3, Warehouse, Flower2, Leaf, X, Check } from 'lucide-react'
 import { useAllotment } from '@/hooks/useAllotment'
-import { Area, BedArea, PermanentArea, InfrastructureArea } from '@/types/unified-allotment'
+import { AreaKind } from '@/types/unified-allotment'
+import { RotationGroup } from '@/types/garden-planner'
 
 interface AreaTypeConverterProps {
   areaId: string
-  currentType: Area['type']
+  currentKind: AreaKind
   onConvert?: () => void
 }
 
-const TYPE_OPTIONS: Array<{
-  type: Area['type']
+const KIND_OPTIONS: Array<{
+  kind: AreaKind
   label: string
   icon: typeof TreeDeciduous
   description: string
 }> = [
   {
-    type: 'bed',
+    kind: 'rotation-bed',
     label: 'Rotation Bed',
     icon: Grid3X3,
     description: 'Annual crops with rotation tracking',
   },
   {
-    type: 'permanent',
-    label: 'Permanent Planting',
-    icon: TreeDeciduous,
-    description: 'Fruit trees, berries, perennials',
+    kind: 'perennial-bed',
+    label: 'Perennial Bed',
+    icon: Leaf,
+    description: 'Asparagus, rhubarb, artichokes',
   },
   {
-    type: 'infrastructure',
+    kind: 'tree',
+    label: 'Fruit Tree',
+    icon: TreeDeciduous,
+    description: 'Apple, pear, plum, etc.',
+  },
+  {
+    kind: 'berry',
+    label: 'Berry',
+    icon: Flower2,
+    description: 'Raspberries, blackberries, currants',
+  },
+  {
+    kind: 'infrastructure',
     label: 'Infrastructure',
     icon: Warehouse,
     description: 'Shed, compost, paths, etc.',
   },
 ]
 
-const PERMANENT_SUBTYPES: Array<{ value: PermanentArea['plantingType']; label: string }> = [
-  { value: 'fruit-tree', label: 'Fruit Tree' },
-  { value: 'berry', label: 'Berry' },
-  { value: 'perennial-veg', label: 'Perennial Veg' },
-  { value: 'herb', label: 'Herb' },
-]
-
-const INFRASTRUCTURE_SUBTYPES: Array<{ value: InfrastructureArea['infrastructureType']; label: string }> = [
-  { value: 'shed', label: 'Shed' },
-  { value: 'compost', label: 'Compost' },
-  { value: 'water-butt', label: 'Water Butt' },
-  { value: 'path', label: 'Path' },
-  { value: 'greenhouse', label: 'Greenhouse' },
-  { value: 'pond', label: 'Pond' },
-  { value: 'wildlife', label: 'Wildlife Area' },
-  { value: 'other', label: 'Other' },
+const ROTATION_GROUPS: Array<{ value: RotationGroup; label: string }> = [
+  { value: 'brassicas', label: 'Brassicas' },
+  { value: 'legumes', label: 'Legumes' },
+  { value: 'roots', label: 'Roots' },
+  { value: 'alliums', label: 'Alliums' },
+  { value: 'solanaceae', label: 'Solanaceae' },
+  { value: 'cucurbits', label: 'Cucurbits' },
 ]
 
 export default function AreaTypeConverter({
   areaId,
-  currentType,
+  currentKind,
   onConvert,
 }: AreaTypeConverterProps) {
-  const { convertAreaType } = useAllotment()
+  const { changeAreaKind } = useAllotment()
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedType, setSelectedType] = useState<Area['type']>(currentType)
-  const [permanentSubtype, setPermanentSubtype] = useState<PermanentArea['plantingType']>('fruit-tree')
-  const [infraSubtype, setInfraSubtype] = useState<InfrastructureArea['infrastructureType']>('other')
+  const [selectedKind, setSelectedKind] = useState<AreaKind>(currentKind)
+  const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
 
   const handleConvert = () => {
-    if (selectedType === currentType) {
+    if (selectedKind === currentKind) {
       setIsOpen(false)
       return
     }
 
-    let typeConfig: Partial<BedArea | PermanentArea | InfrastructureArea> | undefined
-
-    if (selectedType === 'permanent') {
-      typeConfig = { plantingType: permanentSubtype }
-    } else if (selectedType === 'infrastructure') {
-      typeConfig = { infrastructureType: infraSubtype }
-    }
-
-    convertAreaType(areaId, selectedType, typeConfig)
+    const options = selectedKind === 'rotation-bed' ? { rotationGroup } : undefined
+    changeAreaKind(areaId, selectedKind, options)
     setIsOpen(false)
     onConvert?.()
   }
 
-  const currentTypeInfo = TYPE_OPTIONS.find(t => t.type === currentType)
+  const currentKindInfo = KIND_OPTIONS.find(k => k.kind === currentKind)
 
   if (!isOpen) {
     return (
@@ -114,19 +110,19 @@ export default function AreaTypeConverter({
         </div>
 
         <p className="text-sm text-zen-stone-600 mb-4">
-          Currently: <span className="font-medium">{currentTypeInfo?.label}</span>
+          Currently: <span className="font-medium">{currentKindInfo?.label}</span>
         </p>
 
-        <div className="space-y-2 mb-4">
-          {TYPE_OPTIONS.map(option => {
+        <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
+          {KIND_OPTIONS.map(option => {
             const Icon = option.icon
-            const isSelected = selectedType === option.type
-            const isCurrent = currentType === option.type
+            const isSelected = selectedKind === option.kind
+            const isCurrent = currentKind === option.kind
 
             return (
               <button
-                key={option.type}
-                onClick={() => setSelectedType(option.type)}
+                key={option.kind}
+                onClick={() => setSelectedKind(option.kind)}
                 className={`w-full flex items-start gap-3 p-3 rounded-zen border text-left transition ${
                   isSelected
                     ? 'border-zen-moss-500 bg-zen-moss-50'
@@ -147,40 +143,25 @@ export default function AreaTypeConverter({
           })}
         </div>
 
-        {selectedType === 'permanent' && selectedType !== currentType && (
+        {selectedKind === 'rotation-bed' && selectedKind !== currentKind && (
           <div className="mb-4">
-            <label className="block text-xs text-zen-stone-600 mb-1">Planting type:</label>
+            <label className="block text-xs text-zen-stone-600 mb-1">Initial rotation group:</label>
             <select
-              value={permanentSubtype}
-              onChange={e => setPermanentSubtype(e.target.value as PermanentArea['plantingType'])}
+              value={rotationGroup}
+              onChange={e => setRotationGroup(e.target.value as RotationGroup)}
               className="w-full text-sm px-3 py-2 border border-zen-stone-200 rounded-zen"
             >
-              {PERMANENT_SUBTYPES.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+              {ROTATION_GROUPS.map(g => (
+                <option key={g.value} value={g.value}>{g.label}</option>
               ))}
             </select>
           </div>
         )}
 
-        {selectedType === 'infrastructure' && selectedType !== currentType && (
-          <div className="mb-4">
-            <label className="block text-xs text-zen-stone-600 mb-1">Infrastructure type:</label>
-            <select
-              value={infraSubtype}
-              onChange={e => setInfraSubtype(e.target.value as InfrastructureArea['infrastructureType'])}
-              className="w-full text-sm px-3 py-2 border border-zen-stone-200 rounded-zen"
-            >
-              {INFRASTRUCTURE_SUBTYPES.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {selectedType !== currentType && (
+        {selectedKind !== currentKind && (
           <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3 mb-4">
             <p className="text-xs text-zen-kitsune-700">
-              Converting will change how this area is tracked. Existing care logs and data will be preserved where possible.
+              Converting will change how this area is tracked. Existing plantings and care logs will be preserved.
             </p>
           </div>
         )}
@@ -188,7 +169,7 @@ export default function AreaTypeConverter({
         <div className="flex gap-2">
           <button
             onClick={handleConvert}
-            disabled={selectedType === currentType}
+            disabled={selectedKind === currentKind}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-zen-moss-500 text-white rounded-zen hover:bg-zen-moss-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             <Check className="w-4 h-4" />

@@ -5,7 +5,7 @@ import { BED_COLORS } from '@/data/allotment-layout'
 import { ROTATION_GROUP_DISPLAY } from '@/lib/rotation'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { RotationGroup, PlantingSuccess } from '@/types/garden-planner'
-import { SeasonRecord } from '@/types/unified-allotment'
+import { SeasonRecord, AreaSeason, Planting } from '@/types/unified-allotment'
 
 // Success badge colors
 const SUCCESS_COLORS: Record<PlantingSuccess, { bg: string; text: string }> = {
@@ -49,56 +49,58 @@ export default function SeasonView({ season, year }: SeasonViewProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-3 bg-zen-stone-50 rounded-zen">
             <p className="text-2xl font-display text-zen-ink-800">
-              {season.beds.length}
+              {season.areas.length}
             </p>
-            <p className="text-sm text-zen-stone-500">Beds Used</p>
+            <p className="text-sm text-zen-stone-500">Areas Used</p>
           </div>
           <div className="text-center p-3 bg-zen-stone-50 rounded-zen">
             <p className="text-2xl font-display text-zen-ink-800">
-              {season.beds.reduce((sum, b) => sum + b.plantings.length, 0)}
+              {season.areas.reduce((sum: number, a: AreaSeason) => sum + a.plantings.length, 0)}
             </p>
             <p className="text-sm text-zen-stone-500">Plantings</p>
           </div>
           <div className="text-center p-3 bg-zen-stone-50 rounded-zen">
             <p className="text-2xl font-display text-zen-ink-800">
-              {new Set(season.beds.flatMap(b => b.plantings.map(p => p.plantId))).size}
+              {new Set(season.areas.flatMap((a: AreaSeason) => a.plantings.map((p: Planting) => p.plantId))).size}
             </p>
             <p className="text-sm text-zen-stone-500">Crop Types</p>
           </div>
           <div className="text-center p-3 bg-zen-stone-50 rounded-zen">
             <p className="text-2xl font-display text-zen-ink-800">
-              {new Set(season.beds.map(b => b.rotationGroup)).size}
+              {new Set(season.areas.map((a: AreaSeason) => a.rotationGroup).filter(Boolean)).size}
             </p>
             <p className="text-sm text-zen-stone-500">Rotation Groups</p>
           </div>
         </div>
       </div>
 
-      {/* Bed Details */}
+      {/* Area Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {season.beds.map(bed => {
-          const rotationDisplay = ROTATION_GROUP_DISPLAY[bed.rotationGroup as RotationGroup]
+        {season.areas.map((areaSeason: AreaSeason) => {
+          const rotationDisplay = areaSeason.rotationGroup ? ROTATION_GROUP_DISPLAY[areaSeason.rotationGroup as RotationGroup] : null
 
           return (
             <div
-              key={bed.bedId}
+              key={areaSeason.areaId}
               className="zen-card overflow-hidden"
             >
               <div
                 className="px-4 py-3 text-white font-medium flex items-center justify-between"
-                style={{ backgroundColor: BED_COLORS[bed.bedId] }}
+                style={{ backgroundColor: BED_COLORS[areaSeason.areaId] || '#666' }}
               >
                 <span className="flex items-center gap-2">
-                  Bed {bed.bedId}
+                  {areaSeason.areaId}
                 </span>
-                <span className="text-sm opacity-90 flex items-center gap-1">
-                  {rotationDisplay?.emoji} {rotationDisplay?.name || bed.rotationGroup}
-                </span>
+                {rotationDisplay && (
+                  <span className="text-sm opacity-90 flex items-center gap-1">
+                    {rotationDisplay.emoji} {rotationDisplay.name}
+                  </span>
+                )}
               </div>
 
               <div className="p-4">
                 <div className="space-y-3">
-                  {bed.plantings.map(planting => {
+                  {areaSeason.plantings.map((planting: Planting) => {
                     const veg = getVegetableById(planting.plantId)
                     const successColor = planting.success ? SUCCESS_COLORS[planting.success] : null
 

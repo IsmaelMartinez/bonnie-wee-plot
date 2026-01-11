@@ -1,29 +1,107 @@
 /**
- * Unified Allotment Data Model
- * 
+ * Unified Allotment Data Model (v10)
+ *
  * Single source of truth for all allotment data.
- * Replaces the disconnected data models from:
- * - allotment-layout.ts (hardcoded layout)
- * - historical-plans.ts (hardcoded seasons)
- * - garden-storage.ts (localStorage with different IDs)
- * 
- * Note: Types like PhysicalBedId, RotationGroup, PhysicalBed, etc. should be
- * imported directly from '@/types/garden-planner'
+ *
+ * v10 introduces a simplified unified Area type that consolidates
+ * the previous BedArea, PermanentArea, and InfrastructureArea types.
+ * All areas can now have plantings (strawberries under trees, flowers by shed, etc.)
  */
 
 import type {
-  PhysicalBedId,
   RotationGroup,
   PlantingSuccess,
-  PhysicalBed,
-  PermanentPlanting,
-  InfrastructureItem,
-  AllotmentItemType,
-  AllotmentItemRef,
 } from './garden-planner'
 
-// Re-export unified item types for convenience
-export type { AllotmentItemType, AllotmentItemRef }
+// ============ UNIFIED AREA SYSTEM (v10) ============
+
+/**
+ * What kind of area this is (for UI grouping/display)
+ */
+export type AreaKind =
+  | 'rotation-bed'      // Annual crops with rotation tracking
+  | 'perennial-bed'     // Perennial vegetables (asparagus, rhubarb)
+  | 'tree'              // Fruit trees
+  | 'berry'             // Berry bushes/patches
+  | 'herb'              // Perennial herb areas
+  | 'infrastructure'    // Shed, compost, paths, etc.
+  | 'other'             // Catch-all for flexibility
+
+/**
+ * Infrastructure subtypes for areas with kind='infrastructure'
+ */
+export type InfrastructureSubtype =
+  | 'shed'
+  | 'compost'
+  | 'water-butt'
+  | 'path'
+  | 'greenhouse'
+  | 'pond'
+  | 'wildlife'
+  | 'other'
+
+/**
+ * Grid position for visual layout (react-grid-layout compatible)
+ */
+export interface GridPosition {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/**
+ * Primary/permanent plant for an area (trees, berries, perennial beds)
+ */
+export interface PrimaryPlant {
+  plantId: string                 // Reference to vegetable database
+  variety?: string
+  plantedYear?: number
+}
+
+/**
+ * Unified Area type - the single type for all allotment areas
+ *
+ * Every area can have plantings (annual crops, underplantings, flowers, etc.)
+ * The 'kind' field determines how it's displayed and what UI is shown.
+ */
+export interface Area {
+  id: string                        // Dynamic string ID (e.g., 'bed-a', 'apple-north')
+  name: string                      // Display name
+  kind: AreaKind
+  description?: string
+
+  // Grid position (for visual layout)
+  gridPosition?: GridPosition
+
+  // Visual customization
+  icon?: string                     // Emoji for display
+  color?: string                    // Background color (hex)
+
+  // Plantings - all areas can have seasonal plantings
+  canHavePlantings: boolean         // Whether this area accepts seasonal plantings
+  rotationGroup?: RotationGroup     // For rotation-bed only - tracks crop rotation
+
+  // For areas with a primary/permanent plant (tree, berry, herb, perennial-bed)
+  primaryPlant?: PrimaryPlant
+
+  // For infrastructure areas
+  infrastructureSubtype?: InfrastructureSubtype
+
+  // Lifecycle
+  isArchived?: boolean              // Soft delete - preserves historical data
+  createdAt?: string                // ISO date string
+}
+
+/**
+ * Input for creating a new area (without id and createdAt)
+ */
+export type NewArea = Omit<Area, 'id' | 'createdAt'>
+
+/**
+ * Input for updating an area (partial, without id)
+ */
+export type AreaUpdate = Partial<Omit<Area, 'id'>>
 
 // ============ UNIFIED DATA MODEL ============
 
@@ -64,25 +142,10 @@ export interface MigrationState {
 
 /**
  * Physical layout of the allotment
- * Rarely changes - beds, trees, infrastructure
- *
- * v9+ uses unified areas array as the primary storage mechanism.
- * Legacy arrays (beds, permanentPlantings, infrastructure) are optional
- * and maintained only for backward compatibility during migration.
- *
- * @see Area - the unified area type (BedArea | PermanentArea | InfrastructureArea)
+ * v10 uses unified Area type for all areas
  */
 export interface AllotmentLayoutData {
-  // Primary storage (v9+) - unified area system
   areas: Area[]
-  permanentUnderplantings: PermanentUnderplanting[]
-  // Legacy arrays (v8 and earlier) - optional for backward compatibility only
-  /** @deprecated Use areas array instead. Only present for backward compatibility. */
-  beds?: PhysicalBed[]
-  /** @deprecated Use areas array instead. Only present for backward compatibility. */
-  permanentPlantings?: PermanentPlanting[]
-  /** @deprecated Use areas array instead. Only present for backward compatibility. */
-  infrastructure?: InfrastructureItem[]
 }
 
 // ============ SEASON RECORDS ============
@@ -94,50 +157,49 @@ export type SeasonStatus = 'historical' | 'current' | 'planned'
 
 /**
  * Complete record for one growing season (year)
- *
- * v9 adds permanents array for per-year tracking of permanent plantings.
  */
 export interface SeasonRecord {
   year: number
   status: SeasonStatus
-  beds: BedSeason[]
-  permanents?: PermanentSeason[]     // v9: per-year tracking for permanent areas
+  areas: AreaSeason[]                // Per-area plantings and notes for this year
   notes?: string                     // General notes for the season
   createdAt: string
   updatedAt: string
 }
 
 /**
- * Type of bed note (visual indicator)
+ * Type of area note (visual indicator)
  */
-export type BedNoteType = 'warning' | 'error' | 'success' | 'info'
+export type AreaNoteType = 'warning' | 'error' | 'success' | 'info'
 
 /**
- * A note attached to a bed for a specific season
+ * A note attached to an area for a specific season
  */
-export interface BedNote {
+export interface AreaNote {
   id: string
   content: string
-  type: BedNoteType
+  type: AreaNoteType
   createdAt: string
   updatedAt: string
 }
 
 /**
- * One bed's plantings for a season
+ * One area's plantings and data for a season
  */
-export interface BedSeason {
-  bedId: PhysicalBedId
-  rotationGroup: RotationGroup
-  plantings: Planting[]              // Multiple plantings per bed
-  notes?: BedNote[]                  // Per-bed notes for this season
+export interface AreaSeason {
+  areaId: string                     // Reference to Area.id
+  rotationGroup?: RotationGroup      // Snapshot for this year (can change year-to-year)
+  plantings: Planting[]              // Seasonal plantings in this area
+  notes?: AreaNote[]                 // Per-area notes for this season
+  careLogs?: CareLogEntry[]          // Care logs for permanent areas
+  harvestTotal?: number              // Aggregated harvest for the year
+  harvestUnit?: string               // kg, lbs, count, etc.
 }
 
 // ============ PLANTINGS ============
 
 /**
- * A single planting within a bed for a season
- * Simplified from the old PlantedVariety type
+ * A single planting within an area for a season
  */
 export interface Planting {
   id: string                         // Unique ID (generated)
@@ -157,6 +219,16 @@ export interface Planting {
   quantity?: number
 }
 
+/**
+ * Input for creating a new planting (without ID)
+ */
+export type NewPlanting = Omit<Planting, 'id'>
+
+/**
+ * Input for updating a planting (partial, without ID)
+ */
+export type PlantingUpdate = Partial<Omit<Planting, 'id'>>
+
 // ============ MAINTENANCE TASKS ============
 
 /**
@@ -169,7 +241,7 @@ export type MaintenanceTaskType = 'prune' | 'feed' | 'spray' | 'mulch' | 'harves
  */
 export interface MaintenanceTask {
   id: string                         // Unique ID
-  plantingId: string                 // Links to permanent planting ID
+  areaId: string                     // Links to area ID (was plantingId)
   type: MaintenanceTaskType
   month: number                      // 1-12 when task should be done
   description: string                // e.g., "Winter prune apple trees"
@@ -181,6 +253,30 @@ export interface MaintenanceTask {
  * Input for creating a new maintenance task
  */
 export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
+
+// ============ CARE LOGGING TYPES ============
+
+/**
+ * Type of care log entry
+ */
+export type CareLogType = 'prune' | 'feed' | 'mulch' | 'spray' | 'harvest' | 'observation' | 'other'
+
+/**
+ * Care log entry for an area in a specific year
+ */
+export interface CareLogEntry {
+  id: string
+  type: CareLogType
+  date: string                  // ISO date string
+  description?: string
+  quantity?: number             // For harvest: yield amount
+  unit?: string                 // For harvest: kg, lbs, count
+}
+
+/**
+ * Input for creating a new care log entry
+ */
+export type NewCareLogEntry = Omit<CareLogEntry, 'id'>
 
 // ============ GARDEN EVENTS ============
 
@@ -205,7 +301,7 @@ export interface GardenEvent {
   type: GardenEventType
   date: string                     // ISO date string
   description: string              // What was done
-  bedId?: string                   // Optional - which bed(s) affected
+  areaId?: string                  // Optional - which area affected
   product?: string                 // Optional - what product/material used
   notes?: string                   // Additional notes
   createdAt: string
@@ -258,190 +354,15 @@ export interface NewVariety {
  */
 export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 
-// ============ UNIFIED AREA SYSTEM (v9) ============
-
-/**
- * Area type discriminator for unified area system
- */
-export type AreaType = 'bed' | 'permanent' | 'infrastructure'
-
-/**
- * Common fields for all areas
- */
-export interface AreaBase {
-  id: string
-  type: AreaType
-  name: string
-  description?: string
-  gridPosition?: {
-    startRow: number
-    startCol: number
-    endRow: number
-    endCol: number
-  }
-}
-
-/**
- * Bed area - for annual rotation crops
- */
-export interface BedArea extends AreaBase {
-  type: 'bed'
-  status: 'rotation' | 'perennial'
-  rotationGroup?: RotationGroup
-}
-
-/**
- * Permanent planting area - trees, berries, perennial vegetables
- */
-export interface PermanentArea extends AreaBase {
-  type: 'permanent'
-  plantingType: 'fruit-tree' | 'berry' | 'perennial-veg' | 'herb'
-  plantId?: string              // Reference to vegetable database
-  variety?: string
-  plantedYear?: number
-}
-
-/**
- * Infrastructure area - non-plant features
- */
-export interface InfrastructureArea extends AreaBase {
-  type: 'infrastructure'
-  infrastructureType: 'shed' | 'compost' | 'water-butt' | 'path' | 'greenhouse' | 'pond' | 'wildlife' | 'other'
-}
-
-/**
- * Discriminated union of all area types
- */
-export type Area = BedArea | PermanentArea | InfrastructureArea
-
-// ============ UNDERPLANTING TYPES ============
-
-/**
- * Permanent underplanting - persists across years
- * Example: strawberries under damson tree
- */
-export interface PermanentUnderplanting {
-  id: string
-  parentAreaId: string          // The area this is under (e.g., 'damson')
-  plantId: string               // Reference to vegetable database
-  variety?: string
-  plantedYear?: number
-  notes?: string
-}
-
-/**
- * Seasonal underplanting - tracked per year like regular plantings
- * Example: lettuce under apple tree in summer 2026
- */
-export interface SeasonalUnderplanting extends Planting {
-  parentAreaId: string          // The permanent area this is under
-}
-
-/**
- * Input for creating a new permanent underplanting
- */
-export type NewPermanentUnderplanting = Omit<PermanentUnderplanting, 'id'>
-
-/**
- * Input for creating a new seasonal underplanting
- * Note: parentAreaId is passed separately to the storage function
- */
-export type NewSeasonalUnderplanting = Omit<SeasonalUnderplanting, 'id' | 'parentAreaId'>
-
-// ============ CARE LOGGING TYPES ============
-
-/**
- * Type of care log entry
- */
-export type CareLogType = 'prune' | 'feed' | 'mulch' | 'spray' | 'harvest' | 'observation' | 'other'
-
-/**
- * Care log entry for a permanent planting in a specific year
- */
-export interface CareLogEntry {
-  id: string
-  type: CareLogType
-  date: string                  // ISO date string
-  description?: string
-  quantity?: number             // For harvest: yield amount
-  unit?: string                 // For harvest: kg, lbs, count
-}
-
-/**
- * Input for creating a new care log entry
- */
-export type NewCareLogEntry = Omit<CareLogEntry, 'id'>
-
-/**
- * Per-year record for a permanent planting
- * Stored in SeasonRecord similar to BedSeason
- */
-export interface PermanentSeason {
-  areaId: string                // Reference to permanent area
-  careLogs: CareLogEntry[]
-  seasonNotes?: string          // General notes for this year
-  harvestTotal?: number         // Aggregated harvest for the year
-  harvestUnit?: string
-  underplantings: SeasonalUnderplanting[]  // Seasonal underplantings for this area/year
-}
-
-// ============ UNIFIED LAYOUT DATA (v9) ============
-
-/**
- * Updated layout data with unified areas array
- * Replaces separate beds/permanentPlantings/infrastructure arrays
- */
-export interface AllotmentLayoutDataV9 {
-  areas: Area[]
-  permanentUnderplantings: PermanentUnderplanting[]
-}
-
-/**
- * Updated season record with permanent plantings tracking
- */
-export interface SeasonRecordV9 {
-  year: number
-  status: SeasonStatus
-  beds: BedSeason[]             // Unchanged - annual bed plantings
-  permanents: PermanentSeason[] // NEW - per-year tracking for permanent areas
-  notes?: string
-  createdAt: string
-  updatedAt: string
-}
-
-/**
- * Root data structure for schema v9
- */
-export interface AllotmentDataV9 {
-  version: 9
-  meta: AllotmentMeta
-  layout: AllotmentLayoutDataV9
-  seasons: SeasonRecordV9[]
-  currentYear: number
-  maintenanceTasks?: MaintenanceTask[]
-  gardenEvents?: GardenEvent[]
-  varieties: StoredVariety[]
-}
-
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 9 // Unified area system with underplantings and care logging
+export const CURRENT_SCHEMA_VERSION = 10 // Unified Area system with dynamic add/remove
 
 // ============ HELPER TYPES ============
 
 // Re-export from shared storage types
 export type { StorageResult } from './storage'
-
-/**
- * Input for creating a new planting (without ID)
- */
-export type NewPlanting = Omit<Planting, 'id'>
-
-/**
- * Input for updating a planting (partial, without ID)
- */
-export type PlantingUpdate = Partial<Omit<Planting, 'id'>>
 
 /**
  * Input for creating a new season
@@ -453,12 +374,140 @@ export interface NewSeasonInput {
 }
 
 /**
- * Input for creating a new bed note (without ID and timestamps)
+ * Input for creating a new area note (without ID and timestamps)
  */
-export type NewBedNote = Omit<BedNote, 'id' | 'createdAt' | 'updatedAt'>
+export type NewAreaNote = Omit<AreaNote, 'id' | 'createdAt' | 'updatedAt'>
 
 /**
- * Input for updating a bed note (partial, without ID)
+ * Input for updating an area note (partial, without ID)
  */
-export type BedNoteUpdate = Partial<Omit<BedNote, 'id' | 'createdAt'>>
+export type AreaNoteUpdate = Partial<Omit<AreaNote, 'id' | 'createdAt'>>
 
+// ============ LEGACY TYPE ALIASES (for migration compatibility) ============
+
+/**
+ * @deprecated Use AreaNote instead
+ */
+export type BedNote = AreaNote
+
+/**
+ * @deprecated Use AreaNoteType instead
+ */
+export type BedNoteType = AreaNoteType
+
+/**
+ * @deprecated Use NewAreaNote instead
+ */
+export type NewBedNote = NewAreaNote
+
+/**
+ * @deprecated Use AreaNoteUpdate instead
+ */
+export type BedNoteUpdate = AreaNoteUpdate
+
+/**
+ * @deprecated Use AreaSeason instead. Kept for v9 migration.
+ */
+export interface BedSeason {
+  bedId: string                      // Now string, was PhysicalBedId
+  rotationGroup: RotationGroup
+  plantings: Planting[]
+  notes?: AreaNote[]
+}
+
+/**
+ * @deprecated v9 area types - kept for migration compatibility
+ */
+export type AreaType = 'bed' | 'permanent' | 'infrastructure'
+
+/**
+ * @deprecated Use Area with kind='rotation-bed' or 'perennial-bed'
+ */
+export interface BedArea {
+  id: string
+  type: 'bed'
+  name: string
+  description?: string
+  status: 'rotation' | 'perennial'
+  rotationGroup?: RotationGroup
+  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
+}
+
+/**
+ * @deprecated Use Area with kind='tree', 'berry', 'herb', or 'perennial-bed'
+ */
+export interface PermanentArea {
+  id: string
+  type: 'permanent'
+  name: string
+  description?: string
+  plantingType: 'fruit-tree' | 'berry' | 'perennial-veg' | 'herb'
+  plantId?: string
+  variety?: string
+  plantedYear?: number
+  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
+}
+
+/**
+ * @deprecated Use Area with kind='infrastructure'
+ */
+export interface InfrastructureArea {
+  id: string
+  type: 'infrastructure'
+  name: string
+  description?: string
+  infrastructureType: InfrastructureSubtype
+  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
+}
+
+/**
+ * @deprecated v9 discriminated union - use Area instead
+ */
+export type LegacyArea = BedArea | PermanentArea | InfrastructureArea
+
+/**
+ * @deprecated v9 permanent underplanting - now just use Planting in any area
+ */
+export interface PermanentUnderplanting {
+  id: string
+  parentAreaId: string
+  plantId: string
+  variety?: string
+  plantedYear?: number
+  notes?: string
+}
+
+/**
+ * @deprecated v9 seasonal underplanting - now just use Planting in any area
+ */
+export interface SeasonalUnderplanting extends Planting {
+  parentAreaId: string
+}
+
+/**
+ * @deprecated v9 permanent season - now merged into AreaSeason
+ */
+export interface PermanentSeason {
+  areaId: string
+  careLogs: CareLogEntry[]
+  seasonNotes?: string
+  harvestTotal?: number
+  harvestUnit?: string
+  underplantings: SeasonalUnderplanting[]
+}
+
+// ============ UNIFIED ITEM SELECTION TYPES ============
+
+/**
+ * Type discriminator for allotment items (for UI selection)
+ * In v10, all items are Areas but we keep this for backward compatibility
+ */
+export type AllotmentItemType = 'area'
+
+/**
+ * Reference to any item in the allotment (for selection)
+ */
+export interface AllotmentItemRef {
+  type: AllotmentItemType
+  id: string
+}

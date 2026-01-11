@@ -1,6 +1,6 @@
 /**
  * Unit tests for allotment-storage.ts
- * 
+ *
  * Essential tests only: schema validation, data repair, and quota handling.
  * Simple CRUD operations are covered by E2E tests.
  */
@@ -13,7 +13,7 @@ import {
 } from '@/services/allotment-storage'
 import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
 
-// Helper to create valid test data
+// Helper to create valid test data (v10 schema)
 function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): AllotmentData {
   return {
     version: CURRENT_SCHEMA_VERSION,
@@ -26,25 +26,29 @@ function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): Allot
     },
     layout: {
       areas: [
-        { id: 'A', type: 'bed', name: 'Bed A', status: 'rotation', rotationGroup: 'legumes', gridPosition: { startRow: 0, startCol: 0, endRow: 1, endCol: 1 }, description: 'Test bed' },
-        { id: 'test-tree', type: 'permanent', name: 'Test Tree', plantingType: 'fruit-tree', plantId: 'apple-tree', gridPosition: { startRow: 0, startCol: 0, endRow: 0, endCol: 0 } },
+        {
+          id: 'bed-a',
+          kind: 'rotation-bed',
+          name: 'Bed A',
+          rotationGroup: 'legumes',
+          gridPosition: { x: 0, y: 0, w: 2, h: 2 },
+          canHavePlantings: true,
+        },
+        {
+          id: 'apple-tree',
+          kind: 'tree',
+          name: 'Apple Tree',
+          primaryPlant: { plantId: 'apple-tree', variety: 'Bramley', plantedYear: 2020 },
+          gridPosition: { x: 2, y: 0, w: 1, h: 1 },
+          canHavePlantings: true,
+        },
       ],
-      permanentUnderplantings: [],
-      // Legacy arrays for backward compatibility
-      beds: [
-        { id: 'A', name: 'Bed A', status: 'rotation', rotationGroup: 'legumes', gridPosition: { startRow: 0, startCol: 0, endRow: 1, endCol: 1 }, description: 'Test bed' },
-      ],
-      permanentPlantings: [
-        { id: 'test-tree', name: 'Test Tree', type: 'fruit-tree', plantId: 'apple-tree', gridPosition: { row: 0, col: 0 } },
-      ],
-      infrastructure: [],
     },
     seasons: [
       {
         year: 2025,
         status: 'current',
-        beds: [{ bedId: 'A', rotationGroup: 'brassicas', plantings: [] }],
-        permanents: [{ areaId: 'test-tree', careLogs: [], underplantings: [] }],
+        areas: [{ areaId: 'bed-a', rotationGroup: 'brassicas', plantings: [] }],
         createdAt: '2025-01-01T00:00:00.000Z',
         updatedAt: '2025-01-01T00:00:00.000Z',
       },
@@ -62,36 +66,36 @@ describe('Schema Validation', () => {
 
   it('returns error when no data exists', () => {
     vi.mocked(localStorage.getItem).mockReturnValue(null)
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toBe('No data found')
   })
 
   it('returns error for invalid JSON', () => {
     vi.mocked(localStorage.getItem).mockReturnValue('not valid json {{{')
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toBe('Corrupted data: invalid JSON')
   })
 
   it('returns error for null data', () => {
     vi.mocked(localStorage.getItem).mockReturnValue('null')
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toContain('Invalid data schema')
   })
 
   it('returns error for non-object data', () => {
     vi.mocked(localStorage.getItem).mockReturnValue('"string"')
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toContain('Invalid data schema')
   })
@@ -99,21 +103,21 @@ describe('Schema Validation', () => {
   it('loads valid data successfully', () => {
     const validData = createValidAllotmentData()
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(validData))
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(true)
     expect(result.data).toEqual(validData)
   })
 
   it('validates season structure and rejects invalid year', () => {
     const dataWithBadSeason = createValidAllotmentData({
-      seasons: [{ year: 'not a number' as unknown as number, status: 'historical', beds: [], createdAt: '', updatedAt: '' }]
+      seasons: [{ year: 'not a number' as unknown as number, status: 'historical', areas: [], createdAt: '', updatedAt: '' }]
     })
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithBadSeason))
-    
+
     const result = loadAllotmentData()
-    
+
     // Validation should catch this - repair should filter out bad seasons
     expect(result.success === false || result.data?.seasons.length === 0).toBe(true)
   })
@@ -126,11 +130,11 @@ describe('Data Repair', () => {
   })
 
   it('repairs missing version field with default', () => {
-    const dataWithoutVersion = { currentYear: 2025, meta: { name: 'Test' }, layout: { beds: [], permanentPlantings: [], infrastructure: [] }, seasons: [] }
+    const dataWithoutVersion = { currentYear: 2025, meta: { name: 'Test' }, layout: { areas: [] }, seasons: [] }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithoutVersion))
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(true)
     expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
   })
@@ -140,23 +144,23 @@ describe('Data Repair', () => {
       version: 1,
       currentYear: 2025,
       meta: { location: 'Test' },
-      layout: { beds: [], permanentPlantings: [], infrastructure: [] },
+      layout: { areas: [] },
       seasons: []
     }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithoutMetaName))
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(true)
     expect(result.data?.meta.name).toBe('My Allotment')
   })
 
-  it('repairs missing layout arrays with empty arrays', () => {
+  it('repairs missing layout.areas with empty array', () => {
     const dataWithPartialLayout = {
       version: 1,
       currentYear: 2025,
       meta: { name: 'Test' },
-      layout: { beds: [] }, // Missing areas, permanentUnderplantings, and other fields
+      layout: {}, // Missing areas
       seasons: []
     }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithPartialLayout))
@@ -164,26 +168,21 @@ describe('Data Repair', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    // Legacy arrays should be defaulted
-    expect(result.data?.layout.permanentPlantings).toEqual([])
-    expect(result.data?.layout.infrastructure).toEqual([])
-    // Required v9+ fields should be populated
     expect(result.data?.layout.areas).toBeDefined()
-    expect(result.data?.layout.permanentUnderplantings).toBeDefined()
   })
 
   it('repairs invalid seasons array with empty array', () => {
-    const dataWithInvalidSeasons = { 
-      version: 1, 
-      currentYear: 2025, 
-      meta: { name: 'Test' }, 
-      layout: { beds: [], permanentPlantings: [], infrastructure: [] }, 
-      seasons: 'not an array' 
+    const dataWithInvalidSeasons = {
+      version: 1,
+      currentYear: 2025,
+      meta: { name: 'Test' },
+      layout: { areas: [] },
+      seasons: 'not an array'
     }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithInvalidSeasons))
-    
+
     const result = loadAllotmentData()
-    
+
     expect(result.success).toBe(true)
     expect(result.data?.seasons).toEqual([])
   })
@@ -199,9 +198,9 @@ describe('Quota Handling', () => {
     const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError')
     Object.defineProperty(quotaError, 'code', { value: 22 })
     vi.mocked(localStorage.setItem).mockImplementation(() => { throw quotaError })
-    
+
     const result = saveAllotmentData(data)
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toContain('Storage quota exceeded')
   })
@@ -211,9 +210,9 @@ describe('Quota Handling', () => {
     const quotaError = new DOMException('Quota reached', 'NS_ERROR_DOM_QUOTA_REACHED')
     Object.defineProperty(quotaError, 'code', { value: 1014 })
     vi.mocked(localStorage.setItem).mockImplementation(() => { throw quotaError })
-    
+
     const result = saveAllotmentData(data)
-    
+
     expect(result.success).toBe(false)
     expect(result.error).toContain('Storage quota exceeded')
   })
@@ -228,11 +227,38 @@ describe('Legacy Migration', () => {
   it('migrates from legacy data if no existing data', () => {
     vi.mocked(localStorage.getItem).mockReturnValue(null)
     vi.mocked(localStorage.setItem).mockImplementation(() => {})
-    
+
     const result = initializeStorage()
-    
+
     expect(result.success).toBe(true)
     expect(result.data?.meta.name).toBe('My Edinburgh Allotment')
     expect(localStorage.setItem).toHaveBeenCalled()
+  })
+
+  it('initialized data uses v10 unified areas', () => {
+    vi.mocked(localStorage.getItem).mockReturnValue(null)
+    vi.mocked(localStorage.setItem).mockImplementation(() => {})
+
+    const result = initializeStorage()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.layout.areas).toBeDefined()
+    expect(Array.isArray(result.data?.layout.areas)).toBe(true)
+    // Should have rotation beds, trees, etc. all in unified areas array
+    expect(result.data?.layout.areas.some(a => a.kind === 'rotation-bed')).toBe(true)
+  })
+
+  it('seasons use areas array not beds', () => {
+    vi.mocked(localStorage.getItem).mockReturnValue(null)
+    vi.mocked(localStorage.setItem).mockImplementation(() => {})
+
+    const result = initializeStorage()
+
+    expect(result.success).toBe(true)
+    if (result.data?.seasons && result.data.seasons.length > 0) {
+      const season = result.data.seasons[0]
+      expect(season.areas).toBeDefined()
+      expect(Array.isArray(season.areas)).toBe(true)
+    }
   })
 })
