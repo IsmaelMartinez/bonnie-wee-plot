@@ -17,7 +17,14 @@ interface VarietyEditDialogProps {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const AVAILABLE_YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
+// Show wider year range for flexibility
+const AVAILABLE_YEARS = [
+  CURRENT_YEAR - 2,
+  CURRENT_YEAR - 1,
+  CURRENT_YEAR,
+  CURRENT_YEAR + 1,
+  CURRENT_YEAR + 2
+]
 
 export default function VarietyEditDialog({
   isOpen,

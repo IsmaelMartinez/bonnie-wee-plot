@@ -15,9 +15,10 @@ import {
   Pencil,
   Trash2,
   Calendar,
+  Loader2,
   type LucideIcon,
 } from 'lucide-react'
-import { useVarieties } from '@/hooks/useVarieties'
+import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
@@ -63,22 +64,22 @@ const statusConfig: Record<SeedStatus, { label: string; icon: LucideIcon; classN
 function SeedsPageContent() {
   const {
     data,
-    selectedYear,
     isLoading,
-    setSelectedYear,
     addVariety,
     updateVariety,
     removeVariety,
     togglePlannedYear,
     toggleHaveSeedsForYear,
-    getAvailableYears,
-    getSeedsStatsForYear,
-    getDisplayVarieties,
-    getSuppliers,
-    getTotalSpendForYear,
-  } = useVarieties()
+    getYears,
+  } = useAllotment()
 
-  const availableYears = getAvailableYears()
+  // Use local state for seeds year selection (can be different from allotment page)
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(() => {
+    const years = getYears()
+    return years.length > 0 ? years[0] : 'all'
+  })
+
+  const availableYears = getYears()
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -107,8 +108,29 @@ function SeedsPageContent() {
     }
   }, [selectedYear, statusFilter])
 
-  const displayVarieties = getDisplayVarieties()
-  const suppliers = getSuppliers()
+  // Get varieties to display based on selected year
+  const displayVarieties = useMemo(() => {
+    if (!data) return []
+    if (selectedYear === 'all') {
+      return data.varieties || []
+    }
+    // Filter varieties for the selected year
+    return (data.varieties || []).filter(v =>
+      v.plannedYears.includes(selectedYear) ||
+      (v.seedsByYear && selectedYear in v.seedsByYear) ||
+      v.yearsUsed.includes(selectedYear)
+    )
+  }, [data, selectedYear])
+
+  const suppliers = useMemo(() => {
+    if (!data) return []
+    // Get unique suppliers from all varieties
+    const supplierSet = new Set<string>()
+    data.varieties?.forEach(v => {
+      if (v.supplier) supplierSet.add(v.supplier)
+    })
+    return Array.from(supplierSet).sort()
+  }, [data])
 
   // Filter and group varieties by vegetable
   const grouped = useMemo(() => {
@@ -136,13 +158,28 @@ function SeedsPageContent() {
   const groupNames = Object.keys(grouped).sort()
 
   // Stats - context-aware based on selected year
-  const { have: haveCount, need: needCount } = selectedYear !== 'all'
-    ? getSeedsStatsForYear(selectedYear)
-    : { have: 0, need: 0 }  // All view doesn't show have/need
+  const { have: haveCount, need: needCount } = useMemo(() => {
+    if (selectedYear === 'all' || !data) return { have: 0, need: 0 }
 
-  const plannedCount = selectedYear !== 'all' && data
-    ? data.varieties.filter(v => v.plannedYears.includes(selectedYear)).length
-    : 0
+    let have = 0
+    let need = 0
+
+    displayVarieties.forEach(v => {
+      const status = v.seedsByYear?.[selectedYear] || 'none'
+      if (status === 'have') {
+        have++
+      } else if (status === 'ordered' || status === 'none') {
+        need++
+      }
+    })
+
+    return { have, need }
+  }, [data, displayVarieties, selectedYear])
+
+  const plannedCount = useMemo(() => {
+    if (selectedYear === 'all' || !data) return 0
+    return (data.varieties || []).filter(v => v.plannedYears.includes(selectedYear)).length
+  }, [data, selectedYear])
 
   const toggleGroup = (name: string) => {
     const next = new Set(expandedGroups)
@@ -180,10 +217,10 @@ function SeedsPageContent() {
     setConfirmDelete(null)
   }
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
-        <div className="text-zen-stone-500">Loading varieties...</div>
+        <Loader2 className="w-8 h-8 text-zen-moss-600 animate-spin" />
       </div>
     )
   }
@@ -272,12 +309,26 @@ function SeedsPageContent() {
             </div>
           ) : (
             <div className="zen-card p-4 text-center">
-              <div className="text-2xl font-bold text-zen-kitsune-600">£{getTotalSpendForYear(CURRENT_YEAR - 1).toFixed(2)}</div>
+              <div className="text-2xl font-bold text-zen-kitsune-600">
+                £{(() => {
+                  const total = (data.varieties || [])
+                    .filter(v => v.yearsUsed.includes(CURRENT_YEAR - 1))
+                    .reduce((sum, v) => sum + (v.price || 0), 0)
+                  return total.toFixed(2)
+                })()}
+              </div>
               <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR - 1}</div>
             </div>
           )}
           <div className="zen-card p-4 text-center">
-            <div className="text-2xl font-bold text-zen-kitsune-600">£{getTotalSpendForYear(CURRENT_YEAR).toFixed(2)}</div>
+            <div className="text-2xl font-bold text-zen-kitsune-600">
+              £{(() => {
+                const total = (data.varieties || [])
+                  .filter(v => v.yearsUsed.includes(CURRENT_YEAR))
+                  .reduce((sum, v) => sum + (v.price || 0), 0)
+                return total.toFixed(2)
+              })()}
+            </div>
             <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR}</div>
           </div>
         </div>

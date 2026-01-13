@@ -7,24 +7,24 @@ import { vegetableIndex } from '@/lib/vegetables/index'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 import { VegetableCategory, CATEGORY_INFO } from '@/types/garden-planner'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
-import { useVarieties } from '@/hooks/useVarieties'
 import { hasSeedsForYear } from '@/services/variety-storage'
-import { NewPlanting, Planting } from '@/types/unified-allotment'
+import { NewPlanting, Planting, StoredVariety } from '@/types/unified-allotment'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
   onCancel: () => void
   existingPlantings?: Planting[]
   selectedYear: number
+  varieties?: StoredVariety[]
 }
 
 export default function AddPlantingForm({
   onSubmit,
   onCancel,
   existingPlantings = [],
-  selectedYear
+  selectedYear,
+  varieties = []
 }: AddPlantingFormProps) {
-  const { data } = useVarieties()
   const [plantId, setVegetableId] = useState('')
   const [varietyName, setVarietyName] = useState('')
   const [sowDate, setSowDate] = useState('')
@@ -34,9 +34,9 @@ export default function AddPlantingForm({
   // Get matching varieties from seed library for autocomplete
   // Sort: varieties with seeds first, then alphabetically
   const matchingVarieties = useMemo(() => {
-    if (!plantId || !data) return []
+    if (!plantId) return []
 
-    const forPlant = data.varieties.filter(v => v.plantId === plantId)
+    const forPlant = varieties.filter(v => v.plantId === plantId)
 
     return forPlant.sort((a, b) => {
       const aHasSeeds = hasSeedsForYear(a, selectedYear)
@@ -49,7 +49,7 @@ export default function AddPlantingForm({
       // Then alphabetically
       return a.name.localeCompare(b.name)
     })
-  }, [plantId, data, selectedYear])
+  }, [plantId, varieties, selectedYear])
   const selectedVegetable = plantId ? getVegetableById(plantId) : null
 
   // Pre-select variety if only one match exists

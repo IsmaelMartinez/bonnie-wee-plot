@@ -441,6 +441,7 @@ export default function AllotmentPage() {
           onCancel={() => setShowAddDialog(false)}
           existingPlantings={selectedPlantings}
           selectedYear={selectedYear}
+          varieties={data?.varieties || []}
         />
       </Dialog>
 

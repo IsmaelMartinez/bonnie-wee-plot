@@ -150,7 +150,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         console.warn('Failed to load saved layout:', e)
       }
     }
-  }, [])
+  }, [areas])
 
   // Track container width
   useEffect(() => {

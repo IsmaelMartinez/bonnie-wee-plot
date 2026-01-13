@@ -43,7 +43,7 @@ import {
   PermanentUnderplanting,
   PermanentSeason,
 } from '@/types/unified-allotment'
-import { RotationGroup, PlantedVariety, SeasonPlan, PermanentPlanting, InfrastructureItem, PhysicalBedId } from '@/types/garden-planner'
+import { RotationGroup, PermanentPlanting, InfrastructureItem, PhysicalBedId } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
@@ -946,67 +946,6 @@ export function needsLegacyMigration(): boolean {
   
   const stored = localStorage.getItem(STORAGE_KEY)
   return !stored
-}
-
-/**
- * Convert a legacy PlantedVariety to the new Planting format
- */
-function convertPlanting(legacy: PlantedVariety): Planting {
-  return {
-    id: legacy.id,
-    plantId: legacy.plantId,
-    varietyName: legacy.varietyName,
-    sowDate: legacy.sowDate,
-    transplantDate: legacy.transplantDate,
-    harvestDate: legacy.harvestDate,
-    success: legacy.success,
-    notes: legacy.notes,
-    quantity: legacy.quantity,
-  }
-}
-
-/**
- * Legacy season format for v8 data (has beds instead of areas)
- * Used during migration before v9/v10 conversion
- */
-interface LegacySeasonRecord {
-  year: number
-  status: 'historical' | 'current' | 'planned'
-  beds: BedSeason[]
-  notes?: string
-  createdAt: string
-  updatedAt: string
-}
-
-/**
- * Convert a legacy SeasonPlan to the legacy SeasonRecord format (v8)
- * This is then further migrated to v10 by the migration chain
- *
- * NOTE: Currently unused - kept for potential future historical data import feature
- * @ts-ignore - Keeping for reference
- */
-// @ts-expect-error - Unused but kept for potential future use
-function convertSeason(legacy: SeasonPlan, status: 'historical' | 'current'): LegacySeasonRecord {
-  // Group plantings by bed ID
-  const bedMap = new Map<PhysicalBedId, BedSeason>()
-
-  // Initialize beds from the legacy bed plans
-  for (const bedPlan of legacy.beds) {
-    bedMap.set(bedPlan.bedId, {
-      bedId: bedPlan.bedId,
-      rotationGroup: bedPlan.rotationGroup,
-      plantings: bedPlan.plantings.map(convertPlanting),
-    })
-  }
-
-  return {
-    year: legacy.year,
-    status,
-    beds: Array.from(bedMap.values()),
-    notes: legacy.notes,
-    createdAt: legacy.createdAt,
-    updatedAt: legacy.updatedAt,
-  }
 }
 
 /**

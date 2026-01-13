@@ -138,9 +138,7 @@ export function useVarieties(): UseVarietiesReturn {
 
   const getAvailableYears = useCallback((): number[] => {
     if (!data) {
-      // Fallback to standard 3-year window
-      const currentYear = new Date().getFullYear()
-      return [currentYear + 1, currentYear, currentYear - 1]
+      return []
     }
 
     const yearsSet = new Set<number>()
@@ -156,13 +154,17 @@ export function useVarieties(): UseVarietiesReturn {
           yearsSet.add(parseInt(yearStr))
         })
       }
+
+      // Add years from yearsUsed
+      v.yearsUsed.forEach(year => yearsSet.add(year))
     })
 
-    // Add the standard 3-year window
-    const currentYear = new Date().getFullYear()
-    yearsSet.add(currentYear - 1)
-    yearsSet.add(currentYear)
-    yearsSet.add(currentYear + 1)
+    // If no years found, add current and next year as defaults
+    if (yearsSet.size === 0) {
+      const currentYear = new Date().getFullYear()
+      yearsSet.add(currentYear)
+      yearsSet.add(currentYear + 1)
+    }
 
     // Return sorted descending
     return Array.from(yearsSet).sort((a, b) => b - a)
