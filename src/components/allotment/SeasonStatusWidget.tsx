@@ -3,25 +3,21 @@
 import Link from 'next/link'
 import { Calendar, Package, ArrowRight } from 'lucide-react'
 import { SEASONAL_PHASES } from '@/lib/seasons'
-import { myVarieties } from '@/data/my-varieties'
 
 interface SeasonStatusWidgetProps {
   bedsNeedingRotation: number
   totalRotationBeds: number
-  currentYear: number
+  varietiesCount: number
 }
 
 export default function SeasonStatusWidget({
   bedsNeedingRotation,
   totalRotationBeds,
-  currentYear
+  varietiesCount
 }: SeasonStatusWidgetProps) {
   const month = new Date().getMonth()
   const phase = SEASONAL_PHASES[month]
   const monthName = new Date().toLocaleDateString('en-GB', { month: 'long' })
-
-  // Calculate seeds needed (varieties used in past years that user might need to reorder)
-  const varietiesUsedLastYear = myVarieties.filter(v => v.yearsUsed.includes(currentYear - 1))
 
   return (
     <div className="zen-card p-4 border-zen-moss-200">
@@ -45,7 +41,7 @@ export default function SeasonStatusWidget({
             className="flex items-center gap-2 px-3 py-1.5 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
           >
             <Package className="w-4 h-4 text-zen-stone-400" />
-            <span>{varietiesUsedLastYear.length} varieties</span>
+            <span>{varietiesCount} varieties</span>
           </Link>
 
           <div className="flex items-center gap-2 px-3 py-1.5 text-zen-ink-600">

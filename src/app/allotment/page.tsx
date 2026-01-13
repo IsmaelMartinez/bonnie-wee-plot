@@ -77,6 +77,8 @@ export default function AllotmentPage() {
     addArea,
     updateArea,
     archiveArea,
+    // Variety operations
+    getVarietiesForYear,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -359,7 +361,7 @@ export default function AllotmentPage() {
         <SeasonStatusWidget
           bedsNeedingRotation={getRotationBeds().filter(b => getPlantings(b.id).length === 0).length}
           totalRotationBeds={getRotationBeds().length}
-          currentYear={selectedYear}
+          varietiesCount={getVarietiesForYear(selectedYear - 1).length}
         />
       </div>
 
