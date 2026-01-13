@@ -351,7 +351,8 @@ export interface StoredVariety {
   price?: number
   notes?: string
   yearsUsed: number[]                // Historical record of years used
-  plannedYears: number[]             // Years user plans to use this variety
+  plannedYears: number[]             // @deprecated - inferred from plantings in allotment
+  available?: boolean                // If true, available for selection in any year
   seedsByYear: Record<number, SeedStatus>  // Per-year inventory status
   perenualId?: string                // Future: external API integration
   gbifId?: string                    // Future: taxonomic validation
@@ -366,7 +367,8 @@ export interface NewVariety {
   supplier?: string
   price?: number
   notes?: string
-  plannedYears?: number[]
+  available?: boolean                // If true, available for selection in any year
+  plannedYears?: number[]            // @deprecated - kept for backward compatibility
   seedsByYear?: Record<number, SeedStatus>
 }
 

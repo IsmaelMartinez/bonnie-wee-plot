@@ -16,16 +16,6 @@ interface VarietyEditDialogProps {
   existingSuppliers?: string[]
 }
 
-const CURRENT_YEAR = new Date().getFullYear()
-// Show wider year range for flexibility
-const AVAILABLE_YEARS = [
-  CURRENT_YEAR - 2,
-  CURRENT_YEAR - 1,
-  CURRENT_YEAR,
-  CURRENT_YEAR + 1,
-  CURRENT_YEAR + 2
-]
-
 export default function VarietyEditDialog({
   isOpen,
   onClose,
@@ -39,7 +29,7 @@ export default function VarietyEditDialog({
   const [supplier, setSupplier] = useState('')
   const [price, setPrice] = useState('')
   const [notes, setNotes] = useState('')
-  const [selectedYears, setSelectedYears] = useState<Set<number>>(new Set())
+  const [available, setAvailable] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
 
   // Reset form when dialog opens/closes or variety changes
@@ -50,7 +40,7 @@ export default function VarietyEditDialog({
       setSupplier(variety.supplier || '')
       setPrice(variety.price?.toString() || '')
       setNotes(variety.notes || '')
-      setSelectedYears(new Set(variety.plannedYears || []))
+      setAvailable(variety.available ?? true)
     } else if (isOpen && mode === 'add') {
       resetForm()
     }
@@ -62,7 +52,7 @@ export default function VarietyEditDialog({
     setSupplier('')
     setPrice('')
     setNotes('')
-    setSelectedYears(new Set())
+    setAvailable(true)
   }
 
   const handleClose = () => {
@@ -75,7 +65,6 @@ export default function VarietyEditDialog({
     if (!plantId || !name.trim()) return
 
     const parsedPrice = price ? (isNaN(parseFloat(price)) ? undefined : parseFloat(price)) : undefined
-    const yearsArray = Array.from(selectedYears).sort((a, b) => a - b)
 
     if (mode === 'add') {
       const newVariety: NewVariety = {
@@ -84,7 +73,7 @@ export default function VarietyEditDialog({
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
-        plannedYears: yearsArray.length > 0 ? yearsArray : undefined,
+        available,
       }
       onSave(newVariety)
     } else if (variety) {
@@ -95,24 +84,12 @@ export default function VarietyEditDialog({
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
-        plannedYears: yearsArray,
+        available,
       }
       onSave(update)
     }
 
     handleClose()
-  }
-
-  const toggleYear = (year: number) => {
-    setSelectedYears(prev => {
-      const next = new Set(prev)
-      if (next.has(year)) {
-        next.delete(year)
-      } else {
-        next.add(year)
-      }
-      return next
-    })
   }
 
   const filteredPlants = vegetableIndex
@@ -266,25 +243,20 @@ export default function VarietyEditDialog({
         </div>
 
         <div>
-          <span className="block text-sm font-medium text-gray-700 mb-2">
-            Planned Years
-          </span>
-          <div className="flex gap-3">
-            {AVAILABLE_YEARS.map(year => (
-              <label
-                key={year}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedYears.has(year)}
-                  onChange={() => toggleYear(year)}
-                  className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">{year}</span>
-              </label>
-            ))}
-          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={available}
+              onChange={(e) => setAvailable(e.target.checked)}
+              className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Available for planting
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1 ml-6">
+            When checked, this variety can be selected when adding plantings to any year
+          </p>
         </div>
 
         <div className="flex gap-3 pt-2">

@@ -27,7 +27,8 @@ export interface StoredVariety {
   price?: number
   notes?: string
   yearsUsed: number[]      // Historical record
-  plannedYears: number[]   // Years user plans to use this
+  plannedYears: number[]   // @deprecated - inferred from plantings in allotment
+  available?: boolean      // If true, available for selection in any year
   seedsByYear: Record<number, SeedStatus>  // Per-year seed inventory: { 2026: 'have', 2027: 'ordered' }
 }
 
@@ -37,7 +38,8 @@ export interface NewVariety {
   supplier?: string
   price?: number
   notes?: string
-  plannedYears?: number[]
+  available?: boolean      // If true, available for selection in any year
+  plannedYears?: number[]  // @deprecated - kept for backward compatibility
 }
 
 export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
