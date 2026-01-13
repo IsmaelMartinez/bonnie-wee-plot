@@ -2299,19 +2299,12 @@ export function addArea(
   area: Omit<Area, 'id'>
 ): { data: AllotmentData; areaId: string } {
   const id = generateId()
-  const currentYear = new Date().getFullYear()
   const newArea: Area = {
     ...area,
     id,
     createdAt: new Date().toISOString(),
-    createdYear: area.createdYear ?? (() => {
-      console.log('addArea: No createdYear specified, defaulting to current year', {
-        areaName: area.name,
-        areaKind: area.kind,
-        defaultedYear: currentYear
-      })
-      return currentYear
-    })()
+    // Keep createdYear as undefined if not specified - means area exists in all years
+    createdYear: area.createdYear
   }
 
   const areas = data.layout.areas || []
