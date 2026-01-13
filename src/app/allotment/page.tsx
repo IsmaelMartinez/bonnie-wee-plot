@@ -86,7 +86,8 @@ export default function AllotmentPage() {
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
 
   // Get available years and add next/previous year options
-  const availableYears = getYears()
+  // Sort years in ascending order (oldest to newest) for left-to-right timeline
+  const availableYears = getYears().sort((a, b) => a - b)
   const currentYear = new Date().getFullYear()
   const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear
   const previousYear = availableYears.length > 0 ? Math.min(...availableYears) - 1 : currentYear - 1
@@ -283,11 +284,11 @@ export default function AllotmentPage() {
           <button
             onClick={() => {
               const idx = availableYears.indexOf(selectedYear)
-              if (idx < availableYears.length - 1) {
-                selectYear(availableYears[idx + 1])
+              if (idx > 0) {
+                selectYear(availableYears[idx - 1])
               }
             }}
-            disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
+            disabled={availableYears.indexOf(selectedYear) <= 0}
             className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -345,11 +346,11 @@ export default function AllotmentPage() {
           <button
             onClick={() => {
               const idx = availableYears.indexOf(selectedYear)
-              if (idx > 0) {
-                selectYear(availableYears[idx - 1])
+              if (idx < availableYears.length - 1) {
+                selectYear(availableYears[idx + 1])
               }
             }}
-            disabled={availableYears.indexOf(selectedYear) <= 0}
+            disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
             className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
           >
             <ChevronRight className="w-5 h-5" />
