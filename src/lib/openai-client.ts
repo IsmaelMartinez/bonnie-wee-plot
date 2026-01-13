@@ -34,6 +34,7 @@ export interface OpenAIClientOptions {
   messages?: IncomingMessage[]
   image?: { type: string; data: string }
   allotmentContext?: string
+  onFallbackToDirectAPI?: (reason: string) => void
 }
 
 export interface OpenAIResponse {
@@ -149,11 +150,21 @@ export async function callOpenAI(options: OpenAIClientOptions): Promise<OpenAIRe
     // If 404, API route doesn't exist - fall through to direct call
     if (response.status !== 404) {
       // Other errors (401, 429, etc.) - throw to surface to user
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      let errorData: { error?: string } = {}
+      try {
+        errorData = await response.json()
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError)
+        errorData = {
+          error: `Server returned HTTP ${response.status} with unparseable response`
+        }
+      }
       throw new Error(errorData.error || `API error: ${response.status}`)
     }
 
-    console.log('API route not found, calling OpenAI directly')
+    const fallbackReason = 'API route not available (static deployment)'
+    console.log(fallbackReason)
+    options.onFallbackToDirectAPI?.(fallbackReason)
   } catch (error) {
     // If error is from response handling above, re-throw it
     if (error instanceof Error && error.message !== 'Failed to fetch') {
@@ -161,7 +172,9 @@ export async function callOpenAI(options: OpenAIClientOptions): Promise<OpenAIRe
     }
 
     // Network error or API route doesn't exist - try direct call
-    console.log('API route unavailable, calling OpenAI directly')
+    const fallbackReason = 'Network error or server unavailable'
+    console.warn(`Falling back to direct OpenAI API: ${fallbackReason}`)
+    options.onFallbackToDirectAPI?.(fallbackReason)
   }
 
   // Call OpenAI directly (for GitHub Pages deployment)

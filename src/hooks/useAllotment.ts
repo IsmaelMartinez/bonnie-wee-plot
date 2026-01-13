@@ -220,6 +220,9 @@ export interface UseAllotmentActions {
   reload: () => void
   flushSave: () => void  // Force immediate save of pending data
   clearSaveError: () => void  // Clear any save error
+
+  // Metadata operations
+  updateMeta: (updates: Partial<AllotmentData['meta']>) => void
 }
 
 export type UseAllotmentReturn = UseAllotmentState & UseAllotmentActions
@@ -695,6 +698,19 @@ export function useAllotment(): UseAllotmentReturn {
     return getHarvestTotal(data, selectedYear, areaId)
   }, [data, selectedYear])
 
+  // ============ METADATA OPERATIONS ============
+
+  const updateMeta = useCallback((updates: Partial<AllotmentData['meta']>) => {
+    if (!data) return
+    setData({
+      ...data,
+      meta: {
+        ...data.meta,
+        ...updates
+      }
+    })
+  }, [data, setData])
+
   return {
     // State
     data,
@@ -804,6 +820,9 @@ export function useAllotment(): UseAllotmentReturn {
     reload,
     flushSave,
     clearSaveError,
+
+    // Metadata operations
+    updateMeta,
   }
 }
 

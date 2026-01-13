@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapPin, Loader2 } from 'lucide-react'
 import { useLocation } from '@/hooks/useLocation'
 
@@ -24,14 +24,19 @@ export default function WizardStep2BasicInfo({
   const { userLocation, detectUserLocation, isDetecting } = useLocation()
   const [nameError, setNameError] = useState('')
 
-  const handleDetectLocation = async () => {
-    await detectUserLocation()
+  // Update location field when userLocation changes
+  useEffect(() => {
     if (userLocation) {
       const locationString = userLocation.city && userLocation.country
         ? `${userLocation.city}, ${userLocation.country}`
         : userLocation.country || ''
       onAllotmentLocationChange(locationString)
     }
+  }, [userLocation, onAllotmentLocationChange])
+
+  const handleDetectLocation = async () => {
+    await detectUserLocation()
+    // Location will be set via useEffect when userLocation updates
   }
 
   const handleNext = () => {

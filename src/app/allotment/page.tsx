@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Map,
@@ -79,6 +79,7 @@ export default function AllotmentPage() {
     addArea,
     updateArea,
     archiveArea,
+    updateMeta,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -87,8 +88,14 @@ export default function AllotmentPage() {
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
 
   // Setup wizard state - show wizard if no areas and setup not completed
-  const shouldShowSetupWizard = !isLoading && getAllAreas().length === 0 && !data?.meta.setupCompleted
-  const [showSetupWizard, setShowSetupWizard] = useState(shouldShowSetupWizard)
+  const [showSetupWizard, setShowSetupWizard] = useState(false)
+
+  // Update wizard visibility when data loads
+  useEffect(() => {
+    if (!isLoading && data && getAllAreas().length === 0 && !data.meta.setupCompleted) {
+      setShowSetupWizard(true)
+    }
+  }, [isLoading, data, getAllAreas])
 
   // Get available years and add next year option
   const availableYears = getYears()
@@ -148,39 +155,59 @@ export default function AllotmentPage() {
 
   // Setup wizard handlers
   const handleWizardComplete = (wizardData: WizardData) => {
-    // Update metadata
-    if (data) {
-      data.meta.name = wizardData.allotmentName
-      data.meta.location = wizardData.allotmentLocation
-      data.meta.setupCompleted = true
-    }
+    try {
+      if (!data) {
+        throw new Error('Allotment data not initialized')
+      }
 
-    // Add all areas from wizard
-    wizardData.areas.forEach((areaTemplate) => {
-      addArea({
-        name: areaTemplate.name,
-        kind: areaTemplate.kind,
-        canHavePlantings: areaTemplate.kind !== 'infrastructure',
-        description: '',
-        ...(areaTemplate.width && areaTemplate.length ? {
-          gridPosition: {
-            x: 0,
-            y: 0,
-            w: Math.ceil(areaTemplate.width),
-            h: Math.ceil(areaTemplate.length)
-          }
-        } : {})
+      // Update metadata using proper immutable update
+      updateMeta({
+        name: wizardData.allotmentName,
+        location: wizardData.allotmentLocation,
+        setupCompleted: true
       })
-    })
 
-    setShowSetupWizard(false)
+      // Add all areas with error tracking
+      const failedAreas: string[] = []
+
+      wizardData.areas.forEach((areaTemplate) => {
+        try {
+          addArea({
+            name: areaTemplate.name,
+            kind: areaTemplate.kind,
+            canHavePlantings: areaTemplate.kind !== 'infrastructure',
+            description: '',
+            ...(areaTemplate.width && areaTemplate.length ? {
+              gridPosition: {
+                x: 0,
+                y: 0,
+                w: Math.ceil(areaTemplate.width),
+                h: Math.ceil(areaTemplate.length)
+              }
+            } : {})
+          })
+        } catch (e) {
+          failedAreas.push(areaTemplate.name)
+          console.error(`Failed to create area ${areaTemplate.name}:`, e)
+        }
+      })
+
+      if (failedAreas.length > 0) {
+        // Partial failure - inform user
+        alert(`Setup completed but failed to create ${failedAreas.length} area(s): ${failedAreas.join(', ')}. You can add them manually later.`)
+      }
+
+      setShowSetupWizard(false)
+    } catch (error) {
+      console.error('Wizard completion failed:', error)
+      alert(`Setup failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`)
+      // Don't close wizard on complete failure
+    }
   }
 
   const handleWizardSkip = () => {
     // Mark setup as completed even if skipped
-    if (data) {
-      data.meta.setupCompleted = true
-    }
+    updateMeta({ setupCompleted: true })
     setShowSetupWizard(false)
   }
 

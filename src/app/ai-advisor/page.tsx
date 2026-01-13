@@ -24,6 +24,7 @@ import TokenSettings from '@/components/ai-advisor/TokenSettings'
 import QuickTopics from '@/components/ai-advisor/QuickTopics'
 import ChatMessage, { LoadingMessage } from '@/components/ai-advisor/ChatMessage'
 import ChatInput from '@/components/ai-advisor/ChatInput'
+import ApiFallbackWarning from '@/components/ai-advisor/ApiFallbackWarning'
 
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
@@ -48,6 +49,7 @@ export default function AIAdvisorPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [tempToken, setTempToken] = useState('')
   const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
+  const [fallbackReason, setFallbackReason] = useState<string | null>(null)
   
   // Use extracted hooks
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
@@ -214,7 +216,8 @@ export default function AIAdvisorPage() {
         message: enhancedQuery,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         image: imageData,
-        allotmentContext: allotmentContext || undefined
+        allotmentContext: allotmentContext || undefined,
+        onFallbackToDirectAPI: (reason) => setFallbackReason(reason)
       })
       
       const aiResponse: ExtendedChatMessage = {
@@ -315,6 +318,9 @@ export default function AIAdvisorPage() {
 
         {/* Quick Topics */}
         <QuickTopics onSelectTopic={(query) => handleSubmit(query)} />
+
+        {/* API Fallback Warning */}
+        {fallbackReason && <ApiFallbackWarning reason={fallbackReason} />}
 
         {/* Chat Interface */}
         <div className="zen-card overflow-hidden">
