@@ -46,15 +46,16 @@ const INFRASTRUCTURE_OPTIONS: { subtype: InfrastructureSubtype; label: string; i
   { subtype: 'other', label: 'Other', icon: HelpCircle },
 ]
 
-const EMOJI_OPTIONS = ['🌱', '🥬', '🥕', '🍅', '🫛', '🧅', '🥔', '🍎', '🍐', '🫐', '🌿', '🏠', '🪴', '🌻', '🌾']
-
-const COLOR_OPTIONS = [
-  { value: 'zen-moss', label: 'Green' },
-  { value: 'zen-water', label: 'Blue' },
-  { value: 'zen-sakura', label: 'Pink' },
-  { value: 'zen-kitsune', label: 'Orange' },
-  { value: 'zen-stone', label: 'Gray' },
-]
+// Default icons and colors for each area kind
+const AREA_KIND_DEFAULTS: Record<AreaKind, { icon: string; color: string }> = {
+  'rotation-bed': { icon: '🌱', color: 'zen-moss' },
+  'perennial-bed': { icon: '🌿', color: 'zen-sakura' },
+  'tree': { icon: '🍎', color: 'zen-kitsune' },
+  'berry': { icon: '🫐', color: 'zen-ume' },
+  'herb': { icon: '🌿', color: 'zen-moss' },
+  'infrastructure': { icon: '🏠', color: 'zen-stone' },
+  'other': { icon: '🪴', color: 'zen-water' },
+}
 
 export default function AddAreaForm({
   onSubmit,
@@ -67,8 +68,6 @@ export default function AddAreaForm({
   const [name, setName] = useState('')
   const [kind, setKind] = useState<AreaKind>('rotation-bed')
   const [description, setDescription] = useState('')
-  const [icon, setIcon] = useState('🌱')
-  const [color, setColor] = useState('zen-moss')
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [createdYear, setCreatedYear] = useState<number | undefined>(undefined)
@@ -115,12 +114,15 @@ export default function AddAreaForm({
     // Find next available grid position (simple: place at end)
     const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
 
+    // Get default icon and color for the selected kind
+    const defaults = AREA_KIND_DEFAULTS[kind]
+
     const newArea: Omit<Area, 'id'> = {
       name: name.trim(),
       kind,
       description: description.trim() || undefined,
-      icon,
-      color,
+      icon: defaults.icon,
+      color: defaults.color,
       canHavePlantings: kind !== 'infrastructure',
       gridPosition: {
         x: 0,
@@ -235,52 +237,6 @@ export default function AddAreaForm({
           </div>
         </>
       )}
-
-      {/* Icon Selection */}
-      <div>
-        <label className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Icon
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {EMOJI_OPTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => setIcon(emoji)}
-              className={`w-10 h-10 text-xl rounded-zen border flex items-center justify-center transition ${
-                icon === emoji
-                  ? 'border-zen-moss-500 bg-zen-moss-50'
-                  : 'border-zen-stone-200 hover:border-zen-stone-300'
-              }`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Color Selection */}
-      <div>
-        <label className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Color
-        </label>
-        <div className="flex gap-2">
-          {COLOR_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setColor(option.value)}
-              className={`px-3 py-1.5 text-sm rounded-zen border transition ${
-                color === option.value
-                  ? `border-${option.value}-500 bg-${option.value}-50 text-${option.value}-700`
-                  : 'border-zen-stone-200 hover:border-zen-stone-300 text-zen-ink-600'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Description */}
       <div>
