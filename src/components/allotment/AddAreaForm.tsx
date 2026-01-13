@@ -72,7 +72,7 @@ export default function AddAreaForm({
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
-  const [createdYear, setCreatedYear] = useState<number>(currentYear)
+  const [createdYear, setCreatedYear] = useState<number | undefined>(currentYear)
   const [yearError, setYearError] = useState<string>()
 
   // Check for duplicate names
@@ -80,13 +80,13 @@ export default function AddAreaForm({
     a => a.name.toLowerCase() === name.trim().toLowerCase()
   )
 
-  // Validate createdYear
-  const isValidCreatedYear = createdYear >= 1900 && createdYear <= currentYear + 10
+  // Validate createdYear (optional - undefined is valid)
+  const isValidCreatedYear = createdYear === undefined || (createdYear >= 1900 && createdYear <= currentYear + 10)
 
   const handleCreatedYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value
     if (input === '') {
-      setCreatedYear(currentYear)
+      setCreatedYear(undefined)
       setYearError(undefined)
       return
     }
@@ -314,22 +314,26 @@ export default function AddAreaForm({
       <div className="border-t border-zen-stone-200 pt-4">
         <div>
           <label htmlFor="created-year" className="block text-sm font-medium text-zen-ink-700 mb-1">
-            Built in year
+            Built in year (optional)
           </label>
           <input
             id="created-year"
             type="number"
             min={1900}
             max={currentYear + 10}
-            value={createdYear}
+            value={createdYear ?? ''}
             onChange={handleCreatedYearChange}
+            placeholder="Leave empty if unknown"
             className="zen-input"
           />
           {yearError && (
             <p className="text-sm text-red-600 mt-1">{yearError}</p>
           )}
           <p className="text-xs text-zen-stone-500 mt-1">
-            This area will only appear in {createdYear} and later years
+            {createdYear
+              ? `This area will only appear in ${createdYear} and later years`
+              : 'This area will appear in all years'
+            }
           </p>
         </div>
       </div>
