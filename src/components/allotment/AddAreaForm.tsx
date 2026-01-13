@@ -46,6 +46,20 @@ const INFRASTRUCTURE_OPTIONS: { subtype: InfrastructureSubtype; label: string; i
   { subtype: 'other', label: 'Other', icon: HelpCircle },
 ]
 
+const TREE_TYPE_OPTIONS = [
+  'Apple',
+  'Pear',
+  'Plum',
+  'Damson',
+  'Cherry',
+  'Apricot',
+  'Peach',
+  'Fig',
+  'Quince',
+  'Medlar',
+  'Other',
+]
+
 const EMOJI_OPTIONS = ['🌱', '🥬', '🥕', '🍅', '🫛', '🧅', '🥔', '🍎', '🍐', '🫐', '🌿', '🏠', '🪴', '🌻', '🌾']
 
 const COLOR_OPTIONS = [
@@ -71,6 +85,7 @@ export default function AddAreaForm({
   const [color, setColor] = useState('zen-moss')
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
+  const [treeType, setTreeType] = useState<string>('Apple')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
   const [createdYear, setCreatedYear] = useState<number | undefined>(currentYear)
   const [yearError, setYearError] = useState<string>()
@@ -131,6 +146,12 @@ export default function AddAreaForm({
       },
       ...(kind === 'rotation-bed' && { rotationGroup }),
       ...(kind === 'infrastructure' && { infrastructureSubtype }),
+      ...(kind === 'tree' && treeType && treeType !== 'Other' && {
+        primaryPlant: {
+          plantId: treeType.toLowerCase(),
+          variety: treeType,
+        }
+      }),
       createdYear,
     }
 
@@ -208,6 +229,27 @@ export default function AddAreaForm({
             {(Object.keys(ROTATION_GROUP_NAMES) as RotationGroup[]).map((group) => (
               <option key={group} value={group}>
                 {ROTATION_GROUP_NAMES[group]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Tree Type (for fruit trees) */}
+      {kind === 'tree' && (
+        <div>
+          <label htmlFor="tree-type" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Tree Type
+          </label>
+          <select
+            id="tree-type"
+            value={treeType}
+            onChange={(e) => setTreeType(e.target.value)}
+            className="zen-select"
+          >
+            {TREE_TYPE_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
             ))}
           </select>
