@@ -11,7 +11,6 @@ import Dialog from '@/components/ui/Dialog'
 interface InfrastructureDetailPanelProps {
   area: Area
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  existingAreas: Area[]
 }
 
 const SUBTYPE_CONFIG: Record<InfrastructureSubtype, { icon: typeof Warehouse; label: string; color: string }> = {
@@ -98,7 +97,7 @@ function CompostSummary() {
   )
 }
 
-export default function InfrastructureDetailPanel({ area, onUpdateArea, existingAreas }: InfrastructureDetailPanelProps) {
+export default function InfrastructureDetailPanel({ area, onUpdateArea }: InfrastructureDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   const subtype = area.infrastructureSubtype || 'other'
   const config = SUBTYPE_CONFIG[subtype]
@@ -172,7 +171,6 @@ export default function InfrastructureDetailPanel({ area, onUpdateArea, existing
         area={area}
         onSubmit={handleEditSubmit}
         onCancel={() => setIsEditMode(false)}
-        existingAreas={existingAreas}
       />
     </Dialog>
   </>

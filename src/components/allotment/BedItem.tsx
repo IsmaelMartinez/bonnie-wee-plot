@@ -1,7 +1,8 @@
 'use client'
 
+import { useMemo } from 'react'
 import { GridItemConfig } from '@/data/allotment-layout'
-import { Planting } from '@/types/unified-allotment'
+import { Planting, Area } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 import { getColorValue } from '@/lib/colors'
@@ -11,9 +12,11 @@ interface BedItemProps {
   isSelected?: boolean
   isEditing?: boolean
   plantings?: Planting[]
+  area?: Area
+  selectedYear?: number
 }
 
-export default function BedItem({ item, isSelected, isEditing, plantings = [] }: BedItemProps) {
+export default function BedItem({ item, isSelected, isEditing, plantings = [], area, selectedYear }: BedItemProps) {
   // Get icon from plantings if available, otherwise use default
   const getPlantingIcon = (): string | undefined => {
     if (plantings.length === 0) return item.icon
@@ -42,26 +45,52 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
   }
 
   const textColor = getTextColor(item.color)
-  
+
+  // Temporal status checks with defensive validation
+  const isNew = useMemo(() => {
+    if (!area || !selectedYear || typeof selectedYear !== 'number') return false
+    if (!area.createdYear || typeof area.createdYear !== 'number') return false
+    return area.createdYear === selectedYear
+  }, [area, selectedYear])
+
+  const isRetired = useMemo(() => {
+    if (!area || !selectedYear || typeof selectedYear !== 'number') return false
+    if (!area.retiredYear || typeof area.retiredYear !== 'number') return false
+    return area.retiredYear <= selectedYear
+  }, [area, selectedYear])
+
+  const recentYears = useMemo(() => {
+    if (!area || !selectedYear || typeof selectedYear !== 'number') return false
+    if (!area.createdYear || typeof area.createdYear !== 'number') return false
+    return (selectedYear - area.createdYear) <= 3 && selectedYear > area.createdYear
+  }, [area, selectedYear])
+
   // Style variations based on type
   const getTypeStyles = () => {
+    let styles = ''
     switch (item.type) {
       case 'path':
-        return 'opacity-60'
+        styles = 'opacity-60'
+        break
       case 'area':
-        return item.label ? '' : 'opacity-30' // Empty areas are more transparent
+        styles = item.label ? '' : 'opacity-30' // Empty areas are more transparent
+        break
       case 'tree':
-        return 'rounded-full'
-      default:
-        return ''
+        styles = 'rounded-full'
+        break
     }
+    // Apply dimmed styling if retired
+    if (isRetired) {
+      styles = (styles ? styles + ' ' : '') + 'opacity-50'
+    }
+    return styles
   }
 
   return (
     <div
       className={`
         w-full h-full rounded-lg flex flex-col items-center justify-center
-        transition-all duration-200 overflow-hidden
+        transition-all duration-200 overflow-hidden relative
         ${getTypeStyles()}
         ${isSelected ? 'ring-4 ring-yellow-400 ring-offset-2 scale-105 z-10' : ''}
         ${isEditing ? 'hover:opacity-80' : item.bedId ? 'hover:scale-[1.02] hover:shadow-lg' : ''}
@@ -77,11 +106,37 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [] }:
           {displayIcon}
         </span>
       )}
-      
+
       {/* Label */}
       {item.label && (
         <div className={`text-xs font-bold ${textColor} text-center px-1 leading-tight`}>
           {item.label}
+        </div>
+      )}
+
+      {/* Temporal Status Badges */}
+      {area && selectedYear && (
+        <div className="absolute inset-x-0 top-0.5 flex flex-wrap justify-center gap-0.5 px-0.5">
+          {/* New badge */}
+          {isNew && (
+            <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-zen-moss-200 text-zen-moss-800 font-medium whitespace-nowrap">
+              New {selectedYear}
+            </span>
+          )}
+
+          {/* Since badge for recent creation */}
+          {recentYears && !isNew && area.createdYear && (
+            <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-zen-water-100 text-zen-water-700 whitespace-nowrap">
+              Since {area.createdYear}
+            </span>
+          )}
+
+          {/* Retired indicator */}
+          {isRetired && (
+            <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-zen-stone-300 text-zen-stone-800 font-medium whitespace-nowrap">
+              Retired
+            </span>
+          )}
         </div>
       )}
 

@@ -2286,18 +2286,53 @@ export function addArea(
   area: Omit<Area, 'id'>
 ): { data: AllotmentData; areaId: string } {
   const id = generateId()
-  const newArea: Area = { ...area, id, createdAt: new Date().toISOString() }
+  const currentYear = new Date().getFullYear()
+  const newArea: Area = {
+    ...area,
+    id,
+    createdAt: new Date().toISOString(),
+    createdYear: area.createdYear ?? (() => {
+      console.log('addArea: No createdYear specified, defaulting to current year', {
+        areaName: area.name,
+        areaKind: area.kind,
+        defaultedYear: currentYear
+      })
+      return currentYear
+    })()
+  }
 
   const areas = data.layout.areas || []
 
-  // Backfill AreaSeason to all existing seasons
+  // Backfill AreaSeason ONLY to years where area should exist
   const updatedSeasons = data.seasons.map(season => {
+    // Check if area should exist in this season
+    const shouldExist = wasAreaActiveInYear(newArea, season.year)
+
+    if (!shouldExist) {
+      console.log('addArea: Skipping season backfill', {
+        areaId: id,
+        areaName: newArea.name,
+        seasonYear: season.year,
+        createdYear: newArea.createdYear,
+        retiredYear: newArea.retiredYear,
+        reason: 'Area not active in this year'
+      })
+      return season
+    }
+
+    console.log('addArea: Backfilling season', {
+      areaId: id,
+      areaName: newArea.name,
+      seasonYear: season.year
+    })
+
     const newAreaSeason: AreaSeason = {
       areaId: id,
       rotationGroup: newArea.kind === 'rotation-bed' ? newArea.rotationGroup : undefined,
       plantings: [],
       notes: [],
     }
+
     return {
       ...season,
       areas: [...(season.areas || []), newAreaSeason],
@@ -2706,5 +2741,126 @@ export function updateAreaHarvestTotal(
   updatedSeasons[seasonIndex] = { ...season, areas: updatedAreas, updatedAt: new Date().toISOString() }
 
   return { ...data, seasons: updatedSeasons, meta: { ...data.meta, updatedAt: new Date().toISOString() } }
+}
+
+// ============ AREA TEMPORAL FILTERING ============
+
+/**
+ * Check if an area was active/existed in a specific year
+ *
+ * This function only checks temporal metadata (createdYear/retiredYear/activeYears).
+ * It does NOT check isArchived - that filtering is handled by getAllAreas().
+ *
+ * @param area - The area to check
+ * @param year - The year to check
+ * @returns true if area existed in that year (based on temporal metadata only)
+ */
+export function wasAreaActiveInYear(area: Area, year: number): boolean {
+  // Validate inputs
+  if (!area || typeof area !== 'object') {
+    console.error('wasAreaActiveInYear called with invalid area', { area })
+    return false
+  }
+
+  if (typeof year !== 'number' || !Number.isFinite(year) || !Number.isInteger(year)) {
+    console.error('wasAreaActiveInYear called with invalid year', {
+      year,
+      areaId: area.id,
+      areaName: area.name
+    })
+    return false
+  }
+
+  // Backward compatibility: if no temporal metadata, assume always existed
+  if (!area.createdYear && !area.retiredYear && !area.activeYears) {
+    return true
+  }
+
+  // Explicit activeYears list takes precedence (handles edge cases)
+  if (area.activeYears && area.activeYears.length > 0) {
+    return area.activeYears.includes(year)
+  }
+
+  // Use createdYear/retiredYear range
+  const created = area.createdYear || 0  // undefined = always existed
+  const retired = area.retiredYear || Infinity  // undefined = still active
+
+  return year >= created && year < retired
+}
+
+/**
+ * Get all areas that were active in a specific year
+ *
+ * @param data - Allotment data
+ * @param year - Year to filter by
+ * @returns Areas active in that year
+ */
+export function getAreasForYear(data: AllotmentData, year: number): Area[] {
+  return getAllAreas(data).filter(a => wasAreaActiveInYear(a, year))
+}
+
+/**
+ * Get the year range an area was active
+ *
+ * @param area - The area
+ * @returns { from: number, to: number | null } or null if always active
+ */
+export function getAreaActiveRange(area: Area): { from: number; to: number | null } | null {
+  // Validate area input
+  if (!area || typeof area !== 'object') {
+    console.error('getAreaActiveRange called with invalid area', { area })
+    return null
+  }
+
+  if (!area.createdYear && !area.retiredYear) {
+    return null  // Always active
+  }
+
+  return {
+    from: area.createdYear || 0,
+    to: area.retiredYear || null  // null = still active
+  }
+}
+
+/**
+ * Validate that a planting can be added to an area in a specific year
+ */
+export function validatePlantingForYear(
+  data: AllotmentData,
+  year: number,
+  areaId: string
+): { valid: boolean; error?: string } {
+  const area = getAreaById(data, areaId)
+  if (!area) {
+    console.error('validatePlantingForYear: Area not found', { areaId, year })
+    return { valid: false, error: `Area ${areaId} does not exist` }
+  }
+
+  if (!wasAreaActiveInYear(area, year)) {
+    const range = getAreaActiveRange(area)
+    const rangeStr = range
+      ? `${range.from}-${range.to || 'present'}`
+      : 'unknown (area has inconsistent temporal metadata)'
+
+    console.warn('validatePlantingForYear: Area not active in year', {
+      areaId,
+      areaName: area.name,
+      year,
+      activeRange: rangeStr
+    })
+
+    return {
+      valid: false,
+      error: `Area "${area.name}" was not active in ${year}. Active years: ${rangeStr}`
+    }
+  }
+
+  console.log('validatePlantingForYear: Validation passed', {
+    areaId,
+    areaName: area.name,
+    year
+  })
+
+  return { valid: true }
 }
 

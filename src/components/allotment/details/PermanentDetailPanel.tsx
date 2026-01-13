@@ -14,7 +14,6 @@ import Dialog from '@/components/ui/Dialog'
 interface PermanentDetailPanelProps {
   area: Area
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  existingAreas: Area[]
 }
 
 // Map v10 area.kind to display config
@@ -27,7 +26,7 @@ const KIND_CONFIG: Partial<Record<AreaKind, { icon: typeof TreeDeciduous; label:
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export default function PermanentDetailPanel({ area, onUpdateArea, existingAreas }: PermanentDetailPanelProps) {
+export default function PermanentDetailPanel({ area, onUpdateArea }: PermanentDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   const config = KIND_CONFIG[area.kind] || { icon: Leaf, label: 'Area', color: 'zen-stone' }
   const Icon = config.icon
@@ -262,7 +261,6 @@ export default function PermanentDetailPanel({ area, onUpdateArea, existingAreas
         area={area}
         onSubmit={handleEditSubmit}
         onCancel={() => setIsEditMode(false)}
-        existingAreas={existingAreas}
       />
     </Dialog>
   </>

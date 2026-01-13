@@ -397,6 +397,7 @@ export default function AllotmentPage() {
                     selectedItemRef={selectedItemRef}
                     getPlantingsForBed={getPlantings}
                     areas={getAllAreas()}
+                    selectedYear={selectedYear}
                   />
                 </div>
               </div>
@@ -423,7 +424,6 @@ export default function AllotmentPage() {
               onAutoRotate={() => setShowAutoRotateDialog(true)}
               onArchiveArea={handleArchiveArea}
               onUpdateArea={updateArea}
-              existingAreas={getAllAreas()}
               quickStats={quickStats}
             />
 

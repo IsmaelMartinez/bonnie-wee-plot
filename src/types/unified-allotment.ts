@@ -91,6 +91,26 @@ export interface Area {
   // Lifecycle
   isArchived?: boolean              // Soft delete - preserves historical data
   createdAt?: string                // ISO date string
+
+  // Temporal metadata for area history
+  /**
+   * Year this area was physically built/established.
+   * If undefined, area is treated as having always existed (backward compat).
+   */
+  createdYear?: number
+
+  /**
+   * Year this area was removed/demolished.
+   * If undefined, area is still active.
+   */
+  retiredYear?: number
+
+  /**
+   * Explicit list of years this area was active.
+   * Takes precedence over createdYear/retiredYear if specified.
+   * Useful for beds that were temporarily removed and rebuilt.
+   */
+  activeYears?: number[]
 }
 
 /**

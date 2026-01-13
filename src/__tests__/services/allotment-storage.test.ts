@@ -10,8 +10,9 @@ import {
   loadAllotmentData,
   saveAllotmentData,
   initializeStorage,
+  addArea,
 } from '@/services/allotment-storage'
-import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
+import { AllotmentData, CURRENT_SCHEMA_VERSION, Area } from '@/types/unified-allotment'
 
 // Helper to create valid test data (v10 schema)
 function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): AllotmentData {
@@ -260,5 +261,171 @@ describe('Legacy Migration', () => {
       expect(season.areas).toBeDefined()
       expect(Array.isArray(season.areas)).toBe(true)
     }
+  })
+})
+
+describe('addArea() temporal backfilling', () => {
+  it('backfills AreaSeason only to years >= createdYear', () => {
+    const data: AllotmentData = {
+      version: 10,
+      meta: { name: 'Test', location: '', createdAt: '', updatedAt: '' },
+      layout: { areas: [] },
+      seasons: [
+        { year: 2020, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2021, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2022, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2023, status: 'current', areas: [], createdAt: '', updatedAt: '' }
+      ],
+      currentYear: 2023,
+      maintenanceTasks: [],
+      varieties: []
+    }
+
+    const newArea: Omit<Area, 'id' | 'createdAt'> = {
+      kind: 'rotation-bed',
+      name: 'New Bed',
+      description: '',
+      rotationGroup: 'legumes',
+      createdYear: 2022,
+      isArchived: false,
+      canHavePlantings: true
+    }
+
+    const result = addArea(data, newArea)
+
+    // Should not backfill to 2020 and 2021
+    expect(result.data!.seasons[0].areas).toHaveLength(0)
+    expect(result.data!.seasons[1].areas).toHaveLength(0)
+
+    // Should backfill to 2022 and 2023
+    expect(result.data!.seasons[2].areas).toHaveLength(1)
+    expect(result.data!.seasons[3].areas).toHaveLength(1)
+  })
+
+  it('does not backfill to years before createdYear', () => {
+    const data: AllotmentData = {
+      version: 10,
+      meta: { name: 'Test', location: '', createdAt: '', updatedAt: '' },
+      layout: { areas: [] },
+      seasons: [
+        { year: 2020, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2025, status: 'current', areas: [], createdAt: '', updatedAt: '' }
+      ],
+      currentYear: 2025,
+      maintenanceTasks: [],
+      varieties: []
+    }
+
+    const newArea: Omit<Area, 'id' | 'createdAt'> = {
+      kind: 'rotation-bed',
+      name: 'Future Bed',
+      createdYear: 2025,
+      description: '',
+      rotationGroup: 'brassicas',
+      isArchived: false,
+      canHavePlantings: true
+    }
+
+    const result = addArea(data, newArea)
+
+    expect(result.data!.seasons[0].areas).toHaveLength(0)
+    expect(result.data!.seasons[1].areas).toHaveLength(1)
+  })
+
+  it('defaults createdYear to current year if not specified', () => {
+    const currentYear = new Date().getFullYear()
+    const data: AllotmentData = {
+      version: 10,
+      meta: { name: 'Test', location: '', createdAt: '', updatedAt: '' },
+      layout: { areas: [] },
+      seasons: [
+        { year: currentYear - 1, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: currentYear, status: 'current', areas: [], createdAt: '', updatedAt: '' }
+      ],
+      currentYear: currentYear,
+      maintenanceTasks: [],
+      varieties: []
+    }
+
+    const newArea: Omit<Area, 'id' | 'createdAt'> = {
+      kind: 'perennial-bed',
+      name: 'No Year Bed',
+      description: '',
+      isArchived: false,
+      canHavePlantings: true
+    }
+
+    const result = addArea(data, newArea)
+
+    // Should have defaulted to current year based on system time
+    const addedArea = result.data!.layout.areas[0]
+    expect(addedArea.createdYear).toBe(currentYear)
+
+    // Should backfill to currentYear and later years only
+    expect(result.data!.seasons[0].areas).toHaveLength(0) // Year before current
+    expect(result.data!.seasons[1].areas).toHaveLength(1) // Current year
+  })
+
+  it('only backfills to years >= createdYear with activeYears when specified', () => {
+    const data: AllotmentData = {
+      version: 10,
+      meta: { name: 'Test', location: '', createdAt: '', updatedAt: '' },
+      layout: { areas: [] },
+      seasons: [
+        { year: 2020, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2021, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2022, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+        { year: 2023, status: 'current', areas: [], createdAt: '', updatedAt: '' }
+      ],
+      currentYear: 2023,
+      maintenanceTasks: [],
+      varieties: []
+    }
+
+    const newArea: Omit<Area, 'id' | 'createdAt'> = {
+      kind: 'rotation-bed',
+      name: 'Selective Bed',
+      description: '',
+      rotationGroup: 'roots',
+      createdYear: 2020,
+      activeYears: [2021, 2023], // Only active in specific years
+      isArchived: false,
+      canHavePlantings: true
+    }
+
+    const result = addArea(data, newArea)
+
+    // Should only backfill to years in activeYears
+    expect(result.data!.seasons[0].areas).toHaveLength(0) // 2020 - not in activeYears
+    expect(result.data!.seasons[1].areas).toHaveLength(1) // 2021 - in activeYears
+    expect(result.data!.seasons[2].areas).toHaveLength(0) // 2022 - not in activeYears
+    expect(result.data!.seasons[3].areas).toHaveLength(1) // 2023 - in activeYears
+  })
+
+  it('backfills with correct rotation group for rotation beds', () => {
+    const data: AllotmentData = {
+      version: 10,
+      meta: { name: 'Test', location: '', createdAt: '', updatedAt: '' },
+      layout: { areas: [] },
+      seasons: [{ year: 2023, status: 'current', areas: [], createdAt: '', updatedAt: '' }],
+      currentYear: 2023,
+      maintenanceTasks: [],
+      varieties: []
+    }
+
+    const newArea: Omit<Area, 'id' | 'createdAt'> = {
+      kind: 'rotation-bed',
+      name: 'Rotation Bed',
+      description: '',
+      rotationGroup: 'brassicas',
+      createdYear: 2023,
+      isArchived: false,
+      canHavePlantings: true
+    }
+
+    const result = addArea(data, newArea)
+
+    const areaSeason = result.data!.seasons[0].areas[0]
+    expect(areaSeason.rotationGroup).toBe('brassicas')
   })
 })

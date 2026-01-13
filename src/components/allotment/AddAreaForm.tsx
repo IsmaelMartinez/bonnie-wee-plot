@@ -17,6 +17,7 @@ import {
 import { Area, AreaKind, InfrastructureSubtype } from '@/types/unified-allotment'
 import { RotationGroup } from '@/types/garden-planner'
 import { ROTATION_GROUP_NAMES } from '@/lib/rotation'
+import { useAllotment } from '@/hooks/useAllotment'
 
 interface AddAreaFormProps {
   onSubmit: (area: Omit<Area, 'id'>) => void
@@ -60,6 +61,9 @@ export default function AddAreaForm({
   onCancel,
   existingAreas
 }: AddAreaFormProps) {
+  const { data } = useAllotment()
+  const currentYear = data?.currentYear ?? new Date().getFullYear()
+
   const [name, setName] = useState('')
   const [kind, setKind] = useState<AreaKind>('rotation-bed')
   const [description, setDescription] = useState('')
@@ -68,15 +72,47 @@ export default function AddAreaForm({
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
+  const [createdYear, setCreatedYear] = useState<number>(currentYear)
+  const [existedBefore, setExistedBefore] = useState(false)
+  const [yearError, setYearError] = useState<string>()
 
   // Check for duplicate names
   const isDuplicateName = existingAreas.some(
     a => a.name.toLowerCase() === name.trim().toLowerCase()
   )
 
+  // Validate createdYear
+  const isValidCreatedYear = createdYear >= 1900 && createdYear <= currentYear + 10
+
+  const handleCreatedYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value
+    if (input === '') {
+      setCreatedYear(currentYear)
+      setYearError(undefined)
+      return
+    }
+
+    const parsed = parseInt(input, 10)
+    if (isNaN(parsed)) {
+      setYearError('Please enter a valid year')
+      return
+    }
+
+    if (parsed < 1900) {
+      setYearError('Year cannot be before 1900')
+      setCreatedYear(1900)
+    } else if (parsed > currentYear + 10) {
+      setYearError(`Year cannot be after ${currentYear + 10}`)
+      setCreatedYear(currentYear + 10)
+    } else {
+      setYearError(undefined)
+      setCreatedYear(parsed)
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || isDuplicateName) return
+    if (!name.trim() || isDuplicateName || !isValidCreatedYear) return
 
     // Find next available grid position (simple: place at end)
     const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
@@ -96,6 +132,7 @@ export default function AddAreaForm({
       },
       ...(kind === 'rotation-bed' && { rotationGroup }),
       ...(kind === 'infrastructure' && { infrastructureSubtype }),
+      createdYear: existedBefore ? undefined : createdYear,
     }
 
     onSubmit(newArea)
@@ -274,6 +311,48 @@ export default function AddAreaForm({
         />
       </div>
 
+      {/* Temporal Metadata */}
+      <div className="border-t border-zen-stone-200 pt-4">
+        <label className="block text-sm font-medium text-zen-ink-700 mb-3">
+          Area Timeline
+        </label>
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="checkbox"
+            id="existed-before"
+            checked={existedBefore}
+            onChange={(e) => setExistedBefore(e.target.checked)}
+            className="rounded border-zen-stone-300"
+          />
+          <label htmlFor="existed-before" className="text-sm text-zen-ink-600">
+            This area existed before I started tracking
+          </label>
+        </div>
+
+        {!existedBefore && (
+          <div>
+            <label htmlFor="created-year" className="block text-sm font-medium text-zen-ink-700 mb-1">
+              Built in year
+            </label>
+            <input
+              id="created-year"
+              type="number"
+              min={1900}
+              max={currentYear + 10}
+              value={createdYear}
+              onChange={handleCreatedYearChange}
+              className="zen-input"
+            />
+            {yearError && (
+              <p className="text-sm text-red-600 mt-1">{yearError}</p>
+            )}
+            <p className="text-xs text-zen-stone-500 mt-1">
+              This area will only appear in {createdYear} and later years
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <button
@@ -285,7 +364,7 @@ export default function AddAreaForm({
         </button>
         <button
           type="submit"
-          disabled={!name.trim() || isDuplicateName}
+          disabled={!name.trim() || isDuplicateName || !isValidCreatedYear || yearError !== undefined}
           className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Area

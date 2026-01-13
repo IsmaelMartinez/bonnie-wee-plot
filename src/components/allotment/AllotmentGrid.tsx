@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactGridLayout from 'react-grid-layout'
 import { Lock, Unlock, RotateCcw } from 'lucide-react'
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/data/allotment-layout'
 import { AllotmentItemRef } from '@/types/garden-planner'
 import { Area, Planting } from '@/types/unified-allotment'
+import { wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
 
 import 'react-grid-layout/css/styles.css'
@@ -20,6 +21,7 @@ interface AllotmentGridProps {
   selectedItemRef?: AllotmentItemRef | null
   getPlantingsForBed?: (bedId: string) => Planting[]
   areas?: Area[]
+  selectedYear: number
 }
 
 // Layout item type for react-grid-layout
@@ -104,19 +106,25 @@ function areasToGridConfig(areas: Area[]): GridItemConfig[] {
     })
 }
 
-export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas }: AllotmentGridProps) {
-  // Use areas from props if provided, otherwise fall back to DEFAULT_GRID_LAYOUT
-  const baseConfig = areas ? areasToGridConfig(areas) : DEFAULT_GRID_LAYOUT
+export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, selectedYear }: AllotmentGridProps) {
+  // Filter areas by selected year
+  const visibleAreas = useMemo(() => {
+    if (!areas) return undefined
+    return areas.filter(area => wasAreaActiveInYear(area, selectedYear))
+  }, [areas, selectedYear])
+
+  // Use visible areas from props if provided, otherwise fall back to DEFAULT_GRID_LAYOUT
+  const baseConfig = visibleAreas ? areasToGridConfig(visibleAreas) : DEFAULT_GRID_LAYOUT
   const [items, setItems] = useState<GridItemConfig[]>(baseConfig)
   const [isEditing, setIsEditing] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [width, setWidth] = useState(800)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Update items when areas change
+  // Update items when visible areas change
   useEffect(() => {
-    if (areas) {
-      const newConfig = areasToGridConfig(areas)
+    if (visibleAreas) {
+      const newConfig = areasToGridConfig(visibleAreas)
       // Merge with any saved layout positions
       try {
         const saved = localStorage.getItem(LAYOUT_STORAGE_KEY)
@@ -127,17 +135,23 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         } else {
           setItems(newConfig)
         }
-      } catch {
+      } catch (e) {
+        console.error('Failed to load saved grid layout, using default config', {
+          error: e instanceof Error ? e.message : String(e),
+          selectedYear,
+          areaCount: newConfig?.length || 0,
+          stack: e instanceof Error ? e.stack : undefined
+        })
         setItems(newConfig)
       }
     }
-  }, [areas])
+  }, [visibleAreas, selectedYear])
 
   // Load saved layout from localStorage on mount
   useEffect(() => {
     setMounted(true)
 
-    if (!areas) {
+    if (!visibleAreas) {
       // Only use DEFAULT_GRID_LAYOUT if no areas prop
       try {
         const saved = localStorage.getItem(LAYOUT_STORAGE_KEY)
@@ -150,7 +164,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         console.warn('Failed to load saved layout:', e)
       }
     }
-  }, [areas])
+  }, [visibleAreas])
 
   // Track container width
   useEffect(() => {
@@ -191,8 +205,8 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     if (!onItemSelect) return
 
     // When using areas prop, all items are selectable by their id
-    if (areas) {
-      const area = areas.find(a => a.id === item.i)
+    if (visibleAreas) {
+      const area = visibleAreas.find(a => a.id === item.i)
       if (area) {
         // Use 'bed' type for rotation/perennial beds, 'permanent' for trees/berries/herbs, 'infrastructure' for infra
         if (area.kind === 'rotation-bed' || area.kind === 'perennial-bed') {
@@ -273,6 +287,14 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         </div>
       </div>
 
+      {/* Year filtering feedback */}
+      {visibleAreas && areas && visibleAreas.length < areas.length && (
+        <div className="text-sm text-zen-stone-600 bg-zen-stone-50 rounded-lg p-3">
+          Showing {visibleAreas.length} of {areas.length} areas active in {selectedYear}.
+          {' '}{areas.length - visibleAreas.length} area(s) not yet built or already retired.
+        </div>
+      )}
+
       {/* Grid */}
       <div 
         ref={containerRef}
@@ -300,12 +322,15 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         >
           {items.map(item => {
             // Get plantings - use item.i for areas mode, item.bedId for legacy
-            const plantingId = areas ? item.i : item.bedId
+            const plantingId = visibleAreas ? item.i : item.bedId
             const plantings = plantingId && getPlantingsForBed ? getPlantingsForBed(plantingId) : []
+
+            // Get the area data if available
+            const area = visibleAreas ? visibleAreas.find(a => a.id === item.i) : undefined
 
             // Check if this item is selected
             let isSelected = false
-            if (areas) {
+            if (visibleAreas) {
               // Areas mode: match by id directly
               isSelected = selectedItemRef?.id === item.i
             } else {
@@ -318,7 +343,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             }
 
             // Determine if clickable - in areas mode, all non-area types are clickable
-            const isClickable = areas
+            const isClickable = visibleAreas
               ? item.type !== 'area' // In areas mode, everything except 'area' type is clickable
               : (item.bedId || item.type === 'perennial' || item.type === 'tree' || item.type === 'infrastructure')
 
@@ -333,6 +358,8 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
                   isSelected={isSelected}
                   isEditing={isEditing}
                   plantings={plantings}
+                  area={area}
+                  selectedYear={selectedYear}
                 />
               </div>
             )

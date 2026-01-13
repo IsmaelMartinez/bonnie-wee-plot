@@ -28,7 +28,6 @@ interface BedDetailPanelProps {
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  existingAreas: Area[]
 }
 
 export default function BedDetailPanel({
@@ -47,7 +46,6 @@ export default function BedDetailPanel({
   onUpdateRotation,
   onAutoRotate,
   onUpdateArea,
-  existingAreas,
 }: BedDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   // Determine if this is a rotation bed (vs perennial bed)
@@ -238,7 +236,6 @@ export default function BedDetailPanel({
         area={area}
         onSubmit={handleEditSubmit}
         onCancel={() => setIsEditMode(false)}
-        existingAreas={existingAreas}
       />
     </Dialog>
   </>
