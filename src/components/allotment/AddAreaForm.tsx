@@ -73,7 +73,6 @@ export default function AddAreaForm({
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
   const [createdYear, setCreatedYear] = useState<number>(currentYear)
-  const [existedBefore, setExistedBefore] = useState(false)
   const [yearError, setYearError] = useState<string>()
 
   // Check for duplicate names
@@ -132,7 +131,7 @@ export default function AddAreaForm({
       },
       ...(kind === 'rotation-bed' && { rotationGroup }),
       ...(kind === 'infrastructure' && { infrastructureSubtype }),
-      createdYear: existedBefore ? undefined : createdYear,
+      createdYear,
     }
 
     onSubmit(newArea)
@@ -313,44 +312,26 @@ export default function AddAreaForm({
 
       {/* Temporal Metadata */}
       <div className="border-t border-zen-stone-200 pt-4">
-        <label className="block text-sm font-medium text-zen-ink-700 mb-3">
-          Area Timeline
-        </label>
-        <div className="flex items-center gap-2 mb-3">
-          <input
-            type="checkbox"
-            id="existed-before"
-            checked={existedBefore}
-            onChange={(e) => setExistedBefore(e.target.checked)}
-            className="rounded border-zen-stone-300"
-          />
-          <label htmlFor="existed-before" className="text-sm text-zen-ink-600">
-            This area existed before I started tracking
+        <div>
+          <label htmlFor="created-year" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Built in year
           </label>
+          <input
+            id="created-year"
+            type="number"
+            min={1900}
+            max={currentYear + 10}
+            value={createdYear}
+            onChange={handleCreatedYearChange}
+            className="zen-input"
+          />
+          {yearError && (
+            <p className="text-sm text-red-600 mt-1">{yearError}</p>
+          )}
+          <p className="text-xs text-zen-stone-500 mt-1">
+            This area will only appear in {createdYear} and later years
+          </p>
         </div>
-
-        {!existedBefore && (
-          <div>
-            <label htmlFor="created-year" className="block text-sm font-medium text-zen-ink-700 mb-1">
-              Built in year
-            </label>
-            <input
-              id="created-year"
-              type="number"
-              min={1900}
-              max={currentYear + 10}
-              value={createdYear}
-              onChange={handleCreatedYearChange}
-              className="zen-input"
-            />
-            {yearError && (
-              <p className="text-sm text-red-600 mt-1">{yearError}</p>
-            )}
-            <p className="text-xs text-zen-stone-500 mt-1">
-              This area will only appear in {createdYear} and later years
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Actions */}
