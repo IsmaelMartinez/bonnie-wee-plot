@@ -10,7 +10,6 @@ const navLinks = [
   { href: '/', label: 'Today' },
   { href: '/allotment', label: 'Allotment', icon: Map },
   { href: '/seeds', label: 'Seeds', icon: Package },
-  { href: '/plan-history', label: 'History' },
 ]
 
 const moreLinks = [

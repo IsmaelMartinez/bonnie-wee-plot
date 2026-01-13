@@ -48,13 +48,10 @@ export default function SeasonStatusWidget({
             <span>{varietiesUsedLastYear.length} varieties</span>
           </Link>
 
-          <Link
-            href="/plan-history"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
-          >
+          <div className="flex items-center gap-2 px-3 py-1.5 text-zen-ink-600">
             <ArrowRight className="w-4 h-4 text-zen-stone-400" />
             <span>{bedsNeedingRotation}/{totalRotationBeds} to rotate</span>
-          </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -48,13 +48,13 @@ const INFRASTRUCTURE_OPTIONS: { subtype: InfrastructureSubtype; label: string; i
 
 // Default icons and colors for each area kind
 const AREA_KIND_DEFAULTS: Record<AreaKind, { icon: string; color: string }> = {
-  'rotation-bed': { icon: '🌱', color: 'zen-moss' },
-  'perennial-bed': { icon: '🌿', color: 'zen-sakura' },
-  'tree': { icon: '🍎', color: 'zen-kitsune' },
-  'berry': { icon: '🫐', color: 'zen-ume' },
-  'herb': { icon: '🌿', color: 'zen-moss' },
-  'infrastructure': { icon: '🏠', color: 'zen-stone' },
-  'other': { icon: '🪴', color: 'zen-water' },
+  'rotation-bed': { icon: '🌱', color: 'zen-moss' },      // Green
+  'perennial-bed': { icon: '🌿', color: 'zen-ume' },      // Purple/Plum
+  'tree': { icon: '🍎', color: 'zen-kitsune' },           // Orange
+  'berry': { icon: '🫐', color: 'zen-sakura' },           // Pink
+  'herb': { icon: '🪴', color: 'zen-water' },             // Blue
+  'infrastructure': { icon: '🏠', color: 'zen-stone' },   // Gray
+  'other': { icon: '🌾', color: 'zen-moss' },             // Green (can duplicate for 'other')
 }
 
 export default function AddAreaForm({

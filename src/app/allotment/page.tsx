@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Map,
-  History,
   AlertTriangle,
   Leaf,
   Plus,
@@ -220,13 +219,6 @@ export default function AllotmentPage() {
               >
                 <TreeDeciduous className="w-4 h-4" />
                 <span className="hidden sm:inline">Care</span>
-              </Link>
-              <Link
-                href="/plan-history"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
-              >
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">History</span>
               </Link>
             </div>
           </div>
