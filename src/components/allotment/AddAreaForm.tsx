@@ -87,7 +87,7 @@ export default function AddAreaForm({
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [treeType, setTreeType] = useState<string>('Apple')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
-  const [createdYear, setCreatedYear] = useState<number | undefined>(currentYear)
+  const [createdYear, setCreatedYear] = useState<number | undefined>(undefined)
   const [yearError, setYearError] = useState<string>()
 
   // Check for duplicate names
