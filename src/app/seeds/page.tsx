@@ -240,11 +240,11 @@ function SeedsPageContent() {
         </header>
 
         {/* Year Tabs */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 overflow-x-auto">
           <div className="inline-flex zen-card p-1 gap-1">
             <button
               onClick={() => setSelectedYear('all')}
-              className={`px-4 py-2 rounded-zen text-sm font-medium transition ${
+              className={`px-3 sm:px-4 py-2 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
                 selectedYear === 'all'
                   ? 'bg-zen-moss-600 text-white'
                   : 'text-zen-ink-600 hover:bg-zen-stone-100'
@@ -256,7 +256,7 @@ function SeedsPageContent() {
               <button
                 key={year}
                 onClick={() => setSelectedYear(year)}
-                className={`px-4 py-2 rounded-zen text-sm font-medium transition ${
+                className={`px-3 sm:px-4 py-2 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
                   selectedYear === year
                     ? 'bg-zen-moss-600 text-white'
                     : 'text-zen-ink-600 hover:bg-zen-stone-100'
@@ -334,28 +334,29 @@ function SeedsPageContent() {
         </div>
 
         {/* Add button and Expand/Collapse */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div className="flex gap-2 items-center">
             <button
               onClick={expandAll}
-              className="text-sm text-zen-moss-600 hover:text-zen-moss-700"
+              className="text-xs sm:text-sm text-zen-moss-600 hover:text-zen-moss-700 min-h-[44px] px-2"
             >
               Expand all
             </button>
             <span className="text-zen-stone-300">|</span>
             <button
               onClick={collapseAll}
-              className="text-sm text-zen-moss-600 hover:text-zen-moss-700"
+              className="text-xs sm:text-sm text-zen-moss-600 hover:text-zen-moss-700 min-h-[44px] px-2"
             >
               Collapse all
             </button>
           </div>
           <button
             onClick={handleOpenAddDialog}
-            className="zen-btn-primary text-sm"
+            className="zen-btn-primary text-xs sm:text-sm min-h-[44px] self-end sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            Add Variety
+            <span className="hidden sm:inline">Add Variety</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
 

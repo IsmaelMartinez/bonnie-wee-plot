@@ -286,8 +286,9 @@ export default function AIAdvisorPage() {
             </div>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 text-zen-stone-500 hover:text-zen-ink-700 hover:bg-zen-stone-100 rounded-zen transition"
+              className="p-2 text-zen-stone-500 hover:text-zen-ink-700 hover:bg-zen-stone-100 rounded-zen transition min-w-[44px] min-h-[44px] flex items-center justify-center"
               title="Configure API Token"
+              aria-label="Configure API Token"
             >
               <Settings className="w-5 h-5" />
             </button>

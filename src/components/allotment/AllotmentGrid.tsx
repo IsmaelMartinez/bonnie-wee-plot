@@ -232,41 +232,43 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-              isEditing 
-                ? 'bg-amber-500 text-white' 
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition ${
+              isEditing
+                ? 'bg-amber-500 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {isEditing ? (
               <>
-                <Unlock className="w-4 h-4" />
-                Editing
+                <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Editing</span>
+                <span className="sm:hidden">Edit</span>
               </>
             ) : (
               <>
-                <Lock className="w-4 h-4" />
-                Locked
+                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Locked</span>
+                <span className="sm:hidden">Lock</span>
               </>
             )}
           </button>
-          
+
           {isEditing && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 transition"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 transition"
             >
-              <RotateCcw className="w-4 h-4" />
-              Reset
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Reset</span>
             </button>
           )}
         </div>
 
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-gray-400 hidden sm:block">
           {isEditing ? 'Drag items to reposition • Drag corners to resize' : 'Click edit to modify layout'}
         </div>
       </div>

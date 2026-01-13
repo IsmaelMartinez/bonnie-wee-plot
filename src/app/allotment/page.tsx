@@ -192,39 +192,40 @@ export default function AllotmentPage() {
       {/* Header */}
       <header className="bg-white border-b border-zen-stone-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Map className="w-7 h-7 text-zen-moss-600" />
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-lg font-display text-zen-ink-800">{data?.meta.name || 'My Allotment'}</h1>
+              <Map className="w-7 h-7 text-zen-moss-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-lg font-display text-zen-ink-800 truncate">{data?.meta.name || 'My Allotment'}</h1>
                   <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
                 </div>
-                <p className="text-xs text-zen-stone-500">{data?.meta.location || 'Edinburgh, Scotland'}</p>
+                <p className="text-xs text-zen-stone-500 truncate">{data?.meta.location || 'Edinburgh, Scotland'}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto overflow-x-auto">
               <DataManagement data={data} onDataImported={reload} />
               <Link
                 href="/ai-advisor"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
               >
                 <Users className="w-4 h-4" />
-                Ask Aitor
+                <span className="hidden sm:inline">Ask Aitor</span>
+                <span className="sm:hidden">Aitor</span>
               </Link>
               <Link
                 href="/this-month"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
               >
                 <TreeDeciduous className="w-4 h-4" />
-                Care
+                <span className="hidden sm:inline">Care</span>
               </Link>
               <Link
                 href="/plan-history"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
               >
                 <History className="w-4 h-4" />
-                History
+                <span className="hidden sm:inline">History</span>
               </Link>
             </div>
           </div>
@@ -369,19 +370,19 @@ export default function AllotmentPage() {
         />
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-2">
-        <div className="grid lg:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto px-4 py-2">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
           {/* Main Layout */}
-          <div className="lg:col-span-2">
-            <div className="zen-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-display text-zen-ink-700 flex items-center gap-2">
-                  <Leaf className="w-5 h-5 text-zen-moss-600" />
-                  Plot Overview - {selectedYear}
+          <div className="lg:col-span-2 w-full min-w-0">
+            <div className="zen-card p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                <h2 className="text-base sm:text-lg font-display text-zen-ink-700 flex items-center gap-2">
+                  <Leaf className="w-5 h-5 text-zen-moss-600 flex-shrink-0" />
+                  <span className="truncate">Plot Overview - {selectedYear}</span>
                 </h2>
                 <button
                   onClick={() => setShowAddAreaDialog(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto"
                 >
                   <Plus className="w-4 h-4" />
                   Add Area
@@ -389,17 +390,21 @@ export default function AllotmentPage() {
               </div>
 
               {/* Draggable Grid Layout */}
-              <AllotmentGrid
-                onItemSelect={selectItem}
-                selectedItemRef={selectedItemRef}
-                getPlantingsForBed={getPlantings}
-                areas={getAllAreas()}
-              />
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <div className="min-w-[500px] px-3 sm:px-0 sm:min-w-0">
+                  <AllotmentGrid
+                    onItemSelect={selectItem}
+                    selectedItemRef={selectedItemRef}
+                    getPlantingsForBed={getPlantings}
+                    areas={getAllAreas()}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Sidebar - Item Details */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 w-full">
             <ItemDetailSwitcher
               selectedItemRef={selectedItemRef}
               getArea={getArea}
@@ -424,7 +429,7 @@ export default function AllotmentPage() {
 
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Add Planting Dialog - Accessible */}
       <Dialog

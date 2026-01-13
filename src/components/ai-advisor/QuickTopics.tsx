@@ -22,13 +22,13 @@ function TopicButton({ suggestion, onSelect }: { suggestion: AISuggestion; onSel
   return (
     <button
       onClick={onSelect}
-      className={`bg-white p-4 rounded-lg shadow-md border border-l-4 ${categoryStyles[suggestion.category]} hover:shadow-lg transition text-left group`}
+      className={`bg-white p-3 sm:p-4 rounded-lg shadow-md border border-l-4 ${categoryStyles[suggestion.category]} hover:shadow-lg transition text-left group min-h-[88px]`}
     >
       <div className="flex items-center mb-2">
-        <Icon className="w-5 h-5 text-primary-600 mr-2 group-hover:scale-110 transition-transform" />
-        <span className="font-medium text-gray-800">{suggestion.title}</span>
+        <Icon className="w-5 h-5 text-primary-600 mr-2 group-hover:scale-110 transition-transform flex-shrink-0" />
+        <span className="font-medium text-sm sm:text-base text-gray-800">{suggestion.title}</span>
       </div>
-      <p className="text-sm text-gray-600 line-clamp-2">{suggestion.query}</p>
+      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{suggestion.query}</p>
     </button>
   )
 }

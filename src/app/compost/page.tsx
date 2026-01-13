@@ -185,24 +185,24 @@ export default function CompostPage() {
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
         <header className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-3 mb-2">
-                <Recycle className="w-6 h-6 text-zen-moss-600" />
-                <h1 className="text-zen-ink-900">Compost</h1>
+                <Recycle className="w-6 h-6 text-zen-moss-600 flex-shrink-0" />
+                <h1 className="text-zen-ink-900 truncate">Compost</h1>
               </div>
-              <p className="text-zen-stone-500">
+              <p className="text-zen-stone-500 text-sm">
                 Track your compost piles and inputs
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0 self-end sm:self-auto">
               <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
               <Link
                 href="/allotment"
-                className="zen-btn-secondary flex items-center gap-2"
+                className="zen-btn-secondary flex items-center gap-2 whitespace-nowrap"
               >
                 <Sprout className="w-4 h-4" />
-                Allotment
+                <span className="hidden sm:inline">Allotment</span>
               </Link>
             </div>
           </div>
@@ -261,53 +261,56 @@ export default function CompostPage() {
               return (
                 <div key={pile.id} className="zen-card overflow-hidden">
                   {/* Pile Header */}
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{getSystemEmoji(pile.systemType)}</span>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-zen-ink-800">{pile.name}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.color}`}>
+                  <div className="p-3 sm:p-4 flex items-start sm:items-center justify-between gap-2">
+                    <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <span className="text-xl sm:text-2xl flex-shrink-0">{getSystemEmoji(pile.systemType)}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-medium text-sm sm:text-base text-zen-ink-800 truncate">{pile.name}</h3>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.color} whitespace-nowrap`}>
                             {statusConfig.label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-zen-stone-500 mt-1">
-                          <span className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-zen-stone-500 mt-1">
+                          <span className="flex items-center gap-1 whitespace-nowrap">
                             <Calendar className="w-3 h-3" />
-                            {daysSinceStart} days old
+                            {daysSinceStart}d old
                           </span>
                           {daysSinceTurn !== null && (
-                            <span className={`flex items-center gap-1 ${daysSinceTurn > 7 ? 'text-zen-kitsune-600' : ''}`}>
+                            <span className={`flex items-center gap-1 whitespace-nowrap ${daysSinceTurn > 7 ? 'text-zen-kitsune-600' : ''}`}>
                               <RotateCw className="w-3 h-3" />
-                              {daysSinceTurn === 0 ? 'Turned today' : `${daysSinceTurn}d since turn`}
+                              {daysSinceTurn === 0 ? 'Today' : `${daysSinceTurn}d`}
                             </span>
                           )}
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 whitespace-nowrap">
                             <Leaf className="w-3 h-3" />
-                            {pile.inputs.length} inputs
+                            {pile.inputs.length}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                       {/* Quick Actions */}
                       <button
                         onClick={() => setShowLogEventDialog(pile.id)}
-                        className="p-2 text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen"
+                        className="p-1.5 sm:p-2 text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
                         title="Log event"
+                        aria-label="Log event"
                       >
                         <RotateCw className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setShowLogInputDialog(pile.id)}
-                        className="p-2 text-zen-water-600 hover:bg-zen-water-50 rounded-zen"
+                        className="p-1.5 sm:p-2 text-zen-water-600 hover:bg-zen-water-50 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
                         title="Add material"
+                        aria-label="Add material"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => togglePileExpanded(pile.id)}
-                        className="p-2 text-zen-stone-500 hover:bg-zen-stone-100 rounded-zen"
+                        className="p-1.5 sm:p-2 text-zen-stone-500 hover:bg-zen-stone-100 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        aria-label={isExpanded ? "Collapse" : "Expand"}
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>

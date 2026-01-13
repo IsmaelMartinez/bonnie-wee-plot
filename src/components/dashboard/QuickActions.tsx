@@ -37,7 +37,7 @@ export default function QuickActions() {
         <Link
           key={action.href}
           href={action.href}
-          className="group zen-card p-4 hover:shadow-zen-md transition-all duration-200 hover:-translate-y-0.5"
+          className="group zen-card p-4 hover:shadow-zen-md transition-all duration-200 hover:-translate-y-0.5 min-h-[88px] flex flex-col"
         >
           <action.icon
             className="w-5 h-5 mb-2 text-zen-stone-400 group-hover:text-zen-moss-600 transition-colors"

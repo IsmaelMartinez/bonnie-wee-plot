@@ -82,7 +82,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
           />
           <button
             onClick={removeImage}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
             title="Remove image"
             aria-label="Remove uploaded image"
           >
@@ -107,18 +107,18 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+            className="bg-green-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 min-h-[44px]"
             disabled={isLoading}
             title="Upload plant photo"
             aria-label="Upload a plant photo for visual diagnosis"
           >
             <Camera className="w-5 h-5" aria-hidden="true" />
           </button>
-          
+
           <button
             type="submit"
             disabled={isLoading || (!input.trim() && !selectedImage)}
-            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px]"
             aria-label="Send message"
           >
             <Send className="w-5 h-5" aria-hidden="true" />

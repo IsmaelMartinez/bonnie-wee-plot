@@ -45,13 +45,14 @@ function MonthButton({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded-zen text-sm font-medium transition whitespace-nowrap ${
+      className={`px-2 sm:px-3 py-2.5 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
         isSelected
           ? 'bg-zen-moss-600 text-white'
           : 'bg-white text-zen-ink-700 hover:bg-zen-stone-50 border border-zen-stone-200'
       }`}
     >
-      {data.emoji} {data.month.slice(0, 3)}
+      <span className="hidden sm:inline">{data.emoji} {data.month.slice(0, 3)}</span>
+      <span className="sm:hidden">{data.emoji} {data.month.slice(0, 1)}</span>
     </button>
   )
 }

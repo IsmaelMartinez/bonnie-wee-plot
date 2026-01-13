@@ -76,43 +76,45 @@ export default function PlanHistoryPage() {
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
         <header className="mb-10">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-3 mb-2">
-                <History className="w-6 h-6 text-zen-kitsune-600" />
-                <h1 className="text-zen-ink-900">History</h1>
+                <History className="w-6 h-6 text-zen-kitsune-600 flex-shrink-0" />
+                <h1 className="text-zen-ink-900 truncate">History</h1>
               </div>
-              <p className="text-zen-stone-500 text-lg">
+              <p className="text-zen-stone-500 text-sm sm:text-base">
                 Past seasons and {nextPlanningYear} planning
               </p>
             </div>
             <Link
               href="/allotment"
-              className="zen-btn-secondary flex items-center gap-2"
+              className="zen-btn-secondary flex items-center gap-2 whitespace-nowrap self-end sm:self-auto"
             >
               <Sprout className="w-4 h-4" />
-              My Allotment
+              <span className="hidden sm:inline">My Allotment</span>
+              <span className="sm:hidden">Allotment</span>
             </Link>
           </div>
         </header>
 
         {/* Year Navigation */}
-        <div className="zen-card p-4 mb-8">
-          <div className="flex items-center justify-between">
+        <div className="zen-card p-3 sm:p-4 mb-8">
+          <div className="flex items-center justify-between gap-2">
             <button
               onClick={() => navigateYear('prev')}
               disabled={selectedYear === availableYears[availableYears.length - 1]}
-              className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Previous year"
             >
               <ChevronLeft className="w-5 h-5 text-zen-ink-600" />
             </button>
 
-            <div className="flex items-center gap-3 flex-wrap justify-center">
+            <div className="flex items-center gap-2 flex-wrap justify-center min-w-0">
               {availableYears.map(year => (
                 <button
                   key={year}
                   onClick={() => setSelectedYear(year)}
-                  className={`px-4 py-2 rounded-zen text-sm font-medium transition ${
+                  className={`px-3 sm:px-4 py-2 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
                     selectedYear === year
                       ? 'bg-zen-kitsune-600 text-white'
                       : 'bg-zen-stone-100 text-zen-ink-600 hover:bg-zen-stone-200'
@@ -123,21 +125,23 @@ export default function PlanHistoryPage() {
               ))}
               <button
                 onClick={() => setSelectedYear('next')}
-                className={`px-4 py-2 rounded-zen text-sm font-medium transition flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-zen text-xs sm:text-sm font-medium transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap min-h-[44px] ${
                   selectedYear === 'next'
                     ? 'bg-zen-moss-600 text-white'
                     : 'bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200'
                 }`}
               >
-                <Lightbulb className="w-4 h-4" />
-                Plan {nextPlanningYear}
+                <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Plan {nextPlanningYear}</span>
+                <span className="sm:hidden">{nextPlanningYear}</span>
               </button>
             </div>
 
             <button
               onClick={() => navigateYear('next')}
               disabled={selectedYear === 'next'}
-              className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Next year"
             >
               <ChevronRight className="w-5 h-5 text-zen-ink-600" />
             </button>
