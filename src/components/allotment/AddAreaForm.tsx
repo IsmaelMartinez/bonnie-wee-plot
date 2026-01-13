@@ -60,6 +60,49 @@ const TREE_TYPE_OPTIONS = [
   'Other',
 ]
 
+const BERRY_TYPE_OPTIONS = [
+  'Raspberry',
+  'Blackberry',
+  'Strawberry',
+  'Gooseberry',
+  'Redcurrant',
+  'Blackcurrant',
+  'Whitecurrant',
+  'Blueberry',
+  'Tayberry',
+  'Loganberry',
+  'Other',
+]
+
+const PERENNIAL_VEG_OPTIONS = [
+  'Asparagus',
+  'Rhubarb',
+  'Artichoke (Globe)',
+  'Artichoke (Jerusalem)',
+  'Sea Kale',
+  'Sorrel',
+  'Good King Henry',
+  'Welsh Onion',
+  'Walking Onion',
+  'Other',
+]
+
+const HERB_TYPE_OPTIONS = [
+  'Rosemary',
+  'Thyme',
+  'Sage',
+  'Mint',
+  'Chives',
+  'Oregano',
+  'Lavender',
+  'Bay',
+  'Tarragon',
+  'Lemon Balm',
+  'Fennel',
+  'Lovage',
+  'Other',
+]
+
 const EMOJI_OPTIONS = ['🌱', '🥬', '🥕', '🍅', '🫛', '🧅', '🥔', '🍎', '🍐', '🫐', '🌿', '🏠', '🪴', '🌻', '🌾']
 
 const COLOR_OPTIONS = [
@@ -86,6 +129,9 @@ export default function AddAreaForm({
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
   const [treeType, setTreeType] = useState<string>('Apple')
+  const [berryType, setBerryType] = useState<string>('Raspberry')
+  const [perennialVegType, setPerennialVegType] = useState<string>('Asparagus')
+  const [herbType, setHerbType] = useState<string>('Rosemary')
   const [canHavePlantings, setCanHavePlantings] = useState(true)
   const [createdYear, setCreatedYear] = useState<number | undefined>(undefined)
   const [yearError, setYearError] = useState<string>()
@@ -150,6 +196,24 @@ export default function AddAreaForm({
         primaryPlant: {
           plantId: treeType.toLowerCase(),
           variety: treeType,
+        }
+      }),
+      ...(kind === 'berry' && berryType && berryType !== 'Other' && {
+        primaryPlant: {
+          plantId: berryType.toLowerCase(),
+          variety: berryType,
+        }
+      }),
+      ...(kind === 'perennial-bed' && perennialVegType && perennialVegType !== 'Other' && {
+        primaryPlant: {
+          plantId: perennialVegType.toLowerCase(),
+          variety: perennialVegType,
+        }
+      }),
+      ...(kind === 'herb' && herbType && herbType !== 'Other' && {
+        primaryPlant: {
+          plantId: herbType.toLowerCase(),
+          variety: herbType,
         }
       }),
       createdYear,
@@ -248,6 +312,69 @@ export default function AddAreaForm({
             className="zen-select"
           >
             {TREE_TYPE_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Berry Type (for berry areas) */}
+      {kind === 'berry' && (
+        <div>
+          <label htmlFor="berry-type" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Berry Type
+          </label>
+          <select
+            id="berry-type"
+            value={berryType}
+            onChange={(e) => setBerryType(e.target.value)}
+            className="zen-select"
+          >
+            {BERRY_TYPE_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Perennial Vegetable Type */}
+      {kind === 'perennial-bed' && (
+        <div>
+          <label htmlFor="perennial-type" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Perennial Vegetable
+          </label>
+          <select
+            id="perennial-type"
+            value={perennialVegType}
+            onChange={(e) => setPerennialVegType(e.target.value)}
+            className="zen-select"
+          >
+            {PERENNIAL_VEG_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Herb Type */}
+      {kind === 'herb' && (
+        <div>
+          <label htmlFor="herb-type" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Herb Type
+          </label>
+          <select
+            id="herb-type"
+            value={herbType}
+            onChange={(e) => setHerbType(e.target.value)}
+            className="zen-select"
+          >
+            {HERB_TYPE_OPTIONS.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
