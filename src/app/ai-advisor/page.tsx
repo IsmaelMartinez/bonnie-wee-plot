@@ -15,6 +15,9 @@ import { aiRateLimiter, formatCooldown } from '@/lib/rate-limiter'
 // Vegetable database for names
 import { getVegetableById } from '@/lib/vegetable-database'
 
+// OpenAI client (works in both dev and production)
+import { callOpenAI } from '@/lib/openai-client'
+
 // Extracted components
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import TokenSettings from '@/components/ai-advisor/TokenSettings'
@@ -162,17 +165,14 @@ export default function AIAdvisorPage() {
     updateRateLimitState()
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-      
-      if (token) {
-        headers['x-openai-token'] = token
+      // Check if token is provided
+      if (!token) {
+        throw new Error('Please provide an OpenAI API token in settings')
       }
 
       // Prepare enhanced message with location context
       let enhancedQuery = query
-      
+
       if (userLocation) {
         const currentDate = new Date()
         const timeInfo = currentDate.toLocaleString('en-US', {
@@ -185,7 +185,7 @@ export default function AIAdvisorPage() {
           minute: '2-digit',
           timeZoneName: 'short'
         })
-        
+
         let locationString = ''
         if (userLocation.city && userLocation.country) {
           locationString = `${userLocation.city}, ${userLocation.country}`
@@ -194,42 +194,28 @@ export default function AIAdvisorPage() {
         } else {
           locationString = `${userLocation.latitude.toFixed(2)}°, ${userLocation.longitude.toFixed(2)}°`
         }
-        
+
         enhancedQuery = `[CONTEXT: User is located in ${locationString}, current local time: ${timeInfo}]\n\n${query}`
       }
 
-      // Prepare request body
-      const requestBody: {
-        message: string
-        messages: ChatMessageType[]
-        image?: { data: string; type: string }
-        allotmentContext?: string
-      } = {
-        message: enhancedQuery,
-        messages: messages.map(m => ({ id: m.id, role: m.role, content: m.content })),
-        allotmentContext: allotmentContext || undefined
-      }
-
+      // Prepare image data if provided
+      let imageData: { data: string; type: string } | undefined
       if (image) {
         const imageBase64 = await imageToBase64(image)
-        requestBody.image = {
+        imageData = {
           data: imageBase64,
           type: image.type
         }
       }
 
-      const response = await fetch('/api/ai-advisor', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
+      // Call OpenAI (tries API route first, falls back to direct call)
+      const data = await callOpenAI({
+        apiToken: token,
+        message: enhancedQuery,
+        messages: messages.map(m => ({ role: m.role, content: m.content })),
+        image: imageData,
+        allotmentContext: allotmentContext || undefined
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error ?? 'Failed to get AI response')
-      }
-
-      const data = await response.json()
       
       const aiResponse: ExtendedChatMessage = {
         id: (Date.now() + 1).toString(),

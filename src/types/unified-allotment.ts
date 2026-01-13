@@ -149,6 +149,7 @@ export interface AllotmentMeta {
   createdAt: string                  // ISO date string
   updatedAt: string                  // ISO date string
   migrationState?: MigrationState    // Track incomplete migrations for recovery
+  setupCompleted?: boolean           // Whether the setup wizard has been completed
 }
 
 /**

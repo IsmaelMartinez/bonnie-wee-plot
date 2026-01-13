@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/Navigation'
 import ErrorBoundaryProvider from '@/components/ErrorBoundaryProvider'
+import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -25,6 +26,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <StorageWarningBanner />
         <Navigation />
         <main id="main-content" className="min-h-screen bg-gray-50" tabIndex={-1}>
           <ErrorBoundaryProvider>

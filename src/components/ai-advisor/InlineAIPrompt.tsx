@@ -18,6 +18,7 @@ import { useState, ReactNode } from 'react'
 import { X, Loader2, Sparkles, AlertCircle } from 'lucide-react'
 import { aiRateLimiter, formatCooldown } from '@/lib/rate-limiter'
 import { useApiToken } from '@/hooks/useSessionStorage'
+import { callOpenAI } from '@/lib/openai-client'
 import ChatMessage from './ChatMessage'
 import type { ChatMessage as ChatMessageType } from '@/types/api'
 
@@ -69,32 +70,19 @@ export default function InlineAIPrompt({
     aiRateLimiter.recordRequest()
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
+      // Check if token is provided
+      if (!token) {
+        throw new Error('Please provide an OpenAI API token in settings')
       }
 
-      if (token) {
-        headers['x-openai-token'] = token
-      }
-
-      const requestBody = {
+      // Call OpenAI (tries API route first, falls back to direct call)
+      const data = await callOpenAI({
+        apiToken: token,
         message: contextQuestion,
         messages: [],
         allotmentContext: allotmentContext || undefined
-      }
-
-      const res = await fetch('/api/ai-advisor', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
       })
 
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error ?? 'Failed to get AI response')
-      }
-
-      const data = await res.json()
       setResponse(data.response)
       setState('success')
     } catch (error) {

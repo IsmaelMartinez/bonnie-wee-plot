@@ -28,6 +28,7 @@ import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
 import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
+import SetupWizard, { WizardData } from '@/components/onboarding/SetupWizard'
 
 // Helper to get previous year's rotation group for an area
 function getPreviousYearRotationGroup(
@@ -85,6 +86,10 @@ export default function AllotmentPage() {
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
 
+  // Setup wizard state - show wizard if no areas and setup not completed
+  const shouldShowSetupWizard = !isLoading && getAllAreas().length === 0 && !data?.meta.setupCompleted
+  const [showSetupWizard, setShowSetupWizard] = useState(shouldShowSetupWizard)
+
   // Get available years and add next year option
   const availableYears = getYears()
   const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : new Date().getFullYear()
@@ -141,6 +146,44 @@ export default function AllotmentPage() {
     )
   }
 
+  // Setup wizard handlers
+  const handleWizardComplete = (wizardData: WizardData) => {
+    // Update metadata
+    if (data) {
+      data.meta.name = wizardData.allotmentName
+      data.meta.location = wizardData.allotmentLocation
+      data.meta.setupCompleted = true
+    }
+
+    // Add all areas from wizard
+    wizardData.areas.forEach((areaTemplate) => {
+      addArea({
+        name: areaTemplate.name,
+        kind: areaTemplate.kind,
+        canHavePlantings: areaTemplate.kind !== 'infrastructure',
+        description: '',
+        ...(areaTemplate.width && areaTemplate.length ? {
+          gridPosition: {
+            x: 0,
+            y: 0,
+            w: Math.ceil(areaTemplate.width),
+            h: Math.ceil(areaTemplate.length)
+          }
+        } : {})
+      })
+    })
+
+    setShowSetupWizard(false)
+  }
+
+  const handleWizardSkip = () => {
+    // Mark setup as completed even if skipped
+    if (data) {
+      data.meta.setupCompleted = true
+    }
+    setShowSetupWizard(false)
+  }
+
   const handleAddPlanting = (planting: NewPlanting) => {
     if (selectedBedId) {
       addPlanting(selectedBedId, planting)
@@ -188,7 +231,16 @@ export default function AllotmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zen-stone-50 zen-texture">
+    <>
+      {/* Setup Wizard */}
+      {showSetupWizard && (
+        <SetupWizard
+          onComplete={handleWizardComplete}
+          onSkip={handleWizardSkip}
+        />
+      )}
+
+      <div className="min-h-screen bg-zen-stone-50 zen-texture">
       {/* Header */}
       <header className="bg-white border-b border-zen-stone-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3">
@@ -577,5 +629,6 @@ export default function AllotmentPage() {
         )
       })()}
     </div>
+    </>
   )
 }

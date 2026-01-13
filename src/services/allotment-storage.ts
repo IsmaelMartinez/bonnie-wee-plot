@@ -47,6 +47,7 @@ import { RotationGroup, PermanentPlanting, InfrastructureItem, PhysicalBedId } f
 import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
+import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/storage-detection'
 // Note: variety-allotment-sync.ts removed - varieties now embedded in AllotmentData
 
 // Import legacy data for migration (empty arrays for fresh start, but needed for old data migrations)
@@ -230,6 +231,12 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     return { success: false, error: 'Not in browser environment' }
   }
 
+  // Check localStorage availability
+  if (!isLocalStorageAvailable()) {
+    const message = getStorageUnavailableMessage()
+    return { success: false, error: message }
+  }
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     
@@ -345,6 +352,12 @@ function formatBytes(bytes: number): string {
 export function saveAllotmentData(data: AllotmentData): StorageResult<void> {
   if (typeof window === 'undefined') {
     return { success: false, error: 'Not in browser environment' }
+  }
+
+  // Check localStorage availability
+  if (!isLocalStorageAvailable()) {
+    const message = getStorageUnavailableMessage()
+    return { success: false, error: message }
   }
 
   try {
