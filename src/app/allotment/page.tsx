@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Map,
@@ -28,7 +28,6 @@ import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
 import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
-import SetupWizard, { WizardData } from '@/components/onboarding/SetupWizard'
 
 // Helper to get previous year's rotation group for an area
 function getPreviousYearRotationGroup(
@@ -79,7 +78,6 @@ export default function AllotmentPage() {
     addArea,
     updateArea,
     archiveArea,
-    updateMeta,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -87,23 +85,13 @@ export default function AllotmentPage() {
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
 
-  // Setup wizard state - show wizard if no areas and setup not completed
-  const [showSetupWizard, setShowSetupWizard] = useState(false)
-
-  // Update wizard visibility when data loads
-  useEffect(() => {
-    if (!isLoading && data && getAllAreas().length === 0 && !data.meta.setupCompleted) {
-      setShowSetupWizard(true)
-    }
-  }, [isLoading, data, getAllAreas])
-
-  // Get available years and add next year option
+  // Get available years and add next/previous year options
   const availableYears = getYears()
-  const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : new Date().getFullYear()
+  const currentYear = new Date().getFullYear()
+  const nextYear = availableYears.length > 0 ? Math.max(...availableYears) + 1 : currentYear
+  const previousYear = availableYears.length > 0 ? Math.min(...availableYears) - 1 : currentYear - 1
   const canCreateNextYear = !availableYears.includes(nextYear)
-
-  // Check if we can add 2024 as a historical year
-  const canCreate2024 = !availableYears.includes(2024)
+  const canCreatePreviousYear = !availableYears.includes(previousYear)
 
   const selectedPlantings = selectedBedId ? getPlantings(selectedBedId) : []
 
@@ -153,64 +141,6 @@ export default function AllotmentPage() {
     )
   }
 
-  // Setup wizard handlers
-  const handleWizardComplete = (wizardData: WizardData) => {
-    try {
-      if (!data) {
-        throw new Error('Allotment data not initialized')
-      }
-
-      // Update metadata using proper immutable update
-      updateMeta({
-        name: wizardData.allotmentName,
-        location: wizardData.allotmentLocation,
-        setupCompleted: true
-      })
-
-      // Add all areas with error tracking
-      const failedAreas: string[] = []
-
-      wizardData.areas.forEach((areaTemplate) => {
-        try {
-          addArea({
-            name: areaTemplate.name,
-            kind: areaTemplate.kind,
-            canHavePlantings: areaTemplate.kind !== 'infrastructure',
-            description: '',
-            ...(areaTemplate.width && areaTemplate.length ? {
-              gridPosition: {
-                x: 0,
-                y: 0,
-                w: Math.ceil(areaTemplate.width),
-                h: Math.ceil(areaTemplate.length)
-              }
-            } : {})
-          })
-        } catch (e) {
-          failedAreas.push(areaTemplate.name)
-          console.error(`Failed to create area ${areaTemplate.name}:`, e)
-        }
-      })
-
-      if (failedAreas.length > 0) {
-        // Partial failure - inform user
-        alert(`Setup completed but failed to create ${failedAreas.length} area(s): ${failedAreas.join(', ')}. You can add them manually later.`)
-      }
-
-      setShowSetupWizard(false)
-    } catch (error) {
-      console.error('Wizard completion failed:', error)
-      alert(`Setup failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`)
-      // Don't close wizard on complete failure
-    }
-  }
-
-  const handleWizardSkip = () => {
-    // Mark setup as completed even if skipped
-    updateMeta({ setupCompleted: true })
-    setShowSetupWizard(false)
-  }
-
   const handleAddPlanting = (planting: NewPlanting) => {
     if (selectedBedId) {
       addPlanting(selectedBedId, planting)
@@ -258,16 +188,7 @@ export default function AllotmentPage() {
   }
 
   return (
-    <>
-      {/* Setup Wizard */}
-      {showSetupWizard && (
-        <SetupWizard
-          onComplete={handleWizardComplete}
-          onSkip={handleWizardSkip}
-        />
-      )}
-
-      <div className="min-h-screen bg-zen-stone-50 zen-texture">
+    <div className="min-h-screen bg-zen-stone-50 zen-texture">
       {/* Header */}
       <header className="bg-white border-b border-zen-stone-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3">
@@ -372,14 +293,14 @@ export default function AllotmentPage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {canCreate2024 && (
+          {canCreatePreviousYear && (
             <button
-              onClick={() => createSeason(2024, 'Historical records from 2024')}
+              onClick={() => createSeason(previousYear, `Historical records from ${previousYear}`)}
               className="px-4 py-2 rounded-zen font-medium bg-zen-stone-100 text-zen-stone-600 hover:bg-zen-stone-200 transition flex items-center gap-1"
-              title="Add 2024 historical data"
+              title={`Add ${previousYear} historical data`}
             >
               <Plus className="w-4 h-4" />
-              2024
+              {previousYear}
             </button>
           )}
 
@@ -656,6 +577,5 @@ export default function AllotmentPage() {
         )
       })()}
     </div>
-    </>
   )
 }

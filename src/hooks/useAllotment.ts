@@ -248,7 +248,7 @@ const validateAllotment = (parsed: unknown): StorageResult<AllotmentData> => {
 // ============ HOOK IMPLEMENTATION ============
 
 export function useAllotment(): UseAllotmentReturn {
-  const [selectedYear, setSelectedYear] = useState<number>(2025)
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [selectedBedId, setSelectedBedId] = useState<PhysicalBedId | null>(null)
   const [selectedItemRef, setSelectedItemRef] = useState<AllotmentItemRef | null>(null)
 
