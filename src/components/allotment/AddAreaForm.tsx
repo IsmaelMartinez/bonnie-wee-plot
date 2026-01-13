@@ -71,7 +71,6 @@ export default function AddAreaForm({
   const [color, setColor] = useState('zen-moss')
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
-  const [canHavePlantings, setCanHavePlantings] = useState(true)
   const [createdYear, setCreatedYear] = useState<number | undefined>(undefined)
   const [yearError, setYearError] = useState<string>()
 
@@ -122,7 +121,7 @@ export default function AddAreaForm({
       description: description.trim() || undefined,
       icon,
       color,
-      canHavePlantings: kind === 'infrastructure' ? canHavePlantings : true,
+      canHavePlantings: kind !== 'infrastructure',
       gridPosition: {
         x: 0,
         y: maxY,
@@ -233,18 +232,6 @@ export default function AddAreaForm({
                 </option>
               ))}
             </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="can-have-plantings"
-              checked={canHavePlantings}
-              onChange={(e) => setCanHavePlantings(e.target.checked)}
-              className="rounded border-zen-stone-300"
-            />
-            <label htmlFor="can-have-plantings" className="text-sm text-zen-ink-600">
-              Can have plantings (e.g., flowers around shed)
-            </label>
           </div>
         </>
       )}
