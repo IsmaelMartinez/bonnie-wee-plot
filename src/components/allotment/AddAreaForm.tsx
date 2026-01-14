@@ -109,7 +109,15 @@ export default function AddAreaForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || isDuplicateName || !isValidCreatedYear) return
+
+    // For infrastructure, name is optional - use subtype label if not provided
+    let finalName = name.trim()
+    if (kind === 'infrastructure' && !finalName) {
+      const infraOption = INFRASTRUCTURE_OPTIONS.find(o => o.subtype === infrastructureSubtype)
+      finalName = infraOption?.label || 'Infrastructure'
+    }
+
+    if (!finalName || isDuplicateName || !isValidCreatedYear) return
 
     // Find next available grid position (simple: place at end)
     const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
@@ -118,7 +126,7 @@ export default function AddAreaForm({
     const defaults = AREA_KIND_DEFAULTS[kind]
 
     const newArea: Omit<Area, 'id'> = {
-      name: name.trim(),
+      name: finalName,
       kind,
       description: description.trim() || undefined,
       icon: defaults.icon,
@@ -178,15 +186,23 @@ export default function AddAreaForm({
       {/* Name */}
       <div>
         <label htmlFor="area-name" className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Name *
+          Name {kind !== 'infrastructure' && '*'}
         </label>
         <input
           id="area-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={kind === 'rotation-bed' ? 'e.g., Bed F' : kind === 'tree' ? 'e.g., Pear Tree' : 'e.g., New Area'}
-          required
+          placeholder={
+            kind === 'infrastructure'
+              ? `Optional (defaults to ${INFRASTRUCTURE_OPTIONS.find(o => o.subtype === infrastructureSubtype)?.label || 'type'})`
+              : kind === 'rotation-bed'
+              ? 'e.g., Bed F'
+              : kind === 'tree'
+              ? 'e.g., Pear Tree'
+              : 'e.g., New Area'
+          }
+          required={kind !== 'infrastructure'}
           className="zen-input"
         />
         {isDuplicateName && (
@@ -292,7 +308,12 @@ export default function AddAreaForm({
         </button>
         <button
           type="submit"
-          disabled={!name.trim() || isDuplicateName || !isValidCreatedYear || yearError !== undefined}
+          disabled={
+            (kind !== 'infrastructure' && !name.trim()) ||
+            isDuplicateName ||
+            !isValidCreatedYear ||
+            yearError !== undefined
+          }
           className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Add Area

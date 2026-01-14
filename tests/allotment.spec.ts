@@ -1102,6 +1102,83 @@ test.describe('Seeds Page - PlantCombobox', () => {
   })
 })
 
+test.describe('Allotment Infrastructure Areas', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should allow adding infrastructure without a name', async ({ page }) => {
+    // Click Add Area button
+    const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
+    await addAreaButton.click()
+
+    // Wait for dialog
+    await page.waitForTimeout(300)
+
+    // Select Infrastructure type
+    const infrastructureButton = page.locator('button').filter({ hasText: 'Infrastructure' })
+    await infrastructureButton.click()
+
+    // Select Compost as infrastructure type
+    const infraTypeSelect = page.locator('#infra-subtype')
+    await infraTypeSelect.selectOption('compost')
+
+    // Leave name field empty - it should show placeholder with default
+    const nameInput = page.locator('#area-name')
+    await expect(nameInput).toHaveAttribute('placeholder', /Optional.*Compost/)
+
+    // Submit button should be enabled even without a name
+    const submitButton = page.locator('button[type="submit"]').filter({ hasText: 'Add Area' })
+    await expect(submitButton).toBeEnabled()
+
+    // Submit the form
+    await submitButton.click()
+
+    // Wait for the area to appear
+    await page.waitForTimeout(500)
+
+    // Area should appear with the infrastructure type as name
+    // Look for a grid item that contains "Compost"
+    const compostArea = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Compost' })
+    await expect(compostArea).toBeVisible()
+  })
+
+  test('should use custom name if provided for infrastructure', async ({ page }) => {
+    // Click Add Area button
+    const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
+    await addAreaButton.click()
+
+    // Wait for dialog
+    await page.waitForTimeout(300)
+
+    // Select Infrastructure type
+    const infrastructureButton = page.locator('button').filter({ hasText: 'Infrastructure' })
+    await infrastructureButton.click()
+
+    // Select Shed as infrastructure type
+    const infraTypeSelect = page.locator('#infra-subtype')
+    await infraTypeSelect.selectOption('shed')
+
+    // Provide custom name
+    const nameInput = page.locator('#area-name')
+    await nameInput.fill('Tool Shed')
+
+    // Submit the form
+    const submitButton = page.locator('button[type="submit"]').filter({ hasText: 'Add Area' })
+    await submitButton.click()
+
+    // Wait for the area to appear
+    await page.waitForTimeout(500)
+
+    // Area should appear with the custom name
+    const toolShedArea = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Tool Shed' })
+    await expect(toolShedArea).toBeVisible()
+  })
+})
+
 test.describe('Plant Database - New Scottish Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
