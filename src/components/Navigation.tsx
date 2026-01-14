@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
+import { useAllotment } from '@/hooks/useAllotment'
 
 const navLinks = [
   { href: '/', label: 'Today' },
@@ -25,6 +26,7 @@ export default function Navigation() {
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const { data } = useAllotment()
 
   const theme = getSeasonalTheme(getCurrentSeason())
 
@@ -73,7 +75,7 @@ export default function Navigation() {
               {theme.season === 'autumn' && '🍂'}
             </span>
             <span className="font-display text-xl tracking-tight">
-              Community Allotment
+              {data?.meta.name || 'My Allotment'}
             </span>
           </Link>
 

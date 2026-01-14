@@ -693,3 +693,470 @@ test.describe('Allotment Bed Notes', () => {
   })
 })
 
+test.describe('Allotment Grid Resizing', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should show resize handles when area is selected in edit mode', async ({ page }) => {
+    // Ensure at least one area exists
+    await ensureRotationBedExists(page)
+
+    // Click Lock/Locked button to enter edit mode
+    const lockButton = page.locator('button').filter({ hasText: /Lock/ })
+    await expect(lockButton).toBeVisible({ timeout: 5000 })
+    await lockButton.click()
+    await page.waitForTimeout(300)
+
+    // Click on a grid item to select it
+    const gridItem = page.locator('[class*="react-grid-item"]').first()
+    await gridItem.click()
+    await page.waitForTimeout(200)
+
+    // Selected item should have yellow ring and shadow on the child div (BedItem)
+    const bedItem = gridItem.locator('> div').first()
+    await expect(bedItem).toHaveClass(/ring-4/)
+    await expect(bedItem).toHaveClass(/ring-yellow-500/)
+    await expect(bedItem).toHaveClass(/shadow-lg/)
+
+    // Should NOT have scale transform class
+    const hasScaleClass = await bedItem.evaluate((el) => {
+      return el.className.includes('scale-105')
+    })
+    expect(hasScaleClass).toBe(false)
+  })
+
+  test('resize handles should be clickable when area is selected', async ({ page }) => {
+    // Ensure at least one area exists
+    await ensureRotationBedExists(page)
+
+    // Enter edit mode
+    const lockButton = page.locator('button').filter({ hasText: /Lock/ })
+    await expect(lockButton).toBeVisible({ timeout: 5000 })
+    await lockButton.click()
+    await page.waitForTimeout(300)
+
+    // Click on a grid item to select it
+    const gridItem = page.locator('[class*="react-grid-item"]').first()
+    await gridItem.click()
+    await page.waitForTimeout(200)
+
+    // Get the bounding box of the grid item
+    const boundingBox = await gridItem.boundingBox()
+    expect(boundingBox).not.toBeNull()
+
+    if (boundingBox) {
+      // Try to hover over the bottom-right corner where resize handle should be
+      // Resize handles are typically at the corners
+      await page.mouse.move(
+        boundingBox.x + boundingBox.width - 5,
+        boundingBox.y + boundingBox.height - 5
+      )
+      await page.waitForTimeout(100)
+
+      // The cursor should change to indicate resize is possible
+      // We can't directly test cursor, but we can verify the element is there
+      const resizeHandle = gridItem.locator('.react-resizable-handle')
+      await expect(resizeHandle).toBeVisible()
+    }
+  })
+
+  test('area should maintain visual feedback without scale transform', async ({ page }) => {
+    // Ensure at least one area exists
+    await ensureRotationBedExists(page)
+
+    // Enter edit mode
+    const lockButton = page.locator('button').filter({ hasText: /Lock/ })
+    await expect(lockButton).toBeVisible({ timeout: 5000 })
+    await lockButton.click()
+    await page.waitForTimeout(300)
+
+    // Click on a grid item
+    const gridItem = page.locator('[class*="react-grid-item"]').first()
+    await gridItem.click()
+    await page.waitForTimeout(200)
+
+    // Verify visual feedback classes are applied to the child div (BedItem)
+    const bedItem = gridItem.locator('> div').first()
+    await expect(bedItem).toHaveClass(/ring-offset-2/)
+
+    // Get computed styles to verify no transform scaling
+    const hasTransformScale = await bedItem.evaluate((el) => {
+      const transform = window.getComputedStyle(el).transform
+      // Check if transform includes scale - should be 'none' or identity matrix
+      return transform !== 'none' && transform.includes('scale')
+    })
+    expect(hasTransformScale).toBe(false)
+  })
+})
+
+test.describe('Custom Allotment Naming', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should display custom allotment name in navigation', async ({ page }) => {
+    // Default name should be "My Allotment"
+    const navName = page.locator('nav').getByText('My Allotment')
+    await expect(navName).toBeVisible()
+  })
+
+  test('should display custom allotment name in page header', async ({ page }) => {
+    // Check the h1 in the allotment page shows the name
+    const headerName = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await expect(headerName).toBeVisible()
+  })
+
+  test('should make allotment name editable on click', async ({ page }) => {
+    // Click on the allotment name in the header
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    // Should show an input field
+    const nameInput = page.locator('input[value*="My Allotment"]')
+    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeFocused()
+  })
+
+  test('should save new name on Enter key', async ({ page }) => {
+    // Click on the allotment name
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    // Type a new name - use a more generic selector
+    const nameInput = page.locator('input[type="text"]').first()
+    await expect(nameInput).toBeVisible()
+    await nameInput.fill('My Sunny Garden')
+    await nameInput.press('Enter')
+
+    // Wait for save
+    await page.waitForTimeout(700)
+
+    // New name should appear in the header
+    await expect(page.locator('h1').filter({ hasText: 'My Sunny Garden' })).toBeVisible()
+  })
+
+  test('should save new name on blur', async ({ page }) => {
+    // Click on the allotment name
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    // Type a new name
+    const nameInput = page.locator('input[value*="My Allotment"]')
+    await nameInput.fill('My Beautiful Plot')
+
+    // Click outside to blur
+    await page.locator('body').click({ position: { x: 10, y: 10 } })
+    await page.waitForTimeout(200)
+
+    // New name should appear
+    await expect(page.locator('h1').filter({ hasText: 'My Beautiful Plot' })).toBeVisible()
+  })
+
+  test('should cancel edit on Escape key', async ({ page }) => {
+    // Click on the allotment name
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    // Type a new name but don't save
+    const nameInput = page.locator('input[type="text"]').first()
+    await expect(nameInput).toBeVisible()
+    await nameInput.fill('Temporary Name')
+    await nameInput.press('Escape')
+    await page.waitForTimeout(200)
+
+    // Original name should still be there
+    await expect(page.locator('h1').filter({ hasText: 'My Allotment' })).toBeVisible()
+  })
+
+  test('should persist custom name across page reloads', async ({ page }) => {
+    // Click on the allotment name
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    // Type and save a new name
+    const nameInput = page.locator('input[type="text"]').first()
+    await expect(nameInput).toBeVisible()
+    await nameInput.fill('Edinburgh Garden')
+    await nameInput.press('Enter')
+
+    // Wait for save
+    await page.waitForTimeout(700)
+
+    // Reload the page
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Custom name should still be visible in both places
+    await expect(page.locator('h1').filter({ hasText: 'Edinburgh Garden' })).toBeVisible()
+    await expect(page.locator('nav').getByText('Edinburgh Garden')).toBeVisible()
+  })
+
+  test('should show custom name in navigation after changing it', async ({ page }) => {
+    // Change the name
+    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
+    await nameHeading.click()
+    await page.waitForTimeout(200)
+
+    const nameInput = page.locator('input[type="text"]').first()
+    await expect(nameInput).toBeVisible()
+    await nameInput.fill('Test Garden Name')
+    await nameInput.press('Enter')
+    await page.waitForTimeout(700)
+
+    // Navigate to another page
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Custom name should appear in navigation
+    await expect(page.locator('nav').getByText('Test Garden Name')).toBeVisible()
+  })
+})
+
+test.describe('Plant Database - Removed Plants', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should not show Sweet Peppers in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Get all options from the vegetable select
+    const options = await page.locator('#vegetable-select option').allTextContents()
+
+    // Should NOT include Sweet Peppers
+    expect(options).not.toContain('Sweet Peppers')
+    expect(options).not.toContain('Sweet Pepper')
+  })
+
+  test('should not show Chillies in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Get all options
+    const options = await page.locator('#vegetable-select option').allTextContents()
+
+    // Should NOT include Chillies
+    expect(options).not.toContain('Chillies')
+  })
+
+  test('should not show Basil in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Get all options
+    const options = await page.locator('#vegetable-select option').allTextContents()
+
+    // Should NOT include Basil
+    expect(options).not.toContain('Basil')
+  })
+})
+
+test.describe('Plant Database - New Scottish Plants', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should show Corn Salad in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Corn Salad by value
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('corn-salad')
+
+    // Verify it was selected
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('corn-salad')
+  })
+
+  test('should show Winter Purslane in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Winter Purslane
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('winter-purslane')
+
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('winter-purslane')
+  })
+
+  test('should show Hamburg Parsley in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Hamburg Parsley
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('hamburg-parsley')
+
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('hamburg-parsley')
+  })
+
+  test('should show Kohlrabi in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Kohlrabi
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('kohlrabi')
+
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('kohlrabi')
+  })
+
+  test('should show Lovage in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Lovage
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('lovage')
+
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('lovage')
+  })
+
+  test('should show Sorrel in plant selection', async ({ page }) => {
+    // Select a rotation bed
+    await selectRotationBed(page)
+
+    // Open Add Planting dialog
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 5000 })
+    await addButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Should be able to select Sorrel
+    const select = page.locator('#vegetable-select')
+    await select.selectOption('sorrel')
+
+    const selectedOption = await select.inputValue()
+    expect(selectedOption).toBe('sorrel')
+  })
+
+  test('all new Scottish plants should be available in Seeds page', async ({ page }) => {
+    // Navigate to Seeds page
+    await page.goto('/seeds')
+    await page.waitForLoadState('networkidle')
+
+    // Click Add Variety button
+    const addVarietyButton = page.locator('button').filter({ hasText: 'Add Variety' })
+    await addVarietyButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Get all plant options
+    const select = page.locator('#variety-vegetable-select')
+    const options = await select.locator('option').allTextContents()
+
+    // All new plants should be present
+    const newPlants = [
+      'Corn Salad',
+      'Winter Purslane',
+      'Hamburg Parsley',
+      'Kohlrabi',
+      'Lovage',
+      'Sorrel'
+    ]
+
+    for (const plant of newPlants) {
+      const hasPlant = options.some(opt => opt.includes(plant))
+      expect(hasPlant).toBe(true)
+    }
+
+    // Removed plants should NOT be present
+    const removedPlants = ['Sweet Pepper', 'Chillies', 'Basil']
+    for (const plant of removedPlants) {
+      const hasPlant = options.some(opt => opt.includes(plant))
+      expect(hasPlant).toBe(false)
+    }
+  })
+})
+

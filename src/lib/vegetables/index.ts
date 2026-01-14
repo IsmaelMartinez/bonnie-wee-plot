@@ -26,7 +26,9 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'pak-choi', name: 'Pak Choi', category: 'leafy-greens' },
   { id: 'mizuna', name: 'Mizuna', category: 'leafy-greens' },
   { id: 'land-cress', name: 'Land Cress', category: 'leafy-greens' },
-  
+  { id: 'corn-salad', name: 'Corn Salad (Lamb\'s Lettuce)', category: 'leafy-greens' },
+  { id: 'winter-purslane', name: 'Winter Purslane (Claytonia)', category: 'leafy-greens' },
+
   // Root Vegetables
   { id: 'carrot', name: 'Carrot', category: 'root-vegetables' },
   { id: 'beetroot', name: 'Beetroot', category: 'root-vegetables' },
@@ -38,14 +40,15 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'jerusalem-artichoke', name: 'Jerusalem Artichoke', category: 'root-vegetables' },
   { id: 'celeriac', name: 'Celeriac', category: 'root-vegetables' },
   { id: 'salsify', name: 'Salsify', category: 'root-vegetables' },
-  
+  { id: 'hamburg-parsley', name: 'Hamburg Parsley', category: 'root-vegetables' },
+
   // Brassicas
   { id: 'broccoli', name: 'Broccoli', category: 'brassicas' },
   { id: 'cabbage', name: 'Cabbage', category: 'brassicas' },
   { id: 'cauliflower', name: 'Cauliflower', category: 'brassicas' },
   { id: 'brussels-sprouts', name: 'Brussels Sprouts', category: 'brassicas' },
   { id: 'kohlrabi', name: 'Kohlrabi', category: 'brassicas' },
-  
+
   // Legumes
   { id: 'peas', name: 'Garden Peas', category: 'legumes' },
   { id: 'runner-beans', name: 'Runner Beans', category: 'legumes' },
@@ -54,7 +57,6 @@ export const vegetableIndex: VegetableIndex[] = [
   
   // Solanaceae
   { id: 'tomato', name: 'Tomato', category: 'solanaceae' },
-  { id: 'pepper', name: 'Sweet Pepper', category: 'solanaceae' },
   { id: 'aubergine', name: 'Aubergine', category: 'solanaceae' },
   
   // Cucurbits
@@ -70,14 +72,15 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'shallot', name: 'Shallot', category: 'alliums' },
   
   // Herbs
-  { id: 'basil', name: 'Basil', category: 'herbs' },
   { id: 'parsley', name: 'Parsley', category: 'herbs' },
   { id: 'coriander', name: 'Coriander', category: 'herbs' },
   { id: 'mint', name: 'Mint', category: 'herbs' },
   { id: 'thyme', name: 'Thyme', category: 'herbs' },
   { id: 'rosemary', name: 'Rosemary', category: 'herbs' },
   { id: 'chives', name: 'Chives', category: 'herbs' },
-  
+  { id: 'lovage', name: 'Lovage', category: 'herbs' },
+  { id: 'sorrel', name: 'Sorrel', category: 'herbs' },
+
   // Berries
   { id: 'strawberry', name: 'Strawberry', category: 'berries' },
   { id: 'raspberry', name: 'Raspberry', category: 'berries' },

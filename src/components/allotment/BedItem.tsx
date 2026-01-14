@@ -92,8 +92,8 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [], a
         w-full h-full rounded-lg flex flex-col items-center justify-center
         transition-all duration-200 overflow-hidden relative
         ${getTypeStyles()}
-        ${isSelected ? 'ring-4 ring-yellow-400 ring-offset-2 scale-105 z-10' : ''}
-        ${isEditing ? 'hover:opacity-80' : item.bedId ? 'hover:scale-[1.02] hover:shadow-lg' : ''}
+        ${isSelected ? 'ring-4 ring-yellow-500 ring-offset-2 shadow-lg' : ''}
+        ${isEditing ? 'hover:opacity-80' : item.bedId ? 'hover:shadow-lg' : ''}
         ${item.type === 'path' ? 'rounded-md' : ''}
       `}
       style={{

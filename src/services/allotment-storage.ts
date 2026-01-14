@@ -983,7 +983,7 @@ export function migrateFromLegacyData(): AllotmentData {
     version: CURRENT_SCHEMA_VERSION,
     meta: {
       name: 'My Allotment',
-      location: '',
+      location: 'Edinburgh, Scotland',
       createdAt: now,
       updatedAt: now,
     },

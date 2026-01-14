@@ -224,6 +224,60 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Lettuce', 'Radishes'],
     avoidPlants: []
   },
+  {
+    id: 'corn-salad',
+    name: 'Corn Salad (Lamb\'s Lettuce)',
+    category: 'leafy-greens',
+    description: 'Hardy winter salad green. Perfect for Scottish winters, survives frost.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [8, 9, 10],
+      transplantMonths: [],
+      harvestMonths: [11, 12, 1, 2, 3, 4],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 10, rows: 15 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Sow in late summer for winter harvest',
+        'Extremely frost-hardy - survives Scottish winters',
+        'Self-seeds readily for continuous supply'
+      ]
+    },
+    companionPlants: ['Winter lettuce', 'Spinach'],
+    avoidPlants: []
+  },
+  {
+    id: 'winter-purslane',
+    name: 'Winter Purslane (Claytonia)',
+    category: 'leafy-greens',
+    description: 'Succulent winter salad. Thrives in cold wet Scottish conditions.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [8, 9, 10],
+      transplantMonths: [],
+      harvestMonths: [11, 12, 1, 2, 3, 4, 5],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 15, rows: 20 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Grows through winter in Scotland',
+        'Self-seeds for year-round supply',
+        'Mild, slightly lemony flavor'
+      ]
+    },
+    companionPlants: ['Corn salad', 'Winter lettuce'],
+    avoidPlants: []
+  },
 
   // ============ ROOT VEGETABLES ============
   {
@@ -442,6 +496,33 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Carrots', 'Onions'],
     avoidPlants: []
   },
+  {
+    id: 'hamburg-parsley',
+    name: 'Hamburg Parsley',
+    category: 'root-vegetables',
+    description: 'Dual-purpose parsley with edible root. Very hardy for Scottish winters.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 6],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Use leaves like regular parsley',
+        'Harvest roots in autumn/winter',
+        'Frost improves root flavor'
+      ]
+    },
+    companionPlants: ['Carrots', 'Tomatoes'],
+    avoidPlants: []
+  },
 
   // ============ BRASSICAS ============
   {
@@ -577,6 +658,33 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Carrots', 'Onions'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'kohlrabi',
+    name: 'Kohlrabi',
+    category: 'brassicas',
+    description: 'Fast-growing unusual brassica. Very cold-hardy, perfect for Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5, 6, 7],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 55, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 23, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest when tennis ball sized',
+        'Very tolerant of Scottish weather',
+        'Crisp, mild cabbage-like flavor'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Onions', 'Herbs'],
     avoidPlants: ['Strawberries', 'Tomatoes']
   },
 
@@ -717,63 +825,6 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Basil', 'Carrots', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
-  },
-
-  {
-    id: 'peppers',
-    name: 'Sweet Peppers',
-    category: 'solanaceae',
-    description: 'Colorful bell peppers. Need greenhouse in Scotland.',
-    growingRequirement: 'greenhouse',
-    planting: {
-      sowIndoorsMonths: [2, 3],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [8, 9, 10],
-      daysToHarvest: { min: 60, max: 90 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 45, rows: 45 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        '🏠 Greenhouse essential in Scotland',
-        'Start very early indoors',
-        'Pinch growing tip for bushier plants'
-      ]
-    },
-    companionPlants: ['Tomatoes', 'Basil', 'Carrots'],
-    avoidPlants: ['Fennel', 'Beans']
-  },
-  {
-    id: 'chillies',
-    name: 'Chillies',
-    category: 'solanaceae',
-    description: 'Hot peppers. Grow in pots on sunny windowsill or greenhouse.',
-    growingRequirement: 'windowsill',
-    planting: {
-      sowIndoorsMonths: [1, 2, 3],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [8, 9, 10],
-      daysToHarvest: { min: 70, max: 120 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 40, rows: 40 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        '🪟 Windowsill or greenhouse growing',
-        'Start very early (January) for Scotland',
-        'Smaller varieties work well in pots'
-      ]
-    },
-    companionPlants: ['Tomatoes', 'Basil', 'Carrots'],
-    avoidPlants: ['Fennel']
   },
 
   // ============ CUCURBITS ============
@@ -998,34 +1049,6 @@ export const vegetables: Vegetable[] = [
 
   // ============ HERBS ============
   {
-    id: 'basil',
-    name: 'Basil',
-    category: 'herbs',
-    description: 'Frost tender herb. Best on sunny windowsill or greenhouse.',
-    growingRequirement: 'windowsill',
-    planting: {
-      sowIndoorsMonths: [4, 5],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [7, 8, 9],
-      daysToHarvest: { min: 40, max: 60 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 20, rows: 30 },
-      depth: 0.5,
-      difficulty: 'beginner',
-      tips: [
-        '🪟 Grow indoors on sunny windowsill',
-        'Pinch out flower heads',
-        'Protect from any cold'
-      ]
-    },
-    companionPlants: ['Tomatoes', 'Peppers', 'Oregano'],
-    avoidPlants: ['Sage', 'Rue']
-  },
-  {
     id: 'parsley',
     name: 'Parsley',
     category: 'herbs',
@@ -1185,6 +1208,60 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cabbage', 'Tomatoes', 'Aubergine'],
+    avoidPlants: []
+  },
+  {
+    id: 'lovage',
+    name: 'Lovage',
+    category: 'herbs',
+    description: 'Tall perennial herb with celery flavor. Thrives in Scottish conditions.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [5, 6],
+      harvestMonths: [4, 5, 6, 7, 8, 9, 10],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 60, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Large plant - give plenty of space',
+        'Use leaves like celery in soups/stocks',
+        'Very hardy perennial for Scotland'
+      ]
+    },
+    companionPlants: ['Most vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'sorrel',
+    name: 'Sorrel',
+    category: 'herbs',
+    description: 'Tangy perennial leaf. Extremely hardy in Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Lemony tang great in salads',
+        'Remove flower heads to encourage leaves',
+        'Grows year-round in Scotland'
+      ]
+    },
+    companionPlants: ['Strawberries', 'Herbs'],
     avoidPlants: []
   },
 
