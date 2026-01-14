@@ -36,6 +36,8 @@ export type VegetableCategory =
   | 'perennial-flowers'   // Lavender, echinacea, rudbeckia
   | 'bulbs'               // Tulips, daffodils, dahlias
   | 'climbers'            // Sweet peas, clematis, morning glory
+  | 'green-manures'       // Clover, field beans, rye, mustard
+  | 'mushrooms'           // Oyster, shiitake, lion's mane
   | 'other'               // Sweetcorn, etc.
 
 // Sun requirements
@@ -315,7 +317,9 @@ export const CATEGORY_INFO: CategoryInfo[] = [
   { id: 'annual-flowers', name: 'Annual Flowers', icon: 'Flower2', color: 'fuchsia' },
   { id: 'perennial-flowers', name: 'Perennial Flowers', icon: 'Sparkles', color: 'violet' },
   { id: 'bulbs', name: 'Bulbs', icon: 'Droplet', color: 'indigo' },
-  { id: 'climbers', name: 'Climbers', icon: 'Scaling', color: 'purple' }
+  { id: 'climbers', name: 'Climbers', icon: 'Scaling', color: 'purple' },
+  { id: 'green-manures', name: 'Green Manures', icon: 'Sprout', color: 'teal' },
+  { id: 'mushrooms', name: 'Mushrooms', icon: 'Layers', color: 'stone' }
 ]
 
 // Default plot colors

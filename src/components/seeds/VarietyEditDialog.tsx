@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Dialog from '@/components/ui/Dialog'
-import { vegetableIndex } from '@/lib/vegetables/index'
-import { getPlantEmoji } from '@/lib/plant-emoji'
-import { VegetableCategory, CATEGORY_INFO } from '@/types/garden-planner'
+import PlantCombobox from '@/components/allotment/PlantCombobox'
+import { VegetableCategory } from '@/types/garden-planner'
 import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
 
 interface VarietyEditDialogProps {
@@ -92,10 +91,6 @@ export default function VarietyEditDialog({
     handleClose()
   }
 
-  const filteredPlants = vegetableIndex
-    .filter(v => categoryFilter === 'all' || v.category === categoryFilter)
-    .sort((a, b) => a.name.localeCompare(b.name))
-
   const datalistId = 'supplier-options'
 
   return (
@@ -106,56 +101,22 @@ export default function VarietyEditDialog({
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Category Filter Tabs */}
-        <div className="mb-4">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setCategoryFilter('all')}
-              className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
-                categoryFilter === 'all'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              All Plants
-            </button>
-            {CATEGORY_INFO.map((info) => (
-              <button
-                key={info.id}
-                type="button"
-                onClick={() => setCategoryFilter(info.id)}
-                className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
-                  categoryFilter === info.id
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {getPlantEmoji(info.id)} {info.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div>
           <label
-            htmlFor="variety-vegetable-select"
+            htmlFor="plant-combobox"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             Plant *
           </label>
-          <select
-            id="variety-vegetable-select"
+
+          <PlantCombobox
             value={plantId}
-            onChange={(e) => setVegetableId(e.target.value)}
+            onChange={setVegetableId}
+            categoryFilter={categoryFilter}
+            onCategoryChange={setCategoryFilter}
+            existingPlantings={[]}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="">Select a plant...</option>
-            {filteredPlants.map((plant) => (
-              <option key={plant.id} value={plant.id}>{plant.name}</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div>

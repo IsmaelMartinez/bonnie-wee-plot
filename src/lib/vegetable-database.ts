@@ -171,6 +171,34 @@ export const vegetables: Vegetable[] = [
     avoidPlants: []
   },
   {
+    id: 'mizuna',
+    name: 'Mizuna',
+    category: 'leafy-greens',
+    description: 'Japanese mustard green with frilly leaves. Very cold-hardy, ideal for Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8, 9],
+      transplantMonths: [5, 6, 7],
+      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2],
+      daysToHarvest: { min: 40, max: 50 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 20, rows: 25 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Extremely frost-hardy - overwinters in Scotland',
+        'Mild mustard flavor, great for salads',
+        'Fast-growing, harvest as baby leaves or mature',
+        'Sow autumn crops for winter harvest'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Spinach', 'Radishes'],
+    avoidPlants: []
+  },
+  {
     id: 'claytonia',
     name: 'Claytonia (Miners Lettuce)',
     category: 'leafy-greens',
@@ -276,6 +304,258 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Corn salad', 'Winter lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'mustard-greens',
+    name: 'Mustard Greens',
+    category: 'leafy-greens',
+    description: 'Fast-growing spicy greens. Very cold-tolerant for Scottish winters.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8, 9],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2],
+      daysToHarvest: { min: 30, max: 50 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 20, rows: 25 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very fast growing - ready in 4-5 weeks',
+        'Spicy mustard flavor intensifies in cold',
+        'Sow succession crops for continuous harvest',
+        'Overwinters well in Scotland'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Spinach', 'Radishes'],
+    avoidPlants: []
+  },
+  {
+    id: 'watercress',
+    name: 'Watercress',
+    category: 'leafy-greens',
+    description: 'Aquatic or marginal plant with peppery leaves. Thrives in Scottish dampness.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6, 7],
+      harvestMonths: [6, 7, 8, 9, 10, 11],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'high',
+      spacing: { between: 15, rows: 20 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Needs constant moisture - grow in trays of water',
+        'Partial shade prevents bolting',
+        'Cut and come again harvesting',
+        'Can grow in shallow streams or ponds'
+      ]
+    },
+    companionPlants: ['Mints', 'Water-loving plants'],
+    avoidPlants: []
+  },
+  {
+    id: 'salad-burnet',
+    name: 'Salad Burnet',
+    category: 'leafy-greens',
+    description: 'Perennial herb with cucumber-flavored leaves. Very hardy for Scottish winters.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 9],
+      transplantMonths: [5, 6],
+      harvestMonths: [4, 5, 6, 7, 8, 9, 10, 11],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - lasts many years',
+        'Cucumber flavor great for salads',
+        'Very drought-tolerant once established',
+        'Evergreen in mild Scottish winters'
+      ]
+    },
+    companionPlants: ['Herbs', 'Perennial vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'orache',
+    name: 'Orache (Mountain Spinach)',
+    category: 'leafy-greens',
+    description: 'Colorful spinach substitute. Salt-tolerant and good for Scottish coastal gardens.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 40, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Red and gold varieties very ornamental',
+        'Tolerates salt spray in coastal areas',
+        'Pick young leaves before plants bolt',
+        'Self-seeds readily for next year'
+      ]
+    },
+    companionPlants: ['Spinach', 'Chard', 'Beetroot'],
+    avoidPlants: []
+  },
+  {
+    id: 'new-zealand-spinach',
+    name: 'New Zealand Spinach',
+    category: 'leafy-greens',
+    description: 'Heat-tolerant spinach substitute. Sprawling plant good for Scottish summers.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Soak seeds 24 hours before sowing',
+        'Sprawling habit - needs space',
+        'Pick regularly to encourage branching',
+        'More heat-tolerant than true spinach'
+      ]
+    },
+    companionPlants: ['Beans', 'Cucurbits'],
+    avoidPlants: []
+  },
+  {
+    id: 'good-king-henry',
+    name: 'Good King Henry',
+    category: 'leafy-greens',
+    description: 'Perennial vegetable with spinach-like leaves. Very hardy traditional Scottish plant.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [5, 6, 9],
+      harvestMonths: [4, 5, 6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - harvest for years',
+        'Young shoots like asparagus in spring',
+        'Leaves like spinach through summer',
+        'Native to Britain - very hardy'
+      ]
+    },
+    companionPlants: ['Perennial vegetables', 'Rhubarb'],
+    avoidPlants: []
+  },
+  {
+    id: 'radicchio',
+    name: 'Radicchio',
+    category: 'leafy-greens',
+    description: 'Italian chicory with burgundy leaves. Very cold-hardy for Scottish winters.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [6, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 25, rows: 30 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Sow mid-summer for autumn/winter harvest',
+        'Frost intensifies color and sweetens flavor',
+        'Cut whole heads or pick outer leaves',
+        'Very ornamental in winter garden'
+      ]
+    },
+    companionPlants: ['Endive', 'Lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'endive',
+    name: 'Endive',
+    category: 'leafy-greens',
+    description: 'Bitter salad green for autumn/winter. More cold-tolerant than lettuce.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [6, 7, 8],
+      transplantMonths: [6, 7, 8],
+      harvestMonths: [9, 10, 11, 12, 1],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 35 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Blanch hearts 2 weeks before harvest to reduce bitterness',
+        'Frost-hardy - continues through Scottish winter',
+        'Tie up outer leaves to blanch center',
+        'Curly and broad-leaved varieties available'
+      ]
+    },
+    companionPlants: ['Radicchio', 'Winter lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'ice-plant',
+    name: 'Ice Plant',
+    category: 'leafy-greens',
+    description: 'Succulent salad plant with glistening leaves. Drought-tolerant and unusual.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 40 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Succulent leaves with salty flavor',
+        'Very drought-tolerant once established',
+        'Pick tender shoot tips',
+        'Good for coastal Scottish gardens'
+      ]
+    },
+    companionPlants: ['Purslane', 'Succulents'],
     avoidPlants: []
   },
 
@@ -523,6 +803,286 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Carrots', 'Tomatoes'],
     avoidPlants: []
   },
+  {
+    id: 'early-potato',
+    name: 'First Early Potato',
+    category: 'root-vegetables',
+    description: 'Fast-maturing new potatoes. Ready 10-12 weeks after planting, ideal for Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4],
+      harvestMonths: [6, 7],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 60 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Chit seed potatoes indoors from February',
+        'Plant after last frost in late March/early April',
+        'Earth up regularly to prevent greening',
+        'Harvest when flowers appear - don\'t wait for foliage to die'
+      ]
+    },
+    companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
+    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+  },
+  {
+    id: 'second-early-potato',
+    name: 'Second Early Potato',
+    category: 'root-vegetables',
+    description: 'Mid-season potatoes with better yields than first earlies. Harvest July-August.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 100, max: 110 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 35, rows: 60 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Chit from February, plant in April',
+        'Good compromise between earlies and maincrops',
+        'Less blight risk than maincrops in Scotland',
+        'Can leave in ground slightly longer than first earlies'
+      ]
+    },
+    companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
+    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+  },
+  {
+    id: 'maincrop-potato',
+    name: 'Maincrop Potato',
+    category: 'root-vegetables',
+    description: 'Late season storage potatoes. Higher yields but more blight susceptible in wet Scottish summers.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 120, max: 140 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 40, rows: 75 },
+      depth: 15,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose blight-resistant varieties for Scotland',
+        'Watch for blight from July onwards',
+        'Leave in ground until foliage dies back',
+        'Cure harvested tubers before storing'
+      ]
+    },
+    companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
+    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+  },
+  {
+    id: 'florence-fennel',
+    name: 'Florence Fennel',
+    category: 'root-vegetables',
+    description: 'Anise-flavored swollen stem base. Tricky in Scotland but possible with bolt-resistant varieties.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [6, 7],
+      transplantMonths: [6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose bolt-resistant varieties for Scotland',
+        'Keep very well watered to prevent bolting',
+        'Sow after longest day (June 21) to reduce bolting',
+        'Earth up bulbs as they swell for blanching'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Peas', 'Cucumbers'],
+    avoidPlants: ['Tomatoes', 'Beans', 'Kohlrabi']
+  },
+  {
+    id: 'mooli',
+    name: 'Mooli (Daikon)',
+    category: 'root-vegetables',
+    description: 'Large Asian radish for autumn/winter. Very hardy and good for Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [7, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Sow late summer for autumn/winter harvest',
+        'Very frost-hardy - can overwinter in Scotland',
+        'Thin seedlings to prevent forking',
+        'Mild flavor compared to summer radishes'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Peas', 'Cucumbers', 'Nasturtiums'],
+    avoidPlants: ['Brassicas']
+  },
+  {
+    id: 'black-radish',
+    name: 'Black Radish',
+    category: 'root-vegetables',
+    description: 'Winter storage radish with black skin. Very hardy for Scottish winters.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [7, 8],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1],
+      daysToHarvest: { min: 55, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Sow July-August for winter storage',
+        'Stores well in damp sand for months',
+        'Pungent flavor - grate raw or cook',
+        'Very cold-hardy'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Peas', 'Cucumbers', 'Nasturtiums'],
+    avoidPlants: ['Brassicas']
+  },
+  {
+    id: 'scorzonera',
+    name: 'Scorzonera',
+    category: 'root-vegetables',
+    description: 'Black salsify with delicate flavor. Hardy perennial vegetable ideal for Scotland.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [],
+      harvestMonths: [10, 11, 12, 1, 2, 3],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 10, rows: 30 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Can leave in ground through winter',
+        'Harvest as needed - very frost hardy',
+        'Peel after cooking to avoid staining hands',
+        'Can treat as perennial - leave some to flower'
+      ]
+    },
+    companionPlants: ['Carrots', 'Onions'],
+    avoidPlants: []
+  },
+  {
+    id: 'horseradish',
+    name: 'Horseradish',
+    category: 'root-vegetables',
+    description: 'Perennial root for making pungent condiment. Very vigorous and hardy.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 180, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Plant root cuttings in spring',
+        'Extremely vigorous - can be invasive',
+        'Grow in containers to control spread',
+        'Harvest roots in autumn/winter for best flavor'
+      ]
+    },
+    companionPlants: ['Potatoes'],
+    avoidPlants: []
+  },
+  {
+    id: 'chinese-artichoke',
+    name: 'Chinese Artichoke (Crosnes)',
+    category: 'root-vegetables',
+    description: 'Unusual nutty-flavored tubers. Very hardy perennial for Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4],
+      harvestMonths: [11, 12, 1, 2],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 8,
+      difficulty: 'beginner',
+      tips: [
+        'Plant tubers in spring',
+        'Very easy to grow - almost weed-like',
+        'Harvest after frost improves flavor',
+        'Leave some tubers for next year\'s crop'
+      ]
+    },
+    companionPlants: ['Jerusalem Artichokes'],
+    avoidPlants: []
+  },
+  {
+    id: 'yacon',
+    name: 'Yacon',
+    category: 'root-vegetables',
+    description: 'Sweet crunchy tubers from South America. Frost-tender but grows well in Scottish summers.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [10, 11],
+      daysToHarvest: { min: 150, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 90 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Start rhizomes indoors, plant out after frost',
+        'Tall plant - needs staking in exposed sites',
+        'Lift before frost and cure for sweetness',
+        'Save crown for replanting next year'
+      ]
+    },
+    companionPlants: ['Sweetcorn'],
+    avoidPlants: []
+  },
 
   // ============ BRASSICAS ============
   {
@@ -687,6 +1247,202 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Beetroot', 'Onions', 'Herbs'],
     avoidPlants: ['Strawberries', 'Tomatoes']
   },
+  {
+    id: 'savoy-cabbage',
+    name: 'Savoy Cabbage',
+    category: 'brassicas',
+    description: 'Frost-hardy winter cabbage with crinkled leaves. Traditional Scottish winter vegetable.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6, 7],
+      harvestMonths: [10, 11, 12, 1, 2, 3],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Most frost-hardy cabbage variety',
+        'Improves in flavor after frost',
+        'Can harvest through Scottish winter',
+        'Crinkled leaves great for stuffing'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'red-cabbage',
+    name: 'Red Cabbage',
+    category: 'brassicas',
+    description: 'Purple storage cabbage. Excellent for pickling and winter storage.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6, 7],
+      harvestMonths: [9, 10, 11, 12],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Stores well for months in cool conditions',
+        'Rich in anthocyanins - very healthy',
+        'Traditional for pickling and braising',
+        'Frost-hardy - can leave in ground'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'chinese-broccoli',
+    name: 'Chinese Broccoli (Kai Lan)',
+    category: 'brassicas',
+    description: 'Fast-growing Asian green. Harvest young shoots and leaves.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5, 6, 7, 8],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Fast-growing - ready in 7-9 weeks',
+        'Harvest young shoots before flowering',
+        'Cut and come again for continuous harvest',
+        'More heat-tolerant than regular broccoli'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'romanesco',
+    name: 'Romanesco',
+    category: 'brassicas',
+    description: 'Fractal cauliflower with lime-green spirals. Stunning and delicious.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6, 7],
+      harvestMonths: [9, 10, 11],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 60 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Stunning mathematical spiral pattern',
+        'Needs consistent conditions - no stress',
+        'Milder and nuttier than cauliflower',
+        'Harvest when spirals fully formed'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'turnip-tops',
+    name: 'Turnip Tops (Rapini)',
+    category: 'brassicas',
+    description: 'Grown for leafy greens rather than roots. Italian favorite, fast-growing.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2],
+      daysToHarvest: { min: 30, max: 50 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 20 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very fast - harvest in 4-6 weeks',
+        'Sow succession crops for continuous harvest',
+        'Bitter flavor like broccoli raab',
+        'Overwinters well in Scotland'
+      ]
+    },
+    companionPlants: ['Peas', 'Beans', 'Onions'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'sea-kale',
+    name: 'Sea Kale',
+    category: 'brassicas',
+    description: 'Native coastal perennial. Blanch shoots for asparagus-like stems.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 10],
+      harvestMonths: [3, 4, 5],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 60, rows: 90 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Native British coastal plant - very hardy',
+        'Perennial - lasts many years',
+        'Force shoots in spring with terracotta pot',
+        'Blanched shoots harvested like asparagus'
+      ]
+    },
+    companionPlants: ['Perennial vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'mibuna',
+    name: 'Mibuna',
+    category: 'brassicas',
+    description: 'Japanese mustard green with serrated leaves. Very cold-hardy for Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8, 9],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2],
+      daysToHarvest: { min: 40, max: 50 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 20, rows: 25 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Similar to mizuna but more serrated leaves',
+        'Very frost-hardy - overwinters in Scotland',
+        'Milder flavor than mizuna',
+        'Fast-growing for cut-and-come-again'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Spinach', 'Mizuna'],
+    avoidPlants: []
+  },
 
   // ============ LEGUMES ============
   {
@@ -797,6 +1553,230 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Carrots', 'Radishes', 'Turnips'],
     avoidPlants: ['Onions', 'Garlic']
   },
+  {
+    id: 'climbing-french-beans',
+    name: 'Climbing French Beans',
+    category: 'legumes',
+    description: 'Vertical-growing beans with excellent yields. Space-saving and productive.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 55, max: 75 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 45 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Provide tall supports (2-2.5m)',
+        'More productive than bush varieties',
+        'Pick regularly to encourage production',
+        'Great for small Scottish allotments'
+      ]
+    },
+    companionPlants: ['Sweetcorn', 'Squash', 'Cucumbers'],
+    avoidPlants: ['Onions', 'Garlic', 'Fennel']
+  },
+  {
+    id: 'borlotti-beans',
+    name: 'Borlotti Beans',
+    category: 'legumes',
+    description: 'Italian beans for fresh or dried. Beautiful speckled pods.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 45 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest young for fresh shelling beans',
+        'Leave on plant to dry for storage',
+        'Beautiful cream and red speckled pods',
+        'Climbing variety needs support'
+      ]
+    },
+    companionPlants: ['Sweetcorn', 'Squash', 'Cucumbers'],
+    avoidPlants: ['Onions', 'Garlic', 'Fennel']
+  },
+  {
+    id: 'edamame',
+    name: 'Edamame (Soy Beans)',
+    category: 'legumes',
+    description: 'Fresh green soy beans. Protein-rich and increasingly popular.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 10, rows: 45 },
+      depth: 3,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose early varieties for Scotland',
+        'Harvest when pods are plump but green',
+        'Bush habit - no support needed',
+        'Boil whole pods in salted water'
+      ]
+    },
+    companionPlants: ['Sweetcorn', 'Squash'],
+    avoidPlants: ['Onions', 'Garlic']
+  },
+  {
+    id: 'mangetout',
+    name: 'Mangetout (Snow Peas)',
+    category: 'legumes',
+    description: 'Flat edible-pod peas. Harvest young before peas develop.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [3, 4, 5],
+      transplantMonths: [3, 4],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 5, rows: 60 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest when pods flat - before peas swell',
+        'Very productive - pick daily',
+        'Ideal for stir-fries',
+        'Climbing varieties need support'
+      ]
+    },
+    companionPlants: ['Carrots', 'Radishes', 'Turnips'],
+    avoidPlants: ['Onions', 'Garlic']
+  },
+  {
+    id: 'sugar-snap-peas',
+    name: 'Sugar Snap Peas',
+    category: 'legumes',
+    description: 'Sweet edible-pod peas. Eat pods and peas together.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [3, 4, 5],
+      transplantMonths: [3, 4],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 75 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 5, rows: 60 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Sweeter than mangetout',
+        'Harvest when pods plump and crisp',
+        'Excellent fresh or lightly cooked',
+        'Provide strong supports'
+      ]
+    },
+    companionPlants: ['Carrots', 'Radishes', 'Turnips'],
+    avoidPlants: ['Onions', 'Garlic']
+  },
+  {
+    id: 'asparagus-peas',
+    name: 'Asparagus Peas',
+    category: 'legumes',
+    description: 'Unusual winged pods with asparagus flavor. Low-growing plant.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [6],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 3,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest pods very young (2-3cm)',
+        'Older pods become tough',
+        'Beautiful winged pods',
+        'Low-growing - no support needed'
+      ]
+    },
+    companionPlants: ['Carrots', 'Radishes'],
+    avoidPlants: ['Onions']
+  },
+  {
+    id: 'black-turtle-beans',
+    name: 'Black Turtle Beans',
+    category: 'legumes',
+    description: 'Drying bean for storage. Excellent for soups and Mexican dishes.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [6],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 90, max: 110 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 45 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Leave pods on plant until fully dry',
+        'Needs warm summer to ripen in Scotland',
+        'Store dried beans for winter use',
+        'High in protein and fiber'
+      ]
+    },
+    companionPlants: ['Sweetcorn', 'Squash'],
+    avoidPlants: ['Onions', 'Garlic']
+  },
+  {
+    id: 'fenugreek',
+    name: 'Fenugreek',
+    category: 'legumes',
+    description: 'Herb and nitrogen-fixing legume. Use leaves fresh, seeds dried.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 40, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 10, rows: 20 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest young leaves for curry dishes',
+        'Seeds used in spice blends',
+        'Fixes nitrogen in soil',
+        'Can use as green manure'
+      ]
+    },
+    companionPlants: ['Vegetables (general)'],
+    avoidPlants: []
+  },
 
   // ============ SOLANACEAE ============
   {
@@ -824,6 +1804,146 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
+  {
+    id: 'cherry-tomato',
+    name: 'Cherry Tomato',
+    category: 'solanaceae',
+    description: 'Small sweet tomatoes. More reliable outdoors in Scotland than large varieties.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'More reliable outdoors than beefsteak types',
+        'Tumbling varieties good for containers',
+        'Sweet flavor loved by children',
+        'Less prone to splitting than large tomatoes'
+      ]
+    },
+    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
+  {
+    id: 'beefsteak-tomato',
+    name: 'Beefsteak Tomato',
+    category: 'solanaceae',
+    description: 'Large slicing tomatoes. Best in greenhouse or polytunnel in Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 50, rows: 60 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Need greenhouse or polytunnel in Scotland',
+        'Support with strong stakes or strings',
+        'Can exceed 500g per fruit',
+        'Choose blight-resistant varieties'
+      ]
+    },
+    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
+  {
+    id: 'plum-tomato',
+    name: 'Plum Tomato',
+    category: 'solanaceae',
+    description: 'Oval sauce tomatoes. Excellent for cooking and preserving.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 70, max: 85 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Less watery than salad tomatoes',
+        'Ideal for sauces and passata',
+        'Good yields in Scottish polytunnels',
+        'Roma types are classics'
+      ]
+    },
+    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
+  {
+    id: 'blight-resistant-tomato',
+    name: 'Blight-Resistant Tomato',
+    category: 'solanaceae',
+    description: 'Bred for resistance to late blight. Essential for wet Scottish summers.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Varieties like Buffalosun, Crimson Crush, Mountain Magic',
+        'Can grow outdoors in wet Scottish weather',
+        'Still watch for blight, but much more resistant',
+        'Game-changer for outdoor tomato growing'
+      ]
+    },
+    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
+  {
+    id: 'tomatillo',
+    name: 'Tomatillo',
+    category: 'solanaceae',
+    description: 'Mexican green tomato in papery husk. Surprisingly viable in Scotland.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 75, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 90 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Plant at least 2 for cross-pollination',
+        'Harvest when husks split',
+        'Used for salsa verde',
+        'Surprisingly hardy for mild Scottish autumns'
+      ]
+    },
+    companionPlants: ['Basil', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
 
@@ -936,6 +2056,174 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Beans', 'Nasturtiums'],
     avoidPlants: ['Potatoes']
   },
+  {
+    id: 'patty-pan-squash',
+    name: 'Patty Pan Squash',
+    category: 'cucurbits',
+    description: 'UFO-shaped summer squash. Compact plants ideal for small Scottish allotments.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 90, rows: 120 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest when 5-8cm diameter for best flavor',
+        'More compact than courgettes',
+        'Beautiful scalloped edges',
+        'Yellow, green, or white varieties'
+      ]
+    },
+    companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'butternut-squash',
+    name: 'Butternut Squash',
+    category: 'cucurbits',
+    description: 'Popular winter squash. Needs long warm season but possible in Scotland.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 95, max: 110 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 120, rows: 180 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose early varieties for Scotland',
+        'Start indoors for best results',
+        'Harvest before first frost',
+        'Cure for 2 weeks before storage'
+      ]
+    },
+    companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'spaghetti-squash',
+    name: 'Spaghetti Squash',
+    category: 'cucurbits',
+    description: 'Winter squash with stringy flesh. Unique texture when cooked.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 90, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 120, rows: 180 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Flesh separates into spaghetti-like strands',
+        'Good low-carb pasta substitute',
+        'Needs warm sheltered spot in Scotland',
+        'Harvest when rind hard to fingernail'
+      ]
+    },
+    companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'acorn-squash',
+    name: 'Acorn Squash',
+    category: 'cucurbits',
+    description: 'Compact winter squash with ridged shape. More reliable than butternut in Scotland.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 90, rows: 120 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Earlier maturing than butternut',
+        'Smaller plants fit Scottish allotments',
+        'Sweet nutty flavor',
+        'Good for stuffing and roasting'
+      ]
+    },
+    companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'outdoor-melon',
+    name: 'Outdoor Melon',
+    category: 'cucurbits',
+    description: 'Fast-maturing melon varieties for Scottish summers. Choose carefully!',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 90, rows: 120 },
+      depth: 2,
+      difficulty: 'advanced',
+      tips: [
+        'Only early varieties like Minnesota Midget work',
+        'Needs cloche or polytunnel in Scotland',
+        'Pinch out at 4 fruits per plant',
+        'Harvest when base smells sweet'
+      ]
+    },
+    companionPlants: ['Beans', 'Nasturtiums'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'luffa',
+    name: 'Ridged Gourd (Luffa)',
+    category: 'cucurbits',
+    description: 'Edible when young, sponge when mature. Needs long warm season.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 100, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 60, rows: 90 },
+      depth: 2,
+      difficulty: 'advanced',
+      tips: [
+        'Harvest young (15-20cm) for eating',
+        'Leave to mature for sponges',
+        'Needs polytunnel in Scotland',
+        'Vigorous climber - provide strong support'
+      ]
+    },
+    companionPlants: ['Beans', 'Corn'],
+    avoidPlants: ['Potatoes']
+  },
 
   // ============ ALLIUMS ============
   {
@@ -1045,6 +2333,174 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Carrots', 'Lettuce'],
     avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'welsh-onion',
+    name: 'Welsh Onion',
+    category: 'alliums',
+    description: 'Perennial bunching onion. Harvest year-round in Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8],
+      transplantMonths: [5, 6],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 60, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - lasts many years',
+        'Harvest green tops year-round',
+        'Very hardy - survives Scottish winters',
+        'Also called Japanese bunching onion'
+      ]
+    },
+    companionPlants: ['Carrots', 'Lettuce', 'Tomatoes'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'elephant-garlic',
+    name: 'Elephant Garlic',
+    category: 'alliums',
+    description: 'Giant mild garlic. Actually closer to leek than true garlic.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [10, 11],
+      harvestMonths: [6, 7],
+      daysToHarvest: { min: 240, max: 270 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 15, rows: 30 },
+      depth: 8,
+      difficulty: 'beginner',
+      tips: [
+        'Plant cloves in autumn',
+        'Much larger and milder than regular garlic',
+        'Can be 10cm diameter',
+        'Very hardy for Scottish winters'
+      ]
+    },
+    companionPlants: ['Roses', 'Fruit trees', 'Tomatoes'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'walking-onion',
+    name: 'Walking Onion (Tree Onion)',
+    category: 'alliums',
+    description: 'Perennial onion with top-setting bulbils. Quirky and productive.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 9, 10],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Produces bulbs at top of stalks',
+        'Stalks bend and "walk" planting new bulbs',
+        'Perennial - very low maintenance',
+        'Harvest bulbils or green tops'
+      ]
+    },
+    companionPlants: ['Carrots', 'Lettuce'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'potato-onion',
+    name: 'Potato Onion',
+    category: 'alliums',
+    description: 'Multiplier onion forming clusters. Heritage variety very hardy.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [2, 3, 10],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Plant one bulb, harvest 5-10',
+        'Very hardy heritage variety',
+        'Good storage onion',
+        'Ideal for Scottish allotments'
+      ]
+    },
+    companionPlants: ['Carrots', 'Lettuce'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'garlic-chives',
+    name: 'Garlic Chives',
+    category: 'alliums',
+    description: 'Flat-leaved chives with garlic flavor. Perennial herb.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [5, 6],
+      harvestMonths: [5, 6, 7, 8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 25, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - lasts many years',
+        'White flowers edible and ornamental',
+        'Stronger flavor than regular chives',
+        'Cut and come again harvesting'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Roses', 'Carrots'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'ramps',
+    name: 'Ramps (Wild Leeks)',
+    category: 'alliums',
+    description: 'Woodland perennial leek. Spring ephemeral with garlicky flavor.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [9, 10],
+      transplantMonths: [9, 10],
+      harvestMonths: [4, 5],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 10, rows: 15 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Needs woodland conditions - shade and leaf mold',
+        'Slow to establish - 2-3 years',
+        'Harvest sustainably - leaves only',
+        'Spring delicacy with intense flavor'
+      ]
+    },
+    companionPlants: ['Woodland plants', 'Ferns'],
+    avoidPlants: []
   },
 
   // ============ HERBS ============
@@ -1353,6 +2809,342 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Sweetcorn', 'Sunflowers'],
     avoidPlants: ['Potatoes']
   },
+  {
+    id: 'oregano',
+    name: 'Oregano',
+    category: 'herbs',
+    description: 'Mediterranean herb. Very hardy perennial for Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 80, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - lasts many years',
+        'Drought-tolerant once established',
+        'Flavor intensifies when dried',
+        'Cut back after flowering to encourage growth'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Peppers', 'Cucurbits'],
+    avoidPlants: []
+  },
+  {
+    id: 'sage',
+    name: 'Sage',
+    category: 'herbs',
+    description: 'Evergreen perennial herb. Very hardy and drought-tolerant.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 90, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy evergreen in Scotland',
+        'Purple and variegated varieties available',
+        'Prune lightly after flowering',
+        'Replace plants every 4-5 years'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Carrots', 'Rosemary'],
+    avoidPlants: ['Cucumber']
+  },
+  {
+    id: 'french-tarragon',
+    name: 'French Tarragon',
+    category: 'herbs',
+    description: 'Classic French herb. Must propagate from cuttings, not seed.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5, 9],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Buy plants - true French tarragon doesn\'t seed',
+        'Dies back in winter',
+        'Anise-like flavor essential for béarnaise sauce',
+        'Mulch over winter in Scotland'
+      ]
+    },
+    companionPlants: ['Vegetables (general)'],
+    avoidPlants: []
+  },
+  {
+    id: 'dill',
+    name: 'Dill',
+    category: 'herbs',
+    description: 'Annual herb with feathery leaves. Self-seeds readily.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 6, 7],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 40, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Sow directly - dislikes transplanting',
+        'Self-seeds prolifically',
+        'Use leaves fresh, seeds dried',
+        'Attracts beneficial insects'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Cucumbers', 'Lettuce'],
+    avoidPlants: ['Carrots', 'Fennel']
+  },
+  {
+    id: 'herb-fennel',
+    name: 'Herb Fennel',
+    category: 'herbs',
+    description: 'Feathery perennial herb. Different from Florence fennel bulb.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Perennial - bronze variety very ornamental',
+        'Anise flavor for fish dishes',
+        'Self-seeds readily',
+        'Attracts beneficial insects'
+      ]
+    },
+    companionPlants: ['Dill should be kept separate'],
+    avoidPlants: ['Dill', 'Coriander', 'Tomatoes']
+  },
+  {
+    id: 'lemon-balm',
+    name: 'Lemon Balm',
+    category: 'herbs',
+    description: 'Lemon-scented perennial herb. Very vigorous and hardy.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [5, 6, 7, 8, 9, 10],
+      daysToHarvest: { min: 70, max: 365 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very vigorous - can be invasive',
+        'Cut back before flowering to prevent seeding',
+        'Lemon scent for teas and desserts',
+        'Attracts bees'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Herbs'],
+    avoidPlants: []
+  },
+  {
+    id: 'marjoram',
+    name: 'Marjoram',
+    category: 'herbs',
+    description: 'Sweet oregano relative. Tender perennial often grown as annual.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 25, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Sweeter and milder than oregano',
+        'Often doesn\'t survive Scottish winters',
+        'Grow as annual or protect in winter',
+        'Excellent for Italian and Greek dishes'
+      ]
+    },
+    companionPlants: ['Vegetables (general)'],
+    avoidPlants: []
+  },
+  {
+    id: 'bay',
+    name: 'Bay',
+    category: 'herbs',
+    description: 'Evergreen shrub with aromatic leaves. Slow-growing but very long-lived.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5, 9],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 100, rows: 100 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Evergreen shrub or small tree',
+        'Grow in large container for flexibility',
+        'Very slow-growing',
+        'Hardy in most of Scotland'
+      ]
+    },
+    companionPlants: ['Herbs', 'Vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'borage',
+    name: 'Borage',
+    category: 'herbs',
+    description: 'Annual herb with blue edible flowers. Excellent bee plant.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 6],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Self-seeds prolifically',
+        'Edible blue star flowers',
+        'Cucumber-flavored leaves',
+        'Attracts bees and beneficial insects'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Squash', 'Strawberries'],
+    avoidPlants: []
+  },
+  {
+    id: 'chamomile',
+    name: 'Chamomile',
+    category: 'herbs',
+    description: 'Low-growing perennial herb. Used for tea and as lawn alternative.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 20 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Roman chamomile good for lawns',
+        'German chamomile better for tea',
+        'Apple-scented flowers',
+        'Can tolerate light foot traffic'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Onions'],
+    avoidPlants: []
+  },
+  {
+    id: 'winter-savory',
+    name: 'Winter Savory',
+    category: 'herbs',
+    description: 'Hardy perennial herb. Peppery flavor good with beans.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 80, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 40 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy evergreen perennial',
+        'Peppery flavor traditional with beans',
+        'Drought-tolerant once established',
+        'Trim after flowering'
+      ]
+    },
+    companionPlants: ['Beans', 'Onions'],
+    avoidPlants: []
+  },
+  {
+    id: 'hyssop',
+    name: 'Hyssop',
+    category: 'herbs',
+    description: 'Hardy perennial herb with blue flowers. Excellent bee plant.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 90, max: 365 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 40 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy semi-evergreen perennial',
+        'Blue, pink, or white flowers',
+        'Attracts bees and butterflies',
+        'Minty-bitter flavor for teas'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Grapes'],
+    avoidPlants: ['Radishes']
+  },
 
   // ============ BERRIES ============
   {
@@ -1573,6 +3365,270 @@ export const vegetables: Vegetable[] = [
       notes: ['Prune to open goblet shape like gooseberries']
     }
   },
+  {
+    id: 'tayberry',
+    name: 'Tayberry',
+    category: 'berries',
+    description: 'Raspberry-blackberry hybrid from Scotland. Large aromatic berries.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 200, rows: 200 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Bred in Scotland - perfect for climate',
+        'Large aromatic berries',
+        'More disease-resistant than loganberry',
+        'Tie canes to wires like raspberries'
+      ]
+    },
+    companionPlants: ['Garlic', 'Alliums'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [8, 9],
+      feedMonths: [3],
+      notes: ['Remove fruited canes after harvest']
+    }
+  },
+  {
+    id: 'loganberry',
+    name: 'Loganberry',
+    category: 'berries',
+    description: 'Another raspberry-blackberry hybrid. Tart flavor good for cooking.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 200, rows: 200 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Tart flavor - excellent for jams',
+        'Vigorous - needs strong supports',
+        'Thornless varieties available',
+        'Tie to wires like blackberries'
+      ]
+    },
+    companionPlants: ['Garlic', 'Alliums'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [8, 9],
+      feedMonths: [3],
+      notes: ['Remove fruited canes after harvest']
+    }
+  },
+  {
+    id: 'jostaberry',
+    name: 'Jostaberry',
+    category: 'berries',
+    description: 'Blackcurrant-gooseberry hybrid. Thornless and productive.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 150, rows: 200 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Thornless - easier to pick than gooseberries',
+        'Very hardy for Scottish gardens',
+        'Large berries with blackcurrant flavor',
+        'Self-fertile'
+      ]
+    },
+    companionPlants: ['Tansy'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1, 2],
+      feedMonths: [3],
+      notes: ['Minimal pruning needed - remove dead wood']
+    }
+  },
+  {
+    id: 'honeyberry',
+    name: 'Honeyberry (Haskap)',
+    category: 'berries',
+    description: 'Blue honeysuckle berry. Extremely cold-hardy superfruit.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [5, 6],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 150, rows: 200 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Extremely cold-hardy - ideal for Scotland',
+        'Very early fruiting - before strawberries',
+        'Plant 2 varieties for cross-pollination',
+        'High in antioxidants'
+      ]
+    },
+    companionPlants: ['Companion honeyberry varieties'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1, 2],
+      feedMonths: [3],
+      notes: ['Minimal pruning - remove dead wood only']
+    }
+  },
+  {
+    id: 'goji-berry',
+    name: 'Goji Berry',
+    category: 'berries',
+    description: 'Superfood shrub from Asia. Hardy and productive in Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 150, rows: 200 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - tolerates -25°C',
+        'Fruits from second year',
+        'Can be invasive - suckers freely',
+        'Dry berries for winter superfood'
+      ]
+    },
+    companionPlants: ['Nitrogen fixers'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [2, 3],
+      feedMonths: [3],
+      notes: ['Control suckers to prevent spread']
+    }
+  },
+  {
+    id: 'aronia',
+    name: 'Aronia (Chokeberry)',
+    category: 'berries',
+    description: 'Antioxidant-rich native American berry. Very hardy shrub.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 150, rows: 200 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Extremely hardy - survives -35°C',
+        'High in anthocyanins - superfood',
+        'Beautiful autumn color',
+        'Birds leave berries alone due to astringency'
+      ]
+    },
+    companionPlants: ['Native plants'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1, 2],
+      feedMonths: [3],
+      notes: ['Minimal pruning needed']
+    }
+  },
+  {
+    id: 'elderberry',
+    name: 'Elderberry',
+    category: 'berries',
+    description: 'Native British shrub. Flowers and berries both useful.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 250, rows: 300 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Native to Britain - very hardy',
+        'Flowers for cordial in June',
+        'Berries for wine/syrup in September',
+        'Fast-growing - can be 3m tall'
+      ]
+    },
+    companionPlants: ['Native hedgerow plants'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1],
+      feedMonths: [3],
+      notes: ['Prune to maintain size and shape']
+    }
+  },
+  {
+    id: 'sea-buckthorn',
+    name: 'Sea Buckthorn',
+    category: 'berries',
+    description: 'Coastal native with vitamin C-rich berries. Fixes nitrogen.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 1095, max: 1460 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 200, rows: 300 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Native to Scottish coasts',
+        'Need male and female plants',
+        'Fixes nitrogen - good for poor soil',
+        'Extremely high vitamin C content'
+      ]
+    },
+    companionPlants: ['Nitrogen-loving plants nearby'],
+    avoidPlants: [],
+    maintenance: {
+      pruneMonths: [11, 12, 1],
+      feedMonths: [],
+      notes: ['Minimal care - very tough plant']
+    }
+  },
 
   // ============ FRUIT TREES ============
   {
@@ -1708,6 +3764,204 @@ export const vegetables: Vegetable[] = [
       notes: ['Prune in summer to avoid silver leaf disease']
     }
   },
+  {
+    id: 'pear-tree',
+    name: 'Pear Tree',
+    category: 'fruit-trees',
+    description: 'Classic dessert fruit. Conference and Concorde are reliable self-fertile varieties.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 350, rows: 400 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Conference is self-fertile and reliable',
+        'Needs warm wall in Scotland for best results',
+        'Prune in winter when dormant',
+        'Pick before fully ripe and ripen indoors'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Nasturtiums'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [12, 1, 2],
+      feedMonths: [3],
+      notes: ['Winter prune when dormant', 'May need thinning if heavy crop']
+    }
+  },
+  {
+    id: 'greengage-tree',
+    name: 'Greengage Tree',
+    category: 'fruit-trees',
+    description: 'Sweet green plum variety. Cambridge Gage is hardiest for Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 350, rows: 400 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Cambridge Gage most reliable for Scotland',
+        'Needs pollination partner (other plum)',
+        'Excellent for eating fresh or jam',
+        'Prune in summer to avoid disease'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [6, 7],
+      feedMonths: [3],
+      notes: ['Prune in summer to avoid silver leaf disease']
+    }
+  },
+  {
+    id: 'medlar-tree',
+    name: 'Medlar Tree',
+    category: 'fruit-trees',
+    description: 'Unusual historic fruit tree. Extremely hardy and self-fertile - perfect for Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [10, 11],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 400, rows: 500 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - one of easiest fruit trees',
+        'Self-fertile - no partner needed',
+        'Must "blet" (soften) before eating',
+        'Beautiful autumn color and spring blossom'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [12, 1, 2],
+      feedMonths: [3],
+      notes: ['Minimal pruning needed - very low maintenance']
+    }
+  },
+  {
+    id: 'quince-tree',
+    name: 'Quince Tree',
+    category: 'fruit-trees',
+    description: 'Historic cooking fruit. Hardy and self-fertile with beautiful blossom.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [10, 11],
+      daysToHarvest: { min: 730, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 350, rows: 400 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Self-fertile and hardy',
+        'Perfect for jelly, jam, and membrillo',
+        'Fragrant fruit in autumn',
+        'Low maintenance - rarely needs pruning'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [12, 1, 2],
+      feedMonths: [3],
+      notes: ['Minimal pruning - just remove dead/crossing branches']
+    }
+  },
+  {
+    id: 'fig-tree',
+    name: 'Fig Tree',
+    category: 'fruit-trees',
+    description: 'Mediterranean fruit increasingly viable in UK. Brown Turkey is hardiest variety.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 400, rows: 500 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Brown Turkey is hardiest for Scotland',
+        'Needs warm south-facing wall',
+        'Restrict roots to encourage fruiting',
+        'Protect from hard frost in winter'
+      ]
+    },
+    companionPlants: ['Comfrey', 'Nasturtiums'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [3, 4],
+      feedMonths: [4, 5],
+      notes: ['Prune in early spring', 'May need winter protection in cold areas']
+    }
+  },
+  {
+    id: 'mulberry-tree',
+    name: 'Mulberry Tree',
+    category: 'fruit-trees',
+    description: 'Hardy long-lived fruit tree. Black mulberry is sweetest and most productive.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [11, 12, 1, 2, 3],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 1095, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 500, rows: 600 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy and long-lived (centuries!)',
+        'Self-fertile - no partner needed',
+        'Slow to start but productive once established',
+        'Fruit stains - plant away from paths'
+      ]
+    },
+    companionPlants: ['Garlic', 'Chives', 'Comfrey'],
+    avoidPlants: ['Grass around base'],
+    maintenance: {
+      pruneMonths: [12, 1],
+      feedMonths: [3],
+      notes: ['Minimal pruning needed - bleeds sap if cut in growing season']
+    }
+  },
 
   // ============ ADDITIONAL SCOTLAND-FRIENDLY VEGETABLES ============
   {
@@ -1793,6 +4047,1837 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
     avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+
+  // Annual Flowers
+  {
+    id: 'cosmos',
+    name: 'Cosmos',
+    category: 'annual-flowers',
+    description: 'Easy-growing annual flower with feathery foliage and daisy-like blooms. Attracts pollinators and beneficial insects.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Deadhead regularly for continuous blooms',
+        'Tolerates poor soil - avoid over-fertilizing',
+        'Self-seeds readily for next year',
+        'Excellent cut flower with long vase life'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Courgettes', 'Beans'],
+    avoidPlants: []
+  },
+  {
+    id: 'sunflower',
+    name: 'Sunflower',
+    category: 'annual-flowers',
+    description: 'Tall annual with large yellow flower heads. Provides food for birds and beneficial insects.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 80, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Stake tall varieties in exposed Scottish sites',
+        'Attracts bees and provides food for birds',
+        'Harvest seeds when back of flower turns brown',
+        'Can be used as living supports for climbing beans'
+      ]
+    },
+    companionPlants: ['Cucumbers', 'Squash', 'Beans'],
+    avoidPlants: ['Potatoes']
+  },
+  {
+    id: 'zinnia',
+    name: 'Zinnia',
+    category: 'annual-flowers',
+    description: 'Vibrant annual flower with long-lasting blooms. Excellent pollinator attractor and cut flower.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Deadhead regularly to promote blooming',
+        'Water at base to prevent mildew',
+        'Choose mildew-resistant varieties for Scotland',
+        'Excellent cut flower - harvest when fully open'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Peppers', 'Cucurbits'],
+    avoidPlants: []
+  },
+  {
+    id: 'marigold',
+    name: 'Marigold',
+    category: 'annual-flowers',
+    description: 'Hardy annual with bright orange or yellow flowers. Repels pests and attracts beneficial insects.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 25, rows: 25 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'French marigolds deter aphids and whitefly',
+        'Plant throughout vegetable beds for pest control',
+        'Deadhead to prolong flowering season',
+        'Self-seeds readily - save seeds for next year'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Beans', 'Brassicas', 'Potatoes'],
+    avoidPlants: []
+  },
+  {
+    id: 'calendula',
+    name: 'Calendula',
+    category: 'annual-flowers',
+    description: 'Pot marigold with edible flowers. Attracts beneficial insects and has medicinal properties.',
+    planting: {
+      sowIndoorsMonths: [3],
+      sowOutdoorsMonths: [4, 5, 9],
+      transplantMonths: [4, 5],
+      harvestMonths: [6, 7, 8, 9, 10, 11],
+      daysToHarvest: { min: 50, max: 65 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 25, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Edible flowers - use petals in salads',
+        'Very cold-hardy - can flower into winter in Scotland',
+        'Attracts hoverflies that eat aphids',
+        'Self-seeds prolifically - allow some to set seed'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Asparagus', 'Lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'nasturtium',
+    name: 'Nasturtium',
+    category: 'annual-flowers',
+    description: 'Fast-growing annual with edible flowers and leaves. Attracts aphids away from crops.',
+    planting: {
+      sowIndoorsMonths: [4],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 65 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 30, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Entire plant is edible - peppery flavor',
+        'Acts as sacrificial crop for aphids',
+        'Trailing varieties can cover bare soil',
+        'Thrives in poor soil - avoid over-feeding'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Cucurbits', 'Radishes', 'Beans'],
+    avoidPlants: []
+  },
+  {
+    id: 'cornflower',
+    name: 'Cornflower',
+    category: 'annual-flowers',
+    description: 'Native British wildflower with blue flowers. Excellent for pollinators and cut flowers.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 9],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - can sow in autumn for early flowers',
+        'Native British wildflower - supports local wildlife',
+        'Excellent cut flower with long vase life',
+        'Self-seeds readily - allow some to set seed'
+      ]
+    },
+    companionPlants: ['Vegetables (general)', 'Fruit'],
+    avoidPlants: []
+  },
+
+  // Perennial Flowers
+  {
+    id: 'lavender',
+    name: 'Lavender',
+    category: 'perennial-flowers',
+    description: 'Aromatic evergreen shrub with purple flower spikes. Excellent bee plant and culinary herb.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6, 9],
+      harvestMonths: [6, 7, 8],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose hardy varieties for Scotland (Lavandula angustifolia)',
+        'Requires well-drained soil - raised beds ideal',
+        'Prune after flowering to maintain shape',
+        'Attracts bees and deters aphids'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Fruit trees', 'Roses'],
+    avoidPlants: []
+  },
+  {
+    id: 'echinacea',
+    name: 'Echinacea',
+    category: 'perennial-flowers',
+    description: 'Purple coneflower with medicinal properties. Long-flowering and attracts butterflies.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6, 9],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 45 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Very hardy perennial - survives Scottish winters',
+        'Flowers from second year onwards',
+        'Deadhead to prolong flowering',
+        'Leave seed heads for birds in winter'
+      ]
+    },
+    companionPlants: ['Rudbeckia', 'Salvia', 'Perennial vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'rudbeckia',
+    name: 'Rudbeckia',
+    category: 'perennial-flowers',
+    description: 'Black-eyed Susan with bright yellow flowers. Tough perennial for late summer color.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6, 9],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 45 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy and easy to grow',
+        'Flowers from second year onwards',
+        'Tolerates clay soil common in Scotland',
+        'Spreads slowly to form clumps'
+      ]
+    },
+    companionPlants: ['Echinacea', 'Sedum', 'Grasses'],
+    avoidPlants: []
+  },
+  {
+    id: 'sedum',
+    name: 'Sedum',
+    category: 'perennial-flowers',
+    description: 'Stonecrop with succulent leaves and pink autumn flowers. Extremely hardy and drought-tolerant.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 5, 9, 10],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 45 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Extremely drought-tolerant once established',
+        'Flowers in late summer when little else blooms',
+        'Attracts butterflies and bees',
+        'Leave flower heads through winter for structure'
+      ]
+    },
+    companionPlants: ['Lavender', 'Thyme', 'Rosemary'],
+    avoidPlants: []
+  },
+  {
+    id: 'geranium',
+    name: 'Hardy Geranium',
+    category: 'perennial-flowers',
+    description: 'True hardy geranium (not pelargonium). Long-flowering groundcover for borders.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5, 9, 10],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 40, rows: 40 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - perfect for Scottish gardens',
+        'Many varieties flower from May to September',
+        'Cut back after first flush for second flowering',
+        'Good groundcover to suppress weeds'
+      ]
+    },
+    companionPlants: ['Roses', 'Herbs', 'Shade vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'salvia',
+    name: 'Salvia',
+    category: 'perennial-flowers',
+    description: 'Ornamental sage with spikes of blue or purple flowers. Long flowering season attracts pollinators.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 45 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Choose hardy varieties for Scotland (S. nemorosa)',
+        'Deadhead to prolong flowering',
+        'Cut back in spring rather than autumn',
+        'Attracts bees throughout summer'
+      ]
+    },
+    companionPlants: ['Roses', 'Lavender', 'Vegetables'],
+    avoidPlants: []
+  },
+
+  // Bulbs
+  {
+    id: 'tulip',
+    name: 'Tulip',
+    category: 'bulbs',
+    description: 'Spring-flowering bulb with vibrant colors. Plant in autumn for spring display.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [10, 11],
+      harvestMonths: [3, 4, 5],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 10, rows: 15 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Plant bulbs in November for best results',
+        'Well-drained soil essential - avoid waterlogging',
+        'Lift and dry bulbs after flowering or leave in ground',
+        'Deer and rabbit resistant'
+      ]
+    },
+    companionPlants: ['Daffodils', 'Forget-me-nots', 'Wallflowers'],
+    avoidPlants: []
+  },
+  {
+    id: 'daffodil',
+    name: 'Daffodil',
+    category: 'bulbs',
+    description: 'Hardy spring bulb with yellow or white flowers. Naturalizes well and returns year after year.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [9, 10, 11],
+      harvestMonths: [2, 3, 4],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 10, rows: 15 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - perfect for Scottish gardens',
+        'Plant early (September) for best results',
+        'Allow foliage to die back naturally after flowering',
+        'Naturalizes in grass and woodland areas'
+      ]
+    },
+    companionPlants: ['Tulips', 'Crocus', 'Grape hyacinths'],
+    avoidPlants: []
+  },
+  {
+    id: 'allium-flower',
+    name: 'Ornamental Allium',
+    category: 'bulbs',
+    description: 'Dramatic spherical flower heads on tall stems. Excellent architectural plant and bee attractor.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [9, 10, 11],
+      harvestMonths: [5, 6, 7],
+      daysToHarvest: { min: 180, max: 240 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 20, rows: 25 },
+      depth: 15,
+      difficulty: 'beginner',
+      tips: [
+        'Plant bulbs in autumn for early summer flowers',
+        'Leave seed heads for winter interest',
+        'Deer and rabbit resistant',
+        'Excellent cut or dried flowers'
+      ]
+    },
+    companionPlants: ['Roses', 'Perennials', 'Grasses'],
+    avoidPlants: []
+  },
+  {
+    id: 'crocus',
+    name: 'Crocus',
+    category: 'bulbs',
+    description: 'Early spring bulb with cup-shaped flowers. One of the first flowers to bloom in Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [9, 10],
+      harvestMonths: [2, 3, 4],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 7, rows: 10 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Very early flowering - valuable for early bees',
+        'Naturalizes in lawns and under trees',
+        'Plant in drifts for best effect',
+        'Multiplies over time'
+      ]
+    },
+    companionPlants: ['Snowdrops', 'Daffodils', 'Winter aconites'],
+    avoidPlants: []
+  },
+  {
+    id: 'dahlia',
+    name: 'Dahlia',
+    category: 'bulbs',
+    description: 'Tender tuber with spectacular summer flowers. Lift and store over winter in Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Not frost-hardy - plant after last frost',
+        'Lift tubers in autumn and store frost-free',
+        'Stake tall varieties to prevent wind damage',
+        'Excellent cut flower with long vase life'
+      ]
+    },
+    companionPlants: ['Vegetables (general)', 'Annual flowers'],
+    avoidPlants: []
+  },
+
+  // Climbers
+  {
+    id: 'sweet-pea',
+    name: 'Sweet Pea',
+    category: 'climbers',
+    description: 'Fragrant climbing annual with colorful flowers. Excellent cut flower and pollinator attractor.',
+    planting: {
+      sowIndoorsMonths: [2, 3, 10],
+      sowOutdoorsMonths: [4],
+      transplantMonths: [4, 5],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Sow in autumn for earlier, stronger plants',
+        'Pinch out growing tips when 10cm tall',
+        'Pick flowers regularly to prolong blooming',
+        'Provide tall supports (2m) for climbing varieties'
+      ]
+    },
+    companionPlants: ['Beans', 'Peas', 'Brassicas'],
+    avoidPlants: []
+  },
+  {
+    id: 'clematis',
+    name: 'Clematis',
+    category: 'climbers',
+    description: 'Versatile climbing perennial with large flowers. Wide range of varieties for different seasons.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 5, 9, 10],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 100, rows: 100 },
+      depth: 10,
+      difficulty: 'intermediate',
+      tips: [
+        'Plant with roots in shade, top in sun',
+        'Mulch base to keep roots cool',
+        'Choose hardy varieties for Scotland',
+        'Prune according to variety group (1, 2, or 3)'
+      ]
+    },
+    companionPlants: ['Roses', 'Honeysuckle', 'Climbing vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'honeysuckle',
+    name: 'Honeysuckle',
+    category: 'climbers',
+    description: 'Fragrant climbing perennial native to UK. Attracts moths and provides wildlife habitat.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 5, 9, 10, 11],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 100, rows: 100 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Native climber - supports local wildlife',
+        'Very hardy - tolerates Scottish climate well',
+        'Fragrant evening flowers attract moths',
+        'Can become vigorous - prune after flowering'
+      ]
+    },
+    companionPlants: ['Clematis', 'Ivy', 'Native plants'],
+    avoidPlants: []
+  },
+  {
+    id: 'morning-glory',
+    name: 'Morning Glory',
+    category: 'climbers',
+    description: 'Fast-growing annual climber with trumpet flowers. Opens in morning, closes by afternoon.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 70, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Soak seeds overnight before sowing',
+        'Fast-growing - can cover 3m in one season',
+        'Self-seeds readily in mild areas',
+        'Provide strong supports for vigorous growth'
+      ]
+    },
+    companionPlants: ['Beans', 'Cucumbers', 'Squash'],
+    avoidPlants: []
+  },
+
+  // ============ ADDITIONAL PERENNIAL FLOWERS ============
+  {
+    id: 'yarrow',
+    name: 'Yarrow (Achillea)',
+    category: 'perennial-flowers',
+    description: 'Hardy medicinal perennial with flat flower heads. Attracts beneficial insects and pollinators.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5, 9],
+      transplantMonths: [5, 6, 9, 10],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 60 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Very drought-tolerant once established',
+        'Attracts hoverflies and lacewings',
+        'Cut flowers dry well for arrangements',
+        'Can be invasive - deadhead to control spread'
+      ]
+    },
+    companionPlants: ['All vegetables', 'Herbs'],
+    avoidPlants: []
+  },
+  {
+    id: 'bergamot',
+    name: 'Bergamot (Monarda)',
+    category: 'perennial-flowers',
+    description: 'Bee balm with aromatic leaves and showy flowers. Edible flowers and leaves for tea.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Bee and butterfly magnet',
+        'Edible flowers - use in salads',
+        'Aromatic leaves for tea',
+        'Can spread - divide every 3 years'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Brassicas', 'Squash'],
+    avoidPlants: []
+  },
+  {
+    id: 'comfrey',
+    name: 'Comfrey',
+    category: 'perennial-flowers',
+    description: 'Permaculture staple for fertilizer tea and compost activator. Deep roots mine nutrients.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4, 9, 10],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 90 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Bocking 14 variety is best (sterile)',
+        'Cut leaves for compost activator',
+        'Make liquid feed (comfrey tea)',
+        'Deep taproot improves soil structure'
+      ]
+    },
+    companionPlants: ['Fruit trees', 'All vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'tansy',
+    name: 'Tansy',
+    category: 'perennial-flowers',
+    description: 'Historic companion plant with button-like yellow flowers. Natural pest deterrent.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 60 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Repels ants, flies, and aphids',
+        'Very hardy and drought-tolerant',
+        'Can be invasive - deadhead flowers',
+        'Historically used in companion planting'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Cucumbers', 'Squash'],
+    avoidPlants: []
+  },
+  {
+    id: 'nepeta',
+    name: 'Nepeta (Catmint)',
+    category: 'perennial-flowers',
+    description: 'Aromatic pollinator magnet with lavender-like flowers. Very hardy for Scottish gardens.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6, 9, 10],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 45, rows: 60 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Excellent bee and butterfly plant',
+        'Very drought-tolerant',
+        'Shear after first flowering for repeat bloom',
+        'Deer and rabbit resistant'
+      ]
+    },
+    companionPlants: ['Roses', 'Vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'agastache',
+    name: 'Agastache (Anise Hyssop)',
+    category: 'perennial-flowers',
+    description: 'Edible flowers and leaves with anise scent. Exceptional pollinator plant.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 40, rows: 50 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Edible flowers and leaves',
+        'Bee and hummingbird favorite',
+        'Anise-mint flavor for tea',
+        'Very hardy in Scottish conditions'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Peppers', 'Squash'],
+    avoidPlants: []
+  },
+
+  // ============ ADDITIONAL ANNUAL FLOWERS ============
+  {
+    id: 'sweet-alyssum',
+    name: 'Sweet Alyssum',
+    category: 'annual-flowers',
+    description: 'Low-growing carpet of tiny fragrant flowers. Attracts beneficial insects.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 15, rows: 20 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Perfect ground cover under vegetables',
+        'Attracts hoverflies and lacewings',
+        'Self-seeds readily',
+        'Honey-scented flowers'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Potatoes', 'Lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'phacelia',
+    name: 'Phacelia',
+    category: 'annual-flowers',
+    description: 'Blue-flowered green manure and bee plant. Fast-growing and easy.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 6, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [5, 6, 7, 8, 9],
+      daysToHarvest: { min: 45, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'One of the best bee plants',
+        'Use as green manure',
+        'Fast growing - good for gaps',
+        'Attracts beneficial predatory insects'
+      ]
+    },
+    companionPlants: ['All vegetables'],
+    avoidPlants: []
+  },
+  {
+    id: 'cleome',
+    name: 'Cleome (Spider Flower)',
+    category: 'annual-flowers',
+    description: 'Tall architectural annual with unusual spider-like flowers. Self-seeds readily.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 80, max: 100 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Tall (1.5m) - provides height in borders',
+        'Self-seeds prolifically',
+        'Attracts butterflies and bees',
+        'Thorny stems - handle carefully'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Squash', 'Beans'],
+    avoidPlants: []
+  },
+  {
+    id: 'nigella',
+    name: 'Love-in-a-Mist (Nigella)',
+    category: 'annual-flowers',
+    description: 'Delicate blue flowers in feathery foliage. Self-seeds and easy to grow.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 9],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Direct sow - dislikes transplanting',
+        'Self-seeds readily for next year',
+        'Seed pods attractive in dried arrangements',
+        'Very easy and low maintenance'
+      ]
+    },
+    companionPlants: ['Carrots', 'Onions', 'Herbs'],
+    avoidPlants: []
+  },
+  {
+    id: 'poppy',
+    name: 'Field Poppy',
+    category: 'annual-flowers',
+    description: 'Classic red wildflower poppy. Attracts pollinators and self-seeds.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 9],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 20, rows: 30 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Direct sow - hates being moved',
+        'Self-seeds prolifically',
+        'Short-lived but beautiful display',
+        'Edible seeds for baking'
+      ]
+    },
+    companionPlants: ['Vegetables', 'Herbs'],
+    avoidPlants: []
+  },
+
+  // ============ ADDITIONAL CLIMBERS ============
+  {
+    id: 'hops',
+    name: 'Hops',
+    category: 'climbers',
+    description: 'Vigorous perennial vine for brewing and ornament. Edible young shoots.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4],
+      harvestMonths: [8, 9],
+      daysToHarvest: { min: 120, max: 150 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 100, rows: 100 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Very vigorous - can grow 6m in one season',
+        'Needs strong support structure',
+        'Female plants produce hops for brewing',
+        'Young shoots edible like asparagus'
+      ]
+    },
+    companionPlants: ['Grapes', 'Beans'],
+    avoidPlants: []
+  },
+  {
+    id: 'hardy-kiwi',
+    name: 'Hardy Kiwi',
+    category: 'climbers',
+    description: 'Arctic kiwi variety hardy for Scotland. Grape-sized smooth-skinned fruit.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [9, 10],
+      daysToHarvest: { min: 1095, max: 1825 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 300, rows: 400 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Much hardier than fuzzy kiwis',
+        'Need male and female plants',
+        'Takes 3-5 years to fruit',
+        'Very vigorous - needs strong support'
+      ]
+    },
+    companionPlants: ['Comfrey', 'Nasturtiums'],
+    avoidPlants: []
+  },
+
+  // ============ ADDITIONAL SPECIALTY VEGETABLES ============
+  {
+    id: 'asparagus',
+    name: 'Asparagus',
+    category: 'other',
+    description: 'Perennial vegetable producing tender spears in spring. Takes 2-3 years to establish.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [3, 4],
+      harvestMonths: [4, 5, 6],
+      daysToHarvest: { min: 730, max: 1095 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 90 },
+      depth: 15,
+      difficulty: 'intermediate',
+      tips: [
+        'Plant crowns not seeds for quicker harvest',
+        'Don\'t harvest first 2 years - let establish',
+        'Harvest for 6-8 weeks only each year',
+        'Can produce for 20+ years'
+      ]
+    },
+    companionPlants: ['Tomatoes', 'Parsley', 'Basil'],
+    avoidPlants: ['Onions', 'Garlic'],
+    maintenance: {
+      feedMonths: [3],
+      mulchMonths: [11],
+      notes: ['Cut down ferns in autumn', 'Weed regularly']
+    }
+  },
+  {
+    id: 'globe-artichoke',
+    name: 'Globe Artichoke',
+    category: 'other',
+    description: 'Architectural perennial vegetable. Edible flower buds with silvery foliage.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 90, rows: 90 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Dramatic architectural plant',
+        'Harvest buds before they open',
+        'Protect crowns in winter in Scotland',
+        'Can grow 1.5m tall and wide'
+      ]
+    },
+    companionPlants: ['Sunflowers', 'Tarragon'],
+    avoidPlants: [],
+    maintenance: {
+      feedMonths: [3, 5],
+      mulchMonths: [11],
+      notes: ['Protect crowns with straw in winter']
+    }
+  },
+  {
+    id: 'rhubarb',
+    name: 'Rhubarb',
+    category: 'other',
+    description: 'Hardy perennial with edible stalks. Very reliable in Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [11, 12, 1, 2, 3],
+      harvestMonths: [4, 5, 6],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 90, rows: 90 },
+      depth: 10,
+      difficulty: 'beginner',
+      tips: [
+        'Perfect for Scottish climate',
+        'Don\'t harvest first year - let establish',
+        'Pull stalks don\'t cut them',
+        'Can produce for 10+ years'
+      ]
+    },
+    companionPlants: ['Brassicas', 'Beans'],
+    avoidPlants: [],
+    maintenance: {
+      feedMonths: [3],
+      mulchMonths: [11],
+      notes: ['Remove flower stalks', 'Apply manure in autumn']
+    }
+  },
+  {
+    id: 'celery',
+    name: 'Celery',
+    category: 'other',
+    description: 'Crunchy stalks for salads and cooking. Needs consistent moisture.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [8, 9, 10],
+      daysToHarvest: { min: 120, max: 140 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'high',
+      spacing: { between: 30, rows: 30 },
+      depth: 0.5,
+      difficulty: 'intermediate',
+      tips: [
+        'Needs constant moisture - never let dry',
+        'Self-blanching varieties easier',
+        'Harden off gradually before planting',
+        'Can bolt if stressed'
+      ]
+    },
+    companionPlants: ['Beans', 'Tomatoes', 'Brassicas'],
+    avoidPlants: ['Parsnips', 'Carrots']
+  },
+  {
+    id: 'celeriac',
+    name: 'Celeriac',
+    category: 'root-vegetables',
+    description: 'Celery-flavored root vegetable. Easier than celery to grow.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Much easier than celery',
+        'Frost improves flavor',
+        'Remove lower leaves as root swells',
+        'Very hardy - can overwinter'
+      ]
+    },
+    companionPlants: ['Beans', 'Leeks', 'Tomatoes'],
+    avoidPlants: ['Parsnips', 'Carrots']
+  },
+  {
+    id: 'cardoon',
+    name: 'Cardoon',
+    category: 'other',
+    description: 'Relative of globe artichoke with edible stems. Dramatic architectural plant.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [10, 11],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 90, rows: 90 },
+      depth: 2,
+      difficulty: 'advanced',
+      tips: [
+        'Blanch stems 3-4 weeks before harvest',
+        'Very tall (2m+) architectural plant',
+        'Purple thistle flowers if unharvested',
+        'Remove outer leaves before blanching'
+      ]
+    },
+    companionPlants: ['Artichokes', 'Sunflowers'],
+    avoidPlants: []
+  },
+  {
+    id: 'skirret',
+    name: 'Skirret',
+    category: 'root-vegetables',
+    description: 'Medieval root vegetable with sweet parsnip-like roots. Very hardy.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [5],
+      transplantMonths: [5, 6],
+      harvestMonths: [10, 11, 12, 1, 2],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Sweet nutty flavor like parsnip',
+        'Very hardy - improves with frost',
+        'Can be left in ground all winter',
+        'Historic vegetable making comeback'
+      ]
+    },
+    companionPlants: ['Beans', 'Peas'],
+    avoidPlants: []
+  },
+  {
+    id: 'seakale',
+    name: 'Sea Kale',
+    category: 'brassicas',
+    description: 'Coastal native perennial vegetable. Blanched shoots eaten in spring.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4],
+      transplantMonths: [3, 4, 9, 10],
+      harvestMonths: [3, 4, 5],
+      daysToHarvest: { min: 365, max: 730 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 60, rows: 60 },
+      depth: 2,
+      difficulty: 'intermediate',
+      tips: [
+        'Force blanch shoots in spring',
+        'Very hardy Scottish native',
+        'Ornamental blue foliage',
+        'Perennial - crops for many years'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Onions'],
+    avoidPlants: ['Strawberries'],
+    maintenance: {
+      feedMonths: [3],
+      notes: ['Cover crowns to blanch shoots']
+    }
+  },
+  {
+    id: 'oca',
+    name: 'Oca',
+    category: 'root-vegetables',
+    description: 'Andean tuber with lemony flavor. Cold-hardy potato alternative.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [11, 12],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Late harvest - needs long season',
+        'Lemony flavor, colorful tubers',
+        'Protect from early frosts',
+        'Easier to grow than potatoes (no blight)'
+      ]
+    },
+    companionPlants: ['Beans', 'Peas'],
+    avoidPlants: []
+  },
+  {
+    id: 'mashua',
+    name: 'Mashua',
+    category: 'other',
+    description: 'Andean climbing tuber with peppery edible tubers and flowers.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [11, 12],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Climbing habit - provide support',
+        'Edible nasturtium-like flowers',
+        'Peppery tubers like radish',
+        'Very easy to grow'
+      ]
+    },
+    companionPlants: ['Beans', 'Squash'],
+    avoidPlants: []
+  },
+  {
+    id: 'ulluco',
+    name: 'Ulluco',
+    category: 'root-vegetables',
+    description: 'Andean tuber with waxy texture. Colorful tubers and edible leaves.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [11, 12],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 30, rows: 40 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Waxy texture holds shape when cooked',
+        'Colorful pink/yellow tubers',
+        'Leaves edible like spinach',
+        'Late harvest - needs long season'
+      ]
+    },
+    companionPlants: ['Beans', 'Peas'],
+    avoidPlants: []
+  },
+  {
+    id: 'ground-nut',
+    name: 'Ground Nut (Apios)',
+    category: 'legumes',
+    description: 'Native American climbing legume with edible tubers. Nitrogen-fixing.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [],
+      transplantMonths: [4, 5],
+      harvestMonths: [10, 11],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 5,
+      difficulty: 'intermediate',
+      tips: [
+        'Climbing vine - provide support',
+        'Fixes nitrogen like beans',
+        'Tubers taste like potatoes',
+        'Hardy perennial in UK'
+      ]
+    },
+    companionPlants: ['Corn', 'Squash'],
+    avoidPlants: []
+  },
+  {
+    id: 'purple-sprouting-broccoli',
+    name: 'Purple Sprouting Broccoli',
+    category: 'brassicas',
+    description: 'Over-winters to produce tender purple spears in late winter/early spring.',
+    planting: {
+      sowIndoorsMonths: [4, 5],
+      sowOutdoorsMonths: [5, 6],
+      transplantMonths: [6, 7],
+      harvestMonths: [2, 3, 4],
+      daysToHarvest: { min: 240, max: 300 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 75 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Perfect for "hungry gap" in late winter',
+        'Very hardy - survives Scottish winters',
+        'Stake tall plants in autumn',
+        'Pick regularly to encourage more spears'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Onions', 'Potatoes'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'spring-onions',
+    name: 'Spring Onions',
+    category: 'alliums',
+    description: 'Quick-growing salad onions. Perfect for succession sowing.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 6, 7],
+      transplantMonths: [],
+      harvestMonths: [5, 6, 7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 80 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 2, rows: 15 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Sow every 3 weeks for continuous supply',
+        'Can be grown in containers',
+        'White Lisbon variety is reliable',
+        'Harvest when pencil-thick'
+      ]
+    },
+    companionPlants: ['Carrots', 'Tomatoes', 'Lettuce'],
+    avoidPlants: ['Peas', 'Beans']
+  },
+  {
+    id: 'perpetual-spinach',
+    name: 'Perpetual Spinach',
+    category: 'leafy-greens',
+    description: 'Leaf beet (not true spinach) that produces for months. Very reliable.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [4, 5, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2, 3],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'More reliable than true spinach',
+        'Bolts less readily in summer',
+        'Pick outer leaves regularly',
+        'Can crop for 9+ months'
+      ]
+    },
+    companionPlants: ['Strawberries', 'Beans', 'Brassicas'],
+    avoidPlants: []
+  },
+  {
+    id: 'kohl-rabi',
+    name: 'Kohlrabi',
+    category: 'brassicas',
+    description: 'Space-age looking brassica with swollen stem. Fast-growing and easy.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Harvest when tennis ball size',
+        'Gets woody if left too long',
+        'Great for kids - unusual appearance',
+        'Less pest-prone than other brassicas'
+      ]
+    },
+    companionPlants: ['Beetroot', 'Onions'],
+    avoidPlants: ['Strawberries', 'Tomatoes']
+  },
+  {
+    id: 'land-cress',
+    name: 'Land Cress',
+    category: 'leafy-greens',
+    description: 'Peppery salad leaf similar to watercress. Grows in soil not water.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [5, 6, 7, 8, 9, 10, 11, 12, 1, 2],
+      daysToHarvest: { min: 50, max: 70 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'high',
+      spacing: { between: 15, rows: 20 },
+      depth: 0.5,
+      difficulty: 'beginner',
+      tips: [
+        'Easier than watercress - no stream needed',
+        'Peppery flavor like rocket',
+        'Very hardy - crops through winter',
+        'Keep well watered'
+      ]
+    },
+    companionPlants: ['Radish', 'Lettuce'],
+    avoidPlants: []
+  },
+  {
+    id: 'mizuna',
+    name: 'Mizuna',
+    category: 'leafy-greens',
+    description: 'Japanese mustard green with serrated leaves. Fast-growing salad leaf.',
+    planting: {
+      sowIndoorsMonths: [3, 4],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9, 10, 11],
+      daysToHarvest: { min: 30, max: 50 }
+    },
+    care: {
+      sun: 'partial-shade',
+      water: 'moderate',
+      spacing: { between: 15, rows: 20 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Very fast-growing - 4 weeks to harvest',
+        'Mild mustard flavor',
+        'Cut-and-come-again salad',
+        'Less likely to bolt than rocket'
+      ]
+    },
+    companionPlants: ['Lettuce', 'Radish'],
+    avoidPlants: []
+  },
+
+  // ============ MUSHROOMS ============
+  {
+    id: 'oyster-mushroom',
+    name: 'Oyster Mushroom',
+    category: 'mushrooms',
+    description: 'Easy-to-grow gourmet mushroom. Grows on straw or coffee grounds indoors or outdoors.',
+    planting: {
+      sowIndoorsMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 7, max: 21 }
+    },
+    care: {
+      sun: 'shade',
+      water: 'high',
+      spacing: { between: 0, rows: 0 },
+      depth: 0,
+      difficulty: 'beginner',
+      tips: [
+        'Easiest mushroom for beginners',
+        'Grows on straw, coffee grounds, or sawdust',
+        'Can fruit multiple times (flushes)',
+        'Keep substrate moist and humid'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'shiitake',
+    name: 'Shiitake',
+    category: 'mushrooms',
+    description: 'Premium medicinal mushroom. Grows on hardwood logs or sawdust blocks.',
+    planting: {
+      sowIndoorsMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      sowOutdoorsMonths: [3, 4, 5, 6, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 90, max: 180 }
+    },
+    care: {
+      sun: 'shade',
+      water: 'moderate',
+      spacing: { between: 0, rows: 0 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Grows best on oak, beech, or birch logs',
+        'Logs can produce for 4-6 years',
+        'Needs cool shock to trigger fruiting',
+        'High medicinal value'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'lions-mane',
+    name: "Lion's Mane",
+    category: 'mushrooms',
+    description: 'Unusual white cascading mushroom. Medicinal benefits for brain health.',
+    planting: {
+      sowIndoorsMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      sowOutdoorsMonths: [4, 5, 6, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 14, max: 21 }
+    },
+    care: {
+      sun: 'shade',
+      water: 'high',
+      spacing: { between: 0, rows: 0 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Striking white cascading appearance',
+        'Known for cognitive health benefits',
+        'Grows on hardwood sawdust',
+        'Needs high humidity (90%+)'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'king-oyster',
+    name: 'King Oyster',
+    category: 'mushrooms',
+    description: 'Large meaty mushroom with thick stem. Excellent texture for cooking.',
+    planting: {
+      sowIndoorsMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      sowOutdoorsMonths: [],
+      transplantMonths: [],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 10, max: 21 }
+    },
+    care: {
+      sun: 'shade',
+      water: 'high',
+      spacing: { between: 0, rows: 0 },
+      depth: 0,
+      difficulty: 'intermediate',
+      tips: [
+        'Thick meaty stem with small cap',
+        'Excellent meat substitute texture',
+        'Needs cooler temperatures (10-15°C)',
+        'Grows indoors year-round'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'button-mushroom',
+    name: 'Button Mushroom',
+    category: 'mushrooms',
+    description: 'Classic white mushroom. Grows on composted manure substrate.',
+    planting: {
+      sowIndoorsMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      sowOutdoorsMonths: [],
+      transplantMonths: [],
+      harvestMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      daysToHarvest: { min: 21, max: 35 }
+    },
+    care: {
+      sun: 'shade',
+      water: 'high',
+      spacing: { between: 0, rows: 0 },
+      depth: 0,
+      difficulty: 'advanced',
+      tips: [
+        'Needs specific composted manure substrate',
+        'Requires pasteurization of substrate',
+        'Controlled temperature critical (15-18°C)',
+        'Most challenging for home growers'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+
+  // ============ GREEN MANURES ============
+  {
+    id: 'crimson-clover',
+    name: 'Crimson Clover',
+    category: 'green-manures',
+    description: 'Nitrogen-fixing spring green manure with beautiful crimson flowers. Improves soil structure.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Broadcast seed and rake in',
+        'Fixes nitrogen - excellent before brassicas',
+        'Cut before flowering and dig in',
+        'Attracts bees if allowed to flower'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'white-clover',
+    name: 'White Clover',
+    category: 'green-manures',
+    description: 'Perennial low-growing clover. Perfect as living mulch or lawn alternative.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 8, 9],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Can be mown as lawn alternative',
+        'Fixes nitrogen continuously',
+        'Use as living mulch under fruit trees',
+        'Attracts bees and beneficial insects'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'winter-field-beans',
+    name: 'Winter Field Beans',
+    category: 'green-manures',
+    description: 'Hardy autumn-sown green manure. Deep roots break up compacted soil.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [10, 11],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 180, max: 210 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 5,
+      difficulty: 'beginner',
+      tips: [
+        'Very hardy - overwinters well in Scotland',
+        'Deep roots improve drainage',
+        'Fixes large amounts of nitrogen',
+        'Dig in before flowering in spring'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'winter-rye',
+    name: 'Winter Rye (Grazing Rye)',
+    category: 'green-manures',
+    description: 'Fast-growing winter cover crop. Suppresses weeds and prevents nutrient leaching.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [8, 9, 10],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 120, max: 180 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Excellent weed suppressor',
+        'Dense root system improves structure',
+        'Cut down before flowering',
+        'Can be difficult to dig in - chop finely first'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'buckwheat',
+    name: 'Buckwheat',
+    category: 'green-manures',
+    description: 'Fast summer green manure. Flowers attract beneficial insects and suppress weeds.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [5, 6, 7],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 40, max: 60 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Very fast growing - good for short gaps',
+        'Excellent bee plant',
+        'Suppresses weeds effectively',
+        'Not frost hardy - summer use only'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
+  },
+  {
+    id: 'white-mustard',
+    name: 'White Mustard',
+    category: 'green-manures',
+    description: 'Fast-growing green manure with biofumigant properties. Suppresses soil pests and diseases.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [3, 4, 5, 6, 7, 8],
+      transplantMonths: [],
+      harvestMonths: [],
+      daysToHarvest: { min: 30, max: 45 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 0, rows: 0 },
+      depth: 1,
+      difficulty: 'beginner',
+      tips: [
+        'Fastest green manure - ready in 4-6 weeks',
+        'Natural biofumigant suppresses soil pests',
+        'Dig in before flowering',
+        'Excellent for short gaps between crops'
+      ]
+    },
+    companionPlants: [],
+    avoidPlants: []
   }
 ]
 

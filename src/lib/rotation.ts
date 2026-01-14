@@ -46,6 +46,8 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
   'perennial-flowers': 'permanent', // Flowers don't need rotation
   'bulbs': 'permanent',             // Flowers don't need rotation
   'climbers': 'permanent',          // Flowers don't need rotation
+  'green-manures': 'legumes',       // Most fix nitrogen like legumes
+  'mushrooms': 'permanent',         // Grown on substrate, not in rotation
   'other': 'roots'                  // Sweetcorn etc - treat as roots for rotation
 }
 
