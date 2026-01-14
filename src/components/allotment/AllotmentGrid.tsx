@@ -317,7 +317,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             isResizable: isEditing,
             compactType: null,
             preventCollision: false,
-            useCSSTransforms: true,
+            useCSSTransforms: false,
           } as unknown as React.ComponentProps<typeof ReactGridLayout>)}
         >
           {items.map(item => {
