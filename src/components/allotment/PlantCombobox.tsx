@@ -46,8 +46,6 @@ export default function PlantCombobox({
     onChange(plantId)
     setIsOpen(false)
     setSearchQuery('')
-    // Return focus to input after selection
-    inputRef.current?.focus()
   }
 
   // Use combobox hook for keyboard navigation

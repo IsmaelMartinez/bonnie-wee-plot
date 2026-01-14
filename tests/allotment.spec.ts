@@ -991,6 +991,86 @@ test.describe('Plant Database - Removed Plants', () => {
   })
 })
 
+test.describe('Seeds Page - PlantCombobox', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/seeds')
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('should allow selecting a plant and adding a variety', async ({ page }) => {
+    // Click Add Variety button
+    const addVarietyButton = page.locator('button').filter({ hasText: 'Add Variety' })
+    await addVarietyButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Click on the plant combobox to open dropdown
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+
+    // Wait for dropdown to appear
+    await expect(page.getByRole('listbox', { name: 'Plant search results' })).toBeVisible()
+
+    // Select a plant (e.g., Lettuce)
+    await page.getByRole('option', { name: /Lettuce/ }).first().click()
+
+    // Dropdown should close after selection
+    await expect(page.getByRole('listbox', { name: 'Plant search results' })).not.toBeVisible()
+
+    // Combobox should show the selected plant
+    await expect(plantCombobox).toHaveValue('Lettuce')
+
+    // Fill in variety name
+    await page.getByRole('textbox', { name: 'Variety Name *' }).fill('Little Gem')
+
+    // Submit button should be enabled
+    const submitButton = page.getByRole('dialog').getByRole('button', { name: 'Add Variety' })
+    await expect(submitButton).toBeEnabled()
+
+    // Click submit
+    await submitButton.click()
+
+    // Dialog should close
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+
+    // Variety should appear in the list
+    await expect(page.getByRole('button', { name: 'Lettuce (1)' })).toBeVisible()
+  })
+
+  test('should allow searching for plants in the combobox', async ({ page }) => {
+    // Click Add Variety button
+    const addVarietyButton = page.locator('button').filter({ hasText: 'Add Variety' })
+    await addVarietyButton.click()
+
+    // Wait for dialog
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Click on the plant combobox
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+
+    // Type to search for carrot
+    await plantCombobox.fill('carrot')
+
+    // Should show filtered results
+    const listbox = page.getByRole('listbox', { name: 'Plant search results' })
+    await expect(listbox).toBeVisible()
+
+    // Should show Carrot option
+    await expect(page.getByRole('option', { name: /^Carrot/ })).toBeVisible()
+
+    // Select it
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    // Dropdown should close and show selected value
+    await expect(listbox).not.toBeVisible()
+    await expect(plantCombobox).toHaveValue('Carrot')
+  })
+})
+
 test.describe('Plant Database - New Scottish Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
