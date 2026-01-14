@@ -61,14 +61,14 @@ export default function VarietyEditDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!plantId || !name.trim()) return
+    if (!plantId) return
 
     const parsedPrice = price ? (isNaN(parseFloat(price)) ? undefined : parseFloat(price)) : undefined
 
     if (mode === 'add') {
       const newVariety: NewVariety = {
         plantId,
-        name: name.trim(),
+        name: name.trim() || '',
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
@@ -79,7 +79,7 @@ export default function VarietyEditDialog({
       const update: VarietyUpdate & { id: string } = {
         id: variety.id,
         plantId,
-        name: name.trim(),
+        name: name.trim() || '',
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
@@ -124,14 +124,13 @@ export default function VarietyEditDialog({
             htmlFor="variety-name-input"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Variety Name *
+            Variety Name
           </label>
           <input
             id="variety-name-input"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
             placeholder="e.g., Kelvedon Wonder"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
@@ -230,7 +229,7 @@ export default function VarietyEditDialog({
           </button>
           <button
             type="submit"
-            disabled={!plantId || !name.trim()}
+            disabled={!plantId}
             className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
           >
             {mode === 'add' ? 'Add Variety' : 'Save Changes'}
