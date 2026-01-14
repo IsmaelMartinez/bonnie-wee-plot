@@ -146,10 +146,75 @@ export function getVegetableIndexByCategory(category: VegetableCategory): Vegeta
  */
 export function searchVegetableIndex(query: string): VegetableIndex[] {
   const lowerQuery = query.toLowerCase()
-  return vegetableIndex.filter(v => 
-    v.name.toLowerCase().includes(lowerQuery) || 
+  return vegetableIndex.filter(v =>
+    v.name.toLowerCase().includes(lowerQuery) ||
     v.id.toLowerCase().includes(lowerQuery)
   )
+}
+
+/**
+ * Scored vegetable result for ranked search
+ */
+export interface ScoredVegetable extends VegetableIndex {
+  score: number
+}
+
+/**
+ * Search and score vegetables with relevance ranking
+ * Used for autocomplete to show most relevant results first
+ *
+ * Scoring:
+ * - Exact match: 200 points
+ * - Prefix match: 100 points
+ * - Word boundary match: 50 points
+ * - Substring match: 25 points
+ *
+ * @param query Search query
+ * @param category Optional category filter
+ * @returns Scored and sorted results (highest score first)
+ */
+export function searchAndScoreVegetables(
+  query: string,
+  category?: VegetableCategory
+): ScoredVegetable[] {
+  // Filter by category first if specified
+  const plants = category
+    ? vegetableIndex.filter(v => v.category === category)
+    : vegetableIndex
+
+  // If no query, return all plants with zero score
+  if (!query.trim()) {
+    return plants.map(p => ({ ...p, score: 0 }))
+  }
+
+  const lowerQuery = query.toLowerCase()
+
+  return plants
+    .map(plant => {
+      const lowerName = plant.name.toLowerCase()
+      let score = 0
+
+      // Exact match (highest priority)
+      if (lowerName === lowerQuery) score += 200
+
+      // Prefix match (starts with query)
+      if (lowerName.startsWith(lowerQuery)) score += 100
+
+      // Word boundary match (any word starts with query)
+      const words = lowerName.split(/\s+/)
+      if (words.some(w => w.startsWith(lowerQuery))) score += 50
+
+      // Substring match (contains query anywhere)
+      if (lowerName.includes(lowerQuery)) score += 25
+
+      return { ...plant, score }
+    })
+    .filter(p => p.score > 0)
+    .sort((a, b) => {
+      // Sort by score descending, then alphabetically
+      if (b.score !== a.score) return b.score - a.score
+      return a.name.localeCompare(b.name)
+    })
 }
 
 

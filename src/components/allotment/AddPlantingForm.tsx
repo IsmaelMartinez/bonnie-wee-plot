@@ -3,12 +3,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { AlertTriangle, Check, Users, Package } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { vegetableIndex } from '@/lib/vegetables/index'
-import { getPlantEmoji } from '@/lib/plant-emoji'
-import { VegetableCategory, CATEGORY_INFO } from '@/types/garden-planner'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { hasSeedsForYear } from '@/services/variety-storage'
 import { NewPlanting, Planting, StoredVariety } from '@/types/unified-allotment'
+import { VegetableCategory } from '@/types/garden-planner'
+import PlantCombobox from './PlantCombobox'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
@@ -66,12 +65,6 @@ export default function AddPlantingForm({
     ? getCompanionStatusForVegetable(plantId, existingPlantings)
     : { goods: [], bads: [] }
 
-  const filteredPlants = useMemo(() => {
-    return vegetableIndex
-      .filter(v => categoryFilter === 'all' || v.category === categoryFilter)
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }, [categoryFilter])
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!plantId) return
@@ -92,53 +85,20 @@ export default function AddPlantingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Category Filter Tabs */}
+      {/* Plant Selection with Search */}
       <div>
-        <div className="flex flex-wrap gap-2 mb-3">
-          <button
-            type="button"
-            onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
-              categoryFilter === 'all'
-                ? 'bg-emerald-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            All Plants
-          </button>
-          {CATEGORY_INFO.map((info) => (
-            <button
-              key={info.id}
-              type="button"
-              onClick={() => setCategoryFilter(info.id)}
-              className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
-                categoryFilter === info.id
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {getPlantEmoji(info.id)} {info.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="vegetable-select" className="block text-sm font-medium text-zen-ink-700 mb-1">
+        <label htmlFor="plant-combobox" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Plant *
         </label>
-        <select
-          id="vegetable-select"
+
+        <PlantCombobox
           value={plantId}
-          onChange={(e) => setVegetableId(e.target.value)}
+          onChange={setVegetableId}
+          categoryFilter={categoryFilter}
+          onCategoryChange={setCategoryFilter}
+          existingPlantings={existingPlantings}
           required
-          className="zen-select"
-        >
-          <option value="">Select a plant...</option>
-          {filteredPlants.map((plant) => (
-            <option key={plant.id} value={plant.id}>{plant.name}</option>
-          ))}
-        </select>
+        />
 
         {/* Companion suggestions panel */}
         {plantId && existingPlantings.length > 0 && (
