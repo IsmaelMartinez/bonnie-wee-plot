@@ -93,41 +93,53 @@ See `/docs/research/plant-data-validation-strategy.md` for detailed implementati
 
 ---
 
-### Phase 0: Foundation Fixes (Immediate - 1 Week)
+### Phase 0: Foundation Fixes ✅ COMPLETE (January 15, 2026)
 
-These items require immediate attention before any new feature work.
+All foundation fixes completed:
 
-#### Fix Failing Tests
-Three tests are failing in `allotment-storage.test.ts` and `allotment-storage-temporal.test.ts`. The failures relate to error message text matching and missing `createdYear` defaults. This is blocking CI trust and should take approximately 30 minutes to fix.
+- Fixed 2 failing tests (Firefox quota error detection, createdYear test alignment)
+- Added pre-commit hooks with husky + lint-staged
+- Updated copilot-instructions.md to reflect actual features
+- Fixed ADR numbering conflict (012 → 013 for plant data external sources)
+- Added AllotmentMobileView component for better mobile UX
 
-#### Add Pre-Commit Hooks
-Install husky and lint-staged to catch lint errors before commit. This prevents broken code from reaching CI and improves developer experience. Implementation takes approximately 15 minutes.
-
-#### Documentation Cleanup
-Update `.github/copilot-instructions.md` to remove references to non-existent features (auth, subscriptions, admin dashboard). Add ADR 012 to the ADR README index. Update CLAUDE.md with file location quick reference for common maintenance tasks.
+PRs: #4, #5, #6 merged to main.
 
 ---
 
-### Phase 1: Security Hardening (Week 2-3)
+### Phase 1: Security Hardening ✅ COMPLETE (January 15, 2026)
 
-Security must be addressed before adding user authentication or database storage.
+Security hardening implemented:
 
-#### Content Security Policy
-Create `middleware.ts` with CSP headers. Recommended starting policy:
+- Created `src/middleware.ts` with CSP headers
+- Added X-Frame-Options, X-Content-Type-Options, Referrer-Policy headers
+- Created Zod validation schemas in `src/lib/validations/ai-advisor.ts`
+- Updated AI advisor route with input validation
+- Added request size limits (10MB max)
+- Improved error logging (no sensitive data exposure)
+
+PR: #7 merged to main.
+
+#### What Was Implemented
+Content Security Policy with:
 - `default-src 'self'`
 - `script-src 'self'` (expand for Clerk domains when integrated)
 - `style-src 'self' 'unsafe-inline'` (Tailwind requirement)
 - `connect-src 'self' https://api.openai.com` (add Clerk, Supabase)
 - `frame-ancestors 'none'`
 
-#### Input Validation
-Add Zod schema validation to the AI advisor API route. Validate message length (prevent payload attacks), allotmentContext format, and image size limits. The Zod dependency already exists in package.json.
+#### Input Validation ✅
+Zod schema validation added to AI advisor API route with:
+- Message length limits (10,000 chars)
+- Conversation history limit (50 messages)
+- Image size limit (10MB base64)
+- Allotment context limit (50,000 chars)
 
-#### Server-Side Rate Limiting
-Replace client-side rate limiter with server-side enforcement. For the AI advisor, implement per-IP limiting (10 requests/hour for anonymous, expandable with auth). Consider Upstash Redis for distributed rate limiting across serverless functions.
+#### Server-Side Rate Limiting (Deferred)
+Deferred to post-Clerk integration. Requires Upstash Redis for distributed rate limiting across serverless functions. Will implement per-IP limiting when authentication is added.
 
-#### API Token Security Enhancement
-While BYOK remains the model, enhance security by encrypting tokens in sessionStorage using a user-derived key, and ensuring generic error messages don't reveal token validation failures.
+#### API Token Security Enhancement (Deferred)
+Deferred to Phase 6 (Clerk integration). Token encryption requires user authentication context.
 
 ---
 
