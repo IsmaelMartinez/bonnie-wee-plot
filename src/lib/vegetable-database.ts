@@ -117,7 +117,17 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
     avoidPlants: ['Strawberry', 'Tomato'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/kale/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/kale/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium scent deters brassica pests' },
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true },
+      { plantId: 'tomato', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
+    ]
   },
   {
     id: 'chard',
@@ -590,7 +600,17 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans', 'Cabbage', 'Horseradish'],
     avoidPlants: ['Tomato', 'Cucumber', 'Squash'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/potatoes/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/potatoes/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'horseradish', confidence: 'traditional', mechanism: 'disease_suppression', bidirectional: false, source: 'Claimed to deter potato beetles' }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' },
+      { plantId: 'cucumber', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: true },
+      { plantId: 'squash', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: true }
+    ]
   },
   {
     id: 'beetroot',
@@ -1091,7 +1111,17 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
     avoidPlants: ['Strawberry', 'Tomato'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium scent deters cabbage pests' },
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true },
+      { plantId: 'tomato', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
+    ]
   },
   {
     id: 'broccoli',
@@ -1119,7 +1149,17 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
     avoidPlants: ['Strawberry', 'Tomato'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium scent deters cabbage pests' },
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true },
+      { plantId: 'tomato', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
+    ]
   },
   {
     id: 'purple-sprouting-broccoli',
@@ -1453,7 +1493,18 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash', 'Carrot', 'Cabbage'],
-    avoidPlants: ['Onion', 'Garlic', 'Fennel']
+    avoidPlants: ['Onion', 'Garlic', 'Fennel'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters - corn provides support' },
+      { plantId: 'squash', confidence: 'proven', mechanism: 'beneficial_attraction', bidirectional: true, source: 'Three Sisters - ground cover suppresses weeds' },
+      { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
+      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true, source: 'Alliums may inhibit bean growth' },
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'french-beans',
@@ -1507,7 +1558,18 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Carrot', 'Celery', 'Potato'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'cabbage', confidence: 'proven', mechanism: 'nitrogen_fixation', bidirectional: false, source: 'Legumes fix atmospheric nitrogen' },
+      { plantId: 'broccoli', confidence: 'proven', mechanism: 'nitrogen_fixation', bidirectional: false },
+      { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'potato', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'peas',
@@ -1535,7 +1597,16 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Carrot', 'Radish', 'Turnip'],
     avoidPlants: ['Onion', 'Garlic'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/peas/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/peas/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'turnip', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'climbing-french-beans',
@@ -1787,9 +1858,19 @@ export const vegetables: Vegetable[] = [
         'Outdoor bush varieties like Tumbler can work'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigold'],
     avoidPlants: ['Fennel', 'Brassicas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'likely', mechanism: 'pest_trap', bidirectional: false, source: 'Tagetes spp. nematode suppression' }
+    ],
+    enhancedAvoid: [
+      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy documented' },
+      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true },
+      { plantId: 'broccoli', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
+    ]
   },
   {
     id: 'cherry-tomato',
@@ -1958,7 +2039,15 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Pepper', 'Tomato', 'Basil'],
     avoidPlants: ['Fennel'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/aubergines/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/aubergines/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'pepper', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'pepper',
@@ -1987,7 +2076,18 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tomato', 'Basil', 'Carrot', 'Onion'],
     avoidPlants: ['Fennel', 'Brassicas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/peppers-capsicum/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/peppers-capsicum/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium pest deterrence' }
+    ],
+    enhancedAvoid: [
+      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true },
+      { plantId: 'broccoli', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
+    ]
   },
 
   // ============ CUCURBITS ============
@@ -2299,7 +2399,17 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Carrot', 'Beetroot', 'Lettuce'],
     avoidPlants: ['Beans', 'Peas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/onions/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/onions/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Classic pairing - onion scent may deter carrot fly (mixed research)' },
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'peas', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'runner-beans', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'garlic',
@@ -2327,7 +2437,15 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Roses', 'Tomato', 'Beetroot'],
     avoidPlants: ['Beans', 'Peas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/garlic/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/garlic/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Garlic may deter aphids and spider mites' },
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'peas', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'leek',
@@ -2355,7 +2473,16 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Carrot', 'Celery', 'Onion'],
     avoidPlants: ['Beans', 'Peas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own',
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Leek scent may deter carrot fly' },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
+      { plantId: 'peas', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
+    ]
   },
   {
     id: 'spring-onion',
