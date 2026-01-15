@@ -35,6 +35,7 @@ interface ItemDetailSwitcherProps {
   onAutoRotate: () => void
   onArchiveArea: (areaId: string) => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  onItemSelect: (ref: AllotmentItemRef | null) => void
   // Quick stats for empty state
   quickStats: QuickStats
 }
@@ -88,6 +89,7 @@ export default function ItemDetailSwitcher({
   onAutoRotate,
   onArchiveArea,
   onUpdateArea,
+  onItemSelect,
   quickStats,
 }: ItemDetailSwitcherProps) {
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
@@ -100,9 +102,17 @@ export default function ItemDetailSwitcher({
   const area = getArea(selectedItemRef.id)
   if (!area) return <EmptyState stats={quickStats} />
 
+  // Handler for area type conversion - re-select to force refresh
+  const handleAreaTypeConvert = () => {
+    if (!selectedItemRef) return
+    // Temporarily clear selection and re-select to force full refresh
+    onItemSelect(null)
+    setTimeout(() => onItemSelect(selectedItemRef), 0)
+  }
+
   // Route based on area.kind
-  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
-  const isPermanentPlanting = area.kind === 'tree' || area.kind === 'berry' || area.kind === 'herb'
+  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed' || area.kind === 'berry'
+  const isPermanentPlanting = area.kind === 'tree' || area.kind === 'herb'
   const isInfrastructure = area.kind === 'infrastructure'
 
   // Determine which detail panel to render
@@ -111,6 +121,7 @@ export default function ItemDetailSwitcher({
   if (isRotationOrPerennialBed) {
     detailPanel = (
       <BedDetailPanel
+        key={`${area.id}-${area.kind}`}
         area={area}
         areaSeason={getAreaSeason(area.id) || null}
         plantings={getPlantings(area.id)}
@@ -126,12 +137,13 @@ export default function ItemDetailSwitcher({
         onUpdateRotation={onUpdateRotation}
         onAutoRotate={onAutoRotate}
         onUpdateArea={onUpdateArea}
+        onAreaTypeConvert={handleAreaTypeConvert}
       />
     )
   } else if (isPermanentPlanting) {
-    detailPanel = <PermanentDetailPanel area={area} onUpdateArea={onUpdateArea} />
+    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onAreaTypeConvert={handleAreaTypeConvert} />
   } else if (isInfrastructure) {
-    detailPanel = <InfrastructureDetailPanel area={area} onUpdateArea={onUpdateArea} />
+    detailPanel = <InfrastructureDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onAreaTypeConvert={handleAreaTypeConvert} />
   } else {
     return <EmptyState stats={quickStats} />
   }

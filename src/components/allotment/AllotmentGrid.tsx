@@ -12,6 +12,7 @@ import { AllotmentItemRef } from '@/types/garden-planner'
 import { Area, Planting } from '@/types/unified-allotment'
 import { wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
+import AllotmentMobileView from './AllotmentMobileView'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -22,6 +23,7 @@ interface AllotmentGridProps {
   getPlantingsForBed?: (bedId: string) => Planting[]
   areas?: Area[]
   selectedYear: number
+  onEditingChange?: (isEditing: boolean) => void
 }
 
 // Layout item type for react-grid-layout
@@ -106,7 +108,7 @@ function areasToGridConfig(areas: Area[]): GridItemConfig[] {
     })
 }
 
-export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, selectedYear }: AllotmentGridProps) {
+export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, selectedYear, onEditingChange }: AllotmentGridProps) {
   // Filter areas by selected year
   const visibleAreas = useMemo(() => {
     if (!areas) return undefined
@@ -119,6 +121,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   const [isEditing, setIsEditing] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [width, setWidth] = useState(800)
+  const [isMobile, setIsMobile] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Update items when visible areas change
@@ -166,18 +169,25 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     }
   }, [visibleAreas])
 
-  // Track container width
+  // Track container width and mobile state
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
         setWidth(containerRef.current.offsetWidth)
       }
+      // Consider mobile if window width is less than 768px (Tailwind's md breakpoint)
+      setIsMobile(window.innerWidth < 768)
     }
-    
+
     updateWidth()
     window.addEventListener('resize', updateWidth)
     return () => window.removeEventListener('resize', updateWidth)
   }, [mounted])
+
+  // Notify parent when editing state changes
+  useEffect(() => {
+    onEditingChange?.(isEditing)
+  }, [isEditing, onEditingChange])
 
   // Handle layout change
   const handleLayoutChange = useCallback((newLayout: LayoutItem[]) => {
@@ -240,6 +250,19 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
       <div className="bg-gradient-to-b from-green-100/50 to-emerald-100/50 rounded-xl p-4 h-[600px] flex items-center justify-center">
         <div className="text-gray-400">Loading layout...</div>
       </div>
+    )
+  }
+
+  // Show mobile view on small screens
+  if (isMobile && visibleAreas) {
+    return (
+      <AllotmentMobileView
+        areas={visibleAreas}
+        selectedItemRef={selectedItemRef}
+        onItemSelect={onItemSelect}
+        getPlantingsForBed={getPlantingsForBed}
+        selectedYear={selectedYear}
+      />
     )
   }
 

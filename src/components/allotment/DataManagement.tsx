@@ -5,7 +5,7 @@ import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-rea
 import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats } from '@/services/allotment-storage'
-import { saveVarietyData, loadVarietyData } from '@/services/variety-storage'
+import { loadVarietyData } from '@/services/variety-storage'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface DataManagementProps {
@@ -103,6 +103,12 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
             setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
             return
           }
+
+          // Merge varieties into allotment data
+          // The app expects varieties to be in AllotmentData.varieties, not in separate storage
+          if (varietyData && varietyData.varieties) {
+            allotmentData.varieties = varietyData.varieties
+          }
         } else {
           // Old format - just AllotmentData
           allotmentData = parsed as AllotmentData
@@ -129,21 +135,12 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
           }
         }
 
-        // Save allotment data
+        // Save allotment data (now includes varieties merged from varietyData)
         const allotmentResult = saveAllotmentData(finalAllotmentData)
 
         if (!allotmentResult.success) {
           setImportError(allotmentResult.error || 'Failed to save allotment data')
           return
-        }
-
-        // Save variety data if present
-        if (varietyData) {
-          const varietyResult = saveVarietyData(varietyData)
-          if (!varietyResult.success) {
-            setImportError(varietyResult.error || 'Failed to save variety data')
-            return
-          }
         }
 
         setImportSuccess(true)

@@ -88,6 +88,7 @@ export default function AllotmentPage() {
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
+  const [isGridEditing, setIsGridEditing] = useState(false)
 
   // Get available years and add next/previous year options
   // Sort years in ascending order (oldest to newest) for left-to-right timeline
@@ -419,7 +420,9 @@ export default function AllotmentPage() {
                 </h2>
                 <button
                   onClick={() => setShowAddAreaDialog(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto"
+                  disabled={!isGridEditing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={!isGridEditing ? "Enable edit mode to add areas" : "Add a new area to your allotment"}
                 >
                   <Plus className="w-4 h-4" />
                   Add Area
@@ -435,6 +438,7 @@ export default function AllotmentPage() {
                     getPlantingsForBed={getPlantings}
                     areas={getAllAreas()}
                     selectedYear={selectedYear}
+                    onEditingChange={setIsGridEditing}
                   />
                 </div>
               </div>
@@ -461,6 +465,7 @@ export default function AllotmentPage() {
               onAutoRotate={() => setShowAutoRotateDialog(true)}
               onArchiveArea={handleArchiveArea}
               onUpdateArea={updateArea}
+              onItemSelect={selectItem}
               quickStats={quickStats}
             />
 
@@ -469,23 +474,29 @@ export default function AllotmentPage() {
       </div>
 
       {/* Add Planting Dialog - Accessible */}
-      <Dialog
-        isOpen={showAddDialog}
-        onClose={() => setShowAddDialog(false)}
-        title="Add Planting"
-        description="Add a new planting to this bed for the current season."
-      >
-        <AddPlantingForm
-          onSubmit={(planting) => {
-            handleAddPlanting(planting)
-            setShowAddDialog(false)
-          }}
-          onCancel={() => setShowAddDialog(false)}
-          existingPlantings={selectedPlantings}
-          selectedYear={selectedYear}
-          varieties={data?.varieties || []}
-        />
-      </Dialog>
+      {(() => {
+        const selectedArea = selectedBedId ? getArea(selectedBedId) : null
+        return (
+          <Dialog
+            isOpen={showAddDialog}
+            onClose={() => setShowAddDialog(false)}
+            title="Add Planting"
+            description="Add a new planting to this bed for the current season."
+          >
+            <AddPlantingForm
+              onSubmit={(planting) => {
+                handleAddPlanting(planting)
+                setShowAddDialog(false)
+              }}
+              onCancel={() => setShowAddDialog(false)}
+              existingPlantings={selectedPlantings}
+              selectedYear={selectedYear}
+              varieties={data?.varieties || []}
+              initialCategoryFilter={selectedArea?.kind === 'berry' ? 'berries' : 'all'}
+            />
+          </Dialog>
+        )
+      })()}
 
       {/* Add Area Dialog */}
       <Dialog

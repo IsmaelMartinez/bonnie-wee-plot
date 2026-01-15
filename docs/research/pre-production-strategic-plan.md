@@ -36,16 +36,57 @@ Maintainability shows some issues: 3 failing unit tests erode CI trust, the stor
 
 This work can proceed in parallel with other phases and should be completed before Supabase migration.
 
-#### Database Audit and Cleanup
-Review the 205 plant entries for data quality issues including empty companion/avoid arrays, vague references like "Vegetables (general)", naming inconsistencies ("Bush beans" vs "Beans"), and missing bidirectional relationships.
+#### Phase 1 Analysis Complete ✅ (January 15, 2026)
 
-#### External Reference Links
+Initial audit of the 205 plant entries revealed the following:
+
+**Data Quality Statistics:**
+- 107 unique companion plant names referenced across the database
+- 31 unique avoid plant names referenced
+- 43 companion names match database IDs exactly (after case/hyphen normalization)
+- 8 names need plural→singular normalization
+- 12 names need semantic mapping to correct IDs
+- 16 vague/generic references need removal or replacement
+- 11 plants have empty companion arrays (all mushrooms and green manures - justified)
+
+**Critical Gaps in Database:**
+Three common plants are referenced as companions but missing from the database entirely:
+- Basil (referenced 6 times) - major culinary herb
+- Peppers/Chili - common solanaceae family member
+- Aubergine/Eggplant - common solanaceae family member
+
+**Vague References to Remove (16 items):**
+Generic terms like "Vegetables (general)", "Most vegetables", "All vegetables", "Herbs", "Alliums", "Brassicas", "Native plants", "Water-loving plants" don't map to specific plant IDs. One entry ("Dill should be kept separate") is an instruction masquerading as a companion plant.
+
+**OpenFarm API Status:**
+The OpenFarm API is DOWN (redirects to GitHub). The repository was archived April 22, 2025. Data is CC0 licensed and could be recovered from Internet Archive snapshots if needed.
+
+See `/tasks/plant-data-validation.md` for complete Phase 1 findings and normalization maps.
+
+#### Parallel Implementation Plan Available
+
+A comprehensive parallel execution plan has been created through 5-expert debate analysis (Data Quality, UX/Product, Database Architecture, DevOps/Testing, Horticulture). See `/tasks/plant-data-parallel-plan.md` for:
+- 3 parallel workstreams that can execute simultaneously
+- Critical blocker identified: ID mismatch between vegetable index and database
+- Specific test cases, CI enhancements, and rollback strategies
+- Complete Supabase schema with bidirectional enforcement triggers
+- Timeline: ~12-16 hours across 3 workstreams
+
+#### Remaining Work (Phases 2-5)
+
+**External Reference Links:**
 Add RHS URLs to all plants with dedicated RHS growing guides. The URL pattern is `https://www.rhs.org.uk/vegetables/[name]/grow-your-own`. Also add Wikipedia URLs and botanical names where available.
 
-#### Companion Data Enhancement
+**Companion Data Enhancement:**
 Validate companion planting claims against authoritative sources (RHS, Garden Organic, University Extension services). Add confidence levels (proven/likely/traditional/anecdotal) and mechanism types (pest_confusion, allelopathy, nitrogen_fixation, etc.).
 
-#### Crop Rotation Alignment
+**Name Normalization Implementation:**
+Apply the normalization maps identified in Phase 1 to convert string-based companion references to normalized plant IDs.
+
+**Missing Plants:**
+Add basil, peppers, and aubergine to the database before finalizing companion relationships.
+
+**Crop Rotation Alignment:**
 Ensure rotation groups align with RHS four-year rotation guidance. Add rotation-specific advice explaining why crops follow in sequence.
 
 See `/docs/research/plant-data-validation-strategy.md` for detailed implementation guidance.
@@ -347,9 +388,10 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 - [RHS Composting Guide](https://www.rhs.org.uk/soil-composts-mulches/composting)
 - [Garden Organic Companion Planting](https://www.gardenorganic.org.uk/expert-advice/how-to-grow/how-to-grow-flowers/companion-or-mixed-planting)
 - [Charles Dowding No-Dig](https://charlesdowding.co.uk/)
-- [OpenFarm API (Plant Data)](https://github.com/openfarmcc/OpenFarm)
+- [OpenFarm GitHub (Plant Data)](https://github.com/openfarmcc/OpenFarm) - ARCHIVED April 2025, API down, data CC0 licensed
 
 ---
 
 *Document created: January 14, 2026*
+*Last updated: January 15, 2026 - Added Phase 1 analysis + 5-expert parallel implementation plan*
 *Analysis method: Multi-persona Opus ultrathink review*
