@@ -15,8 +15,8 @@ export const PLURAL_TO_SINGULAR: Record<string, string> = {
   'Tulips': 'Tulip',
 }
 
-// Semantic mappings - alternate names to canonical forms
-export const SEMANTIC_MAPPINGS: Record<string, string> = {
+// Semantic mappings - alternate names to canonical forms (null = remove)
+export const SEMANTIC_MAPPINGS: Record<string, string | null> = {
   'Artichokes': 'Globe Artichoke',
   'Beets': 'Beetroot',
   'Bush beans': 'French Beans',

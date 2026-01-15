@@ -49,6 +49,30 @@ export type WaterRequirement = 'low' | 'moderate' | 'high'
 // Difficulty level
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'
 
+// Companion relationship mechanism (why plants work well/poorly together)
+export type CompanionMechanism =
+  | 'pest_confusion'         // Interplanting confuses pests
+  | 'pest_trap'              // Trap crop draws pests away
+  | 'allelopathy'            // Chemical inhibition
+  | 'nitrogen_fixation'      // Legumes fix nitrogen
+  | 'physical_support'       // e.g., corn supports beans
+  | 'beneficial_attraction'  // Attracts pollinators/predators
+  | 'disease_suppression'    // Reduces disease incidence
+  | 'nutrient_competition'   // Compete for same nutrients (avoid)
+  | 'unknown'                // Traditional knowledge, mechanism unclear
+
+// Confidence level for companion relationship claims
+export type CompanionConfidence = 'proven' | 'likely' | 'traditional' | 'anecdotal'
+
+// Enhanced companion relationship with metadata
+export interface EnhancedCompanion {
+  plantId: string                    // Reference to vegetable ID
+  confidence: CompanionConfidence
+  mechanism?: CompanionMechanism
+  bidirectional: boolean             // Does the relationship work both ways?
+  source?: string                    // Citation or source of information
+}
+
 // Growing requirement - indicates if plant needs protection
 export type GrowingRequirement = 'outdoor' | 'greenhouse' | 'windowsill' | 'polytunnel'
 
@@ -95,6 +119,8 @@ export interface Vegetable {
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
   rhsUrl?: string                          // RHS grow-your-own guide URL
   botanicalName?: string                   // Scientific/Latin name
+  enhancedCompanions?: EnhancedCompanion[] // Validated companion relationships with metadata
+  enhancedAvoid?: EnhancedCompanion[]      // Validated avoid relationships with metadata
 }
 
 // Maintenance info for perennials, trees, and shrubs
