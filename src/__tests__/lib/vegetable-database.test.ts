@@ -208,7 +208,11 @@ describe('vegetable care data', () => {
   })
 
   it('should have positive spacing values', () => {
-    for (const veg of vegetables) {
+    // Mushrooms and green manures don't have traditional spacing (substrate/broadcast sown)
+    const spacedPlants = vegetables.filter(
+      v => v.category !== 'mushrooms' && v.category !== 'green-manures'
+    )
+    for (const veg of spacedPlants) {
       expect(veg.care.spacing.between).toBeGreaterThan(0)
       expect(veg.care.spacing.rows).toBeGreaterThan(0)
     }
