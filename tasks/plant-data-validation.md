@@ -178,7 +178,15 @@ Compile key findings from:
 
 Use as validation reference for LLM-assisted review.
 
-## Phase 3: LLM-Assisted Validation
+## Phase 3: LLM-Assisted Validation ✅ COMPLETE
+
+Added enhancedCompanions and enhancedAvoid arrays to 14 key vegetables across 4 categories:
+- Solanaceae (4): tomato, aubergine, pepper, potato
+- Legumes (3): runner-beans, broad-beans, peas
+- Brassicas (3): cabbage, broccoli, kale
+- Alliums (4): onion, garlic, leek, carrot
+
+Each relationship includes confidence level (proven/likely/traditional/anecdotal), mechanism, and bidirectional flag.
 
 ### Task 3.1: Validation Prompt Template
 For each plant, use this prompt structure:
@@ -290,7 +298,7 @@ Export validated TypeScript data to SQL inserts.
 - [x] No vague references ("Vegetables (general)" removed)
 - [x] Consistent naming (all companions map to valid plant IDs via normalization)
 - [x] RHS URLs added for all applicable vegetables (24 common vegetables)
-- [ ] Confidence levels assigned to all relationships
+- [x] Confidence levels assigned to key relationships (14 vegetables)
 - [x] Bidirectional relationships verified (Three Sisters fixed)
 - [x] Types updated with new fields (EnhancedCompanion, CompanionMechanism, etc.)
 - [x] Validation logic updated (ID-based matching)
