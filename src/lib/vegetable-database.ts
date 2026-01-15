@@ -32,7 +32,7 @@ export const vegetables: Vegetable[] = [
         'Harvest outer leaves for cut-and-come-again'
       ]
     },
-    companionPlants: ['Carrots', 'Radishes', 'Strawberries', 'Chives'],
+    companionPlants: ['Carrot', 'Radish', 'Strawberry', 'Chives'],
     avoidPlants: []
   },
   {
@@ -59,7 +59,7 @@ export const vegetables: Vegetable[] = [
         'Pick outer leaves regularly'
       ]
     },
-    companionPlants: ['Strawberries', 'Peas', 'Beans'],
+    companionPlants: ['Strawberry', 'Peas', 'Beans'],
     avoidPlants: []
   },
   {
@@ -86,7 +86,7 @@ export const vegetables: Vegetable[] = [
         'One of the most productive greens for Scotland'
       ]
     },
-    companionPlants: ['Beans', 'Brassicas', 'Onions'],
+    companionPlants: ['Beans', 'Brassicas', 'Onion'],
     avoidPlants: []
   },
   {
@@ -113,8 +113,8 @@ export const vegetables: Vegetable[] = [
         'Net against pigeons'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'chard',
@@ -140,7 +140,7 @@ export const vegetables: Vegetable[] = [
         'May overwinter in sheltered spots'
       ]
     },
-    companionPlants: ['Beans', 'Brassicas', 'Onions'],
+    companionPlants: ['Beans', 'Brassicas', 'Onion'],
     avoidPlants: []
   },
   {
@@ -167,7 +167,7 @@ export const vegetables: Vegetable[] = [
         'Pick leaves young for milder flavor'
       ]
     },
-    companionPlants: ['Bush beans', 'Beets', 'Carrots', 'Lettuce'],
+    companionPlants: ['Bush beans', 'Beets', 'Carrot', 'Lettuce'],
     avoidPlants: []
   },
   {
@@ -195,34 +195,7 @@ export const vegetables: Vegetable[] = [
         'Sow autumn crops for winter harvest'
       ]
     },
-    companionPlants: ['Lettuce', 'Spinach', 'Radishes'],
-    avoidPlants: []
-  },
-  {
-    id: 'claytonia',
-    name: 'Claytonia (Miners Lettuce)',
-    category: 'leafy-greens',
-    description: 'Hardy winter salad leaf, perfect for Scottish conditions.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [3, 4, 8, 9],
-      transplantMonths: [],
-      harvestMonths: [10, 11, 12, 1, 2, 3, 4, 5],
-      daysToHarvest: { min: 40, max: 60 }
-    },
-    care: {
-      sun: 'partial-shade',
-      water: 'moderate',
-      spacing: { between: 15, rows: 20 },
-      depth: 1,
-      difficulty: 'beginner',
-      tips: [
-        'One of the hardiest winter salads',
-        'Self-seeds freely once established',
-        'Excellent for shady spots'
-      ]
-    },
-    companionPlants: ['Lettuce', 'Spinach'],
+    companionPlants: ['Lettuce', 'Spinach', 'Radish'],
     avoidPlants: []
   },
   {
@@ -249,7 +222,7 @@ export const vegetables: Vegetable[] = [
         'Harvest outer leaves regularly'
       ]
     },
-    companionPlants: ['Lettuce', 'Radishes'],
+    companionPlants: ['Lettuce', 'Radish'],
     avoidPlants: []
   },
   {
@@ -331,7 +304,7 @@ export const vegetables: Vegetable[] = [
         'Overwinters well in Scotland'
       ]
     },
-    companionPlants: ['Lettuce', 'Spinach', 'Radishes'],
+    companionPlants: ['Lettuce', 'Spinach', 'Radish'],
     avoidPlants: []
   },
   {
@@ -561,8 +534,8 @@ export const vegetables: Vegetable[] = [
 
   // ============ ROOT VEGETABLES ============
   {
-    id: 'carrots',
-    name: 'Carrots',
+    id: 'carrot',
+    name: 'Carrot',
     category: 'root-vegetables',
     description: 'Sweet root vegetable. Sow later in Scotland after soil warms.',
     planting: {
@@ -584,11 +557,11 @@ export const vegetables: Vegetable[] = [
         'Can leave in ground and harvest through winter'
       ]
     },
-    companionPlants: ['Onions', 'Leeks', 'Rosemary', 'Sage'],
-    avoidPlants: ['Dill', 'Parsnips']
+    companionPlants: ['Onion', 'Leek', 'Rosemary', 'Sage'],
+    avoidPlants: ['Dill', 'Parsnip']
   },
   {
-    id: 'potatoes',
+    id: 'potato',
     name: 'Potatoes (Tatties)',
     category: 'root-vegetables',
     description: 'Scottish staple! Plant after last frost risk around late April.',
@@ -612,7 +585,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Cabbage', 'Horseradish'],
-    avoidPlants: ['Tomatoes', 'Cucumbers', 'Squash']
+    avoidPlants: ['Tomato', 'Cucumbers', 'Squash']
   },
   {
     id: 'beetroot',
@@ -638,12 +611,12 @@ export const vegetables: Vegetable[] = [
         'Harvest young for tender roots'
       ]
     },
-    companionPlants: ['Onions', 'Brassicas', 'Lettuce'],
+    companionPlants: ['Onion', 'Brassicas', 'Lettuce'],
     avoidPlants: ['Runner beans']
   },
   {
-    id: 'parsnips',
-    name: 'Parsnips',
+    id: 'parsnip',
+    name: 'Parsnip',
     category: 'root-vegetables',
     description: 'Sweet winter root. Frost improves flavor - perfect for Scotland!',
     planting: {
@@ -665,8 +638,8 @@ export const vegetables: Vegetable[] = [
         'Leave in ground until after frost for sweetest flavor'
       ]
     },
-    companionPlants: ['Onions', 'Garlic', 'Radishes'],
-    avoidPlants: ['Carrots', 'Celery']
+    companionPlants: ['Onion', 'Garlic', 'Radish'],
+    avoidPlants: ['Carrot', 'Celery']
   },
   {
     id: 'swede',
@@ -692,12 +665,12 @@ export const vegetables: Vegetable[] = [
         'Can leave in ground all winter'
       ]
     },
-    companionPlants: ['Peas', 'Beans', 'Onions'],
-    avoidPlants: ['Potatoes', 'Other brassicas nearby']
+    companionPlants: ['Peas', 'Beans', 'Onion'],
+    avoidPlants: ['Potato', 'Other brassicas nearby']
   },
   {
-    id: 'turnips',
-    name: 'Turnips',
+    id: 'turnip',
+    name: 'Turnip',
     category: 'root-vegetables',
     description: 'Fast-growing root with edible greens. Best harvested young.',
     planting: {
@@ -720,11 +693,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Peas', 'Beans'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
-    id: 'radishes',
-    name: 'Radishes',
+    id: 'radish',
+    name: 'Radish',
     category: 'root-vegetables',
     description: 'Quick-growing root crop. Ready in weeks - ideal for Scottish summer.',
     planting: {
@@ -746,7 +719,7 @@ export const vegetables: Vegetable[] = [
         'Less likely to bolt in cool Scottish weather'
       ]
     },
-    companionPlants: ['Carrots', 'Lettuce', 'Peas', 'Spinach'],
+    companionPlants: ['Carrot', 'Lettuce', 'Peas', 'Spinach'],
     avoidPlants: ['Hyssop']
   },
   {
@@ -773,7 +746,7 @@ export const vegetables: Vegetable[] = [
         'Leave in ground through winter'
       ]
     },
-    companionPlants: ['Carrots', 'Onions'],
+    companionPlants: ['Carrot', 'Onion'],
     avoidPlants: []
   },
   {
@@ -800,7 +773,7 @@ export const vegetables: Vegetable[] = [
         'Frost improves root flavor'
       ]
     },
-    companionPlants: ['Carrots', 'Tomatoes'],
+    companionPlants: ['Carrot', 'Tomato'],
     avoidPlants: []
   },
   {
@@ -829,7 +802,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumbers', 'Sunflowers']
   },
   {
     id: 'second-early-potato',
@@ -857,7 +830,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumbers', 'Sunflowers']
   },
   {
     id: 'maincrop-potato',
@@ -885,7 +858,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomatoes', 'Cucumbers', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumbers', 'Sunflowers']
   },
   {
     id: 'florence-fennel',
@@ -913,7 +886,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Peas', 'Cucumbers'],
-    avoidPlants: ['Tomatoes', 'Beans', 'Kohlrabi']
+    avoidPlants: ['Tomato', 'Beans', 'Kohlrabi']
   },
   {
     id: 'mooli',
@@ -996,7 +969,7 @@ export const vegetables: Vegetable[] = [
         'Can treat as perennial - leave some to flower'
       ]
     },
-    companionPlants: ['Carrots', 'Onions'],
+    companionPlants: ['Carrot', 'Onion'],
     avoidPlants: []
   },
   {
@@ -1024,7 +997,7 @@ export const vegetables: Vegetable[] = [
         'Harvest roots in autumn/winter for best flavor'
       ]
     },
-    companionPlants: ['Potatoes'],
+    companionPlants: ['Potato'],
     avoidPlants: []
   },
   {
@@ -1109,8 +1082,8 @@ export const vegetables: Vegetable[] = [
         'Collar against cabbage root fly'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'broccoli',
@@ -1136,8 +1109,8 @@ export const vegetables: Vegetable[] = [
         'Net against cabbage white butterflies'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'purple-sprouting-broccoli',
@@ -1163,8 +1136,8 @@ export const vegetables: Vegetable[] = [
         'Stake plants as they get tall'
       ]
     },
-    companionPlants: ['Beetroot', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'cauliflower',
@@ -1191,7 +1164,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Beans'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'brussels-sprouts',
@@ -1217,8 +1190,8 @@ export const vegetables: Vegetable[] = [
         'Harvest from bottom up'
       ]
     },
-    companionPlants: ['Beetroot', 'Carrots', 'Onions'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Carrot', 'Onion'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'kohlrabi',
@@ -1244,8 +1217,8 @@ export const vegetables: Vegetable[] = [
         'Crisp, mild cabbage-like flavor'
       ]
     },
-    companionPlants: ['Beetroot', 'Onions', 'Herbs'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Onion', 'Herbs'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'savoy-cabbage',
@@ -1272,8 +1245,8 @@ export const vegetables: Vegetable[] = [
         'Crinkled leaves great for stuffing'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'red-cabbage',
@@ -1300,8 +1273,8 @@ export const vegetables: Vegetable[] = [
         'Frost-hardy - can leave in ground'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'chinese-broccoli',
@@ -1328,8 +1301,8 @@ export const vegetables: Vegetable[] = [
         'More heat-tolerant than regular broccoli'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'romanesco',
@@ -1356,8 +1329,8 @@ export const vegetables: Vegetable[] = [
         'Harvest when spirals fully formed'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
   {
     id: 'turnip-tops',
@@ -1384,8 +1357,8 @@ export const vegetables: Vegetable[] = [
         'Overwinters well in Scotland'
       ]
     },
-    companionPlants: ['Peas', 'Beans', 'Onions'],
-    avoidPlants: ['Potatoes']
+    companionPlants: ['Peas', 'Beans', 'Onion'],
+    avoidPlants: ['Potato']
   },
   {
     id: 'sea-kale',
@@ -1469,8 +1442,8 @@ export const vegetables: Vegetable[] = [
         'Pick regularly for more beans'
       ]
     },
-    companionPlants: ['Carrots', 'Squash', 'Cabbage'],
-    avoidPlants: ['Onions', 'Garlic', 'Fennel']
+    companionPlants: ['Carrot', 'Squash', 'Cabbage'],
+    avoidPlants: ['Onion', 'Garlic', 'Fennel']
   },
   {
     id: 'french-beans',
@@ -1496,8 +1469,8 @@ export const vegetables: Vegetable[] = [
         'Harvest when pencil thin'
       ]
     },
-    companionPlants: ['Carrots', 'Cucumber', 'Cabbage'],
-    avoidPlants: ['Onions', 'Garlic']
+    companionPlants: ['Carrot', 'Cucumber', 'Cabbage'],
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'broad-beans',
@@ -1523,8 +1496,8 @@ export const vegetables: Vegetable[] = [
         'Pinch out tips when first pods form'
       ]
     },
-    companionPlants: ['Brassicas', 'Carrots', 'Celery', 'Potatoes'],
-    avoidPlants: ['Onions', 'Garlic']
+    companionPlants: ['Brassicas', 'Carrot', 'Celery', 'Potato'],
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'peas',
@@ -1550,8 +1523,8 @@ export const vegetables: Vegetable[] = [
         'Provide support for climbing'
       ]
     },
-    companionPlants: ['Carrots', 'Radishes', 'Turnips'],
-    avoidPlants: ['Onions', 'Garlic']
+    companionPlants: ['Carrot', 'Radish', 'Turnip'],
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'climbing-french-beans',
@@ -1579,7 +1552,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash', 'Cucumbers'],
-    avoidPlants: ['Onions', 'Garlic', 'Fennel']
+    avoidPlants: ['Onion', 'Garlic', 'Fennel']
   },
   {
     id: 'borlotti-beans',
@@ -1607,7 +1580,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash', 'Cucumbers'],
-    avoidPlants: ['Onions', 'Garlic', 'Fennel']
+    avoidPlants: ['Onion', 'Garlic', 'Fennel']
   },
   {
     id: 'edamame',
@@ -1635,7 +1608,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash'],
-    avoidPlants: ['Onions', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'mangetout',
@@ -1662,8 +1635,8 @@ export const vegetables: Vegetable[] = [
         'Climbing varieties need support'
       ]
     },
-    companionPlants: ['Carrots', 'Radishes', 'Turnips'],
-    avoidPlants: ['Onions', 'Garlic']
+    companionPlants: ['Carrot', 'Radish', 'Turnip'],
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'sugar-snap-peas',
@@ -1690,8 +1663,8 @@ export const vegetables: Vegetable[] = [
         'Provide strong supports'
       ]
     },
-    companionPlants: ['Carrots', 'Radishes', 'Turnips'],
-    avoidPlants: ['Onions', 'Garlic']
+    companionPlants: ['Carrot', 'Radish', 'Turnip'],
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'asparagus-peas',
@@ -1718,8 +1691,8 @@ export const vegetables: Vegetable[] = [
         'Low-growing - no support needed'
       ]
     },
-    companionPlants: ['Carrots', 'Radishes'],
-    avoidPlants: ['Onions']
+    companionPlants: ['Carrot', 'Radish'],
+    avoidPlants: ['Onion']
   },
   {
     id: 'black-turtle-beans',
@@ -1747,7 +1720,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash'],
-    avoidPlants: ['Onions', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic']
   },
   {
     id: 'fenugreek',
@@ -1780,8 +1753,8 @@ export const vegetables: Vegetable[] = [
 
   // ============ SOLANACEAE ============
   {
-    id: 'tomatoes',
-    name: 'Tomatoes',
+    id: 'tomato',
+    name: 'Tomato',
     category: 'solanaceae',
     description: 'Best under cover in Scotland. Choose blight-resistant varieties.',
     planting: {
@@ -1803,7 +1776,7 @@ export const vegetables: Vegetable[] = [
         'Outdoor bush varieties like Tumbler can work'
       ]
     },
-    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
   {
@@ -1831,7 +1804,7 @@ export const vegetables: Vegetable[] = [
         'Less prone to splitting than large tomatoes'
       ]
     },
-    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
   {
@@ -1859,7 +1832,7 @@ export const vegetables: Vegetable[] = [
         'Choose blight-resistant varieties'
       ]
     },
-    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
   {
@@ -1887,7 +1860,7 @@ export const vegetables: Vegetable[] = [
         'Roma types are classics'
       ]
     },
-    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
   {
@@ -1915,7 +1888,7 @@ export const vegetables: Vegetable[] = [
         'Game-changer for outdoor tomato growing'
       ]
     },
-    companionPlants: ['Basil', 'Carrots', 'Marigolds'],
+    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
   {
@@ -1946,10 +1919,38 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Basil', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas']
   },
+  {
+    id: 'aubergine',
+    name: 'Aubergine',
+    category: 'solanaceae',
+    description: 'Needs warmth and protection in Scotland. Best in greenhouse or polytunnel.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9],
+      daysToHarvest: { min: 100, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 60, rows: 60 },
+      depth: 1,
+      difficulty: 'advanced',
+      tips: [
+        'Requires greenhouse in Scotland',
+        'Start early with bottom heat',
+        'Pinch out growing tips after 5-6 fruits set',
+        'Keep warm - minimum 15°C'
+      ]
+    },
+    companionPlants: ['Pepper', 'Tomato', 'Basil'],
+    avoidPlants: ['Fennel']
+  },
 
   // ============ CUCURBITS ============
   {
-    id: 'courgettes',
+    id: 'courgette',
     name: 'Courgettes (Zucchini)',
     category: 'cucurbits',
     description: 'Prolific summer squash. Start indoors and plant out after frost.',
@@ -1972,8 +1973,8 @@ export const vegetables: Vegetable[] = [
         'One or two plants is enough!'
       ]
     },
-    companionPlants: ['Beans', 'Nasturtiums', 'Radishes'],
-    avoidPlants: ['Potatoes']
+    companionPlants: ['Beans', 'Nasturtiums', 'Radish'],
+    avoidPlants: ['Potato']
   },
   {
     id: 'cucumber',
@@ -1999,8 +2000,8 @@ export const vegetables: Vegetable[] = [
         'Keep consistently watered'
       ]
     },
-    companionPlants: ['Beans', 'Peas', 'Radishes'],
-    avoidPlants: ['Potatoes', 'Aromatic herbs']
+    companionPlants: ['Beans', 'Peas', 'Radish'],
+    avoidPlants: ['Potato', 'Aromatic herbs']
   },
   {
     id: 'squash',
@@ -2027,7 +2028,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'pumpkin',
@@ -2054,7 +2055,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'patty-pan-squash',
@@ -2082,7 +2083,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'butternut-squash',
@@ -2110,7 +2111,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'spaghetti-squash',
@@ -2138,7 +2139,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'acorn-squash',
@@ -2166,7 +2167,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'outdoor-melon',
@@ -2194,7 +2195,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'luffa',
@@ -2222,13 +2223,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Corn'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
 
   // ============ ALLIUMS ============
   {
-    id: 'onions',
-    name: 'Onions',
+    id: 'onion',
+    name: 'Onion',
     category: 'alliums',
     description: 'Kitchen essential. Sets easier than seed in Scotland.',
     planting: {
@@ -2250,7 +2251,7 @@ export const vegetables: Vegetable[] = [
         'Cure well in any dry weather'
       ]
     },
-    companionPlants: ['Carrots', 'Beetroot', 'Lettuce'],
+    companionPlants: ['Carrot', 'Beetroot', 'Lettuce'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2277,12 +2278,12 @@ export const vegetables: Vegetable[] = [
         'Hardneck varieties most reliable'
       ]
     },
-    companionPlants: ['Roses', 'Tomatoes', 'Beetroot'],
+    companionPlants: ['Roses', 'Tomato', 'Beetroot'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
-    id: 'leeks',
-    name: 'Leeks',
+    id: 'leek',
+    name: 'Leek',
     category: 'alliums',
     description: 'Hardy winter vegetable. Excellent for Scottish gardens!',
     planting: {
@@ -2304,11 +2305,11 @@ export const vegetables: Vegetable[] = [
         'Musselburgh variety bred for Scottish climate!'
       ]
     },
-    companionPlants: ['Carrots', 'Celery', 'Onions'],
+    companionPlants: ['Carrot', 'Celery', 'Onion'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
-    id: 'spring-onions',
+    id: 'spring-onion',
     name: 'Spring Onions',
     category: 'alliums',
     description: 'Quick-growing salad onion. Sow successionally.',
@@ -2331,7 +2332,35 @@ export const vegetables: Vegetable[] = [
         'White Lisbon is reliable for Scotland'
       ]
     },
-    companionPlants: ['Carrots', 'Lettuce'],
+    companionPlants: ['Carrot', 'Lettuce'],
+    avoidPlants: ['Beans', 'Peas']
+  },
+  {
+    id: 'shallot',
+    name: 'Shallot',
+    category: 'alliums',
+    description: 'Milder than onions, easier to grow from sets. Good for Scottish climate.',
+    planting: {
+      sowIndoorsMonths: [],
+      sowOutdoorsMonths: [2, 3, 4, 10, 11],
+      transplantMonths: [],
+      harvestMonths: [7, 8],
+      daysToHarvest: { min: 90, max: 120 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'low',
+      spacing: { between: 15, rows: 30 },
+      depth: 2,
+      difficulty: 'beginner',
+      tips: [
+        'Plant sets just below soil surface',
+        'Autumn planting gives larger bulbs',
+        'Each set produces cluster of 6-12 bulbs',
+        'Store well over winter'
+      ]
+    },
+    companionPlants: ['Carrot', 'Beetroot', 'Strawberry'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2359,7 +2388,7 @@ export const vegetables: Vegetable[] = [
         'Also called Japanese bunching onion'
       ]
     },
-    companionPlants: ['Carrots', 'Lettuce', 'Tomatoes'],
+    companionPlants: ['Carrot', 'Lettuce', 'Tomato'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2387,7 +2416,7 @@ export const vegetables: Vegetable[] = [
         'Very hardy for Scottish winters'
       ]
     },
-    companionPlants: ['Roses', 'Fruit trees', 'Tomatoes'],
+    companionPlants: ['Roses', 'Fruit trees', 'Tomato'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2415,7 +2444,7 @@ export const vegetables: Vegetable[] = [
         'Harvest bulbils or green tops'
       ]
     },
-    companionPlants: ['Carrots', 'Lettuce'],
+    companionPlants: ['Carrot', 'Lettuce'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2443,7 +2472,7 @@ export const vegetables: Vegetable[] = [
         'Ideal for Scottish allotments'
       ]
     },
-    companionPlants: ['Carrots', 'Lettuce'],
+    companionPlants: ['Carrot', 'Lettuce'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2471,7 +2500,7 @@ export const vegetables: Vegetable[] = [
         'Cut and come again harvesting'
       ]
     },
-    companionPlants: ['Tomatoes', 'Roses', 'Carrots'],
+    companionPlants: ['Tomato', 'Roses', 'Carrot'],
     avoidPlants: ['Beans', 'Peas']
   },
   {
@@ -2528,7 +2557,7 @@ export const vegetables: Vegetable[] = [
         'Cut outer stems first'
       ]
     },
-    companionPlants: ['Tomatoes', 'Asparagus', 'Roses'],
+    companionPlants: ['Tomato', 'Asparagus', 'Roses'],
     avoidPlants: ['Lettuce']
   },
   {
@@ -2555,7 +2584,7 @@ export const vegetables: Vegetable[] = [
         'Let some plants set seed for coriander seeds'
       ]
     },
-    companionPlants: ['Spinach', 'Tomatoes', 'Peppers'],
+    companionPlants: ['Spinach', 'Tomato', 'Peppers'],
     avoidPlants: ['Fennel']
   },
   {
@@ -2582,7 +2611,7 @@ export const vegetables: Vegetable[] = [
         'Cut back after flowering'
       ]
     },
-    companionPlants: ['Cabbage', 'Tomatoes', 'Peas'],
+    companionPlants: ['Cabbage', 'Tomato', 'Peas'],
     avoidPlants: ['Chamomile', 'Parsley']
   },
   {
@@ -2609,7 +2638,7 @@ export const vegetables: Vegetable[] = [
         'Flowers are edible too'
       ]
     },
-    companionPlants: ['Carrots', 'Tomatoes', 'Roses'],
+    companionPlants: ['Carrot', 'Tomato', 'Roses'],
     avoidPlants: []
   },
   {
@@ -2636,7 +2665,7 @@ export const vegetables: Vegetable[] = [
         'Can struggle in harsh Scottish winters'
       ]
     },
-    companionPlants: ['Beans', 'Cabbage', 'Carrots', 'Sage'],
+    companionPlants: ['Beans', 'Cabbage', 'Carrot', 'Sage'],
     avoidPlants: []
   },
   {
@@ -2663,7 +2692,7 @@ export const vegetables: Vegetable[] = [
         'Trim after flowering'
       ]
     },
-    companionPlants: ['Cabbage', 'Tomatoes', 'Aubergine'],
+    companionPlants: ['Cabbage', 'Tomato', 'Aubergine'],
     avoidPlants: []
   },
   {
@@ -2717,7 +2746,7 @@ export const vegetables: Vegetable[] = [
         'Grows year-round in Scotland'
       ]
     },
-    companionPlants: ['Strawberries', 'Herbs'],
+    companionPlants: ['Strawberry', 'Herbs'],
     avoidPlants: []
   },
 
@@ -2746,40 +2775,13 @@ export const vegetables: Vegetable[] = [
         'Force for earlier, sweeter stems'
       ]
     },
-    companionPlants: ['Garlic', 'Onions'],
+    companionPlants: ['Garlic', 'Onion'],
     avoidPlants: [],
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
       notes: ['Force under pot from January for early crop', 'Remove flower stalks immediately']
     }
-  },
-  {
-    id: 'sea-kale',
-    name: 'Sea Kale',
-    category: 'leafy-greens',
-    description: 'Native British perennial. Blanch shoots in spring.',
-    planting: {
-      sowIndoorsMonths: [2, 3],
-      sowOutdoorsMonths: [4],
-      transplantMonths: [4, 5],
-      harvestMonths: [3, 4, 5],
-      daysToHarvest: { min: 365, max: 730 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 60, rows: 60 },
-      depth: 2,
-      difficulty: 'intermediate',
-      tips: [
-        'Native to British coastlines',
-        'Force under pots for blanched shoots',
-        'Very ornamental blue-grey leaves'
-      ]
-    },
-    companionPlants: ['Beans'],
-    avoidPlants: []
   },
   {
     id: 'jerusalem-artichoke',
@@ -2807,7 +2809,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Sunflowers'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'oregano',
@@ -2834,7 +2836,7 @@ export const vegetables: Vegetable[] = [
         'Cut back after flowering to encourage growth'
       ]
     },
-    companionPlants: ['Tomatoes', 'Peppers', 'Cucurbits'],
+    companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
     avoidPlants: []
   },
   {
@@ -2862,7 +2864,7 @@ export const vegetables: Vegetable[] = [
         'Replace plants every 4-5 years'
       ]
     },
-    companionPlants: ['Brassicas', 'Carrots', 'Rosemary'],
+    companionPlants: ['Brassicas', 'Carrot', 'Rosemary'],
     avoidPlants: ['Cucumber']
   },
   {
@@ -2919,7 +2921,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Cucumbers', 'Lettuce'],
-    avoidPlants: ['Carrots', 'Fennel']
+    avoidPlants: ['Carrot', 'Fennel']
   },
   {
     id: 'herb-fennel',
@@ -2946,8 +2948,8 @@ export const vegetables: Vegetable[] = [
         'Attracts beneficial insects'
       ]
     },
-    companionPlants: ['Dill should be kept separate'],
-    avoidPlants: ['Dill', 'Coriander', 'Tomatoes']
+    companionPlants: [],
+    avoidPlants: ['Dill', 'Coriander', 'Tomato']
   },
   {
     id: 'lemon-balm',
@@ -2974,7 +2976,7 @@ export const vegetables: Vegetable[] = [
         'Attracts bees'
       ]
     },
-    companionPlants: ['Tomatoes', 'Herbs'],
+    companionPlants: ['Tomato', 'Herbs'],
     avoidPlants: []
   },
   {
@@ -3058,7 +3060,7 @@ export const vegetables: Vegetable[] = [
         'Attracts bees and beneficial insects'
       ]
     },
-    companionPlants: ['Tomatoes', 'Squash', 'Strawberries'],
+    companionPlants: ['Tomato', 'Squash', 'Strawberry'],
     avoidPlants: []
   },
   {
@@ -3086,7 +3088,7 @@ export const vegetables: Vegetable[] = [
         'Can tolerate light foot traffic'
       ]
     },
-    companionPlants: ['Brassicas', 'Onions'],
+    companionPlants: ['Brassicas', 'Onion'],
     avoidPlants: []
   },
   {
@@ -3114,7 +3116,7 @@ export const vegetables: Vegetable[] = [
         'Trim after flowering'
       ]
     },
-    companionPlants: ['Beans', 'Onions'],
+    companionPlants: ['Beans', 'Onion'],
     avoidPlants: []
   },
   {
@@ -3143,7 +3145,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Grapes'],
-    avoidPlants: ['Radishes']
+    avoidPlants: ['Radish']
   },
 
   // ============ BERRIES ============
@@ -3200,8 +3202,8 @@ export const vegetables: Vegetable[] = [
         'Scottish climate is ideal for raspberries'
       ]
     },
-    companionPlants: ['Garlic', 'Tansy', 'Turnips'],
-    avoidPlants: ['Blackberries', 'Potatoes'],
+    companionPlants: ['Garlic', 'Tansy', 'Turnip'],
+    avoidPlants: ['Blackberries', 'Potato'],
     maintenance: {
       pruneMonths: [2, 8, 9],
       feedMonths: [3],
@@ -3290,7 +3292,7 @@ export const vegetables: Vegetable[] = [
         'Watch for sawfly caterpillars'
       ]
     },
-    companionPlants: ['Tomatoes', 'Tansy'],
+    companionPlants: ['Tomato', 'Tansy'],
     avoidPlants: [],
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
@@ -3657,7 +3659,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Chives', 'Nasturtiums', 'Garlic'],
-    avoidPlants: ['Grass around base', 'Potatoes'],
+    avoidPlants: ['Grass around base', 'Potato'],
     maintenance: {
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
@@ -3989,8 +3991,8 @@ export const vegetables: Vegetable[] = [
         'Protect from slugs'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions'],
-    avoidPlants: ['Strawberries']
+    companionPlants: ['Beetroot', 'Celery', 'Onion'],
+    avoidPlants: ['Strawberry']
   },
   {
     id: 'sweetcorn',
@@ -4018,7 +4020,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Squash', 'Cucumber'],
-    avoidPlants: ['Tomatoes']
+    avoidPlants: ['Tomato']
   },
   {
     id: 'cavolo-nero',
@@ -4045,8 +4047,8 @@ export const vegetables: Vegetable[] = [
         'Can crop through entire Scottish winter'
       ]
     },
-    companionPlants: ['Beetroot', 'Celery', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
+    companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
+    avoidPlants: ['Strawberry', 'Tomato']
   },
 
   // Annual Flowers
@@ -4075,7 +4077,7 @@ export const vegetables: Vegetable[] = [
         'Excellent cut flower with long vase life'
       ]
     },
-    companionPlants: ['Tomatoes', 'Courgettes', 'Beans'],
+    companionPlants: ['Tomato', 'Courgettes', 'Beans'],
     avoidPlants: []
   },
   {
@@ -4104,7 +4106,7 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cucumbers', 'Squash', 'Beans'],
-    avoidPlants: ['Potatoes']
+    avoidPlants: ['Potato']
   },
   {
     id: 'zinnia',
@@ -4131,7 +4133,7 @@ export const vegetables: Vegetable[] = [
         'Excellent cut flower - harvest when fully open'
       ]
     },
-    companionPlants: ['Tomatoes', 'Peppers', 'Cucurbits'],
+    companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
     avoidPlants: []
   },
   {
@@ -4159,7 +4161,7 @@ export const vegetables: Vegetable[] = [
         'Self-seeds readily - save seeds for next year'
       ]
     },
-    companionPlants: ['Tomatoes', 'Beans', 'Brassicas', 'Potatoes'],
+    companionPlants: ['Tomato', 'Beans', 'Brassicas', 'Potato'],
     avoidPlants: []
   },
   {
@@ -4187,7 +4189,7 @@ export const vegetables: Vegetable[] = [
         'Self-seeds prolifically - allow some to set seed'
       ]
     },
-    companionPlants: ['Tomatoes', 'Asparagus', 'Lettuce'],
+    companionPlants: ['Tomato', 'Asparagus', 'Lettuce'],
     avoidPlants: []
   },
   {
@@ -4215,7 +4217,7 @@ export const vegetables: Vegetable[] = [
         'Thrives in poor soil - avoid over-feeding'
       ]
     },
-    companionPlants: ['Brassicas', 'Cucurbits', 'Radishes', 'Beans'],
+    companionPlants: ['Brassicas', 'Cucurbits', 'Radish', 'Beans'],
     avoidPlants: []
   },
   {
@@ -4727,7 +4729,7 @@ export const vegetables: Vegetable[] = [
         'Can spread - divide every 3 years'
       ]
     },
-    companionPlants: ['Tomatoes', 'Brassicas', 'Squash'],
+    companionPlants: ['Tomato', 'Brassicas', 'Squash'],
     avoidPlants: []
   },
   {
@@ -4839,7 +4841,7 @@ export const vegetables: Vegetable[] = [
         'Very hardy in Scottish conditions'
       ]
     },
-    companionPlants: ['Tomatoes', 'Peppers', 'Squash'],
+    companionPlants: ['Tomato', 'Peppers', 'Squash'],
     avoidPlants: []
   },
 
@@ -4869,7 +4871,7 @@ export const vegetables: Vegetable[] = [
         'Honey-scented flowers'
       ]
     },
-    companionPlants: ['Brassicas', 'Potatoes', 'Lettuce'],
+    companionPlants: ['Brassicas', 'Potato', 'Lettuce'],
     avoidPlants: []
   },
   {
@@ -4925,7 +4927,7 @@ export const vegetables: Vegetable[] = [
         'Thorny stems - handle carefully'
       ]
     },
-    companionPlants: ['Tomatoes', 'Squash', 'Beans'],
+    companionPlants: ['Tomato', 'Squash', 'Beans'],
     avoidPlants: []
   },
   {
@@ -4953,7 +4955,7 @@ export const vegetables: Vegetable[] = [
         'Very easy and low maintenance'
       ]
     },
-    companionPlants: ['Carrots', 'Onions', 'Herbs'],
+    companionPlants: ['Carrot', 'Onion', 'Herbs'],
     avoidPlants: []
   },
   {
@@ -5069,8 +5071,8 @@ export const vegetables: Vegetable[] = [
         'Can produce for 20+ years'
       ]
     },
-    companionPlants: ['Tomatoes', 'Parsley', 'Basil'],
-    avoidPlants: ['Onions', 'Garlic'],
+    companionPlants: ['Tomato', 'Parsley', 'Basil'],
+    avoidPlants: ['Onion', 'Garlic'],
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
@@ -5111,39 +5113,6 @@ export const vegetables: Vegetable[] = [
     }
   },
   {
-    id: 'rhubarb',
-    name: 'Rhubarb',
-    category: 'other',
-    description: 'Hardy perennial with edible stalks. Very reliable in Scottish climate.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [],
-      transplantMonths: [11, 12, 1, 2, 3],
-      harvestMonths: [4, 5, 6],
-      daysToHarvest: { min: 365, max: 730 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 90, rows: 90 },
-      depth: 10,
-      difficulty: 'beginner',
-      tips: [
-        'Perfect for Scottish climate',
-        'Don\'t harvest first year - let establish',
-        'Pull stalks don\'t cut them',
-        'Can produce for 10+ years'
-      ]
-    },
-    companionPlants: ['Brassicas', 'Beans'],
-    avoidPlants: [],
-    maintenance: {
-      feedMonths: [3],
-      mulchMonths: [11],
-      notes: ['Remove flower stalks', 'Apply manure in autumn']
-    }
-  },
-  {
     id: 'celery',
     name: 'Celery',
     category: 'other',
@@ -5168,8 +5137,8 @@ export const vegetables: Vegetable[] = [
         'Can bolt if stressed'
       ]
     },
-    companionPlants: ['Beans', 'Tomatoes', 'Brassicas'],
-    avoidPlants: ['Parsnips', 'Carrots']
+    companionPlants: ['Beans', 'Tomato', 'Brassicas'],
+    avoidPlants: ['Parsnip', 'Carrot']
   },
   {
     id: 'celeriac',
@@ -5196,8 +5165,8 @@ export const vegetables: Vegetable[] = [
         'Very hardy - can overwinter'
       ]
     },
-    companionPlants: ['Beans', 'Leeks', 'Tomatoes'],
-    avoidPlants: ['Parsnips', 'Carrots']
+    companionPlants: ['Beans', 'Leek', 'Tomato'],
+    avoidPlants: ['Parsnip', 'Carrot']
   },
   {
     id: 'cardoon',
@@ -5280,8 +5249,8 @@ export const vegetables: Vegetable[] = [
         'Perennial - crops for many years'
       ]
     },
-    companionPlants: ['Beetroot', 'Onions'],
-    avoidPlants: ['Strawberries'],
+    companionPlants: ['Beetroot', 'Onion'],
+    avoidPlants: ['Strawberry'],
     maintenance: {
       feedMonths: [3],
       notes: ['Cover crowns to blanch shoots']
@@ -5397,174 +5366,6 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Corn', 'Squash'],
-    avoidPlants: []
-  },
-  {
-    id: 'purple-sprouting-broccoli',
-    name: 'Purple Sprouting Broccoli',
-    category: 'brassicas',
-    description: 'Over-winters to produce tender purple spears in late winter/early spring.',
-    planting: {
-      sowIndoorsMonths: [4, 5],
-      sowOutdoorsMonths: [5, 6],
-      transplantMonths: [6, 7],
-      harvestMonths: [2, 3, 4],
-      daysToHarvest: { min: 240, max: 300 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 60, rows: 75 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        'Perfect for "hungry gap" in late winter',
-        'Very hardy - survives Scottish winters',
-        'Stake tall plants in autumn',
-        'Pick regularly to encourage more spears'
-      ]
-    },
-    companionPlants: ['Beetroot', 'Onions', 'Potatoes'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
-  },
-  {
-    id: 'spring-onions',
-    name: 'Spring Onions',
-    category: 'alliums',
-    description: 'Quick-growing salad onions. Perfect for succession sowing.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [3, 4, 5, 6, 7],
-      transplantMonths: [],
-      harvestMonths: [5, 6, 7, 8, 9, 10],
-      daysToHarvest: { min: 60, max: 80 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 2, rows: 15 },
-      depth: 1,
-      difficulty: 'beginner',
-      tips: [
-        'Sow every 3 weeks for continuous supply',
-        'Can be grown in containers',
-        'White Lisbon variety is reliable',
-        'Harvest when pencil-thick'
-      ]
-    },
-    companionPlants: ['Carrots', 'Tomatoes', 'Lettuce'],
-    avoidPlants: ['Peas', 'Beans']
-  },
-  {
-    id: 'perpetual-spinach',
-    name: 'Perpetual Spinach',
-    category: 'leafy-greens',
-    description: 'Leaf beet (not true spinach) that produces for months. Very reliable.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [4, 5, 7, 8],
-      transplantMonths: [],
-      harvestMonths: [6, 7, 8, 9, 10, 11, 12, 1, 2, 3],
-      daysToHarvest: { min: 50, max: 70 }
-    },
-    care: {
-      sun: 'partial-shade',
-      water: 'moderate',
-      spacing: { between: 20, rows: 30 },
-      depth: 2,
-      difficulty: 'beginner',
-      tips: [
-        'More reliable than true spinach',
-        'Bolts less readily in summer',
-        'Pick outer leaves regularly',
-        'Can crop for 9+ months'
-      ]
-    },
-    companionPlants: ['Strawberries', 'Beans', 'Brassicas'],
-    avoidPlants: []
-  },
-  {
-    id: 'kohl-rabi',
-    name: 'Kohlrabi',
-    category: 'brassicas',
-    description: 'Space-age looking brassica with swollen stem. Fast-growing and easy.',
-    planting: {
-      sowIndoorsMonths: [3, 4],
-      sowOutdoorsMonths: [4, 5, 6, 7],
-      transplantMonths: [5, 6],
-      harvestMonths: [6, 7, 8, 9, 10],
-      daysToHarvest: { min: 50, max: 70 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 20, rows: 30 },
-      depth: 1,
-      difficulty: 'beginner',
-      tips: [
-        'Harvest when tennis ball size',
-        'Gets woody if left too long',
-        'Great for kids - unusual appearance',
-        'Less pest-prone than other brassicas'
-      ]
-    },
-    companionPlants: ['Beetroot', 'Onions'],
-    avoidPlants: ['Strawberries', 'Tomatoes']
-  },
-  {
-    id: 'land-cress',
-    name: 'Land Cress',
-    category: 'leafy-greens',
-    description: 'Peppery salad leaf similar to watercress. Grows in soil not water.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [3, 4, 7, 8],
-      transplantMonths: [],
-      harvestMonths: [5, 6, 7, 8, 9, 10, 11, 12, 1, 2],
-      daysToHarvest: { min: 50, max: 70 }
-    },
-    care: {
-      sun: 'partial-shade',
-      water: 'high',
-      spacing: { between: 15, rows: 20 },
-      depth: 0.5,
-      difficulty: 'beginner',
-      tips: [
-        'Easier than watercress - no stream needed',
-        'Peppery flavor like rocket',
-        'Very hardy - crops through winter',
-        'Keep well watered'
-      ]
-    },
-    companionPlants: ['Radish', 'Lettuce'],
-    avoidPlants: []
-  },
-  {
-    id: 'mizuna',
-    name: 'Mizuna',
-    category: 'leafy-greens',
-    description: 'Japanese mustard green with serrated leaves. Fast-growing salad leaf.',
-    planting: {
-      sowIndoorsMonths: [3, 4],
-      sowOutdoorsMonths: [4, 5, 6, 7, 8],
-      transplantMonths: [5, 6],
-      harvestMonths: [6, 7, 8, 9, 10, 11],
-      daysToHarvest: { min: 30, max: 50 }
-    },
-    care: {
-      sun: 'partial-shade',
-      water: 'moderate',
-      spacing: { between: 15, rows: 20 },
-      depth: 1,
-      difficulty: 'beginner',
-      tips: [
-        'Very fast-growing - 4 weeks to harvest',
-        'Mild mustard flavor',
-        'Cut-and-come-again salad',
-        'Less likely to bolt than rocket'
-      ]
-    },
-    companionPlants: ['Lettuce', 'Radish'],
     avoidPlants: []
   },
 
