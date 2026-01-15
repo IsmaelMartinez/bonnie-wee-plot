@@ -25,7 +25,7 @@ import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
 
 const SUPPLIER_URLS: Record<string, string> = {
   'Organic Gardening': 'https://www.organiccatalogue.com/',
-  'Potato House': 'https://www.jbapotatoexperience.co.uk/',
+  'Potato House': 'https://www.potatohouse.co.uk/',
   'Allotment': '',
   'Garden Organic': 'https://www.gardenorganic.org.uk/shop/seeds',
 }
