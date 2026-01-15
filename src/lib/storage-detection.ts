@@ -65,7 +65,9 @@ export function getStorageAvailability(): StorageAvailability {
     const error = e as Error
 
     // Check for specific error types
-    if (error.name === 'QuotaExceededError') {
+    // Chrome/Safari: QuotaExceededError
+    // Firefox: NS_ERROR_DOM_QUOTA_REACHED (code 1014)
+    if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
       return {
         available: false,
         reason: 'Storage quota exceeded - please clear old data or free up space'

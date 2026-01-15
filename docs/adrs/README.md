@@ -29,14 +29,5 @@ Each ADR follows this structure:
 | [009](009-client-side-state-management.md) | React Built-in State Management | Accepted |
 | [010](010-static-content-pages.md) | Static Content Pages Pattern | Accepted |
 | [011](011-seed-variety-tracking.md) | Seed Variety Tracking | Accepted |
-| [012](012-plant-data-external-sources.md) | Plant Data External Sources | Proposed |
-
-
-
-
-
-
-
-
-
-
+| [012](012-planting-assistant-integration.md) | Planting Assistant Integration | Accepted |
+| [013](013-plant-data-external-sources.md) | Plant Data External Sources | Proposed |
