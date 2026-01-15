@@ -10,6 +10,7 @@ import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } fro
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
+import AreaTypeConverter from '@/components/allotment/details/AreaTypeConverter'
 import Dialog from '@/components/ui/Dialog'
 
 interface BedDetailPanelProps {
@@ -28,6 +29,7 @@ interface BedDetailPanelProps {
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  onAreaTypeConvert?: () => void
 }
 
 export default function BedDetailPanel({
@@ -46,6 +48,7 @@ export default function BedDetailPanel({
   onUpdateRotation,
   onAutoRotate,
   onUpdateArea,
+  onAreaTypeConvert,
 }: BedDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   // Determine if this is a rotation bed (vs perennial bed)
@@ -107,36 +110,46 @@ export default function BedDetailPanel({
               {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
             </div>
           </div>
-          <button
-            onClick={() => setIsEditMode(true)}
-            className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
-            title="Edit area details"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <AreaTypeConverter
+              areaId={area.id}
+              currentKind={area.kind}
+              onConvert={() => {
+                setIsEditMode(false)
+                onAreaTypeConvert?.()
+              }}
+            />
+            <button
+              onClick={() => setIsEditMode(true)}
+              className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+              title="Edit area details"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-      {/* Rotation Type Selector */}
-      <div className="mb-4">
-        <label htmlFor="rotation-type" className="block text-xs font-medium text-zen-stone-500 mb-1">
-          Rotation Type
-        </label>
-        <select
-          id="rotation-type"
-          value={areaSeason?.rotationGroup || ''}
-          onChange={(e) => onUpdateRotation(e.target.value as RotationGroup)}
-          className="zen-select text-sm"
-        >
-          <option value="">Not specified</option>
-          <option value="legumes">Legumes</option>
-          <option value="brassicas">Brassicas</option>
-          <option value="roots">Roots</option>
-          <option value="solanaceae">Solanaceae</option>
-          <option value="alliums">Alliums</option>
-          <option value="cucurbits">Cucurbits</option>
-          <option value="permanent">Permanent</option>
-        </select>
-      </div>
+      {/* Rotation Type Selector - Only for rotation beds */}
+      {isRotationBed && (
+        <div className="mb-4">
+          <label htmlFor="rotation-type" className="block text-xs font-medium text-zen-stone-500 mb-1">
+            Rotation Type
+          </label>
+          <select
+            id="rotation-type"
+            value={areaSeason?.rotationGroup || 'legumes'}
+            onChange={(e) => onUpdateRotation(e.target.value as RotationGroup)}
+            className="zen-select text-sm"
+          >
+            <option value="legumes">Legumes</option>
+            <option value="brassicas">Brassicas</option>
+            <option value="roots">Roots</option>
+            <option value="solanaceae">Solanaceae</option>
+            <option value="alliums">Alliums</option>
+            <option value="cucurbits">Cucurbits</option>
+          </select>
+        </div>
+      )}
 
       {/* Rotation Guide */}
       {rotationInfo && (

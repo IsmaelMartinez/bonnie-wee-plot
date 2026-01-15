@@ -15,6 +15,7 @@ interface AddPlantingFormProps {
   existingPlantings?: Planting[]
   selectedYear: number
   varieties?: StoredVariety[]
+  initialCategoryFilter?: VegetableCategory | 'all'
 }
 
 export default function AddPlantingForm({
@@ -22,13 +23,14 @@ export default function AddPlantingForm({
   onCancel,
   existingPlantings = [],
   selectedYear,
-  varieties = []
+  varieties = [],
+  initialCategoryFilter = 'all'
 }: AddPlantingFormProps) {
   const [plantId, setVegetableId] = useState('')
   const [varietyName, setVarietyName] = useState('')
   const [sowDate, setSowDate] = useState('')
   const [notes, setNotes] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>(initialCategoryFilter)
 
   // Get matching varieties from seed library for autocomplete
   // Sort: varieties with seeds first, then alphabetically

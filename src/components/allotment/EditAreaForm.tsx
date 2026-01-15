@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Area } from '@/types/unified-allotment'
+import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
 
 interface EditAreaFormProps {
   area: Area
@@ -12,6 +12,17 @@ interface EditAreaFormProps {
 const REASONABLE_YEAR_MIN = 1900
 const REASONABLE_YEAR_MAX = 2100
 
+const INFRASTRUCTURE_SUBTYPES: { value: InfrastructureSubtype; label: string }[] = [
+  { value: 'shed', label: 'Shed' },
+  { value: 'compost', label: 'Compost' },
+  { value: 'water-butt', label: 'Water Storage' },
+  { value: 'path', label: 'Path' },
+  { value: 'greenhouse', label: 'Greenhouse' },
+  { value: 'pond', label: 'Pond' },
+  { value: 'wildlife', label: 'Wildlife Area' },
+  { value: 'other', label: 'Other' },
+]
+
 export default function EditAreaForm({
   area,
   onSubmit,
@@ -21,6 +32,9 @@ export default function EditAreaForm({
   const [description, setDescription] = useState(area.description || '')
   const [createdYear, setCreatedYear] = useState(area.createdYear?.toString() || '')
   const [retiredYear, setRetiredYear] = useState(area.retiredYear?.toString() || '')
+  const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>(
+    area.kind === 'infrastructure' ? (area.infrastructureSubtype || 'other') : 'other'
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateYears = (): boolean => {
@@ -97,6 +111,11 @@ export default function EditAreaForm({
       retiredYear: newRetiredYear,
     }
 
+    // Include infrastructure subtype if area is infrastructure
+    if (area.kind === 'infrastructure') {
+      updates.infrastructureSubtype = infrastructureSubtype
+    }
+
     onSubmit(area.id, updates)
   }
 
@@ -138,6 +157,27 @@ export default function EditAreaForm({
           className="zen-input"
         />
       </div>
+
+      {/* Infrastructure Subtype - Only for infrastructure */}
+      {area.kind === 'infrastructure' && (
+        <div>
+          <label htmlFor="edit-infrastructure-subtype" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Infrastructure Type
+          </label>
+          <select
+            id="edit-infrastructure-subtype"
+            value={infrastructureSubtype}
+            onChange={(e) => setInfrastructureSubtype(e.target.value as InfrastructureSubtype)}
+            className="zen-input"
+          >
+            {INFRASTRUCTURE_SUBTYPES.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Created Year */}
       <div>
