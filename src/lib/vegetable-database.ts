@@ -34,6 +34,12 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Carrot', 'Radish', 'Strawberry', 'Chives'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/lettuce/grow-your-own'
   },
   {
@@ -62,6 +68,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Strawberry', 'Peas', 'Beans'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/spinach/grow-your-own'
   },
   {
@@ -89,7 +100,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'kale',
@@ -154,7 +170,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'rocket',
@@ -181,7 +202,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['French Beans', 'Beetroot', 'Carrot', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'french-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mizuna',
@@ -209,7 +236,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Spinach', 'Radish'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'land-cress',
@@ -236,7 +268,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Radish'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'corn-salad',
@@ -263,7 +299,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Spinach'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'winter-purslane',
@@ -290,7 +330,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Corn Salad', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mustard-greens',
@@ -318,7 +361,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Spinach', 'Radish'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'watercress',
@@ -346,7 +394,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Mint'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'mint', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'salad-burnet',
@@ -374,7 +425,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Thyme', 'Oregano'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'oregano', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'orache',
@@ -402,7 +457,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Spinach', 'Chard', 'Beetroot'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'new-zealand-spinach',
@@ -430,7 +489,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Cucurbits'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'good-king-henry',
@@ -458,7 +521,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Rhubarb', 'Asparagus'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'rhubarb', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'radicchio',
@@ -486,7 +553,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Endive', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'endive', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'endive',
@@ -514,7 +585,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Radicchio', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'radicchio', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'ice-plant',
@@ -572,6 +647,16 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Onion', 'Leek', 'Rosemary', 'Sage'],
     avoidPlants: ['Dill', 'Parsnip'],
+    enhancedCompanions: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'leek', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'sage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'dill', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/carrots/grow-your-own'
   },
   {
@@ -638,6 +723,14 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Onion', 'Brassicas', 'Lettuce'],
     avoidPlants: ['Runner beans'],
+    enhancedCompanions: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'runner-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/beetroot/grow-your-own'
   },
   {
@@ -666,6 +759,15 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Onion', 'Garlic', 'Radish'],
     avoidPlants: ['Carrot', 'Celery'],
+    enhancedCompanions: [
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/parsnips/grow-your-own'
   },
   {
@@ -693,7 +795,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Peas', 'Beans', 'Onion'],
-    avoidPlants: ['Potato', 'Cabbage', 'Broccoli', 'Cauliflower']
+    avoidPlants: ['Potato', 'Cabbage', 'Broccoli', 'Cauliflower'],
+    enhancedCompanions: [
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cauliflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'turnip',
@@ -720,7 +831,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Peas', 'Beans'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'radish',
@@ -747,7 +862,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Lettuce', 'Peas', 'Spinach'],
-    avoidPlants: ['Hyssop']
+    avoidPlants: ['Hyssop'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'hyssop', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'salsify',
@@ -774,7 +898,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'hamburg-parsley',
@@ -801,7 +929,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Tomato'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'early-potato',
@@ -829,7 +961,18 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'second-early-potato',
@@ -857,7 +1000,18 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'maincrop-potato',
@@ -885,7 +1039,18 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Brassicas', 'Peas', 'Marigolds'],
-    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers']
+    avoidPlants: ['Tomato', 'Cucumber', 'Sunflowers'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'florence-fennel',
@@ -913,7 +1078,17 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Peas', 'Cucumber'],
-    avoidPlants: ['Tomato', 'Beans', 'Kohlrabi']
+    avoidPlants: ['Tomato', 'Beans', 'Kohlrabi'],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'kohlrabi', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mooli',
@@ -941,7 +1116,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Peas', 'Cucumber', 'Nasturtiums'],
-    avoidPlants: ['Brassicas']
+    avoidPlants: ['Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'black-radish',
@@ -969,7 +1153,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Peas', 'Cucumber', 'Nasturtiums'],
-    avoidPlants: ['Brassicas']
+    avoidPlants: ['Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'scorzonera',
@@ -997,7 +1190,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'horseradish',
@@ -1053,7 +1250,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Jerusalem Artichokes'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'jerusalem-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'yacon',
@@ -1081,7 +1281,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ BRASSICAS ============
@@ -1186,7 +1389,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'cauliflower',
@@ -1214,6 +1425,15 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Celery', 'Beans'],
     avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cauliflowers/grow-your-own'
   },
   {
@@ -1241,7 +1461,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Carrot', 'Onion'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'kohlrabi',
@@ -1268,7 +1497,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Onion', 'Dill'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'dill', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'savoy-cabbage',
@@ -1296,7 +1534,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'red-cabbage',
@@ -1324,7 +1571,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'chinese-broccoli',
@@ -1352,7 +1608,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'romanesco',
@@ -1380,7 +1645,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'turnip-tops',
@@ -1408,7 +1682,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Peas', 'Beans', 'Onion'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'sea-kale',
@@ -1436,7 +1715,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Asparagus', 'Rhubarb'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'rhubarb', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mibuna',
@@ -1464,7 +1747,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Spinach', 'Mizuna'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'mizuna', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ LEGUMES ============
@@ -1531,7 +1819,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Cucumber', 'Cabbage'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'broad-beans',
@@ -1634,7 +1931,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash', 'Cucumber'],
-    avoidPlants: ['Onion', 'Garlic', 'Fennel']
+    avoidPlants: ['Onion', 'Garlic', 'Fennel'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'borlotti-beans',
@@ -1662,7 +1967,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash', 'Cucumber'],
-    avoidPlants: ['Onion', 'Garlic', 'Fennel']
+    avoidPlants: ['Onion', 'Garlic', 'Fennel'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'edamame',
@@ -1690,7 +2003,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mangetout',
@@ -1718,7 +2038,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Radish', 'Turnip'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'turnip', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'sugar-snap-peas',
@@ -1746,7 +2075,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Radish', 'Turnip'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },
+      { plantId: 'turnip', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'asparagus-peas',
@@ -1774,7 +2112,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Radish'],
-    avoidPlants: ['Onion']
+    avoidPlants: ['Onion'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'black-turtle-beans',
@@ -1802,7 +2147,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Squash'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'fenugreek',
@@ -1898,7 +2250,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'beefsteak-tomato',
@@ -1926,7 +2286,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'plum-tomato',
@@ -1954,7 +2322,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'blight-resistant-tomato',
@@ -1982,7 +2358,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'tomatillo',
@@ -2010,7 +2394,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    enhancedCompanions: [
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'aubergine',
@@ -2117,6 +2508,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Radish'],
     avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own'
   },
   {
@@ -2145,6 +2541,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans', 'Peas', 'Radish'],
     avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cucumbers/grow-your-own'
   },
   {
@@ -2173,6 +2574,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Sweetcorn', 'Beans', 'Nasturtiums'],
     avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters' },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/squash/grow-your-own'
   },
   {
@@ -2201,6 +2607,10 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans', 'Nasturtiums'],
     avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own'
   },
   {
@@ -2229,7 +2639,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'butternut-squash',
@@ -2257,7 +2672,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'spaghetti-squash',
@@ -2285,7 +2705,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'acorn-squash',
@@ -2313,7 +2738,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Corn'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'outdoor-melon',
@@ -2341,7 +2771,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ]
   },
   {
     id: 'luffa',
@@ -2369,7 +2803,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Corn'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ ALLIUMS ============
@@ -2509,7 +2947,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Lettuce'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'shallot',
@@ -2537,7 +2983,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Beetroot', 'Strawberry'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'welsh-onion',
@@ -2565,7 +3020,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Lettuce', 'Tomato'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'elephant-garlic',
@@ -2593,7 +3057,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Roses', 'Fruit trees', 'Tomato'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'walking-onion',
@@ -2621,7 +3092,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Lettuce'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'potato-onion',
@@ -2649,7 +3128,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Lettuce'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'garlic-chives',
@@ -2677,7 +3164,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Roses', 'Carrot'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'ramps',
@@ -2735,7 +3230,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Pepper', 'Marigold'],
-    avoidPlants: ['Sage', 'Rue']
+    avoidPlants: ['Sage', 'Rue'],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'sage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'parsley',
@@ -2762,7 +3264,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Asparagus', 'Roses'],
-    avoidPlants: ['Lettuce']
+    avoidPlants: ['Lettuce'],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'asparagus', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'coriander',
@@ -2789,7 +3298,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Spinach', 'Tomato', 'Peppers'],
-    avoidPlants: ['Fennel']
+    avoidPlants: ['Fennel'],
+    enhancedCompanions: [
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'mint',
@@ -2816,7 +3329,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cabbage', 'Tomato', 'Peas'],
-    avoidPlants: ['Chamomile', 'Parsley']
+    avoidPlants: ['Chamomile', 'Parsley'],
+    enhancedCompanions: [
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'chamomile', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'parsley', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'chives',
@@ -2843,7 +3365,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Tomato', 'Roses'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'rosemary',
@@ -2870,7 +3396,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Cabbage', 'Carrot', 'Sage'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'sage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'thyme',
@@ -2897,7 +3429,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cabbage', 'Tomato', 'Aubergine'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'aubergine', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'lovage',
@@ -2951,7 +3488,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Strawberry', 'Chives'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
 
   // ============ OTHER SCOTTISH FAVORITES ============
@@ -2981,6 +3522,10 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Onion'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/rhubarb/grow-your-own',
     maintenance: {
       feedMonths: [3],
@@ -3014,7 +3559,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Sunflowers'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'oregano',
@@ -3042,7 +3591,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'sage',
@@ -3070,7 +3623,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Carrot', 'Rosemary'],
-    avoidPlants: ['Cucumber']
+    avoidPlants: ['Cucumber'],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'french-tarragon',
@@ -3126,7 +3687,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Cucumber', 'Lettuce'],
-    avoidPlants: ['Carrot', 'Fennel']
+    avoidPlants: ['Carrot', 'Fennel'],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'herb-fennel',
@@ -3154,7 +3723,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: ['Dill', 'Coriander', 'Tomato']
+    avoidPlants: ['Dill', 'Coriander', 'Tomato'],
+    enhancedAvoid: [
+      { plantId: 'dill', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy' },
+      { plantId: 'tomato', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy' }
+    ]
   },
   {
     id: 'lemon-balm',
@@ -3182,7 +3755,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Basil'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'marjoram',
@@ -3238,7 +3815,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Rosemary', 'Thyme'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'borage',
@@ -3266,7 +3847,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Squash', 'Strawberry'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'chamomile',
@@ -3294,7 +3879,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'winter-savory',
@@ -3322,7 +3911,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Onion'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'hyssop',
@@ -3350,7 +3943,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Grapes'],
-    avoidPlants: ['Radish']
+    avoidPlants: ['Radish'],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ BERRIES ============
@@ -3380,7 +3979,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lettuce', 'Spinach', 'Beans', 'Borage'],
-    avoidPlants: ['Brassicas', 'Fennel']
+    avoidPlants: ['Brassicas', 'Fennel'],
+    enhancedCompanions: [
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'borage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'raspberry',
@@ -3409,6 +4017,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Tansy', 'Turnip'],
     avoidPlants: ['Blackberries', 'Potato'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'turnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [2, 8, 9],
       feedMonths: [3],
@@ -3442,7 +4055,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tansy', 'Hyssop'],
-    avoidPlants: ['Raspberries']
+    avoidPlants: ['Raspberries'],
+    enhancedCompanions: [
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'hyssop', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'blueberry',
@@ -3499,6 +4116,10 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tomato', 'Tansy'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
@@ -3532,6 +4153,9 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Wormwood', 'Tansy'],
     avoidPlants: ['Pine trees'],
+    enhancedCompanions: [
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [11, 12],
       feedMonths: [3],
@@ -3566,6 +4190,9 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tansy', 'Wormwood'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
@@ -3599,6 +4226,9 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Alliums'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [8, 9],
       feedMonths: [3],
@@ -3632,6 +4262,9 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Alliums'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [8, 9],
       feedMonths: [3],
@@ -3665,6 +4298,9 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tansy'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
@@ -3865,6 +4501,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Chives', 'Nasturtiums', 'Garlic'],
     avoidPlants: ['Grass around base', 'Potato'],
+    enhancedCompanions: [
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
@@ -3899,6 +4540,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Marigolds'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [7, 8],
       feedMonths: [3],
@@ -3932,6 +4578,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [2, 3],
       feedMonths: [3],
@@ -3965,6 +4616,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [6, 7],
       feedMonths: [3],
@@ -3998,6 +4654,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Nasturtiums'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
@@ -4031,6 +4692,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [6, 7],
       feedMonths: [3],
@@ -4064,6 +4730,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
@@ -4097,6 +4768,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
@@ -4130,6 +4806,10 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Comfrey', 'Nasturtiums'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [3, 4],
       feedMonths: [4, 5],
@@ -4163,6 +4843,11 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Chives', 'Comfrey'],
     avoidPlants: ['Grass around base'],
+    enhancedCompanions: [
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       pruneMonths: [12, 1],
       feedMonths: [3],
@@ -4197,7 +4882,15 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion'],
-    avoidPlants: ['Strawberry']
+    avoidPlants: ['Strawberry'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'sweetcorn',
@@ -4226,6 +4919,13 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beans', 'Squash', 'Cucumber'],
     avoidPlants: ['Tomato'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/sweetcorn/grow-your-own'
   },
   {
@@ -4254,7 +4954,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // Annual Flowers
@@ -4284,7 +4993,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Courgettes', 'Beans'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'sunflower',
@@ -4312,7 +5025,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cucumber', 'Squash', 'Beans'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    enhancedCompanions: [
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'zinnia',
@@ -4340,7 +5057,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'marigold',
@@ -4368,7 +5089,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Beans', 'Brassicas', 'Potato'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'calendula',
@@ -4396,7 +5122,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Asparagus', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'nasturtium',
@@ -4424,7 +5155,13 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Cucurbits', 'Radish', 'Beans'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'cornflower',
@@ -4482,7 +5219,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Fruit trees', 'Roses'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'echinacea',
@@ -4510,7 +5250,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Rudbeckia', 'Salvia'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'rudbeckia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'rudbeckia',
@@ -4538,7 +5282,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Echinacea', 'Sedum', 'Grasses'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'echinacea', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sedum', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'sedum',
@@ -4566,7 +5314,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lavender', 'Thyme', 'Rosemary'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ]
   },
   {
     id: 'geranium',
@@ -4594,7 +5347,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lavender', 'Salvia'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'salvia',
@@ -4622,7 +5379,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lavender', 'Echinacea'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'echinacea', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // Bulbs
@@ -4652,7 +5413,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Daffodils', 'Forget-me-nots', 'Wallflowers'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'daffodil',
@@ -4680,7 +5444,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tulips', 'Crocus', 'Grape hyacinths'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tulip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'crocus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'allium-flower',
@@ -4736,7 +5504,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Snowdrops', 'Daffodils', 'Winter aconites'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'dahlia',
@@ -4794,7 +5565,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Peas', 'Brassicas'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'clematis',
@@ -4822,7 +5598,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Roses', 'Honeysuckle', 'Climbing vegetables'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'honeysuckle', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'honeysuckle',
@@ -4850,7 +5629,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Clematis', 'Ivy', 'Native plants'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'clematis', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'morning-glory',
@@ -4878,7 +5660,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Cucumber', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ ADDITIONAL PERENNIAL FLOWERS ============
@@ -4908,7 +5694,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cabbage', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'bergamot',
@@ -4936,7 +5725,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Brassicas', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'comfrey',
@@ -4964,7 +5757,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Potato', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'tansy',
@@ -4992,7 +5788,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Cucumber', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'cucumber', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'nepeta',
@@ -5020,7 +5820,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Lavender', 'Salvia'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'agastache',
@@ -5048,7 +5852,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Peppers', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ ADDITIONAL ANNUAL FLOWERS ============
@@ -5078,7 +5885,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Brassicas', 'Potato', 'Lettuce'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'phacelia',
@@ -5106,7 +5917,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Squash', 'Brassicas'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'cleome',
@@ -5134,7 +5949,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Squash', 'Beans'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'nigella',
@@ -5162,7 +5981,12 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Onion', 'Calendula'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'poppy',
@@ -5190,7 +6014,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Cornflower', 'Calendula'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'cornflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ ADDITIONAL CLIMBERS ============
@@ -5220,7 +6048,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Grapes', 'Beans'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'hardy-kiwi',
@@ -5248,7 +6079,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Comfrey', 'Nasturtiums'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
+    ]
   },
 
   // ============ ADDITIONAL SPECIALTY VEGETABLES ============
@@ -5279,6 +6114,15 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tomato', 'Parsley', 'Basil'],
     avoidPlants: ['Onion', 'Garlic'],
+    enhancedCompanions: [
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'parsley', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/asparagus/grow-your-own',
     maintenance: {
       feedMonths: [3],
@@ -5313,6 +6157,10 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Sunflowers', 'Tarragon'],
     avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'french-tarragon', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       feedMonths: [3, 5],
       mulchMonths: [11],
@@ -5345,7 +6193,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Tomato', 'Brassicas'],
-    avoidPlants: ['Parsnip', 'Carrot']
+    avoidPlants: ['Parsnip', 'Carrot'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'celeriac',
@@ -5373,7 +6230,16 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Leek', 'Tomato'],
-    avoidPlants: ['Parsnip', 'Carrot']
+    avoidPlants: ['Parsnip', 'Carrot'],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'leek', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'cardoon',
@@ -5401,7 +6267,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Artichokes', 'Sunflowers'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'globe-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'skirret',
@@ -5429,7 +6299,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Peas'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'seakale',
@@ -5458,6 +6332,13 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Beetroot', 'Onion'],
     avoidPlants: ['Strawberry'],
+    enhancedCompanions: [
+      { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+    ],
+    enhancedAvoid: [
+      { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ],
     maintenance: {
       feedMonths: [3],
       notes: ['Cover crowns to blanch shoots']
@@ -5489,7 +6370,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Peas'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'mashua',
@@ -5517,7 +6402,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'ulluco',
@@ -5545,7 +6433,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Peas'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
   {
     id: 'ground-nut',
@@ -5573,7 +6465,10 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Corn', 'Squash'],
-    avoidPlants: []
+    avoidPlants: [],
+    enhancedCompanions: [
+      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+    ]
   },
 
   // ============ MUSHROOMS ============
