@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { aiAdvisorRequestSchema } from '@/lib/validations/ai-advisor'
 
 // Types for OpenAI API messages
 interface OpenAIMessage {
@@ -131,14 +132,19 @@ function buildApiConfig(apiKey: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, messages = [], image, allotmentContext } = await request.json()
+    // Parse and validate request body with Zod
+    const body = await request.json()
+    const validationResult = aiAdvisorRequestSchema.safeParse(body)
 
-    if (!message) {
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ')
       return NextResponse.json(
-        { error: 'Message is required' },
+        { error: `Validation error: ${errors}` },
         { status: 400 }
       )
     }
+
+    const { message, messages = [], image, allotmentContext } = validationResult.data
 
     // Get and validate API key
     let apiKey, isUserProvidedToken
@@ -221,7 +227,13 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('AI API error:', errorData)
+      // Log error without sensitive data
+      console.error('AI API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorType: errorData?.error?.type,
+        errorCode: errorData?.error?.code
+      })
       
       // Provide more specific error messages for user-provided tokens
       if (isUserProvidedToken && response.status === 401) {
