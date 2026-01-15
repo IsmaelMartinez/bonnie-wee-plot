@@ -332,7 +332,7 @@ describe('addArea() temporal backfilling', () => {
     expect(result.data!.seasons[1].areas).toHaveLength(1)
   })
 
-  it('defaults createdYear to current year if not specified', () => {
+  it('keeps createdYear undefined when not specified (area exists in all years)', () => {
     const currentYear = new Date().getFullYear()
     const data: AllotmentData = {
       version: 10,
@@ -357,12 +357,12 @@ describe('addArea() temporal backfilling', () => {
 
     const result = addArea(data, newArea)
 
-    // Should have defaulted to current year based on system time
+    // createdYear stays undefined - means area exists in all years
     const addedArea = result.data!.layout.areas[0]
-    expect(addedArea.createdYear).toBe(currentYear)
+    expect(addedArea.createdYear).toBeUndefined()
 
-    // Should backfill to currentYear and later years only
-    expect(result.data!.seasons[0].areas).toHaveLength(0) // Year before current
+    // Should backfill to ALL seasons since createdYear is undefined
+    expect(result.data!.seasons[0].areas).toHaveLength(1) // Historical year
     expect(result.data!.seasons[1].areas).toHaveLength(1) // Current year
   })
 

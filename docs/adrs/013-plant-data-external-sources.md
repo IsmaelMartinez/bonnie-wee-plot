@@ -1,4 +1,4 @@
-# ADR 012: Plant Data External Sources and Validation Strategy
+# ADR 013: Plant Data External Sources and Validation Strategy
 
 ## Status
 Proposed
