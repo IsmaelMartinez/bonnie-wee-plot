@@ -33,7 +33,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Radish', 'Strawberry', 'Chives'],
-    avoidPlants: []
+    avoidPlants: [],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/lettuce/grow-your-own'
   },
   {
     id: 'spinach',
@@ -60,7 +61,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Strawberry', 'Peas', 'Beans'],
-    avoidPlants: []
+    avoidPlants: [],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/spinach/grow-your-own'
   },
   {
     id: 'perpetual-spinach',
@@ -114,7 +116,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/kale/grow-your-own'
   },
   {
     id: 'chard',
@@ -558,7 +561,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Onion', 'Leek', 'Rosemary', 'Sage'],
-    avoidPlants: ['Dill', 'Parsnip']
+    avoidPlants: ['Dill', 'Parsnip'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/carrots/grow-your-own'
   },
   {
     id: 'potato',
@@ -585,7 +589,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Cabbage', 'Horseradish'],
-    avoidPlants: ['Tomato', 'Cucumber', 'Squash']
+    avoidPlants: ['Tomato', 'Cucumber', 'Squash'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/potatoes/grow-your-own'
   },
   {
     id: 'beetroot',
@@ -612,7 +617,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Onion', 'Brassicas', 'Lettuce'],
-    avoidPlants: ['Runner beans']
+    avoidPlants: ['Runner beans'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/beetroot/grow-your-own'
   },
   {
     id: 'parsnip',
@@ -639,7 +645,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Onion', 'Garlic', 'Radish'],
-    avoidPlants: ['Carrot', 'Celery']
+    avoidPlants: ['Carrot', 'Celery'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/parsnips/grow-your-own'
   },
   {
     id: 'swede',
@@ -1083,7 +1090,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own'
   },
   {
     id: 'broccoli',
@@ -1110,7 +1118,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Onion', 'Potato'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own'
   },
   {
     id: 'purple-sprouting-broccoli',
@@ -1164,7 +1173,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beetroot', 'Celery', 'Beans'],
-    avoidPlants: ['Strawberry', 'Tomato']
+    avoidPlants: ['Strawberry', 'Tomato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/cauliflowers/grow-your-own'
   },
   {
     id: 'brussels-sprouts',
@@ -1524,7 +1534,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Radish', 'Turnip'],
-    avoidPlants: ['Onion', 'Garlic']
+    avoidPlants: ['Onion', 'Garlic'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/peas/grow-your-own'
   },
   {
     id: 'climbing-french-beans',
@@ -1777,7 +1788,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Basil', 'Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
   },
   {
     id: 'cherry-tomato',
@@ -1945,7 +1957,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Pepper', 'Tomato', 'Basil'],
-    avoidPlants: ['Fennel']
+    avoidPlants: ['Fennel'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/aubergines/grow-your-own'
   },
   {
     id: 'pepper',
@@ -1973,7 +1986,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Tomato', 'Basil', 'Carrot', 'Onion'],
-    avoidPlants: ['Fennel', 'Brassicas']
+    avoidPlants: ['Fennel', 'Brassicas'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/peppers-capsicum/grow-your-own'
   },
 
   // ============ CUCURBITS ============
@@ -2002,7 +2016,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums', 'Radish'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own'
   },
   {
     id: 'cucumber',
@@ -2029,7 +2044,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Peas', 'Radish'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/cucumbers/grow-your-own'
   },
   {
     id: 'squash',
@@ -2056,7 +2072,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Sweetcorn', 'Beans', 'Nasturtiums'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/squash/grow-your-own'
   },
   {
     id: 'pumpkin',
@@ -2083,7 +2100,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potato']
+    avoidPlants: ['Potato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own'
   },
   {
     id: 'patty-pan-squash',
@@ -2280,7 +2298,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Beetroot', 'Lettuce'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/onions/grow-your-own'
   },
   {
     id: 'garlic',
@@ -2307,7 +2326,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Roses', 'Tomato', 'Beetroot'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/garlic/grow-your-own'
   },
   {
     id: 'leek',
@@ -2334,7 +2354,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Celery', 'Onion'],
-    avoidPlants: ['Beans', 'Peas']
+    avoidPlants: ['Beans', 'Peas'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own'
   },
   {
     id: 'spring-onion',
@@ -2833,6 +2854,7 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Garlic', 'Onion'],
     avoidPlants: [],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/rhubarb/grow-your-own',
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
@@ -4076,7 +4098,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Beans', 'Squash', 'Cucumber'],
-    avoidPlants: ['Tomato']
+    avoidPlants: ['Tomato'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/sweetcorn/grow-your-own'
   },
   {
     id: 'cavolo-nero',
@@ -5129,6 +5152,7 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Tomato', 'Parsley', 'Basil'],
     avoidPlants: ['Onion', 'Garlic'],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/asparagus/grow-your-own',
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],

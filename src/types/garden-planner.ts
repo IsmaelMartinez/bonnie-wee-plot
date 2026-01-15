@@ -93,6 +93,8 @@ export interface Vegetable {
   isCustom?: boolean
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
+  rhsUrl?: string                          // RHS grow-your-own guide URL
+  botanicalName?: string                   // Scientific/Latin name
 }
 
 // Maintenance info for perennials, trees, and shrubs
