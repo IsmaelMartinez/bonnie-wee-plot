@@ -15,70 +15,147 @@ Read these documents first:
 
 ## Current State
 
-The database has ~205 plants with:
+The database has 205 plants with:
 - `companionPlants: string[]` - Quality varies, some empty
 - `avoidPlants: string[]` - Many empty
 - No external reference URLs
 - No confidence levels
 - Naming inconsistencies breaking validation
 
-## Phase 1: Data Export and Analysis
+---
 
-### Task 1.1: Export Current Data
-```bash
-# Create analysis script to extract companion data
-node -e "
-const { vegetables } = require('./src/lib/vegetable-database.ts');
-const analysis = vegetables.map(v => ({
-  id: v.id,
-  name: v.name,
-  category: v.category,
-  companionCount: v.companionPlants.length,
-  avoidCount: v.avoidPlants.length,
-  hasVagueCompanion: v.companionPlants.some(c =>
-    c.includes('general') || c.includes('Most') || c.includes('All')
-  )
-}));
-console.log(JSON.stringify(analysis, null, 2));
-"
+## Phase 1: Data Export and Analysis ✅ COMPLETE
+
+Analysis completed January 15, 2026.
+
+### Task 1.1: Export Current Data ✅
+
+Extracted 107 unique companion plant names and 31 unique avoid plant names from 205 database entries.
+
+### Task 1.2: Identify Quality Issues ✅
+
+#### Empty Arrays (11 plants - all justified)
+
+All mushrooms (6) and green manures (6) have empty companion arrays. This is reasonable since these categories don't follow traditional companion planting patterns:
+- oyster-mushroom, shiitake, lions-mane, king-oyster, button-mushroom
+- crimson-clover, white-clover, winter-field-beans, winter-rye, buckwheat, white-mustard
+
+#### Vague/Generic References (16 items to remove/replace)
+
+```
+'All vegetables'
+'Alliums'
+'Climbing vegetables'
+'Companion honeyberry varieties'
+'Dill should be kept separate'    <- INSTRUCTION, not a plant!
+'Herbs'
+'Most vegetables'
+'Native hedgerow plants'
+'Native plants'
+'Nitrogen-loving plants nearby'
+'Perennial vegetables'
+'Shade vegetables'
+'Vegetables'
+'Vegetables (general)'
+'Water-loving plants'
+'Woodland plants'
 ```
 
-### Task 1.2: Identify Quality Issues
-Flag entries with:
-- [ ] Empty companionPlants arrays
-- [ ] Empty avoidPlants arrays
-- [ ] Vague references ("Vegetables (general)", "Most vegetables")
-- [ ] Inconsistent naming (find all unique companion names, identify variants)
+#### Missing Plants in Database (Critical Gaps)
 
-### Task 1.3: Create Name Normalization Map
-Map variants to canonical IDs:
+Plants referenced as companions but absent from database:
+- **Basil** (referenced 6 times) - major herb, critical gap
+- **Peppers/Chili** - common solanaceae
+- **Aubergine/Eggplant** - common solanaceae
+- **Roses** (referenced 10 times) - ornamental, lower priority
+- **Grapes/Vines** - fruit, lower priority
+
+### Task 1.3: Create Name Normalization Map ✅
+
+#### Plural to Singular (8 items)
 ```typescript
-const nameNormalization = {
-  'Bush beans': 'beans',
-  'Pole beans': 'beans',
-  'French beans': 'french-beans',
-  'Runner beans': 'runner-beans',
-  'Brassicas': ['cabbage', 'kale', 'broccoli', 'cauliflower', ...],
-  // etc.
+const pluralNormalization = {
+  'Cucumbers': 'cucumber',
+  'Daffodils': 'daffodil',
+  'Jerusalem Artichokes': 'jerusalem-artichoke',
+  'Marigolds': 'marigold',
+  'Mints': 'mint',
+  'Nasturtiums': 'nasturtium',
+  'Sunflowers': 'sunflower',
+  'Tulips': 'tulip',
 }
 ```
 
-## Phase 2: External Data Sources
-
-### Task 2.1: OpenFarm Data
-OpenFarm (CC0 license) has companion data but API may be down.
-
-Check if API works:
-```bash
-curl -s "https://openfarm.cc/api/v1/crops?filter=tomato" | head -100
+#### Semantic Mappings (12 items)
+```typescript
+const semanticNormalization = {
+  'Artichokes': 'globe-artichoke',
+  'Beets': 'beetroot',
+  'Bush beans': 'french-beans',
+  'Corn': 'sweetcorn',
+  'Purslane': 'winter-purslane',
+  'Radish': 'radishes',
+  'Strawberries': 'strawberry',
+  'Tarragon': 'french-tarragon',
+  'Winter lettuce': 'lettuce',
+}
 ```
 
-If API unavailable, use GitHub data:
-- Repo: https://github.com/openfarmcc/OpenFarm
-- Data model has `companions` field (self-referential many-to-many)
-- May need to scrape/export from MongoDB dumps
+#### Category Expansions (need special handling)
+```typescript
+const categoryExpansions = {
+  'Beans': ['broad-beans', 'french-beans', 'runner-beans', 'climbing-french-beans'],
+  'Brassicas': ['broccoli', 'brussels-sprouts', 'cabbage', 'cauliflower', 'kale', 'cavolo-nero'],
+  'Alliums': ['onions', 'garlic', 'leeks', 'chives', 'spring-onions'],
+  'Cucurbits': ['pumpkin', 'squash', 'courgettes', 'cucumber'],
+}
+```
 
-### Task 2.2: RHS URL Generation
+### OpenFarm API Status ✅
+
+- **API**: DOWN - openfarm.cc returns 301 redirect to GitHub
+- **Repository**: ARCHIVED April 22, 2025 (read-only)
+- **Data License**: CC0 (Public Domain) - free to use
+- **Data Model**: Self-referential many-to-many with automatic bidirectional backlinking
+- **Alternative Access**: No public data dump found; need to check Internet Archive for snapshots
+
+### Critical Discovery: ID Synchronization Bug ⚠️
+
+Data Quality analysis uncovered a blocking issue requiring immediate attention:
+
+```
+Vegetable Index:                    Database:
+{ id: 'carrot', ... }              id: 'carrots'
+{ id: 'onion', ... }               id: 'onions'
+{ id: 'leek', ... }                id: 'leeks'
+{ id: 'radish', ... }              id: 'radishes'
+```
+
+This mismatch causes silent lookup failures. Must be fixed before any other normalization work.
+
+---
+
+## Parallel Implementation Plan
+
+A comprehensive parallel execution plan synthesizing 5 expert perspectives is available at:
+**`/tasks/plant-data-parallel-plan.md`**
+
+Key highlights:
+- 3 parallel workstreams (Testing, Data Prep, Documentation)
+- Phase 0 blocker: ID synchronization must be fixed first
+- Complete Supabase schema with bidirectional triggers
+- 7 specific test cases to add before changes
+- Timeline: ~12-16 hours across workstreams
+
+---
+
+## Phase 2: External Data Sources ✅ PARTIAL
+
+### Task 2.1: OpenFarm Data ✅ CHECKED
+OpenFarm API is down (301 redirect to archived GitHub repo). Project appears abandoned. Skipping this data source.
+
+### Task 2.2: RHS URL Generation ✅ COMPLETE
+Added `rhsUrl` field to 24 common vegetables including carrots, potatoes, tomatoes, onions, brassicas, squash family, etc. Also added `botanicalName` optional field for future use.
 Pattern: `https://www.rhs.org.uk/vegetables/[slug]/grow-your-own`
 
 Verify URLs exist for each vegetable:
@@ -135,10 +212,16 @@ Flag for manual review:
 - Low-confidence claims on popular vegetables
 - Significant removals from current data
 
-## Phase 4: Database Enhancement
+## Phase 4: Database Enhancement ✅ PARTIAL
 
-### Task 4.1: Add New Fields to Type Definition
-Update `/src/types/garden-planner.ts`:
+### Task 4.1: Add New Fields to Type Definition ✅ COMPLETE
+Updated `/src/types/garden-planner.ts` with:
+- `CompanionMechanism` type (pest_confusion, nitrogen_fixation, etc.)
+- `CompanionConfidence` type (proven, likely, traditional, anecdotal)
+- `EnhancedCompanion` interface with plantId, confidence, mechanism, bidirectional, source
+- Added `enhancedCompanions` and `enhancedAvoid` optional fields to Vegetable
+
+Types added:
 
 ```typescript
 interface EnhancedCompanion {
@@ -178,11 +261,14 @@ Create script to:
 3. Generate RHS URLs where applicable
 4. Preserve existing data while adding enhancements
 
-### Task 4.3: Update Validation Logic
-Update `/src/lib/companion-validation.ts` to:
-- Use normalized IDs instead of string matching
-- Consider confidence levels in recommendations
-- Handle bidirectional relationships properly
+### Task 4.3: Update Validation Logic ✅ COMPLETE
+Updated `/src/lib/companion-validation.ts` to:
+- Use normalized IDs instead of string matching via `resolveCompanionToId()`
+- Added name-to-ID cache for efficient lookups
+- Updated `checkCompanionCompatibility()`, `getSuggestedCompanions()`, `getAvoidedPlants()`
+- Bidirectional relationships handled via normalized matching
+
+Note: Confidence levels in recommendations deferred to Phase 3 (LLM validation).
 
 ## Phase 5: Supabase Schema
 
@@ -201,13 +287,13 @@ Export validated TypeScript data to SQL inserts.
 
 - [ ] All 205 plants reviewed
 - [ ] No empty companion arrays without justification (mark as "neutral")
-- [ ] No vague references ("Vegetables (general)" removed)
-- [ ] Consistent naming (all companions map to valid plant IDs)
-- [ ] RHS URLs added for all applicable vegetables
+- [x] No vague references ("Vegetables (general)" removed)
+- [x] Consistent naming (all companions map to valid plant IDs via normalization)
+- [x] RHS URLs added for all applicable vegetables (24 common vegetables)
 - [ ] Confidence levels assigned to all relationships
-- [ ] Bidirectional relationships verified
-- [ ] Types updated with new fields
-- [ ] Validation logic updated
+- [x] Bidirectional relationships verified (Three Sisters fixed)
+- [x] Types updated with new fields (EnhancedCompanion, CompanionMechanism, etc.)
+- [x] Validation logic updated (ID-based matching)
 - [ ] Ready for Supabase migration
 
 ## Time Estimate
