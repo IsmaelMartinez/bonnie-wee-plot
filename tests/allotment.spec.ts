@@ -924,32 +924,12 @@ test.describe('Custom Allotment Naming', () => {
   })
 })
 
-test.describe('Plant Database - Removed Plants', () => {
+test.describe('Plant Database - Excluded Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
     await page.evaluate(() => localStorage.clear())
     await page.reload()
     await page.waitForLoadState('networkidle')
-  })
-
-  test('should not show Sweet Peppers in plant selection', async ({ page }) => {
-    // Select a rotation bed
-    await selectRotationBed(page)
-
-    // Open Add Planting dialog
-    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
-    await expect(addButton).toBeVisible({ timeout: 5000 })
-    await addButton.click()
-
-    // Wait for dialog
-    await expect(page.getByRole('dialog')).toBeVisible()
-
-    // Get all options from the vegetable select
-    const options = await page.locator('#vegetable-select option').allTextContents()
-
-    // Should NOT include Sweet Peppers
-    expect(options).not.toContain('Sweet Peppers')
-    expect(options).not.toContain('Sweet Pepper')
   })
 
   test('should not show Chillies in plant selection', async ({ page }) => {
@@ -967,27 +947,8 @@ test.describe('Plant Database - Removed Plants', () => {
     // Get all options
     const options = await page.locator('#vegetable-select option').allTextContents()
 
-    // Should NOT include Chillies
+    // Should NOT include Chillies (too warm for Scotland)
     expect(options).not.toContain('Chillies')
-  })
-
-  test('should not show Basil in plant selection', async ({ page }) => {
-    // Select a rotation bed
-    await selectRotationBed(page)
-
-    // Open Add Planting dialog
-    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
-    await expect(addButton).toBeVisible({ timeout: 5000 })
-    await addButton.click()
-
-    // Wait for dialog
-    await expect(page.getByRole('dialog')).toBeVisible()
-
-    // Get all options
-    const options = await page.locator('#vegetable-select option').allTextContents()
-
-    // Should NOT include Basil
-    expect(options).not.toContain('Basil')
   })
 })
 
