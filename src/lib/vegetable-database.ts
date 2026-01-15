@@ -1947,6 +1947,34 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Pepper', 'Tomato', 'Basil'],
     avoidPlants: ['Fennel']
   },
+  {
+    id: 'pepper',
+    name: 'Sweet Pepper',
+    category: 'solanaceae',
+    description: 'Colourful sweet peppers. Require greenhouse or polytunnel in Scotland.',
+    planting: {
+      sowIndoorsMonths: [2, 3],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [7, 8, 9, 10],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 45, rows: 60 },
+      depth: 1,
+      difficulty: 'intermediate',
+      tips: [
+        'Needs greenhouse or polytunnel in Scotland',
+        'Start early with bottom heat',
+        'Pinch out growing tip when 20cm tall',
+        'Support plants as fruit develops'
+      ]
+    },
+    companionPlants: ['Tomato', 'Basil', 'Carrot', 'Onion'],
+    avoidPlants: ['Fennel', 'Brassicas']
+  },
 
   // ============ CUCURBITS ============
   {
@@ -2533,6 +2561,34 @@ export const vegetables: Vegetable[] = [
   },
 
   // ============ HERBS ============
+  {
+    id: 'basil',
+    name: 'Basil',
+    category: 'herbs',
+    description: 'Aromatic herb, essential for Italian cooking. Best grown under cover in Scotland.',
+    planting: {
+      sowIndoorsMonths: [3, 4, 5],
+      sowOutdoorsMonths: [],
+      transplantMonths: [5, 6],
+      harvestMonths: [6, 7, 8, 9],
+      daysToHarvest: { min: 60, max: 90 }
+    },
+    care: {
+      sun: 'full-sun',
+      water: 'moderate',
+      spacing: { between: 20, rows: 30 },
+      depth: 0.5,
+      difficulty: 'intermediate',
+      tips: [
+        'Grow under cover in Scotland - needs warmth',
+        'Pinch out growing tips for bushier plants',
+        'Do not let flower if harvesting leaves',
+        'Minimum temperature 10°C'
+      ]
+    },
+    companionPlants: ['Tomato', 'Pepper', 'Marigold'],
+    avoidPlants: ['Sage', 'Rue']
+  },
   {
     id: 'parsley',
     name: 'Parsley',

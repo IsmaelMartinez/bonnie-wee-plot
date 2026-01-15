@@ -98,7 +98,8 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'blight-resistant-tomato', name: 'Blight-Resistant Tomato', category: 'solanaceae' },
   { id: 'tomatillo', name: 'Tomatillo', category: 'solanaceae' },
   { id: 'aubergine', name: 'Aubergine', category: 'solanaceae' },
-  
+  { id: 'pepper', name: 'Sweet Pepper', category: 'solanaceae' },
+
   // Cucurbits
   { id: 'courgette', name: 'Courgette', category: 'cucurbits' },
   { id: 'cucumber', name: 'Cucumber', category: 'cucurbits' },
@@ -125,6 +126,7 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'ramps', name: 'Ramps (Wild Leeks)', category: 'alliums' },
   
   // Herbs
+  { id: 'basil', name: 'Basil', category: 'herbs' },
   { id: 'parsley', name: 'Parsley', category: 'herbs' },
   { id: 'coriander', name: 'Coriander', category: 'herbs' },
   { id: 'mint', name: 'Mint', category: 'herbs' },
