@@ -650,9 +650,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 9 -> 10: Simplified unified Area type
   if (migrated.version < 10) {
     const v10Data = migrateToV10(migrated)
-    v10Data.version = CURRENT_SCHEMA_VERSION
+    v10Data.version = 10
     console.log('Migrated to schema v10: unified Area type with dynamic add/remove')
-    return v10Data
+    // Continue to v11 migration
+    return migrateSchema(v10Data)
+  }
+
+  // Version 10 -> 11: Synchronize plant IDs (plural to singular)
+  if (migrated.version < 11) {
+    const v11Data = migrateToV11(migrated)
+    v11Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v11: synchronized plant IDs')
+    return v11Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -944,6 +953,65 @@ function migrateToV10(data: AllotmentData): AllotmentData {
   // Update layout to v10 format (just areas, no legacy fields)
   migrated.layout = {
     areas: v10Areas,
+  }
+
+  return migrated
+}
+
+/**
+ * Migrate from v10 to v11: Synchronize plant IDs
+ * - Remaps plural IDs to singular IDs to match the vegetable index
+ * - Affects plantings in seasons and primaryPlant in areas
+ */
+function migrateToV11(data: AllotmentData): AllotmentData {
+  // Map of old plural/variant IDs to new singular IDs
+  const PLANT_ID_MIGRATION_MAP: Record<string, string> = {
+    'carrots': 'carrot',
+    'onions': 'onion',
+    'leeks': 'leek',
+    'radishes': 'radish',
+    'potatoes': 'potato',
+    'parsnips': 'parsnip',
+    'turnips': 'turnip',
+    'tomatoes': 'tomato',
+    'courgettes': 'courgette',
+    'spring-onions': 'spring-onion',
+    'claytonia': 'winter-purslane',
+    'kohl-rabi': 'kohlrabi',
+  }
+
+  const migrated = { ...data }
+
+  // Migrate plantings in seasons
+  migrated.seasons = migrated.seasons.map(season => ({
+    ...season,
+    areas: season.areas.map(areaSeason => ({
+      ...areaSeason,
+      plantings: areaSeason.plantings.map(planting => {
+        const newPlantId = PLANT_ID_MIGRATION_MAP[planting.plantId]
+        if (newPlantId) {
+          return { ...planting, plantId: newPlantId }
+        }
+        return planting
+      }),
+    })),
+  }))
+
+  // Migrate primaryPlant in areas
+  migrated.layout = {
+    ...migrated.layout,
+    areas: migrated.layout.areas.map(area => {
+      if (area.primaryPlant?.plantId) {
+        const newPlantId = PLANT_ID_MIGRATION_MAP[area.primaryPlant.plantId]
+        if (newPlantId) {
+          return {
+            ...area,
+            primaryPlant: { ...area.primaryPlant, plantId: newPlantId },
+          }
+        }
+      }
+      return area
+    }),
   }
 
   return migrated
@@ -2334,7 +2402,7 @@ export function addArea(
 
     const newAreaSeason: AreaSeason = {
       areaId: id,
-      rotationGroup: newArea.kind === 'rotation-bed' ? newArea.rotationGroup : undefined,
+      rotationGroup: newArea.kind === 'rotation-bed' ? (newArea.rotationGroup || 'legumes') : undefined,
       plantings: [],
       notes: [],
     }

@@ -380,7 +380,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 10 // Unified Area system with dynamic add/remove
+export const CURRENT_SCHEMA_VERSION = 11 // Synchronized plant IDs between index and database
 
 // ============ HELPER TYPES ============
 
