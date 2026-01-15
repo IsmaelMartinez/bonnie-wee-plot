@@ -35,7 +35,10 @@ const imageSchema = z.object({
 
 // Main request schema
 export const aiAdvisorRequestSchema = z.object({
-  message: z.string()
+  message: z.string({
+    required_error: 'Message is required',
+    invalid_type_error: 'Message is required'
+  })
     .min(1, { message: 'Message is required' })
     .max(MAX_MESSAGE_LENGTH, {
       message: `Message must not exceed ${MAX_MESSAGE_LENGTH} characters`
