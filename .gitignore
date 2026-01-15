@@ -60,3 +60,7 @@ pids
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Serwist generated service worker files
+public/sw*
+public/swe-worker*

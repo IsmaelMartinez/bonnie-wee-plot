@@ -161,18 +161,30 @@ Add Vercel Speed Insights or manual web-vitals reporting. Track LCP, FID, CLS fo
 
 ---
 
-### Phase 3: PWA Foundation (Week 4-5)
+### Phase 3: PWA Foundation - Minimal Installable ✅ COMPLETE (January 15, 2026)
 
-Enable installation and basic caching for the "garden usage" scenario.
+App is now installable ("Add to Home Screen") with basic caching for the "garden usage" scenario.
 
-#### Web App Manifest
-Create `/public/manifest.json` with standalone display mode, zen-moss theme color (#5c6e49), and icons at 192x192, 384x384, and 512x512. Account for GitHub Pages base path when needed.
+#### What Was Implemented
 
-#### Service Worker Setup
-Install `@ducanh2912/next-pwa` (maintained fork compatible with Next.js 15 App Router). Configure cache-first for static assets, network-first for API routes, stale-while-revalidate for HTML pages.
+Serwist (`@serwist/next`) was chosen over `@ducanh2912/next-pwa` as the modern successor library with better long-term maintenance prospects. See ADR-014 for decision rationale.
 
-#### Offline Indicator
+Configuration:
+- `next.config.mjs` - ESM config with Serwist wrapper, disabled in development
+- `tsconfig.sw.json` - Separate TypeScript config for service worker (avoids DOM/WebWorker lib conflicts)
+- `src/app/sw.ts` - Service worker with precaching and default runtime caching
+- `src/app/manifest.ts` - Web app manifest via Next.js metadata API
+- `public/icons/` - PWA icons at 192x192 and 512x512
+
+The service worker uses Serwist's `defaultCache` strategies which provide sensible defaults for static assets, API routes, and HTML pages.
+
+#### Remaining Work (Future Enhancement)
+
+Offline Indicator:
 Create `/src/components/ui/OfflineIndicator.tsx` and `/src/hooks/useNetworkStatus.ts`. Show subtle banner when offline with "Changes will sync when connected" messaging.
+
+Install Prompt:
+Create custom install prompt that appears after meaningful engagement (first planting added, second visit).
 
 ---
 
