@@ -28,10 +28,10 @@ describe('vegetables database', () => {
 
 describe('getVegetableById', () => {
   it('should find vegetable by ID', () => {
-    const veg = getVegetableById('carrots')
+    const veg = getVegetableById('carrot')
     
     expect(veg).toBeDefined()
-    expect(veg?.name).toBe('Carrots')
+    expect(veg?.name).toBe('Carrot')
   })
 
   it('should return undefined for non-existent ID', () => {
@@ -41,7 +41,7 @@ describe('getVegetableById', () => {
   })
 
   it('should find common vegetables', () => {
-    const commonVegs = ['carrots', 'potatoes', 'onions', 'lettuce', 'peas', 'tomatoes']
+    const commonVegs = ['carrot', 'potato', 'onion', 'lettuce', 'peas', 'tomato']
     
     for (const id of commonVegs) {
       expect(getVegetableById(id)).toBeDefined()
@@ -60,7 +60,7 @@ describe('getVegetablesByCategory', () => {
   it('should include carrots in root vegetables', () => {
     const roots = getVegetablesByCategory('root-vegetables')
     
-    const carrots = roots.find(v => v.id === 'carrots')
+    const carrots = roots.find(v => v.id === 'carrot')
     expect(carrots).toBeDefined()
   })
 
@@ -83,7 +83,7 @@ describe('searchVegetables', () => {
     const results = searchVegetables('carrot')
     
     expect(results.length).toBeGreaterThan(0)
-    expect(results.some(v => v.id === 'carrots')).toBe(true)
+    expect(results.some(v => v.id === 'carrot')).toBe(true)
   })
 
   it('should be case-insensitive', () => {
@@ -125,7 +125,7 @@ describe('getVegetablesForMonth', () => {
   it('should include potatoes for harvest in September', () => {
     const toHarvest = getVegetablesForMonth(9, 'harvest')
     
-    const potatoes = toHarvest.find(v => v.id === 'potatoes')
+    const potatoes = toHarvest.find(v => v.id === 'potato')
     expect(potatoes).toBeDefined()
   })
 

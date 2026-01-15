@@ -76,12 +76,12 @@ describe('getAdjacentCells', () => {
 
 describe('checkCompanionCompatibility', () => {
   it('should return good for known companions (carrots and onions)', () => {
-    const result = checkCompanionCompatibility('carrots', 'onions')
+    const result = checkCompanionCompatibility('carrot', 'onion')
     expect(result).toBe('good')
   })
 
   it('should return bad for plants that should be avoided (carrots and dill)', () => {
-    const result = checkCompanionCompatibility('carrots', 'parsnips')
+    const result = checkCompanionCompatibility('carrot', 'parsnip')
     // Carrots avoid Dill and Parsnips
     expect(result).toBe('bad')
   })
@@ -97,8 +97,8 @@ describe('checkCompanionCompatibility', () => {
   })
 
   it('should be bidirectional - checking either direction gives same result', () => {
-    const result1 = checkCompanionCompatibility('carrots', 'onions')
-    const result2 = checkCompanionCompatibility('onions', 'carrots')
+    const result1 = checkCompanionCompatibility('carrot', 'onion')
+    const result2 = checkCompanionCompatibility('onion', 'carrot')
     expect(result1).toBe(result2)
   })
 })
@@ -111,7 +111,7 @@ describe('validatePlacement', () => {
       {}, {}, {}
     ])
     
-    const result = validatePlacement('carrots', plot.cells[4], plot)
+    const result = validatePlacement('carrot', plot.cells[4], plot)
     
     expect(result.isValid).toBe(true)
     expect(result.warnings).toHaveLength(0)
@@ -120,12 +120,12 @@ describe('validatePlacement', () => {
 
   it('should return good compatibility when placed near a companion', () => {
     const plot = createTestPlot([
-      {}, { plantId: 'onions' }, {},
+      {}, { plantId: 'onion' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
     
-    const result = validatePlacement('carrots', plot.cells[4], plot)
+    const result = validatePlacement('carrot', plot.cells[4], plot)
     
     expect(result.isValid).toBe(true)
     expect(result.compatibility).toBe('good')
@@ -134,12 +134,12 @@ describe('validatePlacement', () => {
 
   it('should return bad compatibility with warnings when placed near avoided plant', () => {
     const plot = createTestPlot([
-      {}, { plantId: 'parsnips' }, {},
+      {}, { plantId: 'parsnip' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
     
-    const result = validatePlacement('carrots', plot.cells[4], plot)
+    const result = validatePlacement('carrot', plot.cells[4], plot)
     
     expect(result.compatibility).toBe('bad')
     expect(result.warnings.length).toBeGreaterThan(0)
@@ -158,12 +158,12 @@ describe('validatePlacement', () => {
 
 describe('getSuggestedCompanions', () => {
   it('should return suggested companion vegetable IDs', () => {
-    const companions = getSuggestedCompanions('carrots')
+    const companions = getSuggestedCompanions('carrot')
     
     expect(companions.length).toBeGreaterThan(0)
     // Carrots have onions, leeks as companions
-    expect(companions).toContain('onions')
-    expect(companions).toContain('leeks')
+    expect(companions).toContain('onion')
+    expect(companions).toContain('leek')
   })
 
   it('should return empty array for unknown vegetable', () => {
@@ -175,11 +175,11 @@ describe('getSuggestedCompanions', () => {
 
 describe('getAvoidedPlants', () => {
   it('should return plants to avoid', () => {
-    const avoided = getAvoidedPlants('carrots')
+    const avoided = getAvoidedPlants('carrot')
     
     expect(avoided.length).toBeGreaterThan(0)
     // Carrots should avoid parsnips
-    expect(avoided).toContain('parsnips')
+    expect(avoided).toContain('parsnip')
   })
 
   it('should return empty array for unknown vegetable', () => {
@@ -197,31 +197,31 @@ describe('calculateCompanionScore', () => {
       {}, {}, {}
     ])
     
-    const score = calculateCompanionScore('carrots', plot.cells[4], plot)
+    const score = calculateCompanionScore('carrot', plot.cells[4], plot)
     
     expect(score).toBe(50)
   })
 
   it('should return higher score when near companions', () => {
     const plot = createTestPlot([
-      {}, { plantId: 'onions' }, {},
+      {}, { plantId: 'onion' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
     
-    const score = calculateCompanionScore('carrots', plot.cells[4], plot)
+    const score = calculateCompanionScore('carrot', plot.cells[4], plot)
     
     expect(score).toBeGreaterThan(50)
   })
 
   it('should return lower score when near avoided plants', () => {
     const plot = createTestPlot([
-      {}, { plantId: 'parsnips' }, {},
+      {}, { plantId: 'parsnip' }, {},
       {}, {}, {},
       {}, {}, {}
     ])
     
-    const score = calculateCompanionScore('carrots', plot.cells[4], plot)
+    const score = calculateCompanionScore('carrot', plot.cells[4], plot)
     
     expect(score).toBeLessThan(50)
   })
@@ -229,12 +229,12 @@ describe('calculateCompanionScore', () => {
   it('should clamp score between 0 and 100', () => {
     // Create plot with many bad neighbors
     const plot = createTestPlot([
-      { plantId: 'parsnips' }, { plantId: 'parsnips' }, { plantId: 'parsnips' },
-      { plantId: 'parsnips' }, {}, { plantId: 'parsnips' },
-      { plantId: 'parsnips' }, { plantId: 'parsnips' }, { plantId: 'parsnips' }
+      { plantId: 'parsnip' }, { plantId: 'parsnip' }, { plantId: 'parsnip' },
+      { plantId: 'parsnip' }, {}, { plantId: 'parsnip' },
+      { plantId: 'parsnip' }, { plantId: 'parsnip' }, { plantId: 'parsnip' }
     ])
     
-    const score = calculateCompanionScore('carrots', plot.cells[4], plot)
+    const score = calculateCompanionScore('carrot', plot.cells[4], plot)
     
     expect(score).toBeGreaterThanOrEqual(0)
     expect(score).toBeLessThanOrEqual(100)
