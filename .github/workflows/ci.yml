@@ -48,18 +48,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit tests
         run: npm run test:unit
+
+  plant-data-validation:
+    name: Plant Data Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate plant data integrity
+        run: npx vitest run src/__tests__/lib/plant-data-integrity.test.ts
 
   e2e-tests:
     name: E2E Tests
@@ -96,7 +114,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, type-check, unit-tests]
+    needs: [lint, type-check, unit-tests, plant-data-validation]
     steps:
       - uses: actions/checkout@v4
       
