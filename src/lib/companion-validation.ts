@@ -5,6 +5,56 @@
 
 import { PlotCell, GridPlot, PlacementValidation, PlacementWarning } from '@/types/garden-planner'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
+import { normalizeCompanionName } from '@/lib/companion-normalization'
+
+// Cache for name-to-ID lookups (populated on first use)
+let nameToIdCache: Map<string, string> | null = null
+
+/**
+ * Build cache mapping normalized plant names to vegetable IDs
+ */
+function buildNameToIdCache(): Map<string, string> {
+  const cache = new Map<string, string>()
+  for (const veg of vegetables) {
+    // Store both exact name and lowercase for flexible matching
+    cache.set(veg.name, veg.id)
+    cache.set(veg.name.toLowerCase(), veg.id)
+  }
+  return cache
+}
+
+/**
+ * Resolve a companion plant name to a vegetable ID
+ * Uses normalization to handle plurals, synonyms, etc.
+ */
+export function resolveCompanionToId(companionName: string): string | null {
+  if (!nameToIdCache) {
+    nameToIdCache = buildNameToIdCache()
+  }
+
+  // First try exact match
+  const exactMatch = nameToIdCache.get(companionName)
+  if (exactMatch) return exactMatch
+
+  // Try lowercase match
+  const lowerMatch = nameToIdCache.get(companionName.toLowerCase())
+  if (lowerMatch) return lowerMatch
+
+  // Try normalizing the name
+  const normalized = normalizeCompanionName(companionName)
+  if (normalized === null) return null // Vague reference, no match
+  if (Array.isArray(normalized)) {
+    // Category expansion - return first match (could be improved to return all)
+    for (const name of normalized) {
+      const id = nameToIdCache.get(name) || nameToIdCache.get(name.toLowerCase())
+      if (id) return id
+    }
+    return null
+  }
+
+  // Try normalized name
+  return nameToIdCache.get(normalized) || nameToIdCache.get(normalized.toLowerCase()) || null
+}
 
 /**
  * Get all adjacent cells (8-way: horizontal, vertical, diagonal)
@@ -35,42 +85,47 @@ export function getPlantedAdjacentCells(cell: PlotCell, cells: PlotCell[]): Plot
 }
 
 /**
+ * Check if a vegetable ID matches any name in a companion/avoid list
+ * Uses ID-based matching with normalization for accuracy
+ */
+function matchesCompanionList(targetId: string, targetName: string, list: string[]): boolean {
+  for (const name of list) {
+    // Try resolving the companion name to an ID
+    const resolvedId = resolveCompanionToId(name)
+    if (resolvedId === targetId) return true
+
+    // Fallback: exact name match (case-insensitive)
+    if (name.toLowerCase() === targetName.toLowerCase()) return true
+  }
+  return false
+}
+
+/**
  * Check compatibility between two vegetables
  * Returns 'good' if companion, 'bad' if avoid, 'neutral' otherwise
+ * Uses ID-based matching with normalization for accuracy
  */
 export function checkCompanionCompatibility(
-  vegAId: string, 
+  vegAId: string,
   vegBId: string
 ): 'good' | 'neutral' | 'bad' {
   const vegA = getVegetableById(vegAId)
   const vegB = getVegetableById(vegBId)
-  
+
   if (!vegA || !vegB) return 'neutral'
-  
+
   // Check if vegA avoids vegB or vice versa (bidirectional check)
-  const vegAAvoids = vegA.avoidPlants.some(name => 
-    vegB.name.toLowerCase().includes(name.toLowerCase()) ||
-    name.toLowerCase().includes(vegB.name.toLowerCase())
-  )
-  const vegBAvoids = vegB.avoidPlants.some(name => 
-    vegA.name.toLowerCase().includes(name.toLowerCase()) ||
-    name.toLowerCase().includes(vegA.name.toLowerCase())
-  )
-  
+  const vegAAvoids = matchesCompanionList(vegBId, vegB.name, vegA.avoidPlants)
+  const vegBAvoids = matchesCompanionList(vegAId, vegA.name, vegB.avoidPlants)
+
   if (vegAAvoids || vegBAvoids) return 'bad'
-  
-  // Check if they are companions
-  const vegACompanion = vegA.companionPlants.some(name => 
-    vegB.name.toLowerCase().includes(name.toLowerCase()) ||
-    name.toLowerCase().includes(vegB.name.toLowerCase())
-  )
-  const vegBCompanion = vegB.companionPlants.some(name => 
-    vegA.name.toLowerCase().includes(name.toLowerCase()) ||
-    name.toLowerCase().includes(vegA.name.toLowerCase())
-  )
-  
+
+  // Check if they are companions (bidirectional check)
+  const vegACompanion = matchesCompanionList(vegBId, vegB.name, vegA.companionPlants)
+  const vegBCompanion = matchesCompanionList(vegAId, vegA.name, vegB.companionPlants)
+
   if (vegACompanion || vegBCompanion) return 'good'
-  
+
   return 'neutral'
 }
 
@@ -147,36 +202,40 @@ export function validatePlacement(
 
 /**
  * Get suggested companions for a vegetable
+ * Returns vegetable IDs that are listed as companions
  */
 export function getSuggestedCompanions(plantId: string): string[] {
   const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
-  
-  // Find vegetables that match companion plant names
-  return vegetables
-    .filter(v => 
-      vegetable.companionPlants.some(name => 
-        v.name.toLowerCase().includes(name.toLowerCase())
-      )
-    )
-    .map(v => v.id)
+
+  const companionIds = new Set<string>()
+
+  // Resolve each companion name to an ID
+  for (const name of vegetable.companionPlants) {
+    const id = resolveCompanionToId(name)
+    if (id) companionIds.add(id)
+  }
+
+  return [...companionIds]
 }
 
 /**
  * Get plants that should be avoided near a vegetable
+ * Returns vegetable IDs that are listed as avoid plants
  */
 export function getAvoidedPlants(plantId: string): string[] {
   const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
-  
-  // Find vegetables that match avoid plant names
-  return vegetables
-    .filter(v => 
-      vegetable.avoidPlants.some(name => 
-        v.name.toLowerCase().includes(name.toLowerCase())
-      )
-    )
-    .map(v => v.id)
+
+  const avoidIds = new Set<string>()
+
+  // Resolve each avoid name to an ID
+  for (const name of vegetable.avoidPlants) {
+    const id = resolveCompanionToId(name)
+    if (id) avoidIds.add(id)
+  }
+
+  return [...avoidIds]
 }
 
 /**
