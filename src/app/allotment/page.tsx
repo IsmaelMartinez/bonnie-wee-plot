@@ -327,8 +327,9 @@ export default function AllotmentPage() {
             }}
             disabled={availableYears.indexOf(selectedYear) <= 0}
             className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
+            aria-label="Previous year"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
           </button>
 
           {canCreatePreviousYear && (
@@ -389,8 +390,9 @@ export default function AllotmentPage() {
             }}
             disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
             className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
+            aria-label="Next year"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 

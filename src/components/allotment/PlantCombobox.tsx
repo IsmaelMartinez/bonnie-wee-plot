@@ -138,7 +138,7 @@ export default function PlantCombobox({
           aria-expanded={isOpen}
           aria-controls="plant-listbox"
           aria-activedescendant={
-            highlightedIndex >= 0 && filteredPlants[highlightedIndex]
+            isOpen && highlightedIndex >= 0 && filteredPlants[highlightedIndex]
               ? `plant-option-${filteredPlants[highlightedIndex].id}`
               : undefined
           }

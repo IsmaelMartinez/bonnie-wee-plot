@@ -55,6 +55,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@eslint/eslintrc": "^3.3.3",
     "@playwright/test": "^1.53.1",
     "@testing-library/react": "^16.3.1",

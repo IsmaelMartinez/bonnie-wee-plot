@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { checkA11y } from './utils/accessibility';
 
 test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
@@ -64,6 +65,11 @@ test.describe('Homepage and Navigation', () => {
     );
 
     expect(criticalErrors).toHaveLength(0);
+  });
+
+  test('should have no critical accessibility violations', async ({ page }) => {
+    await page.goto('/');
+    await checkA11y(page);
   });
 });
 

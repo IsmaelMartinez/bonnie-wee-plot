@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import Navigation from '@/components/Navigation'
 import ErrorBoundaryProvider from '@/components/ErrorBoundaryProvider'
 import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
+import OfflineIndicator from '@/components/ui/OfflineIndicator'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 import { WebVitalsReporter } from '@/components/web-vitals'
 import './globals.css'
@@ -12,6 +13,13 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Community Allotment Association',
   description: 'Manage your allotment community with announcements, tips, and AI-powered plant advice',
+  icons: {
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({
@@ -28,6 +36,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <OfflineIndicator />
         <StorageWarningBanner />
         <Navigation />
         <main id="main-content" className="min-h-screen bg-gray-50" tabIndex={-1}>

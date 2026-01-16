@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#5c6e49"/>
+
+  <!-- Soil/ground area at bottom -->
+  <ellipse cx="256" cy="420" rx="140" ry="35" fill="#4a5a3b"/>
+
+  <!-- Main stem -->
+  <path d="M256 400 Q256 300 256 240" stroke="#e8f0e0" stroke-width="24" stroke-linecap="round" fill="none"/>
+
+  <!-- Left leaf -->
+  <path d="M256 280 Q200 240 180 180 Q220 200 256 260" fill="#e8f0e0"/>
+
+  <!-- Right leaf -->
+  <path d="M256 220 Q312 180 332 120 Q292 140 256 200" fill="#e8f0e0"/>
+
+  <!-- Small emerging leaf at top -->
+  <path d="M256 240 Q280 200 290 160 Q260 180 256 220" fill="#d0e0c0"/>
+</svg>
