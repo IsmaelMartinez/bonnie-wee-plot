@@ -1,8 +1,8 @@
-# 🌱 Community Allotment App - Your Personal Garden Companion! 
+# 🌱 Scottish Grow Guide - Gardening for the Bold and Weather-Beaten!
 
-*Because planning a garden shouldn't be harder than growing tomatoes in winter!*
+*Because growing anything in Scottish weather is already a form of extreme sport!*
 
-Welcome to your personal digital garden assistant. Plan your plot, get AI-powered advice, and learn proven growing techniques—all in one place.
+Welcome to your personal digital garden assistant, specifically tuned for those brave souls who garden where horizontal rain is a lifestyle choice. Plan your plot, get AI-powered advice, and learn proven techniques for growing in Scotland's "interesting" climate—all in one place.
 
 ## 🤖 AI-Generated Code Disclaimer
 
@@ -13,30 +13,30 @@ This serves as an example of what's possible when AI agents have access to devel
 ## 🎉 What Does This Thing Actually Do?
 
 ### 📅 Today Dashboard
-Your personal allotment command center that answers "what should I do today?":
-- **Seasonal Insights**: Current seasonal phase with actionable suggestions
+Your personal growing command center that answers "what should I do today?" (weather permitting, obviously):
+- **Seasonal Insights**: Current seasonal phase with actionable suggestions for Scottish growing conditions
 - **Daily Tasks**: Maintenance tasks and care reminders for your perennial plants
 - **Bed Alerts**: Problem beds and harvest-ready crops at a glance
-- **Quick Actions**: Fast access to your allotment, seeds, and AI advisor
+- **Quick Actions**: Fast access to your plot, seeds, and AI advisor
 
-### 🗺️ Allotment Planner
-Design and track your real allotment with year-by-year planning:
-- **Physical Layout**: Map your actual beds with rotation groups
+### 🗺️ Plot Planner
+Design and track your growing space with year-by-year planning:
+- **Physical Layout**: Map your beds, polytunnels, and cold frames (essential for Scottish growing!)
 - **Yearly Planning**: Track plantings across multiple growing seasons
-- **Bed Notes**: Record observations and management notes for each bed
-- **Historical Data**: View past years to inform future decisions
+- **Bed Notes**: Record observations and "what survived the gales" notes for each bed
+- **Historical Data**: View past years to inform future decisions and remember which varieties actually ripened
 
 ### 🌱 Seeds & Tracking
-Comprehensive seed and plant management:
-- **Seed Catalog**: Browse and search vegetables by category
-- **Planting Calendar**: View detailed planting windows and care instructions
+Comprehensive seed and plant management for our shorter growing season:
+- **Seed Catalog**: Browse and search vegetables by category, focusing on what actually grows here
+- **Planting Calendar**: View detailed planting windows adjusted for Scottish conditions
 - **Crop Rotation**: Smart rotation suggestions based on plant families
 
 ### 🤖 Your New AI Garden Buddy (Aitor)
-Think of it as having a horticultural genius in your pocket, except this one won't judge you for killing that "supposedly unkillable" succulent. Ask it anything:
-- "Why are my tomatoes plotting against me?"
-- "Is this normal plant behavior or should I call an exorcist?"
-- "What's this green fuzzy stuff, and should I be worried?"
+Think of it as having a horticultural genius in your pocket, one who understands that "full sun" means something different at 56°N latitude. Ask it anything:
+- "Will this variety actually ripen before September?"
+- "Is blight inevitable or am I just paranoid?"
+- "How do I convince my tomatoes that 15°C is actually warm?"
 
 ### ♻️ Compost Tracker
 Turn garden waste into black gold:
@@ -130,10 +130,10 @@ We've got colors! We've got components! We've got enough CSS classes to make you
 ## 🏠 What Lives Where (Page Guide)
 
 ### Today Dashboard (`/`)
-Your homepage command center showing seasonal phase, daily tasks, bed alerts, and quick actions to get you started.
+Your homepage command center showing seasonal phase (adjusted for Scottish latitudes), daily tasks, bed alerts, and quick actions to get you started.
 
-### Allotment Planner (`/allotment`)
-The heart of the app - manage your real allotment with physical bed layouts, yearly planting plans, rotation tracking, and bed notes.
+### Plot Planner (`/allotment`)
+The heart of the app - manage your growing space with physical bed layouts, yearly planting plans, rotation tracking, and bed notes.
 
 ### Seeds Catalog (`/seeds`)
 Browse vegetables by category, view detailed planting calendars, and learn about crop rotation families.
@@ -145,7 +145,7 @@ Track multiple compost piles with material logging, C:N ratio tracking, event hi
 Review historical planting plans year by year to inform future decisions.
 
 ### Aitor - AI Garden Advisor (`/ai-advisor`)
-Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your allotment data.
+Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your plot data and Scottish growing conditions.
 
 ### This Month (`/this-month`)
 Seasonal calendar showing what to plant, harvest, and maintain during the current month.
@@ -158,22 +158,22 @@ Learn about the project and its AI-powered origins.
 *Because every good project needs unrealistic expectations*
 
 ### Coming Eventually™
-- **Weather Integration**: So the AI can judge your watering schedule with actual meteorological data
-- **Mobile App**: For when you need garden advice while standing in your actual allotment
-- **Multi-language Support**: Because plants grow everywhere
+- **Scottish Weather Integration**: So you know when to rush out and cover your brassicas before the next storm
+- **Mobile App**: For when you need garden advice while standing in your actual plot (in the rain, obviously)
+- **Multi-language Support**: Including Scots and Gaelic, naturally
 - **Garden Data Persistence**: Cloud sync for your garden plans
 
 ### Pie-in-the-Sky Features
-- **Plant Disease Photo Recognition**: Point, shoot, panic appropriately
-- **Automated Seasonal Tips**: The AI becomes your personal garden calendar
-- **Community Features**: Share plans and connect with fellow gardeners
+- **Blight Early Warning System**: Know before the spores do
+- **Frost Date Predictions**: Beyond the usual "expect frost until June" advice
+- **Variety Success Ratings**: Crowdsourced data on what actually ripens at your latitude
 
 ## 🐛 Known Issues (The Hall of Shame)
 
 - Sometimes the icons have commitment issues with the latest libraries
 - A few forms are having an identity crisis about labels
 - The linter occasionally throws temper tantrums about array keys
-- Some community members still need help navigating the digital world
+- The growing calendar assumes you're somewhere in central Scotland—Shetland folk, you know to adjust
 
 ## 🤝 Want to Help Make This Less Ridiculous?
 
@@ -208,10 +208,10 @@ This project uses a **custom non-commercial license** for third parties - see th
 
 **What this means for you:**
 
-- ✅ Use it for your community allotment, garden club, or personal projects
-- ✅ Learn from the code and improve your programming skills  
+- ✅ Use it for your plot, garden club, or personal projects
+- ✅ Learn from the code and improve your programming skills
 - ✅ Contribute improvements back to this project
-- ✅ Modify and customize for your specific needs
+- ✅ Modify and customize for your specific growing conditions
 - ✅ Educational and research use is allowed
 - ❌ Commercial use by third parties is **not permitted** without a separate license
 
@@ -219,6 +219,6 @@ This project uses a **custom non-commercial license** for third parties - see th
 
 ---
 
-**Now go forth and grow things! Both plants and codebases! 🌿✨**
+**Now go forth and grow things! Despite the weather! 🌿🏴󠁧󠁢󠁳󠁣󠁴󠁿**
 
-*P.S. - If this app actually helps organize your allotment community, we expect photos of the resulting garden chaos. The good kind of chaos.*
+*P.S. - If this app actually helps you grow anything north of the wall, we expect photos. Bonus points for tomatoes that ripened outdoors.*
