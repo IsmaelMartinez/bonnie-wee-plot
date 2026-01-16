@@ -198,6 +198,10 @@ export const logger = {
     log('error', message, metadata),
 }
 
+// Track flush failures to avoid spamming console
+let flushFailureCount = 0
+const MAX_FLUSH_FAILURE_LOGS = 3
+
 // Auto-flush logs periodically in production (browser only)
 if (
   typeof window !== 'undefined' &&
@@ -205,8 +209,15 @@ if (
 ) {
   setInterval(() => {
     if (logQueue.length > 0) {
-      flushLogs().catch(() => {
-        // Silently fail if flush fails - don't create log loops
+      flushLogs().catch((error) => {
+        flushFailureCount++
+        // Use console.warn directly to avoid log loops, but limit to first few failures
+        if (flushFailureCount <= MAX_FLUSH_FAILURE_LOGS) {
+          console.warn(
+            '[Logger] Failed to flush logs:',
+            error instanceof Error ? error.message : 'Unknown error'
+          )
+        }
       })
     }
   }, FLUSH_INTERVAL_MS)

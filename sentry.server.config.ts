@@ -4,7 +4,8 @@
 
 import * as Sentry from '@sentry/nextjs'
 
-Sentry.init({
+try {
+  Sentry.init({
   dsn: process.env.SENTRY_DSN,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
@@ -65,4 +66,7 @@ Sentry.init({
   },
 
   environment: process.env.NODE_ENV,
-})
+  })
+} catch (error) {
+  console.error('[Sentry] Failed to initialize server error tracking:', error)
+}

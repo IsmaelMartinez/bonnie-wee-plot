@@ -31,8 +31,8 @@ function getStoredState(): { dismissed: boolean; visitCount: number; lastVisit: 
     if (stored) {
       return JSON.parse(stored)
     }
-  } catch {
-    // Ignore parse errors
+  } catch (error) {
+    console.warn('[InstallPrompt] Failed to parse stored state:', error)
   }
   return { dismissed: false, visitCount: 0, lastVisit: null }
 }
@@ -41,8 +41,8 @@ function setStoredState(state: { dismissed: boolean; visitCount: number; lastVis
   if (typeof window === 'undefined') return
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    // Ignore storage errors
+  } catch (error) {
+    console.warn('[InstallPrompt] Failed to save state to localStorage:', error)
   }
 }
 
@@ -174,7 +174,8 @@ export function useInstallPrompt() {
       }
 
       return outcome === 'accepted'
-    } catch {
+    } catch (error) {
+      console.error('[InstallPrompt] Failed to show native install prompt:', error)
       return false
     }
   }, [deferredPrompt])
