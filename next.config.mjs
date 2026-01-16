@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import withSerwistInit from "@serwist/next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const isGitHubPages = process.env.GITHUB_PAGES === "true";
 const basePath = isGitHubPages ? "/community-allotment" : "";
@@ -57,4 +58,36 @@ const nextConfig = {
   }),
 };
 
-export default withSerwist(nextConfig);
+// Sentry configuration for source maps and error tracking
+const sentryConfig = {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Only upload source maps in production builds with Sentry configured
+  silent: !process.env.SENTRY_DSN,
+
+  // Upload source maps to Sentry for production debugging
+  widenClientFileUpload: true,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Prevents source map comments in production
+  hideSourceMaps: true,
+
+  // Automatically instrument client-side routes
+  automaticVercelMonitors: false,
+};
+
+// Apply Serwist first, then Sentry
+const configWithSerwist = withSerwist(nextConfig);
+
+// Only apply Sentry wrapper if DSN is configured (skip for GitHub Pages static export)
+const finalConfig = process.env.SENTRY_DSN && !isGitHubPages
+  ? withSentryConfig(configWithSerwist, sentryConfig)
+  : configWithSerwist;
+
+export default finalConfig;

@@ -107,7 +107,7 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
       {/* Add note form */}
       {isAdding && (
         <div className="border border-gray-200 rounded-lg p-3 space-y-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {NOTE_TYPES.map((type) => {
               const config = NOTE_TYPE_CONFIG[type]
               const Icon = config.icon
@@ -115,13 +115,13 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
                 <button
                   key={type}
                   onClick={() => setNewType(type)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border transition-colors ${
+                  className={`px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium flex items-center gap-1.5 border transition-colors ${
                     newType === type
                       ? `${config.bg} ${config.border} ${config.text}`
                       : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-4 h-4" />
                   {config.label}
                 </button>
               )
@@ -142,14 +142,14 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
                 setNewContent('')
                 setNewType('info')
               }}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2.5 min-h-[44px] text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
             >
               Cancel
             </button>
             <button
               onClick={handleAdd}
               disabled={!newContent.trim()}
-              className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add Note
             </button>
@@ -170,7 +170,7 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
             if (isEditing) {
               return (
                 <div key={note.id} className="border border-gray-200 rounded-lg p-3 space-y-3">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {NOTE_TYPES.map((type) => {
                       const typeConfig = NOTE_TYPE_CONFIG[type]
                       const TypeIcon = typeConfig.icon
@@ -178,13 +178,13 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
                         <button
                           key={type}
                           onClick={() => setEditType(type)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 border transition-colors ${
+                          className={`px-3 py-2.5 min-h-[44px] rounded-full text-xs font-medium flex items-center gap-1.5 border transition-colors ${
                             editType === type
                               ? `${typeConfig.bg} ${typeConfig.border} ${typeConfig.text}`
                               : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                           }`}
                         >
-                          <TypeIcon className="w-3.5 h-3.5" />
+                          <TypeIcon className="w-4 h-4" />
                           {typeConfig.label}
                         </button>
                       )
@@ -200,14 +200,14 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={handleCancelEdit}
-                      className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                      className="px-4 py-2.5 min-h-[44px] text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => handleSaveEdit(note.id)}
                       disabled={!editContent.trim()}
-                      className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Save
                     </button>
@@ -229,17 +229,17 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => handleStartEdit(note)}
-                      className={`p-1 ${config.text} opacity-60 hover:opacity-100 transition-opacity`}
+                      className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center ${config.text} opacity-60 hover:opacity-100 transition-opacity rounded-zen`}
                       title="Edit note"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => onRemove(note.id)}
-                      className={`p-1 ${config.text} opacity-60 hover:opacity-100 transition-opacity`}
+                      className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center ${config.text} opacity-60 hover:opacity-100 transition-opacity rounded-zen`}
                       title="Delete note"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

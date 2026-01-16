@@ -93,7 +93,7 @@ export default function PlantingCard({
               id={`success-${planting.id}`}
               value={planting.success || ''}
               onChange={(e) => onUpdateSuccess((e.target.value || undefined) as Planting['success'])}
-              className="text-xs px-1 py-1 border border-zen-stone-200 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
+              className="text-xs px-2 py-2.5 min-h-[44px] border border-zen-stone-200 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
               aria-label="Rate planting success"
             >
               <option value="">Rate...</option>
@@ -104,10 +104,10 @@ export default function PlantingCard({
             </select>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-1.5 text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500"
+              className="p-2.5 min-w-[44px] min-h-[44px] text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500 flex items-center justify-center"
               aria-label={`Delete ${veg?.name || planting.plantId}`}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-5 h-5" />
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { aiAdvisorRequestSchema } from '@/lib/validations/ai-advisor'
+import { logger } from '@/lib/logger'
 
 // Types for OpenAI API messages
 interface OpenAIMessage {
@@ -228,7 +229,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json()
       // Log error without sensitive data
-      console.error('AI API error:', {
+      logger.error('AI API error', {
         status: response.status,
         statusText: response.statusText,
         errorType: errorData?.error?.type,
@@ -279,7 +280,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('AI Advisor API error:', error)
+    logger.error('AI Advisor API error', { error: String(error) })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

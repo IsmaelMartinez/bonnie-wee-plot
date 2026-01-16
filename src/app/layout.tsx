@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import Navigation from '@/components/Navigation'
 import ErrorBoundaryProvider from '@/components/ErrorBoundaryProvider'
 import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
+import InstallPrompt from '@/components/ui/InstallPrompt'
+import { WebVitalsReporter } from '@/components/web-vitals'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -38,6 +40,8 @@ export default function RootLayout({
             <p>&copy; 2025 Community Allotment Association. Growing together! 🌿</p>
           </div>
         </footer>
+        <InstallPrompt />
+        <WebVitalsReporter />
       </body>
     </html>
   )

@@ -143,21 +143,38 @@ Deferred to Phase 6 (Clerk integration). Token encryption requires user authenti
 
 ---
 
-### Phase 2: Observability Foundation (Week 3-4)
+### Phase 2: Observability Foundation ✅ COMPLETE (January 16, 2026)
 
-Get visibility into errors and performance before expanding the user base.
+Production observability infrastructure implemented. See ADR-015 for decision rationale.
 
-#### Error Tracking with Sentry
-Install `@sentry/nextjs` for error tracking. The free tier (5,000 errors/month) is sufficient for a community project. Configure PII scrubbing to strip API tokens from breadcrumbs. Enable source maps for production debugging.
+#### What Was Implemented
 
-#### Structured Logging
-Create `/src/lib/logger.ts` with structured logging utility. Replace high-priority console.error calls in storage service and AI advisor route. Queue error/warning logs for batch sending to aggregation service.
+Error Tracking with Sentry:
+- Installed `@sentry/nextjs` with client, server, and edge configurations
+- Configured PII scrubbing to strip API tokens from breadcrumbs and error messages
+- Source map uploads enabled for production debugging
+- Sentry disabled in development to avoid noise
 
-#### Health Check Endpoint
-Create `/src/app/api/health/route.ts` returning status, timestamp, version, and memory check. This enables uptime monitoring via free services like UptimeRobot.
+Structured Logging:
+- Created `/src/lib/logger.ts` with debug/info/warn/error levels
+- Each log entry includes timestamp, level, message, and optional metadata
+- Production mode queues logs for potential aggregation service integration
+- Replaced high-priority console.error calls in storage service and AI advisor route
+- Unit tests added for logger utility
 
-#### Core Web Vitals
-Add Vercel Speed Insights or manual web-vitals reporting. Track LCP, FID, CLS for performance baseline. Instrument AI API latency tracking.
+Health Check Endpoint:
+- Created `/src/app/api/health/route.ts` returning status, timestamp, version, and memory usage
+- Enables uptime monitoring via UptimeRobot or similar services
+
+Core Web Vitals:
+- Installed `web-vitals` library for official Google metrics
+- Created `/src/components/web-vitals.tsx` client component
+- Tracks LCP, FCP, CLS, INP (replaced FID), and TTFB
+- Metrics logged with rating (good/needs-improvement/poor)
+
+Environment Variables Added (.env.example):
+- `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` for error tracking
+- `SENTRY_ORG` / `SENTRY_PROJECT` for source map uploads
 
 ---
 
@@ -188,39 +205,60 @@ Create custom install prompt that appears after meaningful engagement (first pla
 
 ---
 
-### Phase 4: Accessibility Critical Fixes (Week 5-6)
+### Phase 4: Accessibility Critical Fixes COMPLETE (January 16, 2026)
 
-Address barriers that prevent users from accessing core functionality.
+Accessibility barriers preventing core functionality access have been addressed.
 
-#### AllotmentGrid Accessibility
-This is the highest-impact fix. Convert clickable divs to buttons. Implement ARIA grid pattern following the existing GardenGrid component as a template. Add arrow key navigation for grid traversal. Provide keyboard alternative for repositioning (mode toggle + arrow keys).
+#### What Was Implemented
 
-#### AllotmentMobileView Accessibility
-Convert clickable divs to buttons. Add proper section headings with aria-labelledby. Use list semantics for grouped items.
+AllotmentGrid Accessibility:
+- Converted clickable divs to semantic buttons with proper focus management
+- Implemented ARIA grid pattern (role="grid", role="gridcell")
+- Added arrow key navigation for grid traversal (roving tabindex pattern)
+- Added keyboard repositioning alternative: press "M" to enter reposition mode, arrow keys to move, Enter/Escape to confirm
+- Added descriptive aria-labels with planting count and selection state
+- Visual feedback for reposition mode with aria-live announcements
 
-#### Form Accessibility
-Add aria-describedby linking error messages to inputs across all form components. Move focus to first error field on validation failure. Replace native confirm() dialogs with accessible custom dialogs.
+AllotmentMobileView Accessibility:
+- Converted clickable divs to buttons
+- Added section structure with aria-labelledby headings
+- Used list semantics (ul/li) for grouped areas
+- Added aria-pressed state for selection
 
-#### Chat Interface Accessibility
-Add `role="log"` and `aria-live="polite"` to messages container. Announce loading states to screen readers.
+Form Accessibility:
+- Added aria-describedby linking help text and privacy notices to inputs
+- Added aria-label and aria-pressed to show/hide password toggle
+- Improved touch targets to meet 44x44px minimum
+
+Chat Interface Accessibility:
+- Added role="log" and aria-live="polite" to messages container
+- Added article elements with aria-label for each message
+- Added screen reader-only role indicators ("You:" / "Aitor:")
+- Added role="status" to loading indicator with descriptive text
+
+See ADR-016 for detailed pattern documentation.
 
 ---
 
-### Phase 5: Mobile UX Enhancement (Week 6-7)
+### Phase 5: Mobile UX Enhancement COMPLETE (January 16, 2026)
 
-Improve the experience for the 80% of users in the garden.
+Mobile experience improved for the 80% of users accessing the app in the garden.
 
-#### Touch Target Sizing
-Audit all interactive elements against 44x44px minimum. Fix year delete buttons (currently 32px), action buttons in PlantingCard, and category filter buttons. Use consistent `min-h-[44px] min-w-[44px]` or `p-2.5` padding.
+#### What Was Implemented
 
-#### Bottom Sheet Pattern
-Enhance Dialog component with `variant="bottom-sheet"` for mobile viewports. Bottom sheets slide from bottom, provide larger touch targets, and work better with virtual keyboard.
+Touch Target Sizing:
+All interactive elements now meet the 44x44px minimum. Fixed year delete buttons, PlantingCard action buttons and select, category filter buttons in PlantSelectionDialog, BedNotes edit/delete buttons, BedDetailPanel action buttons, Dialog close button, ConfirmDialog buttons, and AreaTypeConverter trigger button.
 
-#### Reduced Motion Support
-Add `prefers-reduced-motion` media query to global CSS. Disable loading skeleton pulse and other animations for users who prefer reduced motion.
+Bottom Sheet Pattern:
+Dialog component enhanced with `variant="bottom-sheet"` prop. On mobile viewports (below 768px), dialogs slide up from bottom with drag handle visual affordance, larger text, and iOS safe area support.
 
-#### Install Prompt
-Create `/src/components/ui/InstallPrompt.tsx` and `/src/hooks/useInstallPrompt.ts`. Show install prompt after meaningful engagement (first planting added, second visit). Store dismissal in localStorage. For iOS, show custom "Add to Home Screen" instructions.
+Reduced Motion Support:
+Added comprehensive `prefers-reduced-motion` media query to globals.css. All animations complete instantly and pulse/spin animations are disabled for users with motion sensitivity preferences.
+
+Install Prompt:
+Created `/src/hooks/useInstallPrompt.ts` and `/src/components/ui/InstallPrompt.tsx`. Prompt appears after second visit (meaningful engagement). Handles both Android/Desktop (native beforeinstallprompt) and iOS (custom "Add to Home Screen" instructions). Dismissal state persisted in localStorage.
+
+See ADR-017 for detailed patterns and rationale.
 
 ---
 
@@ -417,5 +455,5 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 ---
 
 *Document created: January 14, 2026*
-*Last updated: January 15, 2026 - Added Phase 1 analysis + 5-expert parallel implementation plan*
+*Last updated: January 16, 2026 - Phase 4 (Accessibility Critical Fixes) complete*
 *Analysis method: Multi-persona Opus ultrathink review*

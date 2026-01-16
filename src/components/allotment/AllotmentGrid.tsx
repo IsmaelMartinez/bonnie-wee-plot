@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactGridLayout from 'react-grid-layout'
-import { Lock, Unlock, RotateCcw } from 'lucide-react'
+import { Lock, Unlock, RotateCcw, Move } from 'lucide-react'
 import {
   DEFAULT_GRID_LAYOUT,
   LAYOUT_STORAGE_KEY,
@@ -124,6 +124,15 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   const [isMobile, setIsMobile] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Keyboard navigation state for accessibility
+  const [focusedIndex, setFocusedIndex] = useState(0)
+  const [isRepositionMode, setIsRepositionMode] = useState(false)
+  const [repositionItemId, setRepositionItemId] = useState<string | null>(null)
+  const gridItemRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+
+  // Grid column count (used in layout calculations and keyboard repositioning)
+  const cols = 12
+
   // Update items when visible areas change
   useEffect(() => {
     if (visibleAreas) {
@@ -211,7 +220,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   }
 
   // Handle item click - convert grid item to AllotmentItemRef
-  const handleItemClick = (item: GridItemConfig) => {
+  const handleItemClick = useCallback((item: GridItemConfig) => {
     if (!onItemSelect) return
 
     // When using areas prop, all items are selectable by their id
@@ -241,9 +250,116 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     } else if (item.type === 'infrastructure') {
       onItemSelect({ type: 'infrastructure', id: item.i })
     }
-  }
+  }, [onItemSelect, visibleAreas])
 
-  const cols = 12
+  // Focus management for keyboard navigation
+  const focusItem = useCallback((index: number) => {
+    if (index >= 0 && index < items.length) {
+      const item = items[index]
+      const button = gridItemRefs.current.get(item.i)
+      if (button) {
+        button.focus()
+        setFocusedIndex(index)
+      }
+    }
+  }, [items])
+
+  // Keyboard navigation handler for grid items
+  const handleGridKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>, item: GridItemConfig, index: number) => {
+    // In reposition mode, arrow keys move the item instead of navigation
+    if (isRepositionMode && repositionItemId === item.i) {
+      const currentLayout = configToLayout(items, isEditing)
+      const currentItem = currentLayout.find(l => l.i === item.i)
+      if (!currentItem) return
+
+      let newX = currentItem.x
+      let newY = currentItem.y
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault()
+          newY = Math.max(0, currentItem.y - 1)
+          break
+        case 'ArrowDown':
+          e.preventDefault()
+          newY = currentItem.y + 1
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          newX = Math.max(0, currentItem.x - 1)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          newX = Math.min(cols - currentItem.w, currentItem.x + 1)
+          break
+        case 'Escape':
+        case 'Enter':
+          e.preventDefault()
+          setIsRepositionMode(false)
+          setRepositionItemId(null)
+          return
+      }
+
+      // Apply the position change
+      if (newX !== currentItem.x || newY !== currentItem.y) {
+        const newLayout = currentLayout.map(l =>
+          l.i === item.i ? { ...l, x: newX, y: newY } : l
+        )
+        handleLayoutChange(newLayout)
+      }
+      return
+    }
+
+    // Normal navigation mode
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault()
+        handleItemClick(item)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        if (index >= 1) focusItem(index - 1)
+        break
+      case 'ArrowDown':
+        e.preventDefault()
+        if (index < items.length - 1) focusItem(index + 1)
+        break
+      case 'ArrowLeft':
+        e.preventDefault()
+        if (index >= 1) focusItem(index - 1)
+        break
+      case 'ArrowRight':
+        e.preventDefault()
+        if (index < items.length - 1) focusItem(index + 1)
+        break
+      case 'Home':
+        e.preventDefault()
+        focusItem(0)
+        break
+      case 'End':
+        e.preventDefault()
+        focusItem(items.length - 1)
+        break
+      case 'm':
+      case 'M':
+        // Enter reposition mode when editing is enabled
+        if (isEditing && !item.static) {
+          e.preventDefault()
+          setIsRepositionMode(true)
+          setRepositionItemId(item.i)
+        }
+        break
+    }
+  }, [items, isEditing, isRepositionMode, repositionItemId, focusItem, handleItemClick, handleLayoutChange, cols])
+
+  // Exit reposition mode when editing is disabled
+  useEffect(() => {
+    if (!isEditing) {
+      setIsRepositionMode(false)
+      setRepositionItemId(null)
+    }
+  }, [isEditing])
 
   if (!mounted) {
     return (
@@ -269,11 +385,13 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" role="toolbar" aria-label="Grid controls">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition ${
+            aria-pressed={isEditing}
+            aria-label={isEditing ? 'Stop editing layout' : 'Edit layout'}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition min-h-[44px] ${
               isEditing
                 ? 'bg-amber-500 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -281,13 +399,13 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
           >
             {isEditing ? (
               <>
-                <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Editing</span>
                 <span className="sm:hidden">Edit</span>
               </>
             ) : (
               <>
-                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Locked</span>
                 <span className="sm:hidden">Lock</span>
               </>
@@ -297,16 +415,17 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
           {isEditing && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 transition"
+              aria-label="Reset layout to default"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 transition min-h-[44px]"
             >
-              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Reset</span>
             </button>
           )}
         </div>
 
-        <div className="text-xs text-gray-400 hidden sm:block">
-          {isEditing ? 'Drag items to reposition • Drag corners to resize' : 'Click edit to modify layout'}
+        <div className="text-xs text-gray-400 hidden sm:block" aria-live="polite">
+          {isEditing ? 'Drag items to reposition • Drag corners to resize • Press M on focused item to reposition with keyboard' : 'Click edit to modify layout'}
         </div>
       </div>
 
@@ -318,14 +437,27 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         </div>
       )}
 
+      {/* Reposition mode announcement */}
+      {isRepositionMode && (
+        <div
+          role="status"
+          aria-live="assertive"
+          className="sr-only"
+        >
+          Reposition mode active. Use arrow keys to move the item. Press Enter or Escape to confirm.
+        </div>
+      )}
+
       {/* Grid */}
-      <div 
+      <div
         ref={containerRef}
         className="bg-gradient-to-b from-green-100/50 to-emerald-100/50 rounded-xl p-2 overflow-hidden"
+        role="grid"
+        aria-label={`Allotment layout grid for ${selectedYear}. ${items.length} areas total.`}
       >
         {/* North label */}
-        <div className="text-center text-gray-500 text-xs font-bold mb-1">↑ NORTH</div>
-        
+        <div className="text-center text-gray-500 text-xs font-bold mb-1" aria-hidden="true">NORTH</div>
+
         <ReactGridLayout
           {...({
             className: "layout",
@@ -343,7 +475,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             useCSSTransforms: false,
           } as unknown as React.ComponentProps<typeof ReactGridLayout>)}
         >
-          {items.map(item => {
+          {items.map((item, index) => {
             // Get plantings - use item.i for areas mode, item.bedId for legacy
             const plantingId = visibleAreas ? item.i : item.bedId
             const plantings = plantingId && getPlantingsForBed ? getPlantingsForBed(plantingId) : []
@@ -370,27 +502,73 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
               ? item.type !== 'area' // In areas mode, everything except 'area' type is clickable
               : (item.bedId || item.type === 'perennial' || item.type === 'tree' || item.type === 'infrastructure')
 
+            // Build accessible label for the item
+            const itemLabel = item.label || item.i
+            const plantingsCount = plantings.length
+            const plantingsSummary = plantingsCount > 0
+              ? `. ${plantingsCount} planting${plantingsCount > 1 ? 's' : ''}`
+              : ''
+            const repositionHint = isEditing && !item.static ? '. Press M to reposition with keyboard' : ''
+            const isBeingRepositioned = isRepositionMode && repositionItemId === item.i
+            const repositionStatus = isBeingRepositioned ? '. Repositioning mode active - use arrow keys to move' : ''
+            const ariaLabel = `${itemLabel}${plantingsSummary}${isSelected ? '. Currently selected' : ''}${repositionHint}${repositionStatus}`
+
             return (
               <div
                 key={item.i}
-                onClick={() => handleItemClick(item)}
-                className={isClickable ? 'cursor-pointer' : ''}
+                role="gridcell"
+                className="relative"
               >
-                <BedItem
-                  item={item}
-                  isSelected={isSelected}
-                  isEditing={isEditing}
-                  plantings={plantings}
-                  area={area}
-                  selectedYear={selectedYear}
-                />
+                <button
+                  ref={(el) => {
+                    if (el) {
+                      gridItemRefs.current.set(item.i, el)
+                    } else {
+                      gridItemRefs.current.delete(item.i)
+                    }
+                  }}
+                  onClick={() => isClickable && handleItemClick(item)}
+                  onKeyDown={(e) => handleGridKeyDown(e, item, index)}
+                  tabIndex={index === focusedIndex ? 0 : -1}
+                  aria-label={ariaLabel}
+                  aria-pressed={isSelected}
+                  aria-disabled={!isClickable}
+                  className={`
+                    w-full h-full
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 focus:z-10
+                    ${isClickable ? 'cursor-pointer' : 'cursor-default'}
+                    ${isBeingRepositioned ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
+                  `}
+                >
+                  <BedItem
+                    item={item}
+                    isSelected={isSelected}
+                    isEditing={isEditing}
+                    plantings={plantings}
+                    area={area}
+                    selectedYear={selectedYear}
+                  />
+                  {/* Reposition indicator */}
+                  {isBeingRepositioned && (
+                    <div className="absolute top-0 right-0 bg-blue-500 text-white p-1 rounded-bl text-xs flex items-center gap-1">
+                      <Move className="w-3 h-3" aria-hidden="true" />
+                      <span className="sr-only">Repositioning</span>
+                    </div>
+                  )}
+                </button>
               </div>
             )
           })}
         </ReactGridLayout>
 
         {/* South label */}
-        <div className="text-center text-gray-500 text-xs font-bold mt-1">↓ SOUTH (Entry)</div>
+        <div className="text-center text-gray-500 text-xs font-bold mt-1" aria-hidden="true">SOUTH (Entry)</div>
+      </div>
+
+      {/* Screen reader instructions */}
+      <div className="sr-only" role="note">
+        Use arrow keys to navigate between areas. Press Enter or Space to select an area and view its details.
+        {isEditing && ' Press M on any non-static item to enter keyboard reposition mode.'}
       </div>
     </div>
   )

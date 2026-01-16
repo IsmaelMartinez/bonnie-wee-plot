@@ -45,21 +45,27 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
+  const roleLabel = isUser ? 'You' : 'Aitor'
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <article
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+      aria-label={`${roleLabel} said`}
+    >
       <div className={`max-w-3xl p-4 rounded-lg ${
-        isUser 
-          ? 'bg-primary-600 text-white' 
+        isUser
+          ? 'bg-primary-600 text-white'
           : 'bg-gray-100 text-gray-800'
       }`}>
+        {/* Screen reader only role indicator */}
+        <span className="sr-only">{roleLabel}: </span>
         {isUser ? (
           <div>
             {message.image && (
               <div className="mb-2">
-                <Image 
-                  src={message.image} 
-                  alt="Plant for analysis" 
+                <Image
+                  src={message.image}
+                  alt="Plant image attached to message"
                   className="max-w-full h-auto rounded border"
                   style={{ maxHeight: '200px' }}
                   width={400}
@@ -71,7 +77,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             <div className="whitespace-pre-wrap">{message.content}</div>
           </div>
         ) : (
-          <ReactMarkdown 
+          <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={markdownComponents}
           >
@@ -79,15 +85,16 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           </ReactMarkdown>
         )}
       </div>
-    </div>
+    </article>
   )
 }
 
 export function LoadingMessage() {
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start" role="status" aria-label="Aitor is typing">
       <div className="bg-gray-100 p-4 rounded-lg">
-        <div className="flex space-x-2">
+        <span className="sr-only">Aitor is typing a response...</span>
+        <div className="flex space-x-2" aria-hidden="true">
           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>

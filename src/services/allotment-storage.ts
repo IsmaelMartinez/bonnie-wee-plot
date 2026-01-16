@@ -48,6 +48,7 @@ import { generateId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
 import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/storage-detection'
+import { logger } from '@/lib/logger'
 // Note: variety-allotment-sync.ts removed - varieties now embedded in AllotmentData
 
 // Import legacy data for migration (empty arrays for fresh start, but needed for old data migrations)
@@ -249,7 +250,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     try {
       data = JSON.parse(stored)
     } catch (parseError) {
-      console.error('Failed to parse stored JSON:', parseError)
+      logger.error('Failed to parse stored JSON', { error: String(parseError) })
       return { success: false, error: 'Corrupted data: invalid JSON' }
     }
     
@@ -303,7 +304,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
 
     return { success: true, data: validData }
   } catch (error) {
-    console.error('Failed to load allotment data:', error)
+    logger.error('Failed to load allotment data', { error: String(error) })
     return { success: false, error: 'Failed to load stored data' }
   }
 }
@@ -378,17 +379,17 @@ export function saveAllotmentData(data: AllotmentData): StorageResult<void> {
     } catch (error) {
       if (isQuotaExceededError(error)) {
         const dataSize = formatBytes(getDataSizeBytes(dataToSave))
-        console.error(`localStorage quota exceeded. Data size: ${dataSize}`)
-        
-        return { 
-          success: false, 
+        logger.error('localStorage quota exceeded', { dataSize })
+
+        return {
+          success: false,
           error: `Storage quota exceeded (data size: ${dataSize}). Consider exporting and clearing old seasons.`
         }
       }
       throw error // Re-throw if not quota error
     }
   } catch (error) {
-    console.error('Failed to save allotment data:', error)
+    logger.error('Failed to save allotment data', { error: String(error) })
     return { success: false, error: 'Failed to save data' }
   }
 }
@@ -446,9 +447,9 @@ function createMigrationBackup(data: AllotmentData): void {
   const backupKey = `${STORAGE_KEY}-backup-v${data.version}`
   try {
     localStorage.setItem(backupKey, JSON.stringify(data))
-    console.log(`Created migration backup: ${backupKey}`)
+    logger.info('Created migration backup', { backupKey })
   } catch (error) {
-    console.warn('Failed to create migration backup:', error)
+    logger.warn('Failed to create migration backup', { backupKey, error: String(error) })
   }
 }
 
@@ -465,7 +466,7 @@ export function restoreFromBackup(version: number): StorageResult<AllotmentData>
     const data = JSON.parse(backup) as AllotmentData
     return { success: true, data }
   } catch (error) {
-    console.error('Failed to restore from backup:', error)
+    logger.error('Failed to restore from backup', { version, error: String(error) })
     return { success: false, error: 'Failed to restore backup' }
   }
 }

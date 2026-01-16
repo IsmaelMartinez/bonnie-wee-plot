@@ -1,5 +1,6 @@
 'use client'
 
+import { useId } from 'react'
 import { Area, Planting } from '@/types/unified-allotment'
 import { AllotmentItemRef } from '@/types/garden-planner'
 import { GridItemConfig } from '@/data/allotment-layout'
@@ -49,6 +50,8 @@ export default function AllotmentMobileView({
   getPlantingsForBed,
   selectedYear
 }: AllotmentMobileViewProps) {
+  // Generate unique IDs for aria-labelledby associations
+  const baseId = useId()
 
   // Group areas by type
   const rotationBeds = areas.filter(a => a.kind === 'rotation-bed')
@@ -73,63 +76,73 @@ export default function AllotmentMobileView({
     }
   }
 
-  const renderAreaGroup = (title: string, areaList: Area[], emoji: string) => {
+  const renderAreaGroup = (title: string, areaList: Area[], emoji: string, groupKey: string) => {
     if (areaList.length === 0) return null
 
+    const headingId = `${baseId}-${groupKey}-heading`
+
     return (
-      <div key={title} className="space-y-2">
-        <h3 className="text-sm font-medium text-zen-ink-700 flex items-center gap-2">
-          <span>{emoji}</span>
+      <section key={title} className="space-y-2" aria-labelledby={headingId}>
+        <h3 id={headingId} className="text-sm font-medium text-zen-ink-700 flex items-center gap-2">
+          <span aria-hidden="true">{emoji}</span>
           <span>{title}</span>
           <span className="text-zen-stone-400">({areaList.length})</span>
         </h3>
-        <div className="grid grid-cols-2 gap-2">
+        <ul className="grid grid-cols-2 gap-2" role="list">
           {areaList.map(area => {
             const item = areaToGridConfig(area)
             const plantings = getPlantingsForBed ? getPlantingsForBed(area.id) : []
             const isSelected = selectedItemRef?.id === area.id
+            const plantingsCount = plantings.length
+            const plantingsSummary = plantingsCount > 0
+              ? `. ${plantingsCount} planting${plantingsCount > 1 ? 's' : ''}`
+              : ''
+            const ariaLabel = `${area.name}${plantingsSummary}${isSelected ? '. Currently selected' : ''}`
 
             return (
-              <div
-                key={area.id}
-                onClick={() => handleItemClick(area)}
-                className="cursor-pointer h-24"
-              >
-                <BedItem
-                  item={item}
-                  isSelected={isSelected}
-                  isEditing={false}
-                  plantings={plantings}
-                  area={area}
-                  selectedYear={selectedYear}
-                />
-              </div>
+              <li key={area.id}>
+                <button
+                  onClick={() => handleItemClick(area)}
+                  aria-label={ariaLabel}
+                  aria-pressed={isSelected}
+                  className="w-full h-24 cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-lg"
+                >
+                  <BedItem
+                    item={item}
+                    isSelected={isSelected}
+                    isEditing={false}
+                    plantings={plantings}
+                    area={area}
+                    selectedYear={selectedYear}
+                  />
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ul>
+      </section>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-sm text-zen-stone-600 bg-zen-water-50 border border-zen-water-200 rounded-lg p-3">
+    <div className="space-y-6" role="region" aria-label={`Mobile view of allotment areas for ${selectedYear}`}>
+      <div className="text-sm text-zen-stone-600 bg-zen-water-50 border border-zen-water-200 rounded-lg p-3" role="note">
         <p className="font-medium text-zen-water-800 mb-1">Mobile View</p>
         <p className="text-xs">Tap any area to view and manage its details. Grid editing is only available on larger screens.</p>
       </div>
 
       <div className="space-y-6">
-        {renderAreaGroup('Rotation Beds', rotationBeds, '🌱')}
-        {renderAreaGroup('Perennial Beds', perennialBeds, '🌿')}
-        {renderAreaGroup('Trees', trees, '🌳')}
-        {renderAreaGroup('Berries', berries, '🫐')}
-        {renderAreaGroup('Herbs', herbs, '🌿')}
-        {renderAreaGroup('Infrastructure', infrastructure, '🏗️')}
-        {renderAreaGroup('Other', other, '📦')}
+        {renderAreaGroup('Rotation Beds', rotationBeds, '🌱', 'rotation')}
+        {renderAreaGroup('Perennial Beds', perennialBeds, '🌿', 'perennial')}
+        {renderAreaGroup('Trees', trees, '🌳', 'trees')}
+        {renderAreaGroup('Berries', berries, '🫐', 'berries')}
+        {renderAreaGroup('Herbs', herbs, '🌿', 'herbs')}
+        {renderAreaGroup('Infrastructure', infrastructure, '🏗️', 'infra')}
+        {renderAreaGroup('Other', other, '📦', 'other')}
       </div>
 
       {areas.length === 0 && (
-        <div className="text-center text-zen-stone-500 py-8">
+        <div className="text-center text-zen-stone-500 py-8" role="status">
           <p>No areas to display for {selectedYear}</p>
         </div>
       )}

@@ -121,10 +121,10 @@ export default function BedDetailPanel({
             />
             <button
               onClick={() => setIsEditMode(true)}
-              className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
               title="Edit area details"
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -200,18 +200,18 @@ export default function BedDetailPanel({
             {autoRotateInfo && (
               <button
                 onClick={onAutoRotate}
-                className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
+                className="flex items-center gap-1.5 text-xs px-3 py-2.5 min-h-[44px] bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
                 title={`Rotate from ${ROTATION_GROUP_DISPLAY[autoRotateInfo.previousGroup]?.name} to ${ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]?.name}`}
               >
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-4 h-4" />
                 Auto-rotate
               </button>
             )}
             <button
               onClick={onAddPlanting}
-              className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
+              className="flex items-center gap-1.5 text-xs px-3 py-2.5 min-h-[44px] bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-4 h-4" />
               Add
             </button>
           </div>

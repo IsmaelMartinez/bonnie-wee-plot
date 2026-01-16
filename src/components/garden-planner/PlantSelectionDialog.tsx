@@ -130,7 +130,7 @@ export default function PlantSelectionDialog({
         <div className="flex gap-2">
           <button
             onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition ${
+            className={`px-4 py-2.5 min-h-[44px] rounded-full text-sm whitespace-nowrap transition ${
               categoryFilter === 'all'
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -142,7 +142,7 @@ export default function PlantSelectionDialog({
             <button
               key={cat.id}
               onClick={() => setCategoryFilter(cat.id)}
-              className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition flex items-center gap-1 ${
+              className={`px-4 py-2.5 min-h-[44px] rounded-full text-sm whitespace-nowrap transition flex items-center gap-1 ${
                 categoryFilter === cat.id
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

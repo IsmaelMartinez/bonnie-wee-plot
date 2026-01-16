@@ -360,7 +360,7 @@ export default function AllotmentPage() {
                     e.stopPropagation()
                     setYearToDelete(year)
                   }}
-                  className="absolute -top-2 -right-2 w-8 h-8 bg-zen-ume-600 text-white rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center text-sm hover:bg-zen-ume-700 focus:outline-none focus:ring-2 focus:ring-zen-ume-400"
+                  className="absolute -top-3 -right-3 min-w-[44px] min-h-[44px] w-11 h-11 bg-zen-ume-600 text-white rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center text-base hover:bg-zen-ume-700 focus:outline-none focus:ring-2 focus:ring-zen-ume-400"
                   title={`Delete ${year}`}
                   aria-label={`Delete year ${year}`}
                 >

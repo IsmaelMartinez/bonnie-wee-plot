@@ -87,10 +87,10 @@ export default function AreaTypeConverter({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1 text-xs text-zen-stone-500 hover:text-zen-stone-700"
+        className="flex items-center gap-1.5 text-xs px-2.5 py-2.5 min-h-[44px] text-zen-stone-500 hover:text-zen-stone-700 hover:bg-zen-stone-100 rounded-zen transition"
         title="Convert area type"
       >
-        <ArrowRightLeft className="w-3 h-3" />
+        <ArrowRightLeft className="w-4 h-4" />
         Convert
       </button>
     )

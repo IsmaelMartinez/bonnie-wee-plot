@@ -1,6 +1,6 @@
 /**
  * Accessible Dialog Component
- * 
+ *
  * Features:
  * - Proper ARIA attributes for screen readers
  * - Focus trap (keyboard navigation stays within dialog)
@@ -8,11 +8,12 @@
  * - Click outside closes dialog (optional)
  * - Returns focus to trigger element on close
  * - Prevents body scroll when open
+ * - Bottom sheet variant for mobile-friendly presentation
  */
 
 'use client'
 
-import { useEffect, useRef, useCallback, ReactNode } from 'react'
+import { useEffect, useRef, useCallback, ReactNode, useState } from 'react'
 import { X } from 'lucide-react'
 
 interface DialogProps {
@@ -26,6 +27,8 @@ interface DialogProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   /** When true, children get no wrapper padding and fill available space */
   fullContent?: boolean
+  /** Variant: 'modal' (default centered dialog) or 'bottom-sheet' (slides from bottom on mobile) */
+  variant?: 'modal' | 'bottom-sheet'
 }
 
 // Get all focusable elements within a container
@@ -48,11 +51,23 @@ export default function Dialog({
   showCloseButton = true,
   maxWidth = 'md',
   fullContent = false,
+  variant = 'modal',
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
   const titleId = useRef(`dialog-title-${Math.random().toString(36).substr(2, 9)}`)
   const descriptionId = useRef(`dialog-desc-${Math.random().toString(36).substr(2, 9)}`)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile viewport for bottom sheet variant
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Store the element that had focus before dialog opened
   useEffect(() => {
@@ -155,6 +170,9 @@ export default function Dialog({
     '2xl': 'max-w-2xl',
   }
 
+  // Use bottom sheet presentation on mobile when variant is 'bottom-sheet'
+  const useBottomSheet = variant === 'bottom-sheet' && isMobile
+
   return (
     <div
       className="fixed inset-0 z-[100] overflow-y-auto"
@@ -162,65 +180,98 @@ export default function Dialog({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity z-[100]"
+        className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 ${
+          useBottomSheet ? 'animate-fade-in' : ''
+        }`}
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
 
-      {/* Centering wrapper */}
-      <div className="relative z-[101] flex min-h-full items-center justify-center p-4">
-
-      {/* Dialog */}
+      {/* Centering/positioning wrapper */}
       <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId.current}
-        aria-describedby={description ? descriptionId.current : undefined}
-        tabIndex={-1}
-        className={`relative z-[102] bg-white rounded-xl shadow-xl w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col focus:outline-none`}
+        className={`relative z-[101] flex min-h-full ${
+          useBottomSheet
+            ? 'items-end justify-center p-0'
+            : 'items-center justify-center p-4'
+        }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
-          <h2
-            id={titleId.current}
-            className="text-lg font-bold text-gray-800"
+        {/* Dialog */}
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId.current}
+          aria-describedby={description ? descriptionId.current : undefined}
+          tabIndex={-1}
+          className={`relative z-[102] bg-white shadow-xl w-full flex flex-col focus:outline-none ${
+            useBottomSheet
+              ? 'rounded-t-2xl max-h-[85vh] animate-slide-up'
+              : `rounded-xl ${maxWidthClasses[maxWidth]} max-h-[90vh]`
+          }`}
+        >
+          {/* Drag handle for bottom sheet (visual affordance) */}
+          {useBottomSheet && (
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+          )}
+
+          {/* Header */}
+          <div
+            className={`flex items-center justify-between border-b border-gray-200 shrink-0 ${
+              useBottomSheet ? 'px-4 py-3' : 'p-4'
+            }`}
           >
-            {title}
-          </h2>
-          {showCloseButton && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-              aria-label="Close dialog"
+            <h2
+              id={titleId.current}
+              className={`font-bold text-gray-800 ${useBottomSheet ? 'text-xl' : 'text-lg'}`}
             >
-              <X className="w-5 h-5" />
-            </button>
+              {title}
+            </h2>
+            {showCloseButton && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Description (optional) */}
+          {description && (
+            <p
+              id={descriptionId.current}
+              className={`text-sm text-gray-600 shrink-0 ${
+                useBottomSheet ? 'px-4 pt-2' : 'px-4 pt-3'
+              }`}
+            >
+              {description}
+            </p>
+          )}
+
+          {/* Content */}
+          {fullContent ? (
+            <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+              {children}
+            </div>
+          ) : (
+            <div
+              className={`overflow-y-auto flex-1 ${
+                useBottomSheet ? 'p-4 pb-8' : 'p-4'
+              }`}
+            >
+              {children}
+            </div>
+          )}
+
+          {/* Safe area padding for iOS home indicator */}
+          {useBottomSheet && (
+            <div className="shrink-0 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
           )}
         </div>
-
-        {/* Description (optional) */}
-        {description && (
-          <p
-            id={descriptionId.current}
-            className="px-4 pt-3 text-sm text-gray-600 shrink-0"
-          >
-            {description}
-          </p>
-        )}
-
-        {/* Content */}
-        {fullContent ? (
-          <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
-            {children}
-          </div>
-        ) : (
-          <div className="p-4 overflow-y-auto flex-1">
-            {children}
-          </div>
-        )}
-      </div>
       </div>
     </div>
   )
@@ -274,14 +325,14 @@ export function ConfirmDialog({
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="flex-1 px-4 py-3 min-h-[44px] border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
         >
           {cancelText}
         </button>
         <button
           type="button"
           onClick={handleConfirm}
-          className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[variant]}`}
+          className={`flex-1 px-4 py-3 min-h-[44px] text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[variant]}`}
         >
           {confirmText}
         </button>

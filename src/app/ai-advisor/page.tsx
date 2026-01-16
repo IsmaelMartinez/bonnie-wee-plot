@@ -330,10 +330,16 @@ export default function AIAdvisorPage() {
           </div>
 
           {/* Messages */}
-          <div className="h-96 overflow-y-auto p-4 space-y-4 bg-zen-stone-50/50">
+          <div
+            className="h-96 overflow-y-auto p-4 space-y-4 bg-zen-stone-50/50"
+            role="log"
+            aria-label="Chat messages with Aitor"
+            aria-live="polite"
+            aria-relevant="additions"
+          >
             {messages.length === 0 && !isLoading ? (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                <Leaf className="w-12 h-12 text-zen-moss-200 mb-4" />
+                <Leaf className="w-12 h-12 text-zen-moss-200 mb-4" aria-hidden="true" />
                 <p className="text-zen-ink-600 text-lg mb-2">What can I help you grow today?</p>
                 <p className="text-zen-stone-400 text-sm">
                   Ask about planting, pests, harvesting, or select a topic above
