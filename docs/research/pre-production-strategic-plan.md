@@ -164,7 +164,7 @@ Structured Logging:
 
 Health Check Endpoint:
 - Created `/src/app/api/health/route.ts` returning status, timestamp, version, and memory usage
-- Enables uptime monitoring via UptimeRobot or similar services
+- Can be used for uptime monitoring if needed
 
 Core Web Vitals:
 - Installed `web-vitals` library for official Google metrics
@@ -175,6 +175,23 @@ Core Web Vitals:
 Environment Variables Added (.env.example):
 - `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` for error tracking
 - `SENTRY_ORG` / `SENTRY_PROJECT` for source map uploads
+
+#### Next Steps: Configure Sentry
+
+The code is in place but Sentry needs to be configured to activate error tracking:
+
+1. Create a free Sentry account at https://sentry.io (5,000 errors/month free)
+2. Create a new Next.js project in Sentry
+3. Copy the DSN from Project Settings > Client Keys
+4. Add environment variables to your deployment:
+   ```
+   SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+   NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+   SENTRY_ORG=your-org-slug
+   SENTRY_PROJECT=community-allotment
+   ```
+5. For Vercel: Add these in Project Settings > Environment Variables
+6. Sentry also provides uptime monitoring via Crons feature (no separate service needed)
 
 ---
 
