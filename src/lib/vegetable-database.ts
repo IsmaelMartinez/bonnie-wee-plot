@@ -2181,7 +2181,7 @@ export const vegetables: Vegetable[] = [
         'Can use as green manure'
       ]
     },
-    companionPlants: ['Vegetables (general)'],
+    companionPlants: [],
     avoidPlants: []
   },
 
@@ -2210,11 +2210,10 @@ export const vegetables: Vegetable[] = [
         'Outdoor bush varieties like Tumbler can work'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigold'],
+    companionPlants: ['Carrot', 'Marigold'],
     avoidPlants: ['Fennel', 'Brassicas'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'likely', mechanism: 'pest_trap', bidirectional: false, source: 'Tagetes spp. nematode suppression' }
     ],
@@ -2249,10 +2248,9 @@ export const vegetables: Vegetable[] = [
         'Less prone to splitting than large tomatoes'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
+    companionPlants: ['Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas'],
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
@@ -2285,10 +2283,9 @@ export const vegetables: Vegetable[] = [
         'Choose blight-resistant varieties'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
+    companionPlants: ['Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas'],
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
@@ -2321,10 +2318,9 @@ export const vegetables: Vegetable[] = [
         'Roma types are classics'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
+    companionPlants: ['Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas'],
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
@@ -2357,10 +2353,9 @@ export const vegetables: Vegetable[] = [
         'Game-changer for outdoor tomato growing'
       ]
     },
-    companionPlants: ['Basil', 'Carrot', 'Marigolds'],
+    companionPlants: ['Carrot', 'Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas'],
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
@@ -2393,10 +2388,9 @@ export const vegetables: Vegetable[] = [
         'Surprisingly hardy for mild Scottish autumns'
       ]
     },
-    companionPlants: ['Basil', 'Marigolds'],
+    companionPlants: ['Marigolds'],
     avoidPlants: ['Fennel', 'Brassicas'],
     enhancedCompanions: [
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
@@ -2428,13 +2422,12 @@ export const vegetables: Vegetable[] = [
         'Keep warm - minimum 15°C'
       ]
     },
-    companionPlants: ['Pepper', 'Tomato', 'Basil'],
+    companionPlants: ['Pepper', 'Tomato'],
     avoidPlants: ['Fennel'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/aubergines/grow-your-own',
     enhancedCompanions: [
       { plantId: 'pepper', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
       { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
@@ -2465,12 +2458,11 @@ export const vegetables: Vegetable[] = [
         'Support plants as fruit develops'
       ]
     },
-    companionPlants: ['Tomato', 'Basil', 'Carrot', 'Onion'],
+    companionPlants: ['Tomato', 'Carrot', 'Onion'],
     avoidPlants: ['Fennel', 'Brassicas'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/peppers-capsicum/grow-your-own',
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium pest deterrence' }
     ],
@@ -3229,7 +3221,7 @@ export const vegetables: Vegetable[] = [
         'Minimum temperature 10°C'
       ]
     },
-    companionPlants: ['Tomato', 'Pepper', 'Marigold'],
+    companionPlants: ['Tomato', 'Marigold'],
     avoidPlants: ['Sage', 'Rue'],
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -3297,7 +3289,7 @@ export const vegetables: Vegetable[] = [
         'Let some plants set seed for coriander seeds'
       ]
     },
-    companionPlants: ['Spinach', 'Tomato', 'Peppers'],
+    companionPlants: ['Spinach', 'Tomato'],
     avoidPlants: ['Fennel'],
     enhancedCompanions: [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -3428,12 +3420,11 @@ export const vegetables: Vegetable[] = [
         'Trim after flowering'
       ]
     },
-    companionPlants: ['Cabbage', 'Tomato', 'Aubergine'],
+    companionPlants: ['Cabbage', 'Tomato'],
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
-      { plantId: 'aubergine', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ]
   },
   {
@@ -3460,7 +3451,7 @@ export const vegetables: Vegetable[] = [
         'Very hardy perennial for Scotland'
       ]
     },
-    companionPlants: ['Most vegetables'],
+    companionPlants: [],
     avoidPlants: []
   },
   {
@@ -3590,7 +3581,7 @@ export const vegetables: Vegetable[] = [
         'Cut back after flowering to encourage growth'
       ]
     },
-    companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
+    companionPlants: ['Tomato', 'Cucurbits'],
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -3658,7 +3649,7 @@ export const vegetables: Vegetable[] = [
         'Mulch over winter in Scotland'
       ]
     },
-    companionPlants: ['Vegetables (general)'],
+    companionPlants: [],
     avoidPlants: []
   },
   {
@@ -3754,11 +3745,10 @@ export const vegetables: Vegetable[] = [
         'Attracts bees'
       ]
     },
-    companionPlants: ['Tomato', 'Basil'],
+    companionPlants: ['Tomato'],
     avoidPlants: [],
     enhancedCompanions: [
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ]
   },
   {
@@ -3786,7 +3776,7 @@ export const vegetables: Vegetable[] = [
         'Excellent for Italian and Greek dishes'
       ]
     },
-    companionPlants: ['Vegetables (general)'],
+    companionPlants: [],
     avoidPlants: []
   },
   {
@@ -4224,10 +4214,11 @@ export const vegetables: Vegetable[] = [
         'Tie canes to wires like raspberries'
       ]
     },
-    companionPlants: ['Garlic', 'Alliums'],
+    companionPlants: ['Garlic', 'Chives'],
     avoidPlants: [],
     enhancedCompanions: [
-      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     maintenance: {
       pruneMonths: [8, 9],
@@ -4260,10 +4251,11 @@ export const vegetables: Vegetable[] = [
         'Tie to wires like blackberries'
       ]
     },
-    companionPlants: ['Garlic', 'Alliums'],
+    companionPlants: ['Garlic', 'Chives'],
     avoidPlants: [],
     enhancedCompanions: [
-      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
+      { plantId: 'chives', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     maintenance: {
       pruneMonths: [8, 9],
@@ -4398,7 +4390,7 @@ export const vegetables: Vegetable[] = [
         'Birds leave berries alone due to astringency'
       ]
     },
-    companionPlants: ['Native plants'],
+    companionPlants: [],
     avoidPlants: [],
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
@@ -5056,7 +5048,7 @@ export const vegetables: Vegetable[] = [
         'Excellent cut flower - harvest when fully open'
       ]
     },
-    companionPlants: ['Tomato', 'Peppers', 'Cucurbits'],
+    companionPlants: ['Tomato', 'Cucurbits'],
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -5188,7 +5180,7 @@ export const vegetables: Vegetable[] = [
         'Self-seeds readily - allow some to set seed'
       ]
     },
-    companionPlants: ['Vegetables (general)', 'Fruit'],
+    companionPlants: [],
     avoidPlants: []
   },
 
@@ -5534,7 +5526,7 @@ export const vegetables: Vegetable[] = [
         'Excellent cut flower with long vase life'
       ]
     },
-    companionPlants: ['Vegetables (general)', 'Annual flowers'],
+    companionPlants: [],
     avoidPlants: []
   },
 
@@ -5628,7 +5620,7 @@ export const vegetables: Vegetable[] = [
         'Can become vigorous - prune after flowering'
       ]
     },
-    companionPlants: ['Clematis', 'Ivy', 'Native plants'],
+    companionPlants: ['Clematis'],
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'clematis', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
@@ -5851,7 +5843,7 @@ export const vegetables: Vegetable[] = [
         'Very hardy in Scottish conditions'
       ]
     },
-    companionPlants: ['Tomato', 'Peppers', 'Squash'],
+    companionPlants: ['Tomato', 'Squash'],
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
@@ -6112,12 +6104,11 @@ export const vegetables: Vegetable[] = [
         'Can produce for 20+ years'
       ]
     },
-    companionPlants: ['Tomato', 'Parsley', 'Basil'],
+    companionPlants: ['Tomato', 'Parsley'],
     avoidPlants: ['Onion', 'Garlic'],
     enhancedCompanions: [
       { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'parsley', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
-      { plantId: 'basil', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'parsley', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
