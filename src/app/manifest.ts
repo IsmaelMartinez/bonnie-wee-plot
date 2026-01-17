@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Community Allotment",
-    short_name: "Allotment",
+    name: "Scottish Grow Guide",
+    short_name: "Grow Guide",
     description:
-      "Plan your allotment garden, track plantings across seasons, and get AI-powered gardening advice",
+      "Plan your Scottish garden, track plantings across seasons, and get AI-powered growing advice for our climate",
     start_url: "/",
     display: "standalone",
     background_color: "#f9fafb",

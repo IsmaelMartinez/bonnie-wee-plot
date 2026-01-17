@@ -11,8 +11,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Community Allotment Association',
-  description: 'Manage your allotment community with announcements, tips, and AI-powered plant advice',
+  title: 'Scottish Grow Guide',
+  description: 'Plan your Scottish garden, track plantings across seasons, and get AI-powered growing advice',
   icons: {
     icon: [
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -46,7 +46,7 @@ export default function RootLayout({
         </main>
         <footer className="bg-gray-800 text-white py-8">
           <div className="container mx-auto px-4 text-center">
-            <p>&copy; 2025 Community Allotment Association. Growing together! 🌿</p>
+            <p>&copy; 2025 Scottish Grow Guide. Growing despite the weather! 🌿🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
           </div>
         </footer>
         <InstallPrompt />

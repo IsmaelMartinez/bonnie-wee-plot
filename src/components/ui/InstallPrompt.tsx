@@ -34,10 +34,10 @@ export default function InstallPrompt() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900 text-sm">
-                Install Community Allotment
+                Install Scottish Grow Guide
               </h3>
               <p className="text-xs text-gray-600 mt-1">
-                Add this app to your home screen for quick access while in your garden.
+                Add this app to your home screen for quick access while in your plot.
               </p>
 
               {/* iOS Instructions */}
@@ -108,10 +108,10 @@ export default function InstallPrompt() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 text-sm">
-              Install Community Allotment
+              Install Scottish Grow Guide
             </h3>
             <p className="text-xs text-gray-600 mt-1">
-              Install the app for quick access while in your garden. Works offline too!
+              Install the app for quick access while in your plot. Works offline too!
             </p>
             <div className="flex gap-2 mt-3">
               <button
