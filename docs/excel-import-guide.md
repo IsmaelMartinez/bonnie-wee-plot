@@ -2,18 +2,19 @@
 
 > **Note**: This Excel import script is a **temporary migration tool** for users moving from Excel-based planning to the app's native system. Once you've imported your historical data, use the app's built-in export/import feature (DataManagement component) for all future backups and data transfers.
 
-## What's New in V10
+## What's New in V11
 
-The import script now generates v10 format backups with these improvements:
+The import script now generates v11 format backups with these improvements:
 
 - **Unified Areas System**: All beds, permanent plantings, and infrastructure are now represented as a single `Area` type with different kinds (rotation-bed, perennial-bed, tree, berry, herb, infrastructure)
 - **Grid Positions**: Each area includes grid position data for proper visual layout
 - **Season Structure**: Seasons now use `areas` array instead of legacy `beds` array
 - **Type Safety**: Stronger typing with AreaKind discriminator instead of separate types
+- **Singular Plant IDs**: Plant IDs now use singular form (pea not peas, broad-bean not broad-beans) for consistency
 
 ## Overview
 
-Convert your Excel planning workbook to the app's native v10 backup format with unified areas system, then import it through the existing import/export interface.
+Convert your Excel planning workbook to the app's native v11 backup format with unified areas system, then import it through the existing import/export interface.
 
 ## Prerequisites
 
@@ -73,7 +74,7 @@ This creates a JSON file in the same format as the app's export function, contai
 - Sowing, transplant, and harvest dates
 - Variety names linked to plantings
 
-### V10 Unified Areas System
+### V11 Unified Areas System
 - **Areas**: All beds converted to unified Area type with kind (rotation-bed, perennial-bed)
 - **Grid Positions**: Default layout positions included for proper display
 - **Rotation Groups**: Inferred from plant types in historical data
@@ -97,14 +98,14 @@ The script includes mappings for 50+ common plant names. If you see warnings abo
 2. Re-run the conversion
 3. Check plant IDs match those in `src/lib/vegetable-database.ts`
 
-## Backup Format (V10)
+## Backup Format (V11)
 
-The output matches the app's v10 export format exactly:
+The output matches the app's v11 export format exactly:
 
 ```json
 {
   "allotment": {
-    "version": 10,
+    "version": 11,
     "meta": {
       "name": "My Allotment",
       "location": "Scotland",
@@ -150,7 +151,7 @@ The output matches the app's v10 export format exactly:
     "meta": {...}
   },
   "exportedAt": "2026-01-11T12:00:00Z",
-  "exportVersion": 10
+  "exportVersion": 11
 }
 ```
 

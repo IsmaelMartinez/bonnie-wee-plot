@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-TEMPORARY MIGRATION TOOL - Convert Excel Workbook to App Backup Format (v10)
+TEMPORARY MIGRATION TOOL - Convert Excel Workbook to App Backup Format (v11)
 
 This script is a one-time migration tool for users moving from Excel-based
 planning to the app's native system. After migrating, use the app's built-in
 export/import feature (DataManagement component) for backups.
 
-Converts Allotment Planning Workbook to v10 backup format with unified areas.
+Converts Allotment Planning Workbook to v11 backup format with unified areas.
 Outputs the same format as the app's export function.
 
-Updated for v10 unified areas system:
-- Uses 'areas' array instead of separate beds/permanentPlantings/infrastructure
-- Seasons use 'areas' instead of 'beds'
-- Includes gridPosition for layout
-- All areas are AreaKind type (rotation-bed, perennial-bed, etc.)
+v11 format features:
+- Unified 'areas' array (rotation-bed, perennial-bed, tree, berry, herb, infrastructure)
+- Seasons use 'areas' array for per-year plantings
+- Includes gridPosition for visual layout
+- Singular plant IDs (pea not peas, broad-bean not broad-beans)
 
 Usage: python3 excel-to-backup.py <excel-file> <output-json>
 
@@ -27,14 +27,19 @@ import sys
 from datetime import datetime
 
 # Plant name mappings from Excel to database IDs
+# v11: Use singular form for plant IDs (pea not peas, bean not beans)
 PLANT_MAPPINGS = {
-    'peas': 'peas',
-    'pea': 'peas',
-    'beans': 'broad-beans',
-    'beans & peas': 'broad-beans',
-    'broad bean \'ratio\'': 'broad-beans',
-    'french beans': 'french-beans',
-    'french borlotti stokkievitsboon': 'french-beans',
+    'peas': 'pea',
+    'pea': 'pea',
+    'beans': 'broad-bean',
+    'beans & peas': 'broad-bean',
+    'broad bean \'ratio\'': 'broad-bean',
+    'broad beans': 'broad-bean',
+    'french beans': 'french-bean',
+    'french bean': 'french-bean',
+    'french borlotti stokkievitsboon': 'french-bean',
+    'runner beans': 'runner-bean',
+    'runner bean': 'runner-bean',
     'onions': 'onion',
     'onion': 'onion',
     'onion electric (red autumn)': 'onion',
@@ -42,9 +47,10 @@ PLANT_MAPPINGS = {
     'white senshyn': 'onion',
     'red electric': 'onion',
     'onion \'centurion\'': 'onion',
-    'spring onion \'lilia\'': 'spring-onions',
-    'spring onion parade (organic)': 'spring-onions',
-    'onion (spring) keravel pink': 'spring-onions',
+    'spring onion \'lilia\'': 'spring-onion',
+    'spring onion parade (organic)': 'spring-onion',
+    'spring onions': 'spring-onion',
+    'onion (spring) keravel pink': 'spring-onion',
     'potatoes': 'potato',
     'potato': 'potato',
     'potatoes (early)': 'potato',
@@ -287,18 +293,18 @@ def main():
 
     # Infer rotation groups
     def infer_rotation_group(plantings):
-        # Simple mapping based on plantId
+        # Simple mapping based on plantId (v11: uses singular form)
         group_counts = {}
         for p in plantings:
             pid = p['plantId']
             # Simplified rotation group inference
-            if pid in ['peas', 'broad-beans', 'french-beans', 'runner-beans']:
+            if pid in ['pea', 'broad-bean', 'french-bean', 'runner-bean']:
                 group = 'legumes'
-            elif pid in ['cabbage', 'kale', 'broccoli', 'cauliflower', 'brussels-sprouts']:
+            elif pid in ['cabbage', 'kale', 'broccoli', 'cauliflower', 'brussels-sprout']:
                 group = 'brassicas'
             elif pid in ['carrot', 'beetroot', 'parsnip', 'potato', 'turnip']:
                 group = 'roots'
-            elif pid in ['onion', 'garlic', 'leek', 'spring-onions', 'shallot']:
+            elif pid in ['onion', 'garlic', 'leek', 'spring-onion', 'shallot']:
                 group = 'alliums'
             elif pid in ['courgette', 'pumpkin', 'squash', 'cucumber', 'melon']:
                 group = 'cucurbits'
@@ -395,10 +401,10 @@ def main():
             'updatedAt': now
         })
 
-    # Build complete backup format (v10)
+    # Build complete backup format (v11)
     output = {
         'allotment': {
-            'version': 10,  # Updated to v10
+            'version': 11,  # Updated to v11 - uses singular plant IDs
             'meta': {
                 'name': 'My Allotment',
                 'location': 'Scotland',
@@ -423,7 +429,7 @@ def main():
             }
         },
         'exportedAt': now,
-        'exportVersion': 10  # Updated to v10
+        'exportVersion': 11  # Updated to v11 - uses singular plant IDs
     }
 
     with open(output_file, 'w') as f:
