@@ -4,7 +4,8 @@ import { useState, useRef, useCallback } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
-import { saveAllotmentData, clearAllotmentData, getStorageStats } from '@/services/allotment-storage'
+import { saveAllotmentData, clearAllotmentData, getStorageStats, loadAllotmentData } from '@/services/allotment-storage'
+import { STORAGE_KEY } from '@/types/unified-allotment'
 import { loadVarietyData } from '@/services/variety-storage'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
@@ -18,6 +19,27 @@ interface CompleteExport {
   varieties: VarietyData
   exportedAt: string
   exportVersion: number
+}
+
+/**
+ * Create a backup of current data before import
+ * This is a safety measure to prevent accidental data loss
+ */
+function createPreImportBackup(): boolean {
+  if (typeof window === 'undefined') return false
+
+  try {
+    const result = loadAllotmentData()
+    if (!result.success || !result.data) return false
+
+    const backupKey = `${STORAGE_KEY}-pre-import-${Date.now()}`
+    localStorage.setItem(backupKey, JSON.stringify(result.data))
+    console.log(`Created pre-import backup: ${backupKey}`)
+    return true
+  } catch (error) {
+    console.error('Failed to create pre-import backup:', error)
+    return false
+  }
 }
 
 /**
@@ -86,6 +108,9 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
 
     reader.onload = (e) => {
       try {
+        // Create backup of existing data before import
+        createPreImportBackup()
+
         const content = e.target?.result as string
         const parsed = JSON.parse(content)
 
