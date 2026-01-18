@@ -1252,6 +1252,25 @@ export function getBedSeason(
 }
 
 /**
+ * Ensure an AreaSeason exists for a given area in a season.
+ * If it doesn't exist, creates a new one with empty plantings.
+ * Used by functions that modify season data to handle historical seasons
+ * that may not have all areas populated.
+ */
+function ensureAreaSeasonExists(
+  areas: AreaSeason[] | undefined,
+  areaId: string,
+  rotationGroup?: RotationGroup
+): AreaSeason[] {
+  const areasArray = areas || []
+  const existing = areasArray.find(a => a.areaId === areaId)
+  if (existing) {
+    return areasArray
+  }
+  return [...areasArray, { areaId, rotationGroup, plantings: [] }]
+}
+
+/**
  * Update an area's rotation group for a season (v10)
  */
 export function updateAreaRotationGroup(
@@ -1322,10 +1341,13 @@ export function addPlanting(
     seasons: data.seasons.map(season => {
       if (season.year !== year) return season
 
+      // Ensure the AreaSeason exists before adding planting
+      const areasWithTarget = ensureAreaSeasonExists(season.areas, areaId)
+
       return {
         ...season,
         updatedAt: new Date().toISOString(),
-        areas: (season.areas || []).map(area => {
+        areas: areasWithTarget.map(area => {
           if (area.areaId !== areaId) return area
 
           return {
@@ -1481,10 +1503,13 @@ export function addAreaNote(
     seasons: data.seasons.map(season => {
       if (season.year !== year) return season
 
+      // Ensure the AreaSeason exists before adding note
+      const areasWithTarget = ensureAreaSeasonExists(season.areas, areaId)
+
       return {
         ...season,
         updatedAt: now,
-        areas: (season.areas || []).map(area => {
+        areas: areasWithTarget.map(area => {
           if (area.areaId !== areaId) return area
 
           return {
