@@ -44,8 +44,8 @@ test.describe('AI Advisor (Aitor)', () => {
     const topicButton = page.locator('button.border-l-4').first()
     await expect(topicButton).toBeVisible()
 
-    // Get the query text from the button before clicking
-    const queryText = await topicButton.locator('p.text-sm').textContent()
+    // Get the query text from the button before clicking (it's in a paragraph element)
+    const queryText = await topicButton.locator('p').last().textContent()
     expect(queryText).toBeTruthy()
 
     // Click the button - this will submit the query directly, not populate the input
