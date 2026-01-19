@@ -1,4 +1,4 @@
-# ADR 002: Hybrid Data Persistence Strategy
+# ADR 002: Client-Side Data Persistence
 
 ## Status
 Accepted
@@ -7,96 +7,74 @@ Accepted
 2025-01-01 (retrospective)
 
 ## Last Updated
-2025-12-27 (codebase simplification)
+2025-12-27
 
 ## Context
 
-The application has different data persistence needs:
-1. **Allotment Data**: Personal user data that should persist but is user-specific
-2. **AI Chat**: Temporary session data with conversation history
+The application needed a data persistence strategy that works without a traditional database. Key constraints were minimizing operational complexity, enabling quick deployment without database provisioning, keeping hosting costs low, supporting offline development, and not requiring user authentication initially.
 
-We needed a strategy that works without a traditional database while serving these different needs.
+Options considered included traditional databases (PostgreSQL, MySQL), NoSQL databases (MongoDB, Firebase), and cloud storage services (Supabase, PlanetScale). All were rejected in favor of browser-native storage.
 
 ## Decision
 
-Implement a **hybrid data persistence strategy** with two approaches:
+Use browser-native storage (localStorage and sessionStorage) for all data persistence, avoiding any database dependency.
 
-### 1. Client-Side localStorage (Allotment Storage)
+### Storage Architecture
 
-The allotment page uses a unified storage service (`src/services/allotment-storage.ts`):
+| Data Type | Storage | Persistent | Key |
+|-----------|---------|------------|-----|
+| Allotment data | localStorage | Yes | `allotment-unified-data` |
+| Seed varieties | localStorage | Yes | `community-allotment-varieties` |
+| Grid layout | localStorage | Yes | `allotment-grid-layout` |
+| API tokens | sessionStorage | Session only | `aitor_api_token` |
+| AI chat history | Memory | No | n/a |
+
+### Allotment Storage Service
+
+The primary storage service (`src/services/allotment-storage.ts`) provides schema validation and auto-repair, debounced saves to prevent excessive writes, multi-tab synchronization via storage events, version migration for schema changes, and immutable update functions (return new data, don't mutate).
 
 ```typescript
-// Unified storage with schema validation
-import { 
-  loadAllotmentData, 
-  saveAllotmentData,
-  AllotmentData 
-} from '@/services/allotment-storage'
+import { loadAllotmentData, saveAllotmentData } from '@/services/allotment-storage'
 
-// The useAllotment hook manages state and persistence
 const { data, isLoading, addPlanting } = useAllotment()
 ```
 
-**Use case**: Personal allotment layouts, seasonal plantings, rotation history
-**Features**:
-- Schema validation and auto-repair
-- Debounced saves to prevent excessive writes
-- Multi-tab synchronization
-- Version migration for schema changes
-- Generic storage utilities for other localStorage needs
+### Session Storage for Sensitive Data
 
-### Additional localStorage Keys
-
-Other features use simple localStorage for state persistence:
-
-| Key | Purpose | Data Structure |
-|-----|---------|----------------|
-| `community-allotment-varieties` | Seed variety tracking with per-year status | `VarietyData` (varieties with seedsByYear) |
-| `allotment-grid-layout` | Custom bed grid positions | Layout positions for react-grid-layout |
-
-### 2. Session Storage (API Tokens)
+API tokens use sessionStorage (cleared on browser close, not persisted):
 
 ```typescript
-// AI Advisor page
-const savedToken = sessionStorage.getItem('aitor_api_token')
-sessionStorage.setItem('aitor_api_token', apiToken.trim())
+sessionStorage.setItem('aitor_api_token', token)
+const storedToken = sessionStorage.getItem('aitor_api_token')
 ```
-
-**Use case**: Sensitive temporary data (API keys)
-**Features**: Cleared on browser close, not persisted
 
 ## Consequences
 
 ### Positive
-- **No database required** - Simplified deployment and maintenance
-- **Offline capability** - localStorage works without network
-- **Privacy** - Personal data stays in user's browser
-- **Export/Import** - Users can backup and share garden plans via JSON
-- **Fast operations** - No network latency for local data
+- Zero infrastructure (no database to provision, maintain, or pay for)
+- Simple deployment (works on any Node.js host)
+- Offline capability (localStorage works without network)
+- Privacy (personal data stays in user's browser)
+- Fast operations (no network latency)
+- Export/Import enables backup and sharing
 
 ### Negative
-- **No cross-device sync** - localStorage is device-specific
-- **Storage limits** - localStorage limited to ~5-10MB
-- **Data loss risk** - Clearing browser data loses garden plans
-- **No real-time collaboration** - No concurrent editing support
+- No cross-device sync (localStorage is device-specific)
+- Storage limits (~5-10MB per origin)
+- Data loss risk if browser data cleared
+- No real-time collaboration
+- No complex querying capabilities
 
 ### Mitigations
-- **Export/Import feature** (`DataManagement` component) allows backup/restore
-  - Exports complete state: allotment data + seed varieties in single JSON file
-  - Automatic backup created before each import
-  - Backward compatible with old format (allotment-only)
-  - File format: `{ allotment: AllotmentData, varieties: VarietyData, exportedAt, exportVersion }`
-- **Temporary Excel import** (`scripts/excel-to-backup.py`) for one-time migration
-  - Converts Excel planning workbooks to standard backup format
-  - 50+ plant name mappings (peas, onions, cosmos, etc.)
-  - Will be deprecated once users migrate to native export/import system
-- Clear documentation about data storage limitations
 
-## Future Considerations
+The DataManagement component provides export/import functionality that exports complete state (allotment data + seed varieties) to a single JSON file. Automatic backup is created before each import. A temporary Excel import script (`scripts/excel-to-backup.py`) enables one-time migration from existing spreadsheets.
 
-- Add optional cloud sync for garden plans
-- Consider IndexedDB for larger data sets
-- Evaluate real database if user accounts are added
+### When to Reconsider
 
+This decision should be revisited if user accounts are added (need user database), data grows beyond localStorage limits, real-time features are needed (WebSockets + database), or analytics/reporting require queryable data.
 
+## References
 
+- Storage service: `src/services/allotment-storage.ts`
+- Variety storage: `src/services/variety-storage.ts`
+- useAllotment hook: `src/hooks/useAllotment.ts`

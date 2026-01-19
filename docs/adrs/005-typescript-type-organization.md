@@ -1,4 +1,4 @@
-# ADR 006: TypeScript Type Organization
+# ADR 005: TypeScript Type Organization
 
 ## Status
 Accepted

@@ -1,4 +1,4 @@
-# ADR 012: Planting Assistant Integration
+# ADR 011: Planting Assistant Integration
 
 ## Status
 Accepted (2026-01-01)

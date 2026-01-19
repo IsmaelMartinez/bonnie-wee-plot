@@ -1,4 +1,4 @@
-# ADR 010: Static Content Pages Pattern
+# ADR 009: Static Content Pages Pattern
 
 ## Status
 Accepted

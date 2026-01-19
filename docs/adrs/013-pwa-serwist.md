@@ -1,4 +1,4 @@
-# ADR 014: Use Serwist for Progressive Web App Implementation
+# ADR 013: Use Serwist for Progressive Web App Implementation
 
 ## Status
 Accepted

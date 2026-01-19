@@ -1,4 +1,4 @@
-# ADR 007: Feature-Based Component Structure
+# ADR 006: Feature-Based Component Structure
 
 ## Status
 Accepted

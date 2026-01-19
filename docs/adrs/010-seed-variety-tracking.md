@@ -1,4 +1,4 @@
-# ADR 011: Seed Variety Tracking
+# ADR 010: Seed Variety Tracking
 
 ## Status
 Accepted (Updated 2026-01-01)

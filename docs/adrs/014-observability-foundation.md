@@ -1,4 +1,4 @@
-# ADR 015: Observability Foundation
+# ADR 014: Observability Foundation
 
 ## Status
 Accepted

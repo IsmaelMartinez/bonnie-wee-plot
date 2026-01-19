@@ -1,4 +1,4 @@
-# ADR 005: AI Integration via Proxy API Pattern
+# ADR 004: AI Integration via Proxy API Pattern
 
 ## Status
 Accepted

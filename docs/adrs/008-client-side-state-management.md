@@ -1,4 +1,4 @@
-# ADR 009: React Built-in State Management
+# ADR 008: React Built-in State Management
 
 ## Status
 Accepted

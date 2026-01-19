@@ -1,4 +1,4 @@
-# ADR 008: Playwright for E2E Testing
+# ADR 007: Playwright for E2E Testing
 
 ## Status
 Accepted
