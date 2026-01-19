@@ -13,8 +13,8 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ### The Solution
 **Progressive Feature Disclosure:**
-- Start with 4 simple features (Today, This Month, Seeds, Compost)
-- Hide AI Advisor and Allotment Layout initially
+- Start with 3 core features (Today, This Month, Seeds)
+- Hide AI Advisor, Compost, and Allotment Layout initially
 - Unlock features as users demonstrate engagement
 
 ### How Features Unlock
@@ -22,17 +22,17 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 | Feature | Unlock Condition | Why |
 |---------|-----------------|-----|
 | **AI Advisor** | 3 visits OR click CTA | Users have context, ready for advanced help |
+| **Compost Tracker** | 5 visits OR request | Additional value for engaged users |
 | **Layout Planner** | 5 plantings OR request | Users have data to populate beds with |
-| **Advanced Compost** | 3 compost events | Ready for C:N ratios, temp tracking |
 
 ---
 
 ## The 4 Phases
 
-### Phase 1: Simplified Launch (4-5 weeks)
-**Ship:** Feature gating system, simplified nav (4 items), onboarding, unlock celebrations
-**Hide:** AI Advisor, Allotment Layout
-**Goal:** 500 users, 50% retention, 30% unlock rate
+### Phase 1: Simplified Launch (3-4 weeks)
+**Ship:** Feature gating system, simplified nav (3 items), onboarding, unlock celebrations
+**Hide:** AI Advisor, Compost, Allotment Layout
+**Goal:** 500 users, 50% retention, 30% unlock AI, 20% unlock Compost
 
 ### Phase 2: Feature Discovery (5-6 weeks)
 **Ship:** Enhanced unlocks, notifications, feature tours, sharing
@@ -50,20 +50,35 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ## Implementation Priority
 
-### Week 1 (Before coding)
-- [ ] User interviews: Validate feature gating strategy
+### Pre-Development (3-5 days)
+- [ ] User interviews: Validate 3-feature approach
 - [ ] Design: Unlock celebrations, progress indicators
-- [ ] Refine: Adjust unlock criteria based on feedback
+- [ ] Refine: Finalize unlock criteria
 
-### Week 2-5 (Phase 1 build)
+### Phase 1 Build (15-20 working days)
+
+**Week 1: Core Gating (5-6 days)**
 1. Feature flag system (2-3 days) ← **START HERE**
-2. Simplified navigation (1 day)
-3. Onboarding flow (2-3 days)
-4. Unlock celebrations (1-2 days)
-5. Progress indicators & CTAs (1-2 days)
-6. Today/This Month polish (3-4 days)
-7. Seeds/Compost simplification (2-3 days)
-8. Testing & refinement (3-4 days)
+2. Simplified navigation to 3 items (1 day)
+3. Hide Compost/AI/Allotment routes (1 day)
+4. Basic unlock logic (1-2 days)
+
+**Week 2: Onboarding & Discovery (5-6 days)**
+5. Onboarding flow (2-3 days)
+6. Unlock celebration modals (1-2 days)
+7. Progress indicators & CTAs (2 days)
+
+**Week 3: Polish Core Features (5-6 days)**
+8. Today dashboard empty states (2 days)
+9. This Month personalization (2 days)
+10. Seeds page polish (1-2 days)
+
+**Week 4: Testing & Launch Prep (3-4 days)**
+11. E2E testing unlock flows (1-2 days)
+12. Analytics integration (1 day)
+13. Bug fixes & refinement (1-2 days)
+
+**Total:** 18-22 days (3.5-4.5 weeks calendar time)
 
 ---
 
@@ -75,12 +90,12 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 **Activation:**
 - Plantings added (target: 3+ per user)
-- Seeds tracked (target: 10%)
-- Compost events (target: 10%)
+- Seeds tracked (target: 15%)
 
 **Engagement:**
 - AI unlock rate (target: 30%)
-- Layout unlock rate (target: 20%)
+- Compost unlock rate (target: 20%)
+- Layout unlock rate (target: 15%)
 - Return visits (target: 50% within 7 days)
 
 **Retention:**
@@ -93,7 +108,8 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 | Original | New Approach | Why |
 |----------|-------------|-----|
-| Show all 6 nav items | Show 4 core items | Reduce overwhelm |
+| Show all 6 nav items | Show 3 core items | Reduce overwhelm by 50% |
+| Compost in main nav | Hide until 5 visits | Uncertain value, validate demand |
 | Allotment in main nav | Hide until unlocked | Too complex for beginners |
 | AI Advisor visible | Hide until 3 visits | API key friction, needs context |
 | Linear onboarding | Progressive disclosure | Earn features naturally |

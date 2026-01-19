@@ -13,16 +13,17 @@ Transform Scottish Grow Guide from a feature-complete garden planning app into a
 
 **"Master the basics, unlock the advanced features"**
 
-Help users get immediate value through seeds tracking, composting guidance, and seasonal tips—without overwhelming them with AI chat, complex layout planning, or advanced features they're not ready for yet.
+Help users get immediate value through seeds tracking and seasonal tips—without overwhelming them with AI chat, composting tracking, complex layout planning, or advanced features they're not ready for yet.
 
 ### Key Strategic Decisions
 
-1. **Progressive feature disclosure**: Hide AI advisor and layout planner initially
-2. **Earn-your-features model**: Unlock advanced tools after demonstrating engagement
-3. **Personalization without complexity**: Dynamic tips based on minimal user input
-4. **Phased feature releases**: Build user base with core features, add advanced tools later
-5. **Local-first, cloud-later**: Keep current localStorage model, add sync for engaged users
-6. **Free + BYO API key**: No hosting costs, sustainable open-source model
+1. **Progressive feature disclosure**: Hide AI advisor, compost, and layout planner initially
+2. **Ultra-focused MVP**: Start with just 3 features (Today, This Month, Seeds)
+3. **Earn-your-features model**: Unlock advanced tools after demonstrating engagement
+4. **Personalization without complexity**: Dynamic tips based on minimal user input
+5. **Phased feature releases**: Build user base with core features, add advanced tools later
+6. **Local-first, cloud-later**: Keep current localStorage model, add sync for engaged users
+7. **Free + BYO API key**: No hosting costs, sustainable open-source model
 
 ---
 
@@ -34,20 +35,21 @@ Help users get immediate value through seeds tracking, composting guidance, and 
 - ✅ Today (Dashboard)
 - ✅ This Month (Calendar)
 - ✅ Seeds (Tracking)
-- ✅ Compost (Management)
 - ✅ About (Information)
 
-**Why these?**
-- Simple, focused value proposition
-- No overwhelming choices
-- Clear use cases
-- Easy to understand
-- Immediate benefit
+**Why only these 3?**
+- Ultra-focused value proposition
+- Minimal cognitive load (3 choices)
+- Clear, essential use cases
+- Easy to understand in 30 seconds
+- Immediate benefit without setup
+- 50% reduction in navigation complexity
 
 ### 🔒 Phase 1: Hidden Features (Unlock Later)
 
 **Hidden from navigation:**
 - 🔒 AI Advisor (Aitor) - Unlocks after 3+ visits or manual discovery
+- 🔒 Compost Tracker - Unlocks after 5+ visits or manual request
 - 🔒 Allotment (Layout Planner) - Unlocks after 5+ plantings tracked
 
 **Implementation:**
@@ -55,14 +57,16 @@ Help users get immediate value through seeds tracking, composting guidance, and 
 // Feature flag system in localStorage
 interface FeatureFlags {
   aiAdvisorUnlocked: boolean
+  compostTrackerUnlocked: boolean
   layoutPlannerUnlocked: boolean
   visitCount: number
   plantingsCount: number
 }
 
 // Unlock conditions
-const unlockAIAdvisor = () => visitCount >= 3 || userClickedHiddenLink
-const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
+const unlockAIAdvisor = () => visitCount >= 3 || userClickedCTA
+const unlockCompost = () => visitCount >= 5 || userRequestedIt
+const unlockLayout = () => plantingsCount >= 5 || userRequestedIt
 ```
 
 **Unlock Mechanisms:**
@@ -72,15 +76,21 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
    - User clicks "Ask Aitor" CTA in Today/This Month pages, OR
    - User explicitly searches for help/questions
 
-2. **Layout Planner Unlocks When:**
+2. **Compost Tracker Unlocks When:**
+   - User returns 5+ times (demonstrated sustained engagement), OR
+   - User clicks "Track composting" teaser, OR
+   - User searches for compost-related help
+
+3. **Layout Planner Unlocks When:**
    - User tracks 5+ different vegetables in Seeds, OR
    - User clicks "Advanced planning" teaser, OR
-   - User completes Phase 1 onboarding successfully
+   - User asks for rotation/companion advice
 
 **Discovery Breadcrumbs (Teasers):**
 - Today dashboard: "💡 Wondering about your kale? Ask Aitor" → Unlocks AI
 - Seeds page: "Track 3 more to unlock advanced planning" → Progress bar
 - This Month: "🗺️ Want crop rotation advice? Map your beds" → Unlocks layout
+- Footer: "Unlock more features as you explore" → Progress tracker
 
 ---
 
@@ -90,11 +100,11 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
 
 | Feature | Status | Phase 1 Visibility | Unlock Condition |
 |---------|--------|-------------------|------------------|
-| **Seeds Tracking** | ✅ Complete | ✅ Always visible | N/A |
-| **Compost Management** | ✅ Complete | ✅ Always visible | N/A |
-| **This Month Calendar** | ✅ Complete | ✅ Always visible | N/A |
 | **Today Dashboard** | ✅ Complete | ✅ Always visible | N/A |
+| **This Month Calendar** | ✅ Complete | ✅ Always visible | N/A |
+| **Seeds Tracking** | ✅ Complete | ✅ Always visible | N/A |
 | **AI Advisor (Aitor)** | ✅ Complete | 🔒 Hidden initially | 3+ visits OR CTA click |
+| **Compost Tracker** | ✅ Complete | 🔒 Hidden initially | 5+ visits OR request |
 | **Allotment Planner** | ✅ Complete | 🔒 Hidden initially | 5+ plantings OR request |
 
 ### 🔍 What Users Currently See (Problem)
@@ -104,16 +114,18 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
 2. Sees 6 navigation items → Paralyzed by choice
 3. Clicks "Allotment" → Overwhelmed by grid, beds, years
 4. Clicks "AI Advisor" → Confused about API keys
-5. Adds a few plantings → Doesn't understand rotation/companions
-6. Abandons or powers through with confusion
+5. Clicks "Compost" → "Do I need this? What's C:N ratio?"
+6. Adds a few plantings → Doesn't understand rotation/companions
+7. Abandons or powers through with confusion
 
 **What we want instead (Solution):**
 1. Lands on welcome screen → "What are you growing this year?"
-2. Sees 4 simple navigation items → Clear choices (Today, This Month, Seeds, Compost)
+2. Sees 3 simple navigation items → Crystal clear choices (Today, This Month, Seeds)
 3. Adds 3-5 vegetables from seed catalog
 4. Gets immediate personalized tips and monthly tasks
-5. Returns 3+ times → "You've unlocked Aitor, your AI garden buddy!"
-6. Tracks 5+ plants → "Ready to map your beds for rotation advice?"
+5. Returns 3+ times → 🎉 "You've unlocked Aitor, your AI garden buddy!"
+6. Returns 5+ times → 🎉 "Unlock compost tracking to reduce waste!"
+7. Tracks 5+ plants → 🎉 "Ready to map your beds for rotation advice?"
 
 ---
 
@@ -178,21 +190,20 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
    - Track what's planted vs planned
    - See spending stats
    ↓
-6. → Compost Page (Log materials)
-   - Simple pile tracking
-   - Basic green/brown guidance
-   - No complex C:N calculations required
-   ↓
-7. After 3 visits → 🎉 "You've unlocked Aitor!"
+6. After 3 visits → 🎉 "You've unlocked Aitor!"
    - Celebration modal
    - Explain BYO API key or free tier
-   - Add to navigation
+   - Add to navigation with "New!" badge
+   ↓
+7. After 5 visits → 🎉 "Unlock compost tracking!"
+   - Show value prop: "Reduce waste, improve soil"
+   - Add to navigation with "New!" badge
    ↓
 8. After 5 plantings → 🎉 "Ready for advanced planning?"
    - Show value prop for layout planner
    - "Get crop rotation warnings"
    - "See companion planting conflicts"
-   - Add to navigation
+   - Add to navigation with "New!" badge
 ```
 
 **Features to Build:**
@@ -214,10 +225,11 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
 
 **3. Simplified Navigation (1 day)**
 - [ ] Conditional rendering based on feature flags
-- [ ] 4 items initially: Today, This Month, Seeds, Compost, About
-- [ ] Add AI Advisor link when unlocked
-- [ ] Add Allotment link when unlocked
-- [ ] Show unlock progress in footer: "Track 3 more plants to unlock planning"
+- [ ] 3 items initially: Today, This Month, Seeds, About
+- [ ] Add AI Advisor link when unlocked (after 3 visits)
+- [ ] Add Compost link when unlocked (after 5 visits)
+- [ ] Add Allotment link when unlocked (after 5 plantings)
+- [ ] Show unlock progress in footer: "Visit 2 more times to unlock AI Advisor"
 
 **4. Simplified Today Dashboard (3-4 days)**
 - [ ] Detect empty state → Show onboarding
@@ -227,7 +239,7 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
   - "Care tasks for your plantings" (generic)
 - [ ] **Remove AI Insight component** (re-add when unlocked)
 - [ ] Discovery CTA: "💡 Have a question? Unlock Aitor" → Tracks click
-- [ ] Quick actions: Add to Seeds, Log Compost (NO layout option yet)
+- [ ] Quick actions: Add to Seeds (NO compost or layout yet)
 
 **5. Enhanced This Month Personalization (2-3 days)**
 - [ ] Filter generic calendar by user's plantings (highlight only)
@@ -241,34 +253,34 @@ const unlockLayout = () => plantingsCount >= 5 || userAsksForIt
 - [ ] Progress indicator: "Add 3 more to unlock planning features"
 - [ ] "Add to my garden" quick action → Links to Today
 
-**7. Compost Page Simplification (1-2 days)**
-- [ ] **Hide advanced fields** (C:N ratio, temperature tracking)
-- [ ] Simple mode by default: "What did you add?"
-- [ ] Basic greens/browns guidance
-- [ ] Pre-filled templates: "Garden waste pile", "Kitchen scraps bin"
-- [ ] Unlock "Advanced composting" after 3+ events logged
+**7. Hidden Features Setup (1-2 days)**
+- [ ] Hide AI Advisor, Compost, Allotment routes initially
+- [ ] Add route guards checking feature flags
+- [ ] Redirect to home if feature not unlocked
+- [ ] Add unlock celebration modals for all 3 features
 
-**8. AI Advisor (Hidden Initially) (1-2 days)**
-- [ ] Remove from main navigation
-- [ ] Add unlock modal/celebration
-- [ ] Improve API key entry UX when unlocked
+**8. AI Advisor Polish (When Unlocked) (1 day)**
+- [ ] Improve API key entry UX
 - [ ] Add "Try with free Gemini tier" option (50/day)
 - [ ] Suggested prompts based on season + plantings
 
-**9. Layout Planner (Hidden Initially) (1 day)**
-- [ ] Remove from main navigation
-- [ ] Add unlock modal/celebration
-- [ ] "Getting Started" guide when unlocked
-- [ ] Simplified first-time experience
+**9. Compost Tracker (When Unlocked) (1 day)**
+- [ ] Already built, just needs unlock celebration
+- [ ] Add teaser in footer: "Unlock compost tracking"
 
-**Total Effort:** ~18-23 days (4-5 weeks)
+**10. Layout Planner (When Unlocked) (1 day)**
+- [ ] Already built, just needs unlock celebration
+- [ ] "Getting Started" guide when first unlocked
+
+**Total Effort:** ~15-20 days (3-4 weeks)
 
 **Success Metrics:**
 - 70% of new users add at least 3 plantings (higher than before)
 - 50% return within 7 days (higher due to simplicity)
-- 30% unlock AI advisor (engagement signal)
-- 20% unlock layout planner (power user signal)
-- 15% track seeds or compost (adoption)
+- 30% unlock AI advisor (3 visits - engagement signal)
+- 20% unlock compost tracker (5 visits - sustained engagement)
+- 15% unlock layout planner (5 plantings - power user signal)
+- 15% track seeds (adoption)
 
 ---
 
