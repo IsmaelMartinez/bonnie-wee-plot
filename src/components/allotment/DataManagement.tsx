@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
-import { AllotmentData, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
+import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, loadAllotmentData } from '@/services/allotment-storage'
 import { STORAGE_KEY } from '@/types/unified-allotment'
@@ -12,13 +12,6 @@ import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 interface DataManagementProps {
   data: AllotmentData | null
   onDataImported: () => void
-}
-
-interface CompleteExport {
-  allotment: AllotmentData
-  varieties: VarietyData
-  exportedAt: string
-  exportVersion: number
 }
 
 /**

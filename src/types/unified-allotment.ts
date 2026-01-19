@@ -534,3 +534,17 @@ export interface AllotmentItemRef {
   type: AllotmentItemType
   id: string
 }
+
+// ============ EXPORT SCHEMA ============
+
+/**
+ * Complete export format for backup files.
+ * Combines allotment data with separate variety storage for compatibility
+ * with both old (AllotmentData only) and new (AllotmentData + VarietyData) export formats.
+ */
+export interface CompleteExport {
+  allotment: AllotmentData
+  varieties: import('./variety-data').VarietyData
+  exportedAt: string
+  exportVersion: number
+}
