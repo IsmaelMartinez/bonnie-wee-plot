@@ -5,14 +5,14 @@ test.describe('AI Advisor (Aitor)', () => {
     await page.goto('/ai-advisor')
 
     // Check page loads correctly
-    await expect(page).toHaveTitle(/Community Allotment/)
+    await expect(page).toHaveTitle(/Scottish Grow Guide/)
     await expect(page.locator('h1').filter({ hasText: /Aitor/i })).toBeVisible()
 
     // Check that quick topics section is visible (can be personalized or fallback topics)
-    await expect(page.locator('h2').filter({ hasText: /(Suggested|Popular Topics)/i })).toBeVisible()
+    await expect(page.locator('h2').filter({ hasText: /(Suggested|Popular)/i })).toBeVisible()
 
-    // Check at least one topic button exists
-    const topicButtons = page.locator('button').filter({ hasText: /.+/ })
+    // Check at least one topic button exists with border-l-4 class
+    const topicButtons = page.locator('button.border-l-4')
     await expect(topicButtons.first()).toBeVisible()
   })
 
@@ -46,25 +46,17 @@ test.describe('AI Advisor (Aitor)', () => {
 
     // Get the query text from the button before clicking
     const queryText = await topicButton.locator('p.text-sm').textContent()
+    expect(queryText).toBeTruthy()
 
-    // Click the button
+    // Click the button - this will submit the query directly, not populate the input
     await topicButton.click()
 
-    // Wait a moment for the action to complete
-    await page.waitForTimeout(500)
+    // Wait for the message to appear in the chat (role="log" container)
+    const chatLog = page.locator('[role="log"]')
 
-    // The topic should populate the input OR appear as a message
-    // Check if either the input has the query OR there's a message with the query
-    const chatInput = page.locator('input[type="text"]').or(page.locator('textarea')).first()
-    const inputValue = await chatInput.inputValue().catch(() => '')
-
-    if (inputValue && inputValue.length > 10) {
-      // Input was populated
-      expect(inputValue.length).toBeGreaterThan(10)
-    } else {
-      // Check if query appears as a message instead (use nth(1) to skip the button text)
-      await expect(page.getByText(queryText?.slice(0, 30) || '').nth(1)).toBeVisible()
-    }
+    // The query should now appear as a user message in the chat
+    // Wait for it to appear (with a reasonable timeout)
+    await expect(chatLog.getByText(queryText?.substring(0, 20) || '', { exact: false })).toBeVisible({ timeout: 5000 })
   })
 
   test('should be responsive on mobile', async ({ page }) => {
@@ -72,7 +64,7 @@ test.describe('AI Advisor (Aitor)', () => {
     await page.goto('/ai-advisor')
 
     await expect(page.locator('h1').filter({ hasText: /Aitor/i })).toBeVisible()
-    await expect(page.locator('h2').filter({ hasText: /(Suggested|Popular Topics)/i })).toBeVisible()
+    await expect(page.locator('h2').filter({ hasText: /(Suggested|Popular)/i })).toBeVisible()
   })
 })
 
