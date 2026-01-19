@@ -21,6 +21,7 @@ function TopicButton({ suggestion, onSelect }: { suggestion: AISuggestion; onSel
 
   return (
     <button
+      type="button"
       onClick={onSelect}
       className={`bg-white p-3 sm:p-4 rounded-lg shadow-md border border-l-4 ${categoryStyles[suggestion.category]} hover:shadow-lg transition text-left group min-h-[88px]`}
     >

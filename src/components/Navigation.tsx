@@ -98,6 +98,7 @@ export default function Navigation() {
             {/* More Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
+                type="button"
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
                 className={`flex items-center gap-1 px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
                   isMoreOpen
@@ -157,6 +158,7 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             className="lg:hidden p-2 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition-colors"
             onClick={toggleMobileMenu}
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -188,6 +190,7 @@ export default function Navigation() {
               {/* Mobile More Section */}
               <div className="pt-2 border-t border-zen-stone-100 mt-2">
                 <button
+                  type="button"
                   onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
                   className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zen-ink-600"
                   aria-expanded={isMobileMoreOpen}

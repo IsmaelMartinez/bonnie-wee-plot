@@ -5,7 +5,7 @@ test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page).toHaveTitle(/Community Allotment/);
+    await expect(page).toHaveTitle(/Scottish Grow Guide/);
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
   });
 
@@ -36,7 +36,7 @@ test.describe('Homepage and Navigation', () => {
 
     // Check that the page has proper meta tags
     const title = await page.title();
-    expect(title).toContain('Community Allotment');
+    expect(title).toContain('Scottish Grow Guide');
 
     // Check for viewport meta tag (important for mobile)
     const viewportTag = await page.locator('meta[name="viewport"]').getAttribute('content');
