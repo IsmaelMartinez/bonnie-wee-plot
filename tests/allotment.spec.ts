@@ -535,45 +535,8 @@ test.describe('Allotment Mobile', () => {
     }
   })
 
-  // Skip: mobile seeding has timing issues; dialog functionality tested on desktop
-  test.skip('dialog should be usable on mobile', async ({ page }) => {
-    await page.goto('/allotment')
-    await page.waitForLoadState('networkidle')
-
-    // Select a rotation bed
-    await selectRotationBed(page)
-
-    // Wait for and click Add button
-    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
-    await expect(addButton).toBeVisible({ timeout: 5000 })
-    await addButton.click()
-
-    // Dialog should be visible and usable
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toBeVisible()
-
-    // Form elements should be visible - now uses combobox instead of select
-    await expect(page.getByRole('combobox', { name: 'Search for a plant' })).toBeVisible()
-
-    // Close dialog
-    await page.keyboard.press('Escape')
-    await expect(dialog).not.toBeVisible()
-  })
 })
 
-test.describe('Allotment Navigation', () => {
-  // Skip: History link was removed from the UI
-  test.skip('should navigate to plan history', async ({ page }) => {
-    await page.goto('/allotment')
-
-    // Find and click History link (use the one in the allotment page header, not main nav)
-    // The allotment page has a dedicated History button with amber styling
-    const historyLink = page.locator('a[href*="plan-history"]').filter({ hasText: 'History' }).first()
-    await historyLink.click()
-
-    await expect(page).toHaveURL(/plan-history/)
-  })
-})
 
 test.describe('Allotment Bed Notes', () => {
   test.beforeEach(async ({ page }) => {
@@ -774,35 +737,6 @@ test.describe('Allotment Grid Resizing', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  // Skip: visual feedback classes may have changed in current implementation
-  test.skip('should show resize handles when area is selected in edit mode', async ({ page }) => {
-    // Ensure at least one area exists
-    await ensureRotationBedExists(page)
-
-    // Click Lock/Locked button to enter edit mode
-    const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
-    await expect(lockButton).toBeVisible({ timeout: 5000 })
-    await lockButton.click()
-    await page.waitForTimeout(300)
-
-    // Click on a grid item to select it
-    const gridItem = page.locator('[class*="react-grid-item"]').first()
-    await gridItem.click()
-    await page.waitForTimeout(200)
-
-    // Selected item should have yellow ring and shadow on the child div (BedItem)
-    const bedItem = gridItem.locator('> div').first()
-    await expect(bedItem).toHaveClass(/ring-4/)
-    await expect(bedItem).toHaveClass(/ring-yellow-500/)
-    await expect(bedItem).toHaveClass(/shadow-lg/)
-
-    // Should NOT have scale transform class
-    const hasScaleClass = await bedItem.evaluate((el) => {
-      return el.className.includes('scale-105')
-    })
-    expect(hasScaleClass).toBe(false)
-  })
-
   test('resize handles should be clickable when area is selected', async ({ page }) => {
     // Ensure at least one area exists
     await ensureRotationBedExists(page)
@@ -838,34 +772,6 @@ test.describe('Allotment Grid Resizing', () => {
     }
   })
 
-  // Skip: visual feedback classes may have changed in current implementation
-  test.skip('area should maintain visual feedback without scale transform', async ({ page }) => {
-    // Ensure at least one area exists
-    await ensureRotationBedExists(page)
-
-    // Enter edit mode
-    const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
-    await expect(lockButton).toBeVisible({ timeout: 5000 })
-    await lockButton.click()
-    await page.waitForTimeout(300)
-
-    // Click on a grid item
-    const gridItem = page.locator('[class*="react-grid-item"]').first()
-    await gridItem.click()
-    await page.waitForTimeout(200)
-
-    // Verify visual feedback classes are applied to the child div (BedItem)
-    const bedItem = gridItem.locator('> div').first()
-    await expect(bedItem).toHaveClass(/ring-offset-2/)
-
-    // Get computed styles to verify no transform scaling
-    const hasTransformScale = await bedItem.evaluate((el) => {
-      const transform = window.getComputedStyle(el).transform
-      // Check if transform includes scale - should be 'none' or identity matrix
-      return transform !== 'none' && transform.includes('scale')
-    })
-    expect(hasTransformScale).toBe(false)
-  })
 })
 
 test.describe('Custom Allotment Naming', () => {
@@ -1359,53 +1265,6 @@ test.describe('Plant Database - New Scottish Plants', () => {
 
     // Should be able to select Sorrel
     await selectPlantFromCombobox(page, 'Sorrel')
-  })
-
-  // Skip: covered by individual plant tests; Seeds page combobox may not show all plants at once
-  test.skip('all new Scottish plants should be available in Seeds page', async ({ page }) => {
-    // Navigate to Seeds page
-    await page.goto('/seeds')
-    await page.waitForLoadState('networkidle')
-
-    // Click Add Variety button
-    const addVarietyButton = page.locator('button').filter({ hasText: 'Add Variety' })
-    await addVarietyButton.click()
-
-    // Wait for dialog
-    await expect(page.getByRole('dialog')).toBeVisible()
-
-    // Open the plant combobox to see all options
-    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
-    await plantCombobox.click()
-
-    // Wait for dropdown to appear
-    const listbox = page.getByRole('listbox', { name: 'Plant search results' })
-    await expect(listbox).toBeVisible()
-
-    // Get all plant option texts
-    const options = await listbox.getByRole('option').allTextContents()
-
-    // All new plants should be present
-    const newPlants = [
-      'Corn Salad',
-      'Winter Purslane',
-      'Hamburg Parsley',
-      'Kohlrabi',
-      'Lovage',
-      'Sorrel'
-    ]
-
-    for (const plant of newPlants) {
-      const hasPlant = options.some(opt => opt.includes(plant))
-      expect(hasPlant).toBe(true)
-    }
-
-    // Removed plants should NOT be present
-    const removedPlants = ['Sweet Pepper', 'Chillies', 'Basil']
-    for (const plant of removedPlants) {
-      const hasPlant = options.some(opt => opt.includes(plant))
-      expect(hasPlant).toBe(false)
-    }
   })
 })
 
