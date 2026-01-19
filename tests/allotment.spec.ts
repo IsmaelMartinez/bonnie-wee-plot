@@ -101,8 +101,9 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
 
   if (await gridItem.isVisible({ timeout: 3000 }).catch(() => false)) {
     await gridItem.click()
-    // Wait for bed details to appear
-    await page.waitForTimeout(300)
+    // Wait for bed details panel and Add button to appear (robust for CI)
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
 
@@ -110,7 +111,9 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
   const mobileItem = page.locator('button').filter({ hasText: 'Test Bed A' }).first()
   if (await mobileItem.isVisible({ timeout: 3000 }).catch(() => false)) {
     await mobileItem.click()
-    await page.waitForTimeout(300)
+    // Wait for bed details panel and Add button to appear (robust for CI)
+    const addButton = page.locator('button').filter({ hasText: /^Add$/ })
+    await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
 
