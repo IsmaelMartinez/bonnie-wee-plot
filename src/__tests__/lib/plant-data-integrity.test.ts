@@ -51,7 +51,7 @@ describe('Plant Data Integrity', () => {
     it.each([
       ['carrot', 'onion', 'good'],
       ['carrot', 'leek', 'good'],
-      ['tomato', 'potato', 'bad'],
+      ['cherry-tomato', 'potato', 'bad'],
     ])('%s + %s should be %s', (plantA, plantB, expected) => {
       const result = checkCompanionCompatibility(plantA, plantB)
       expect(result).toBe(expected)
@@ -132,14 +132,14 @@ describe('Plant Data Integrity', () => {
 
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
-      // Plant count should be in reasonable range (190-220)
-      expect(vegetables.length).toBeGreaterThanOrEqual(190)
-      expect(vegetables.length).toBeLessThanOrEqual(220)
+      // Plant count should be in reasonable range (180-215)
+      expect(vegetables.length).toBeGreaterThanOrEqual(180)
+      expect(vegetables.length).toBeLessThanOrEqual(215)
     })
 
     it('index should contain expected plant count', () => {
-      expect(vegetableIndex.length).toBeGreaterThanOrEqual(190)
-      expect(vegetableIndex.length).toBeLessThanOrEqual(220)
+      expect(vegetableIndex.length).toBeGreaterThanOrEqual(180)
+      expect(vegetableIndex.length).toBeLessThanOrEqual(215)
     })
 
     it('index and database should have same count', () => {

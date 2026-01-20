@@ -91,26 +91,19 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'fenugreek', name: 'Fenugreek', category: 'legumes' },
 
   // Solanaceae
-  { id: 'tomato', name: 'Tomato', category: 'solanaceae' },
   { id: 'cherry-tomato', name: 'Cherry Tomato', category: 'solanaceae' },
-  { id: 'beefsteak-tomato', name: 'Beefsteak Tomato', category: 'solanaceae' },
   { id: 'plum-tomato', name: 'Plum Tomato', category: 'solanaceae' },
   { id: 'blight-resistant-tomato', name: 'Blight-Resistant Tomato', category: 'solanaceae' },
   { id: 'tomatillo', name: 'Tomatillo', category: 'solanaceae' },
-  { id: 'aubergine', name: 'Aubergine', category: 'solanaceae' },
-  { id: 'pepper', name: 'Sweet Pepper', category: 'solanaceae' },
 
   // Cucurbits
   { id: 'courgette', name: 'Courgette', category: 'cucurbits' },
-  { id: 'cucumber', name: 'Cucumber', category: 'cucurbits' },
   { id: 'squash', name: 'Winter Squash', category: 'cucurbits' },
   { id: 'pumpkin', name: 'Pumpkin', category: 'cucurbits' },
   { id: 'patty-pan-squash', name: 'Patty Pan Squash', category: 'cucurbits' },
   { id: 'butternut-squash', name: 'Butternut Squash', category: 'cucurbits' },
   { id: 'spaghetti-squash', name: 'Spaghetti Squash', category: 'cucurbits' },
   { id: 'acorn-squash', name: 'Acorn Squash', category: 'cucurbits' },
-  { id: 'outdoor-melon', name: 'Outdoor Melon', category: 'cucurbits' },
-  { id: 'luffa', name: 'Luffa (Ridged Gourd)', category: 'cucurbits' },
   
   // Alliums
   { id: 'onion', name: 'Onion', category: 'alliums' },
@@ -126,7 +119,6 @@ export const vegetableIndex: VegetableIndex[] = [
   { id: 'ramps', name: 'Ramps (Wild Leeks)', category: 'alliums' },
   
   // Herbs
-  { id: 'basil', name: 'Basil', category: 'herbs' },
   { id: 'parsley', name: 'Parsley', category: 'herbs' },
   { id: 'coriander', name: 'Coriander', category: 'herbs' },
   { id: 'mint', name: 'Mint', category: 'herbs' },

@@ -41,7 +41,7 @@ describe('getVegetableById', () => {
   })
 
   it('should find common vegetables', () => {
-    const commonVegs = ['carrot', 'potato', 'onion', 'lettuce', 'peas', 'tomato']
+    const commonVegs = ['carrot', 'potato', 'onion', 'lettuce', 'peas', 'cherry-tomato']
     
     for (const id of commonVegs) {
       expect(getVegetableById(id)).toBeDefined()

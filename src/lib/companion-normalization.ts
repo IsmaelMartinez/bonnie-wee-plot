@@ -5,7 +5,6 @@
 
 // Plural to singular (8 items)
 export const PLURAL_TO_SINGULAR: Record<string, string> = {
-  'Cucumbers': 'Cucumber',
   'Daffodils': 'Daffodil',
   'Jerusalem Artichokes': 'Jerusalem Artichoke',
   'Marigolds': 'Marigold',
@@ -33,7 +32,7 @@ export const CATEGORY_EXPANSIONS: Record<string, string[]> = {
   'Beans': ['Broad Beans', 'French Beans', 'Runner Beans'],
   'Brassicas': ['Broccoli', 'Brussels Sprouts', 'Cabbage', 'Cauliflower', 'Kale'],
   'Alliums': ['Onion', 'Garlic', 'Leek', 'Chives'],
-  'Cucurbits': ['Pumpkin', 'Squash', 'Courgette', 'Cucumber'],
+  'Cucurbits': ['Pumpkin', 'Squash', 'Courgette'],
 }
 
 // Vague references to remove (16 items from analysis)
