@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Scottish Grow Guide",
-    short_name: "Grow Guide",
+    name: "Bonnie Wee Plot",
+    short_name: "Bonnie Plot",
     description:
       "Plan your Scottish garden, track plantings across seasons, and get AI-powered growing advice for our climate",
     start_url: "/",

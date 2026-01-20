@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-The Community Allotment application had significant accessibility and mobile UX issues. Research indicates 80% of users access the app while in their garden on mobile devices. The AllotmentGrid was "div soup" with no keyboard navigation, touch targets were undersized, and dialogs were awkward on small screens.
+The Bonnie Wee Plot application had significant accessibility and mobile UX issues. Research indicates 80% of users access the app while in their garden on mobile devices. The AllotmentGrid was "div soup" with no keyboard navigation, touch targets were undersized, and dialogs were awkward on small screens.
 
 ## Decision
 

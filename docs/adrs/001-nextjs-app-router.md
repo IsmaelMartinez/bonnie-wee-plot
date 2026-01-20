@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-The Community Allotment application needed a modern web framework that could support:
+The Bonnie Wee Plot application needed a modern web framework that could support:
 - Server-side rendering for SEO and initial page load performance
 - API routes for backend functionality
 - File-based routing for simplicity

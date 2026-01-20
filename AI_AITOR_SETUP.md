@@ -21,7 +21,7 @@ For server administrators or those who prefer environment-based configuration:
 
 1. Go to [OpenAI API Keys](https://platform.openai.com/api-keys)
 2. Click "Create new secret key"
-3. Give it a name like "Community Allotment Aitor"
+3. Give it a name like "Bonnie Wee Plot Aitor"
 4. Copy the API key (starts with 'sk-')
 
 #### 2. Configure Environment Variables

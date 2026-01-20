@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-The Community Allotment application needs Progressive Web App (PWA) capabilities to support the "garden usage" scenario where 80% of users access the app while in their garden. Key requirements include app installation ("Add to Home Screen") and eventually offline functionality for viewing planting data without network connectivity.
+The Bonnie Wee Plot application needs Progressive Web App (PWA) capabilities to support the "garden usage" scenario where 80% of users access the app while in their garden. Key requirements include app installation ("Add to Home Screen") and eventually offline functionality for viewing planting data without network connectivity.
 
 Three options were evaluated:
 

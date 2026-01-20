@@ -11,7 +11,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Scottish Grow Guide',
+  title: 'Bonnie Wee Plot',
   description: 'Plan your Scottish garden, track plantings across seasons, and get AI-powered growing advice',
   icons: {
     icon: [
@@ -46,7 +46,7 @@ export default function RootLayout({
         </main>
         <footer className="bg-gray-800 text-white py-8">
           <div className="container mx-auto px-4 text-center">
-            <p>&copy; 2025 Scottish Grow Guide. Growing despite the weather! 🌿🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
+            <p>&copy; 2025 Bonnie Wee Plot. Growing despite the weather! 🌿🏴󠁧󠁢󠁳󠁣󠁴󠁿</p>
           </div>
         </footer>
         <InstallPrompt />

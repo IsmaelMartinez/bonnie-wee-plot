@@ -3,7 +3,7 @@ import withSerwistInit from "@serwist/next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const isGitHubPages = process.env.GITHUB_PAGES === "true";
-const basePath = isGitHubPages ? "/community-allotment" : "";
+const basePath = isGitHubPages ? "/bonnie-wee-plot" : "";
 
 // Get git revision for cache busting, fallback to random UUID
 const getRevision = () => {
@@ -32,7 +32,7 @@ const nextConfig = {
   basePath,
 
   // Asset prefix for GitHub Pages
-  assetPrefix: isGitHubPages ? "/community-allotment/" : "",
+  assetPrefix: isGitHubPages ? "/bonnie-wee-plot/" : "",
 
   // Image configuration
   images: {

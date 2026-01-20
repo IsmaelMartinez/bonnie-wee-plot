@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-This directory contains Architecture Decision Records documenting significant technical decisions made in the Community Allotment application.
+This directory contains Architecture Decision Records documenting significant technical decisions made in the Bonnie Wee Plot application.
 
 ## Index
 

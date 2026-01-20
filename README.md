@@ -1,4 +1,4 @@
-# 🌱 Scottish Grow Guide - Gardening for the Bold and Weather-Beaten!
+# 🌱 Bonnie Wee Plot - Gardening for the Bold and Weather-Beaten!
 
 *Because growing anything in Scottish weather is already a form of extreme sport!*
 
@@ -62,7 +62,7 @@ Turn garden waste into black gold:
 
    ```bash
    git clone <repository-url>
-   cd community-allotment
+   cd bonnie-wee-plot
    ```
 
 2. **Feed it dependencies** (like fertilizer, but for code):

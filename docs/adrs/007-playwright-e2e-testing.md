@@ -81,7 +81,7 @@ import { test, expect } from '@playwright/test'
 
 test('homepage has correct title', async ({ page }) => {
   await page.goto('/')
-  await expect(page).toHaveTitle(/Community Allotment/)
+  await expect(page).toHaveTitle(/Bonnie Wee Plot/)
 })
 
 test('navigation works', async ({ page }) => {

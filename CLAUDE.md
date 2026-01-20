@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Community Allotment is a Next.js 15 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an AI gardening assistant powered by OpenAI (BYO API key).
+Bonnie Wee Plot is a Next.js 15 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an AI gardening assistant powered by OpenAI (BYO API key).
 
 ## Commands
 

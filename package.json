@@ -1,16 +1,16 @@
 {
-  "name": "community-allotment",
+  "name": "bonnie-wee-plot",
   "version": "0.1.0",
   "description": "A Next.js application for garden planning and AI-powered gardening advice. Built entirely using Claude Sonnet AI via VS Code agent mode. Free for personal and educational use.",
   "license": "SEE LICENSE FILE - Creator retains commercial rights, others non-commercial use only",
   "author": "Created by Ismael Martinez with the asistance of Claude Sonnet (Anthropic AI)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IsmaelMartinez/community-allotment.git"
+    "url": "https://github.com/IsmaelMartinez/bonnie-wee-plot.git"
   },
   "keywords": [
     "allotment",
-    "community",
+    "scottish",
     "gardening",
     "ai",
     "nextjs",

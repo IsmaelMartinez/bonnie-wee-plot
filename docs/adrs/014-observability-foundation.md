@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-The Community Allotment application had essentially no observability infrastructure. Error handling logged to console only with no aggregation, there was no performance monitoring or uptime tracking, and no visibility into data loss or corruption issues. As the application moves toward production readiness, we need to understand how the application behaves in real-world conditions, catch errors before users report them, and track performance baselines.
+The Bonnie Wee Plot application had essentially no observability infrastructure. Error handling logged to console only with no aggregation, there was no performance monitoring or uptime tracking, and no visibility into data loss or corruption issues. As the application moves toward production readiness, we need to understand how the application behaves in real-world conditions, catch errors before users report them, and track performance baselines.
 
 Four observability capabilities were identified as foundational:
 

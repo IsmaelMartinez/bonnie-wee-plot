@@ -9,7 +9,7 @@ export default function AboutPage() {
         <header className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Leaf className="w-8 h-8 text-zen-moss-600" />
-            <h1 className="text-zen-ink-900">Scottish Grow Guide</h1>
+            <h1 className="text-zen-ink-900">Bonnie Wee Plot</h1>
           </div>
           <p className="text-zen-stone-500 text-lg mb-8">
             Your personal digital companion for growing in Scottish weather

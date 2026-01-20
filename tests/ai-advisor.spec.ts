@@ -5,7 +5,7 @@ test.describe('AI Advisor (Aitor)', () => {
     await page.goto('/ai-advisor')
 
     // Check page loads correctly
-    await expect(page).toHaveTitle(/Scottish Grow Guide/)
+    await expect(page).toHaveTitle(/Bonnie Wee Plot/)
     await expect(page.locator('h1').filter({ hasText: /Aitor/i })).toBeVisible()
 
     // Check that quick topics section is visible (can be personalized or fallback topics)

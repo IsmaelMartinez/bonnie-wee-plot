@@ -39,7 +39,7 @@ jobs:
         run: npm run build
         env:
           GITHUB_PAGES: "true"
-          NEXT_PUBLIC_BASE_PATH: "/community-allotment"
+          NEXT_PUBLIC_BASE_PATH: "/bonnie-wee-plot"
 
       - name: Add .nojekyll file
         run: touch out/.nojekyll
