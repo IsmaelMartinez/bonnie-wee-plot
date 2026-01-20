@@ -2187,43 +2187,6 @@ export const vegetables: Vegetable[] = [
 
   // ============ SOLANACEAE ============
   {
-    id: 'tomato',
-    name: 'Tomato',
-    category: 'solanaceae',
-    description: 'Best under cover in Scotland. Choose blight-resistant varieties.',
-    planting: {
-      sowIndoorsMonths: [3, 4],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [8, 9, 10],
-      daysToHarvest: { min: 60, max: 85 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'high',
-      spacing: { between: 45, rows: 60 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        'Greenhouse or polytunnel recommended',
-        'Choose blight-resistant varieties for outdoors',
-        'Outdoor bush varieties like Tumbler can work'
-      ]
-    },
-    companionPlants: ['Carrot', 'Marigold'],
-    avoidPlants: ['Fennel', 'Brassicas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
-    enhancedCompanions: [
-      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'marigold', confidence: 'likely', mechanism: 'pest_trap', bidirectional: false, source: 'Tagetes spp. nematode suppression' }
-    ],
-    enhancedAvoid: [
-      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy documented' },
-      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true },
-      { plantId: 'broccoli', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
-    ]
-  },
-  {
     id: 'cherry-tomato',
     name: 'Cherry Tomato',
     category: 'solanaceae',
@@ -2246,41 +2209,6 @@ export const vegetables: Vegetable[] = [
         'Tumbling varieties good for containers',
         'Sweet flavor loved by children',
         'Less prone to splitting than large tomatoes'
-      ]
-    },
-    companionPlants: ['Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas'],
-    enhancedCompanions: [
-      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
-    ],
-    enhancedAvoid: [
-      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
-  },
-  {
-    id: 'beefsteak-tomato',
-    name: 'Beefsteak Tomato',
-    category: 'solanaceae',
-    description: 'Large slicing tomatoes. Best in greenhouse or polytunnel in Scotland.',
-    planting: {
-      sowIndoorsMonths: [3, 4],
-      sowOutdoorsMonths: [],
-      transplantMonths: [5, 6],
-      harvestMonths: [7, 8, 9, 10],
-      daysToHarvest: { min: 80, max: 100 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'high',
-      spacing: { between: 50, rows: 60 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        'Need greenhouse or polytunnel in Scotland',
-        'Support with strong stakes or strings',
-        'Can exceed 500g per fruit',
-        'Choose blight-resistant varieties'
       ]
     },
     companionPlants: ['Carrot', 'Marigolds'],
@@ -2397,81 +2325,6 @@ export const vegetables: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ]
   },
-  {
-    id: 'aubergine',
-    name: 'Aubergine',
-    category: 'solanaceae',
-    description: 'Needs warmth and protection in Scotland. Best in greenhouse or polytunnel.',
-    planting: {
-      sowIndoorsMonths: [2, 3],
-      sowOutdoorsMonths: [],
-      transplantMonths: [5, 6],
-      harvestMonths: [7, 8, 9],
-      daysToHarvest: { min: 100, max: 120 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 60, rows: 60 },
-      depth: 1,
-      difficulty: 'advanced',
-      tips: [
-        'Requires greenhouse in Scotland',
-        'Start early with bottom heat',
-        'Pinch out growing tips after 5-6 fruits set',
-        'Keep warm - minimum 15°C'
-      ]
-    },
-    companionPlants: ['Pepper', 'Tomato'],
-    avoidPlants: ['Fennel'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/aubergines/grow-your-own',
-    enhancedCompanions: [
-      { plantId: 'pepper', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ],
-    enhancedAvoid: [
-      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
-    ]
-  },
-  {
-    id: 'pepper',
-    name: 'Sweet Pepper',
-    category: 'solanaceae',
-    description: 'Colourful sweet peppers. Require greenhouse or polytunnel in Scotland.',
-    planting: {
-      sowIndoorsMonths: [2, 3],
-      sowOutdoorsMonths: [],
-      transplantMonths: [5, 6],
-      harvestMonths: [7, 8, 9, 10],
-      daysToHarvest: { min: 60, max: 90 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 45, rows: 60 },
-      depth: 1,
-      difficulty: 'intermediate',
-      tips: [
-        'Needs greenhouse or polytunnel in Scotland',
-        'Start early with bottom heat',
-        'Pinch out growing tip when 20cm tall',
-        'Support plants as fruit develops'
-      ]
-    },
-    companionPlants: ['Tomato', 'Carrot', 'Onion'],
-    avoidPlants: ['Fennel', 'Brassicas'],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/peppers-capsicum/grow-your-own',
-    enhancedCompanions: [
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'unknown', bidirectional: true, source: 'Same family, similar requirements' },
-      { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true, source: 'Allium pest deterrence' }
-    ],
-    enhancedAvoid: [
-      { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true },
-      { plantId: 'cabbage', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true },
-      { plantId: 'broccoli', confidence: 'likely', mechanism: 'nutrient_competition', bidirectional: true }
-    ]
-  },
 
   // ============ CUCURBITS ============
   {
@@ -2506,39 +2359,6 @@ export const vegetables: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own'
-  },
-  {
-    id: 'cucumber',
-    name: 'Cucumber',
-    category: 'cucurbits',
-    description: 'Best under cover in Scotland. Ridge cucumbers hardier outdoors.',
-    planting: {
-      sowIndoorsMonths: [4, 5],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [7, 8, 9],
-      daysToHarvest: { min: 50, max: 70 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'high',
-      spacing: { between: 45, rows: 90 },
-      depth: 2,
-      difficulty: 'intermediate',
-      tips: [
-        'Greenhouse cucumbers give best results',
-        'Ridge types can grow outdoors with protection',
-        'Keep consistently watered'
-      ]
-    },
-    companionPlants: ['Beans', 'Peas', 'Radish'],
-    avoidPlants: ['Potato'],
-    enhancedCompanions: [
-      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/cucumbers/grow-your-own'
   },
   {
     id: 'squash',
@@ -2734,70 +2554,6 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
-      { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
-  },
-  {
-    id: 'outdoor-melon',
-    name: 'Outdoor Melon',
-    category: 'cucurbits',
-    description: 'Fast-maturing melon varieties for Scottish summers. Choose carefully!',
-    planting: {
-      sowIndoorsMonths: [4],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [8, 9],
-      daysToHarvest: { min: 70, max: 90 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'high',
-      spacing: { between: 90, rows: 120 },
-      depth: 2,
-      difficulty: 'advanced',
-      tips: [
-        'Only early varieties like Minnesota Midget work',
-        'Needs cloche or polytunnel in Scotland',
-        'Pinch out at 4 fruits per plant',
-        'Harvest when base smells sweet'
-      ]
-    },
-    companionPlants: ['Beans', 'Nasturtiums'],
-    avoidPlants: ['Potato'],
-    enhancedCompanions: [
-      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
-    ]
-  },
-  {
-    id: 'luffa',
-    name: 'Ridged Gourd (Luffa)',
-    category: 'cucurbits',
-    description: 'Edible when young, sponge when mature. Needs long warm season.',
-    planting: {
-      sowIndoorsMonths: [4],
-      sowOutdoorsMonths: [],
-      transplantMonths: [6],
-      harvestMonths: [8, 9, 10],
-      daysToHarvest: { min: 100, max: 120 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'high',
-      spacing: { between: 60, rows: 90 },
-      depth: 2,
-      difficulty: 'advanced',
-      tips: [
-        'Harvest young (15-20cm) for eating',
-        'Leave to mature for sponges',
-        'Needs polytunnel in Scotland',
-        'Vigorous climber - provide strong support'
-      ]
-    },
-    companionPlants: ['Beans', 'Corn'],
-    avoidPlants: ['Potato'],
-    enhancedCompanions: [
-      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ]
   },
@@ -3196,41 +2952,6 @@ export const vegetables: Vegetable[] = [
   },
 
   // ============ HERBS ============
-  {
-    id: 'basil',
-    name: 'Basil',
-    category: 'herbs',
-    description: 'Aromatic herb, essential for Italian cooking. Best grown under cover in Scotland.',
-    planting: {
-      sowIndoorsMonths: [3, 4, 5],
-      sowOutdoorsMonths: [],
-      transplantMonths: [5, 6],
-      harvestMonths: [6, 7, 8, 9],
-      daysToHarvest: { min: 60, max: 90 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'moderate',
-      spacing: { between: 20, rows: 30 },
-      depth: 0.5,
-      difficulty: 'intermediate',
-      tips: [
-        'Grow under cover in Scotland - needs warmth',
-        'Pinch out growing tips for bushier plants',
-        'Do not let flower if harvesting leaves',
-        'Minimum temperature 10°C'
-      ]
-    },
-    companionPlants: ['Tomato', 'Marigold'],
-    avoidPlants: ['Sage', 'Rue'],
-    enhancedCompanions: [
-      { plantId: 'tomato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
-      { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ],
-    enhancedAvoid: [
-      { plantId: 'sage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
-  },
   {
     id: 'parsley',
     name: 'Parsley',
