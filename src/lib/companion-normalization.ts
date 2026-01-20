@@ -20,6 +20,7 @@ export const SEMANTIC_MAPPINGS: Record<string, string | null> = {
   'Beets': 'Beetroot',
   'Bush beans': 'French Beans',
   'Corn': 'Sweetcorn',
+  'Potato': 'Potatoes (Tatties)',
   'Purslane': 'Winter Purslane',
   'Corn salad': 'Corn Salad',
   'Winter lettuce': 'Lettuce',

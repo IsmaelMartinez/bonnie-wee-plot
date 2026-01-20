@@ -2185,13 +2185,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas'],
+    avoidPlants: ['Fennel', 'Brassicas', 'Potato'],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ]
   },
   {
@@ -2220,13 +2221,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas'],
+    avoidPlants: ['Fennel', 'Brassicas', 'Potato'],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ]
   },
   {
@@ -2255,13 +2257,14 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Carrot', 'Marigolds'],
-    avoidPlants: ['Fennel', 'Brassicas'],
+    avoidPlants: ['Fennel', 'Brassicas', 'Potato'],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+      { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ]
   },
   {
