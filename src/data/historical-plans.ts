@@ -505,7 +505,7 @@ export const allotmentHistoryData: AllotmentHistoryData = {
   layout: allotmentLayout,
   varieties: [], // Will be populated from my-varieties.ts
   seasons: [season2024, season2025],
-  currentYear: 2025
+  currentYear: new Date().getFullYear()
 }
 
 // Helper functions
