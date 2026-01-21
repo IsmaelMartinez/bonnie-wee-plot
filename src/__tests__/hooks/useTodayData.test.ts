@@ -77,11 +77,12 @@ describe('useTodayData', () => {
     expect(result.current.maintenanceTasks).toEqual(mockTasks)
   })
 
-  it('should filter harvestReady plantings based on current month', () => {
+  it('should filter harvestReady plantings based on current month and planted status', () => {
     const mockPlanting = {
       id: 'planting-1',
       plantId: 'peas',
-      varietyName: 'Kelvedon Wonder'
+      varietyName: 'Kelvedon Wonder',
+      sowDate: '2025-03-15' // Must have sowDate or transplantDate to be harvest-ready
     }
 
     mockUseAllotment.mockReturnValue({
@@ -154,7 +155,8 @@ describe('useTodayData', () => {
   it('should return empty arrays when no plantings match current month', () => {
     const mockPlanting = {
       id: 'planting-3',
-      plantId: 'garlic'
+      plantId: 'garlic',
+      sowDate: '2024-10-15' // Has sowDate so it could be harvest-ready
     }
 
     mockUseAllotment.mockReturnValue({
@@ -225,5 +227,82 @@ describe('useTodayData', () => {
     // Should not include plantings with unknown vegetables
     expect(result.current.harvestReady).toHaveLength(0)
     expect(result.current.needsAttention).toHaveLength(0)
+  })
+
+  it('should not show plantings as harvest-ready if they have not been planted', () => {
+    // This tests the fix for issue #14: cabbage showing as ready to harvest when not planted
+    const mockPlanting = {
+      id: 'planting-unplanted',
+      plantId: 'cabbage',
+      varietyName: 'Savoy'
+      // Note: No sowDate or transplantDate - this planting was planned but not executed
+    }
+
+    mockUseAllotment.mockReturnValue({
+      data: { layout: { areas: [] } },
+      currentSeason: {
+        year: 2025,
+        areas: [
+          { areaId: 'bed-b1', rotationGroup: 'brassicas', plantings: [mockPlanting] }
+        ]
+      },
+      isLoading: false,
+      getTasksForMonth: () => [],
+    })
+
+    mockGetVegetableById.mockReturnValue({
+      id: 'cabbage',
+      name: 'Cabbage',
+      planting: {
+        harvestMonths: [6, 7, 8, 9, 10], // July included
+        sowIndoorsMonths: [2, 3, 4],
+        sowOutdoorsMonths: [4, 5],
+        transplantMonths: [5, 6]
+      }
+    })
+
+    const { result } = renderHook(() => useTodayData())
+
+    // Even though July is in harvestMonths, the planting has no sowDate/transplantDate
+    // so it should NOT appear in harvestReady
+    expect(result.current.harvestReady).toHaveLength(0)
+  })
+
+  it('should show plantings with transplantDate as harvest-ready', () => {
+    const mockPlanting = {
+      id: 'planting-transplanted',
+      plantId: 'tomato',
+      varietyName: 'Gardeners Delight',
+      transplantDate: '2025-05-20' // Planted via transplant, not direct sowing
+    }
+
+    mockUseAllotment.mockReturnValue({
+      data: { layout: { areas: [] } },
+      currentSeason: {
+        year: 2025,
+        areas: [
+          { areaId: 'bed-d', rotationGroup: 'solanaceae', plantings: [mockPlanting] }
+        ]
+      },
+      isLoading: false,
+      getTasksForMonth: () => [],
+    })
+
+    mockGetVegetableById.mockReturnValue({
+      id: 'tomato',
+      name: 'Tomato',
+      planting: {
+        harvestMonths: [7, 8, 9], // July included
+        sowIndoorsMonths: [2, 3, 4],
+        sowOutdoorsMonths: [],
+        transplantMonths: [5, 6]
+      }
+    })
+
+    const { result } = renderHook(() => useTodayData())
+
+    // Has transplantDate, so should appear in harvestReady
+    expect(result.current.harvestReady).toHaveLength(1)
+    expect(result.current.harvestReady[0].id).toBe('planting-transplanted')
   })
 })

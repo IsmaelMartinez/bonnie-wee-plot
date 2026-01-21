@@ -76,10 +76,14 @@ export function useTodayData(): TodayData {
     return result
   }, [currentSeason, data])
 
-  // Plantings ready for harvest (current month is in harvestMonths)
+  // Plantings ready for harvest (current month is in harvestMonths AND planting has been sown)
   const harvestReady = useMemo(() => {
     return allPlantingsWithVegetable
-      .filter(({ harvestMonths }) => harvestMonths.includes(currentMonth))
+      .filter(({ planting, harvestMonths }) => {
+        // Only show harvest-ready if the plant was actually planted
+        const wasPlanted = planting.sowDate || planting.transplantDate
+        return wasPlanted && harvestMonths.includes(currentMonth)
+      })
       .map(({ planting }) => planting)
   }, [allPlantingsWithVegetable, currentMonth])
 
