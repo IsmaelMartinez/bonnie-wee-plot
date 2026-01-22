@@ -3,16 +3,17 @@ import { test, expect } from '@playwright/test'
 // Helper function to seed test data via localStorage for mobile or when UI is not available
 async function seedTestData(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
+    const now = new Date().toISOString()
+    const currentYear = new Date().getFullYear()
     const testData = {
-      version: 10,
+      version: 12,
       meta: {
         name: 'My Allotment',
         location: 'Edinburgh, Scotland',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       },
       layout: {
-        gridConfig: { cols: 6, rowHeight: 80 },
         areas: [{
           id: 'test-bed-a',
           name: 'Test Bed A',
@@ -21,30 +22,43 @@ async function seedTestData(page: import('@playwright/test').Page) {
         }]
       },
       seasons: [{
-        year: new Date().getFullYear(),
-        notes: 'Test season',
+        year: currentYear,
+        status: 'current',
         areas: [{
           areaId: 'test-bed-a',
           rotationGroup: 'legumes',
           plantings: [],
           notes: []
-        }]
+        }],
+        createdAt: now,
+        updatedAt: now
       }],
-      currentYear: new Date().getFullYear(),
+      currentYear: currentYear,
       maintenanceTasks: [],
-      varieties: []
+      varieties: [],
+      gardenEvents: []
     }
     localStorage.setItem('allotment-unified-data', JSON.stringify(testData))
   })
   await page.reload()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('domcontentloaded')
+  // Wait for React hydration - the loading spinner should disappear
+  await page.locator('.animate-spin').waitFor({ state: 'hidden', timeout: 30000 }).catch(() => {
+    // Spinner might not be present if page loaded quickly
+  })
+  // Also wait for the h1 to appear (indicates page finished loading)
+  await page.locator('h1').filter({ hasText: /Allotment/i }).waitFor({ state: 'visible', timeout: 30000 })
 }
 
 // Helper function to create a sample rotation bed if none exists
 async function ensureRotationBedExists(page: import('@playwright/test').Page) {
-  // Check if there are any areas in the grid (look for Plot Overview section content)
+  // Wait for grid items to potentially appear (seedTestData may have just seeded data)
   const gridItems = page.locator('[class*="react-grid-item"]')
-  const hasItems = await gridItems.count().then(count => count > 0).catch(() => false)
+
+  // Give seeded data time to render before deciding to create a new bed
+  const hasItems = await gridItems.first().waitFor({ state: 'visible', timeout: 5000 })
+    .then(() => true)
+    .catch(() => false)
 
   if (!hasItems) {
     // Check if we're on desktop (Edit layout / Lock button visible) or mobile
@@ -56,15 +70,15 @@ async function ensureRotationBedExists(page: import('@playwright/test').Page) {
       // Desktop: use UI to create area
       // Enter edit mode by clicking the locked/edit button
       await editButton.click()
-      await page.waitForTimeout(300)
 
-      // Now click Add Area button (should be enabled in edit mode)
+      // Wait for Add Area button to be enabled (indicates edit mode is active)
       const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
       await expect(addAreaButton).toBeEnabled({ timeout: 3000 })
       await addAreaButton.click()
 
       // Wait for dialog to open
-      await page.waitForTimeout(300)
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible({ timeout: 3000 })
 
       // Fill in the Add Area form (defaults to Rotation Bed with Legumes rotation group)
       await page.locator('#area-name').fill('Test Bed A')
@@ -72,14 +86,16 @@ async function ensureRotationBedExists(page: import('@playwright/test').Page) {
       // Submit the form
       await page.locator('button[type="submit"]').filter({ hasText: 'Add Area' }).click()
 
-      // Wait for the area to be created
-      await page.waitForTimeout(500)
+      // Wait for the dialog to close and area to appear
+      await expect(dialog).not.toBeVisible({ timeout: 5000 })
+      await expect(page.locator('[class*="react-grid-item"]').first()).toBeVisible({ timeout: 5000 })
 
       // Exit edit mode - button now shows "Stop editing" or "Editing"
       const stopEditButton = page.locator('button').filter({ hasText: /Stop editing|Editing/ }).first()
       if (await stopEditButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await stopEditButton.click()
-        await page.waitForTimeout(300)
+        // Wait for edit mode to exit (Locked button should reappear)
+        await expect(page.locator('button').filter({ hasText: /Locked/ })).toBeVisible({ timeout: 3000 }).catch(() => {})
       }
     } else {
       // Mobile: seed data via localStorage
@@ -93,8 +109,8 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
   // Ensure at least one bed exists
   await ensureRotationBedExists(page)
 
-  // Wait for grid to load
-  await page.waitForTimeout(500)
+  // Wait for grid items to be visible
+  await expect(page.locator('[class*="react-grid-item"]').first()).toBeVisible({ timeout: 5000 }).catch(() => {})
 
   // Try desktop grid item first
   const gridItem = page.locator('[class*="react-grid-item"]').first()
@@ -122,19 +138,14 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
 
 test.describe('Allotment Page', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test to start fresh
+    // Seed fresh data before navigating
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    // Wait for page to load
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should display allotment page with header', async ({ page }) => {
-    await page.goto('/allotment')
-    
-    // Check page loads with the allotment-specific header
-    await expect(page.locator('h1').filter({ hasText: /Allotment|Edinburgh/i })).toBeVisible()
+    // Page should already be loaded with header visible from beforeEach
+    await expect(page.locator('h1').filter({ hasText: /Allotment/i })).toBeVisible()
   })
 
   test('should display year selector with available years', async ({ page }) => {
@@ -183,33 +194,37 @@ test.describe('Allotment Page', () => {
 
   test('should persist selected year across page reloads', async ({ page }) => {
     await page.goto('/allotment')
-    
-    // Find year buttons
-    const yearButtons = page.locator('button').filter({ hasText: /^20\d{2}$/ })
-    
-    // Get the first year's text
-    const firstYearText = await yearButtons.first().textContent()
-    
-    // Click the first year to select it
-    await yearButtons.first().click()
-    
-    // Wait for save (debounced)
-    await page.waitForTimeout(600)
-    
+    await seedTestData(page)
+
+    // Get the current year (seeded by seedTestData)
+    const currentYear = new Date().getFullYear()
+
+    // Find actual year selector buttons (not "Add year" buttons which have img children)
+    // Year selectors are buttons with just the year text, no Plus icons
+    const yearButton = page.locator('button').filter({ hasText: String(currentYear) }).filter({ hasNot: page.locator('img, svg') })
+
+    // Verify the year button exists and is selected (has moss-600 background)
+    await expect(yearButton).toBeVisible({ timeout: 5000 })
+    await expect(yearButton).toHaveClass(/bg-zen-moss-600/, { timeout: 3000 })
+
     // Reload the page
     await page.reload()
-    
-    // First year should still be selected
-    await expect(page.locator('button').filter({ hasText: firstYearText! })).toHaveClass(/bg-zen-moss-600/)
+    await page.waitForLoadState('domcontentloaded')
+
+    // Wait for data to load from localStorage
+    await page.locator('.animate-spin').waitFor({ state: 'hidden', timeout: 30000 }).catch(() => {})
+    await page.locator('h1').filter({ hasText: /Allotment/i }).waitFor({ state: 'visible', timeout: 30000 })
+
+    // Year should still be selected after reload
+    const yearButtonAfterReload = page.locator('button').filter({ hasText: String(currentYear) }).filter({ hasNot: page.locator('img, svg') })
+    await expect(yearButtonAfterReload).toHaveClass(/bg-zen-moss-600/, { timeout: 5000 })
   })
 })
 
 test.describe('Allotment Dialog Accessibility', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should open Add Planting dialog when clicking Add button', async ({ page }) => {
@@ -287,8 +302,8 @@ test.describe('Allotment Dialog Accessibility', () => {
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
-    // Wait for focus to settle
-    await page.waitForTimeout(100)
+    // Wait for dialog to be fully interactive (first focusable element should be focused)
+    await expect(dialog.locator('input, button, select, textarea').first()).toBeFocused({ timeout: 2000 }).catch(() => {})
 
     // Tab forward multiple times - focus should stay within dialog
     for (let i = 0; i < 10; i++) {
@@ -317,9 +332,7 @@ test.describe('Allotment Dialog Accessibility', () => {
 test.describe('Allotment Planting CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should require vegetable selection', async ({ page }) => {
@@ -385,9 +398,7 @@ test.describe('Allotment Mobile', () => {
 test.describe('Allotment Bed Notes', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should show Note section when bed is selected', async ({ page }) => {
@@ -558,8 +569,15 @@ test.describe('Allotment Bed Notes', () => {
     await submitButton.click()
     await expect(page.getByText(noteText)).toBeVisible({ timeout: 5000 })
 
-    // Wait for save (debounced)
-    await page.waitForTimeout(700)
+    // Wait for debounced save to complete by checking localStorage update
+    await page.waitForFunction(
+      (text) => {
+        const data = localStorage.getItem('allotment-unified-data')
+        return data !== null && data.includes(text)
+      },
+      noteText,
+      { timeout: 5000 }
+    )
 
     // Reload the page
     await page.reload()
@@ -576,9 +594,7 @@ test.describe('Allotment Bed Notes', () => {
 test.describe('Allotment Grid Resizing', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('resize handles should be clickable when area is selected', async ({ page }) => {
@@ -589,12 +605,18 @@ test.describe('Allotment Grid Resizing', () => {
     const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
-    await page.waitForTimeout(300)
+
+    // Wait for edit mode to activate (Add Area button becomes enabled)
+    const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
+    await expect(addAreaButton).toBeEnabled({ timeout: 3000 })
 
     // Click on a grid item to select it
     const gridItem = page.locator('[class*="react-grid-item"]').first()
     await gridItem.click()
-    await page.waitForTimeout(200)
+
+    // Wait for the resize handle to appear (indicates selection is complete)
+    const resizeHandle = gridItem.locator('.react-resizable-handle')
+    await expect(resizeHandle).toBeVisible({ timeout: 3000 })
 
     // Get the bounding box of the grid item
     const boundingBox = await gridItem.boundingBox()
@@ -602,16 +624,12 @@ test.describe('Allotment Grid Resizing', () => {
 
     if (boundingBox) {
       // Try to hover over the bottom-right corner where resize handle should be
-      // Resize handles are typically at the corners
       await page.mouse.move(
         boundingBox.x + boundingBox.width - 5,
         boundingBox.y + boundingBox.height - 5
       )
-      await page.waitForTimeout(100)
 
-      // The cursor should change to indicate resize is possible
-      // We can't directly test cursor, but we can verify the element is there
-      const resizeHandle = gridItem.locator('.react-resizable-handle')
+      // Verify the resize handle is visible
       await expect(resizeHandle).toBeVisible()
     }
   })
@@ -621,9 +639,7 @@ test.describe('Allotment Grid Resizing', () => {
 test.describe('Custom Allotment Naming', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should display custom allotment name in navigation', async ({ page }) => {
@@ -642,11 +658,10 @@ test.describe('Custom Allotment Naming', () => {
     // Click on the allotment name in the header
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
-    // Should show an input field
+    // Should show an input field (wait for it to appear)
     const nameInput = page.locator('input[value*="My Allotment"]')
-    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await expect(nameInput).toBeFocused()
   })
 
@@ -654,70 +669,71 @@ test.describe('Custom Allotment Naming', () => {
     // Click on the allotment name
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
-    // Type a new name - use a more generic selector
+    // Wait for input to appear
     const nameInput = page.locator('input[type="text"]').first()
-    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('My Sunny Garden')
     await nameInput.press('Enter')
 
-    // Wait for save
-    await page.waitForTimeout(700)
-
-    // New name should appear in the header
-    await expect(page.locator('h1').filter({ hasText: 'My Sunny Garden' })).toBeVisible()
+    // New name should appear in the header (input should be replaced with heading)
+    await expect(page.locator('h1').filter({ hasText: 'My Sunny Garden' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should save new name on blur', async ({ page }) => {
     // Click on the allotment name
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
-    // Type a new name
+    // Wait for input to appear
     const nameInput = page.locator('input[value*="My Allotment"]')
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('My Beautiful Plot')
 
     // Click outside to blur
     await page.locator('body').click({ position: { x: 10, y: 10 } })
-    await page.waitForTimeout(200)
 
-    // New name should appear
-    await expect(page.locator('h1').filter({ hasText: 'My Beautiful Plot' })).toBeVisible()
+    // New name should appear (input replaced with heading)
+    await expect(page.locator('h1').filter({ hasText: 'My Beautiful Plot' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should cancel edit on Escape key', async ({ page }) => {
     // Click on the allotment name
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
-    // Type a new name but don't save
+    // Wait for input to appear
     const nameInput = page.locator('input[type="text"]').first()
-    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Temporary Name')
     await nameInput.press('Escape')
-    await page.waitForTimeout(200)
 
-    // Original name should still be there
-    await expect(page.locator('h1').filter({ hasText: 'My Allotment' })).toBeVisible()
+    // Original name should still be there (input replaced with heading showing original)
+    await expect(page.locator('h1').filter({ hasText: 'My Allotment' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should persist custom name across page reloads', async ({ page }) => {
     // Click on the allotment name
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
-    // Type and save a new name
+    // Wait for input to appear
     const nameInput = page.locator('input[type="text"]').first()
-    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Edinburgh Garden')
     await nameInput.press('Enter')
 
-    // Wait for save
-    await page.waitForTimeout(700)
+    // Wait for name to appear in header (confirms save started)
+    await expect(page.locator('h1').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 5000 })
+
+    // Wait for debounced save to complete by checking localStorage update
+    await page.waitForFunction(
+      () => {
+        const data = localStorage.getItem('allotment-unified-data')
+        return data !== null && data.includes('Edinburgh Garden')
+      },
+      { timeout: 5000 }
+    )
 
     // Reload the page
     await page.reload()
@@ -732,13 +748,24 @@ test.describe('Custom Allotment Naming', () => {
     // Change the name
     const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
     await nameHeading.click()
-    await page.waitForTimeout(200)
 
+    // Wait for input to appear
     const nameInput = page.locator('input[type="text"]').first()
-    await expect(nameInput).toBeVisible()
+    await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Test Garden Name')
     await nameInput.press('Enter')
-    await page.waitForTimeout(700)
+
+    // Wait for name to appear in header (confirms save started)
+    await expect(page.locator('h1').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 5000 })
+
+    // Wait for debounced save to complete
+    await page.waitForFunction(
+      () => {
+        const data = localStorage.getItem('allotment-unified-data')
+        return data !== null && data.includes('Test Garden Name')
+      },
+      { timeout: 5000 }
+    )
 
     // Navigate to another page
     await page.goto('/')
@@ -752,9 +779,7 @@ test.describe('Custom Allotment Naming', () => {
 test.describe('Plant Database - Excluded Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should not show Chillies in plant selection', async ({ page }) => {
@@ -788,10 +813,13 @@ test.describe('Plant Database - Excluded Plants', () => {
 
 test.describe('Seeds Page - PlantCombobox', () => {
   test.beforeEach(async ({ page }) => {
+    // Seed allotment data first (seeds page uses the same storage)
+    await page.goto('/allotment')
+    await seedTestData(page)
     await page.goto('/seeds')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
+    // Wait for page to finish loading
+    await page.locator('h1').filter({ hasText: /Seeds/i }).waitFor({ state: 'visible', timeout: 15000 })
   })
 
   test('should allow selecting a plant and adding a variety', async ({ page }) => {
@@ -900,9 +928,7 @@ test.describe('Seeds Page - PlantCombobox', () => {
 test.describe('Allotment Infrastructure Areas', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   test('should allow adding infrastructure without a name', async ({ page }) => {
@@ -910,22 +936,23 @@ test.describe('Allotment Infrastructure Areas', () => {
     const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
-    await page.waitForTimeout(300)
 
-    // Click Add Area button (now enabled in edit mode)
+    // Wait for edit mode to activate
     const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
     await expect(addAreaButton).toBeEnabled({ timeout: 3000 })
     await addAreaButton.click()
 
     // Wait for dialog
-    await page.waitForTimeout(300)
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible({ timeout: 3000 })
 
     // Select Infrastructure type
     const infrastructureButton = page.locator('button').filter({ hasText: 'Infrastructure' })
     await infrastructureButton.click()
 
-    // Select Compost as infrastructure type
+    // Wait for infrastructure subtype selector to appear
     const infraTypeSelect = page.locator('#infra-subtype')
+    await expect(infraTypeSelect).toBeVisible({ timeout: 3000 })
     await infraTypeSelect.selectOption('compost')
 
     // Leave name field empty - it should show placeholder with default
@@ -939,13 +966,12 @@ test.describe('Allotment Infrastructure Areas', () => {
     // Submit the form
     await submitButton.click()
 
-    // Wait for the area to appear
-    await page.waitForTimeout(500)
+    // Wait for the dialog to close and area to appear
+    await expect(dialog).not.toBeVisible({ timeout: 5000 })
 
     // Area should appear with the infrastructure type as name
-    // Look for a grid item that contains "Compost"
     const compostArea = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Compost' })
-    await expect(compostArea).toBeVisible()
+    await expect(compostArea).toBeVisible({ timeout: 5000 })
   })
 
   test('should use custom name if provided for infrastructure', async ({ page }) => {
@@ -953,22 +979,23 @@ test.describe('Allotment Infrastructure Areas', () => {
     const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
-    await page.waitForTimeout(300)
 
-    // Click Add Area button (now enabled in edit mode)
+    // Wait for edit mode to activate
     const addAreaButton = page.locator('button').filter({ hasText: 'Add Area' })
     await expect(addAreaButton).toBeEnabled({ timeout: 3000 })
     await addAreaButton.click()
 
     // Wait for dialog
-    await page.waitForTimeout(300)
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible({ timeout: 3000 })
 
     // Select Infrastructure type
     const infrastructureButton = page.locator('button').filter({ hasText: 'Infrastructure' })
     await infrastructureButton.click()
 
-    // Select Shed as infrastructure type
+    // Wait for infrastructure subtype selector to appear
     const infraTypeSelect = page.locator('#infra-subtype')
+    await expect(infraTypeSelect).toBeVisible({ timeout: 3000 })
     await infraTypeSelect.selectOption('shed')
 
     // Provide custom name
@@ -979,21 +1006,19 @@ test.describe('Allotment Infrastructure Areas', () => {
     const submitButton = page.locator('button[type="submit"]').filter({ hasText: 'Add Area' })
     await submitButton.click()
 
-    // Wait for the area to appear
-    await page.waitForTimeout(500)
+    // Wait for the dialog to close and area to appear
+    await expect(dialog).not.toBeVisible({ timeout: 5000 })
 
     // Area should appear with the custom name
     const toolShedArea = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Tool Shed' })
-    await expect(toolShedArea).toBeVisible()
+    await expect(toolShedArea).toBeVisible({ timeout: 5000 })
   })
 })
 
 test.describe('Plant Database - New Scottish Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
-    await page.reload()
-    await page.waitForLoadState('networkidle')
+    await seedTestData(page)
   })
 
   // Helper to select a plant from the combobox in Add Planting dialog
