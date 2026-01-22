@@ -22,3 +22,4 @@ This directory contains Architecture Decision Records documenting significant te
 | [014](014-observability-foundation.md) | Observability Foundation | Accepted |
 | [015](015-accessibility-patterns.md) | Mobile & Accessibility Patterns | Accepted |
 | [016](016-temporal-metadata.md) | Temporal Metadata for Areas | Accepted |
+| [017](017-dynamic-date-system.md) | Dynamic Date System | Accepted |

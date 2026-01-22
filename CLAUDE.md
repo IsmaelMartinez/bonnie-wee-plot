@@ -61,9 +61,17 @@ Each `SeasonRecord` contains `BedSeason` entries that track `Planting` items per
 ### Storage Service
 
 `src/services/allotment-storage.ts` handles all localStorage operations:
-- Schema validation and migration
+- Schema validation and migration (current version: 12)
 - Legacy data migration from hardcoded historical plans
 - Immutable update functions (return new data, don't mutate)
+
+### Date Calculator
+
+`src/lib/date-calculator.ts` provides personalized date calculations:
+- `calculatePlantingDates()` - Forward calculation from sow date to expected harvest
+- `calculateSowDateForHarvest()` - Backward calculation from target harvest to sow date
+- `validateSowDate()` - Validates against plant's growing window
+- Scotland-specific fall factor adjustment for autumn plantings
 
 ### Vegetable Database
 
@@ -77,8 +85,11 @@ Split into index and full data for performance:
 `src/types/garden-planner.ts` defines:
 - `PhysicalBedId` - bed identifiers (A, B1, B2, C, D, E, etc.)
 - `RotationGroup` - crop rotation categories
-- `Vegetable` - plant definition with planting/care info
-- `Planting` - instance of a plant in a bed
+- `Vegetable` - plant definition with planting/care info, including `PerennialInfo` for perennial lifecycle tracking
+
+`src/types/unified-allotment.ts` defines:
+- `Planting` - instance of a plant in a bed, with sow method tracking (`indoor`/`outdoor`/`transplant-purchased`), expected harvest dates (calculated), and actual harvest dates
+- `PrimaryPlant` - permanent plants (trees, berries) with perennial status tracking
 
 ### AI Advisor
 
