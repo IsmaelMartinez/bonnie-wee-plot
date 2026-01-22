@@ -117,6 +117,7 @@ export interface Vegetable {
   isCustom?: boolean
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
+  perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
   rhsUrl?: string                          // RHS grow-your-own guide URL
   botanicalName?: string                   // Scientific/Latin name
   enhancedCompanions?: EnhancedCompanion[] // Validated companion relationships with metadata
@@ -129,6 +130,21 @@ export interface MaintenanceInfo {
   feedMonths?: Month[]     // Months when feeding is recommended
   mulchMonths?: Month[]    // Months when mulching is recommended
   notes?: string[]         // Additional maintenance tips
+}
+
+/**
+ * Lifecycle information for perennial plants
+ * Used to track establishment period and productive lifespan
+ */
+export interface PerennialInfo {
+  /** Years from planting until first significant harvest */
+  yearsToFirstHarvest: { min: number; max: number }
+
+  /** How many years the plant remains productive (undefined = indefinite) */
+  productiveYears?: { min: number; max: number }
+
+  /** Whether plant keeps leaves year-round */
+  isEvergreen?: boolean
 }
 
 /**

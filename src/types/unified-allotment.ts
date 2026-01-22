@@ -51,12 +51,34 @@ export interface GridPosition {
 }
 
 /**
+ * Lifecycle status for perennial plants
+ */
+export type PerennialStatus =
+  | 'establishing'   // Not yet producing meaningful harvests
+  | 'productive'     // In prime productive years
+  | 'declining'      // Past peak, consider replacement
+  | 'removed'        // No longer in place
+
+/**
  * Primary/permanent plant for an area (trees, berries, perennial beds)
  */
 export interface PrimaryPlant {
   plantId: string                 // Reference to vegetable database
   variety?: string
   plantedYear?: number
+
+  // Lifecycle tracking
+  /** Calculated: plantedYear + yearsToFirstHarvest.max */
+  expectedFirstHarvestYear?: number
+
+  /** Calculated: plantedYear + productiveYears.max (if defined) */
+  expectedDeclineYear?: number
+
+  /** Current lifecycle status */
+  status?: PerennialStatus
+
+  /** Manual override if plant is ahead/behind schedule */
+  firstHarvestYearOverride?: number
 }
 
 /**
@@ -220,6 +242,14 @@ export interface AreaSeason {
 // ============ PLANTINGS ============
 
 /**
+ * How a planting was started
+ * - indoor: Started from seed indoors, will be transplanted
+ * - outdoor: Direct sown outdoors
+ * - transplant-purchased: Purchased as seedling/plug
+ */
+export type SowMethod = 'indoor' | 'outdoor' | 'transplant-purchased'
+
+/**
  * A single planting within an area for a season
  */
 export interface Planting {
@@ -227,10 +257,19 @@ export interface Planting {
   plantId: string                    // Reference to Vegetable.id from database
   varietyName?: string               // "Kelvedon Wonder", "Nantes 2", etc.
 
-  // Dates (all optional)
-  sowDate?: string                   // ISO date string
-  transplantDate?: string            // ISO date string
-  harvestDate?: string               // ISO date string
+  // Sowing information
+  sowDate?: string                   // ISO date string - when seeds were sown
+  sowMethod?: SowMethod              // How it was started
+  transplantDate?: string            // ISO date string - when planted out
+
+  // Calculated harvest window (populated by date-calculator)
+  expectedHarvestStart?: string      // ISO date - calculated from sow/transplant + daysToHarvest.min
+  expectedHarvestEnd?: string        // ISO date - calculated from sow/transplant + daysToHarvest.max
+
+  // Actual harvest tracking (renamed from harvestDate in v12)
+  actualHarvestStart?: string        // ISO date - when user actually started harvesting
+  actualHarvestEnd?: string          // ISO date - when harvest finished
+  harvestNotes?: string              // Notes about the harvest
 
   // Outcome tracking
   success?: PlantingSuccess
@@ -380,7 +419,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 11 // Synchronized plant IDs between index and database
+export const CURRENT_SCHEMA_VERSION = 12 // Added SowMethod and calculated harvest fields
 
 // ============ HELPER TYPES ============
 
