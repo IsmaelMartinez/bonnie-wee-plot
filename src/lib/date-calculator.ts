@@ -452,3 +452,103 @@ export function populateExpectedHarvest(
     return planting
   }
 }
+
+// ============ CROSS-YEAR SUPPORT ============
+
+/**
+ * Detect if a planting spans multiple years (e.g., garlic planted Oct, harvested Jul)
+ * Returns the harvest year if different from sow year, undefined otherwise
+ */
+export function detectCrossYear(
+  sowDate: string,
+  expectedHarvestStart: string
+): number | undefined {
+  const sowYear = parseDate(sowDate).getFullYear()
+  const harvestYear = parseDate(expectedHarvestStart).getFullYear()
+
+  if (harvestYear > sowYear) {
+    return harvestYear
+  }
+  return undefined
+}
+
+/**
+ * Check if a planting is a cross-year planting
+ */
+export function isCrossYearPlanting(planting: Planting): boolean {
+  if (planting.originYear && planting.harvestYear) {
+    return planting.harvestYear !== planting.originYear
+  }
+
+  if (planting.sowDate && planting.expectedHarvestStart) {
+    const sowYear = parseDate(planting.sowDate).getFullYear()
+    const harvestYear = parseDate(planting.expectedHarvestStart).getFullYear()
+    return harvestYear > sowYear
+  }
+
+  return false
+}
+
+/**
+ * Populate cross-year fields (originYear, harvestYear) for a planting
+ * Call this after populating expectedHarvestStart/End
+ */
+export function populateCrossYearFields(
+  planting: Planting,
+  vegetable: Vegetable
+): Planting {
+  // First ensure we have harvest dates
+  let result = planting.expectedHarvestStart
+    ? planting
+    : populateExpectedHarvest(planting, vegetable)
+
+  // If still no sow date, can't calculate
+  if (!result.sowDate) {
+    return result
+  }
+
+  // Capture sowDate to preserve type narrowing across reassignments
+  const sowDate = result.sowDate
+  const sowYear = parseDate(sowDate).getFullYear()
+
+  // Set originYear if not already set
+  if (!result.originYear) {
+    result = { ...result, originYear: sowYear }
+  }
+
+  // Detect and set harvestYear if it's a cross-year planting
+  if (result.expectedHarvestStart && !result.harvestYear) {
+    const harvestYear = detectCrossYear(sowDate, result.expectedHarvestStart)
+    if (harvestYear) {
+      result = { ...result, harvestYear }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Get display info for cross-year plantings
+ */
+export function getCrossYearDisplayInfo(planting: Planting): {
+  isCrossYear: boolean
+  label?: string
+  originYear?: number
+  harvestYear?: number
+} {
+  if (!isCrossYearPlanting(planting)) {
+    return { isCrossYear: false }
+  }
+
+  const originYear = planting.originYear ||
+    (planting.sowDate ? parseDate(planting.sowDate).getFullYear() : undefined)
+  const harvestYear = planting.harvestYear ||
+    (planting.expectedHarvestStart ? parseDate(planting.expectedHarvestStart).getFullYear() : undefined)
+
+  return {
+    isCrossYear: true,
+    label: originYear && harvestYear ? `${originYear} → ${harvestYear}` : 'Cross-year',
+    originYear,
+    harvestYear,
+  }
+}

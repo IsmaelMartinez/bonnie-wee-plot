@@ -1,8 +1,8 @@
 'use client'
 
-import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf } from 'lucide-react'
+import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw } from 'lucide-react'
 import { MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
-import { GeneratedTask, GeneratedTaskType } from '@/lib/task-generator'
+import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
 
 interface TaskListProps {
@@ -28,6 +28,15 @@ const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; 
   'prune': { icon: Scissors, label: 'Prune', color: 'text-violet-600' },
   'feed': { icon: Droplets, label: 'Feed', color: 'text-cyan-600' },
   'mulch': { icon: TreeDeciduous, label: 'Mulch', color: 'text-amber-700' },
+  'succession': { icon: RotateCcw, label: 'Succession Sow', color: 'text-teal-600' },
+}
+
+const URGENCY_STYLES: Record<TaskUrgency, string> = {
+  'overdue': 'bg-zen-ume-100 text-zen-ume-700',
+  'today': 'bg-zen-kitsune-100 text-zen-kitsune-700',
+  'this-week': 'bg-zen-water-100 text-zen-water-700',
+  'upcoming': 'bg-zen-moss-100 text-zen-moss-700',
+  'later': 'bg-zen-stone-100 text-zen-stone-600',
 }
 
 function TaskItem({ task }: { task: MaintenanceTask }) {
@@ -53,6 +62,32 @@ function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
   const config = GENERATED_TASK_CONFIG[task.generatedType] || GENERATED_TASK_CONFIG['harvest']
   const Icon = config.icon
 
+  // Determine badge text and style
+  const getBadge = () => {
+    // Show urgency-based badge for date-based tasks
+    if (task.urgency && task.calculatedFrom === 'actual-date') {
+      if (task.urgency === 'today') {
+        return { text: 'Today', style: URGENCY_STYLES['today'] }
+      }
+      if (task.urgency === 'overdue') {
+        return { text: 'Overdue', style: URGENCY_STYLES['overdue'] }
+      }
+      if (task.urgency === 'this-week' && task.daysRemaining !== undefined) {
+        return { text: `${task.daysRemaining}d`, style: URGENCY_STYLES['this-week'] }
+      }
+      if (task.urgency === 'upcoming' && task.daysRemaining !== undefined) {
+        return { text: `${task.daysRemaining}d`, style: URGENCY_STYLES['upcoming'] }
+      }
+    }
+    // Fallback for high priority tasks without urgency
+    if (task.priority === 'high') {
+      return { text: 'Ready', style: 'bg-green-100 text-green-700' }
+    }
+    return null
+  }
+
+  const badge = getBadge()
+
   return (
     <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0">
       <div className="flex-shrink-0 mt-0.5">
@@ -64,9 +99,9 @@ function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
           <p className="text-xs text-zen-stone-500 mt-1">{task.notes}</p>
         )}
       </div>
-      {task.priority === 'high' && (
-        <span className="flex-shrink-0 text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
-          Ready
+      {badge && (
+        <span className={`flex-shrink-0 text-xs px-1.5 py-0.5 rounded ${badge.style}`}>
+          {badge.text}
         </span>
       )}
     </div>
