@@ -1,11 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { generateTasksForMonth } from '@/lib/task-generator'
+import {
+  generateTasksForMonth,
+  generateDateBasedTasks,
+  generateSuccessionReminders,
+  getUrgency
+} from '@/lib/task-generator'
 import { Area, Planting } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
 
 // Mock the vegetable database
 vi.mock('@/lib/vegetable-database', () => ({
   getVegetableById: vi.fn()
+}))
+
+// Mock date-calculator
+vi.mock('@/lib/date-calculator', () => ({
+  getGerminationDays: vi.fn().mockReturnValue({ min: 7, max: 14 })
 }))
 
 import { getVegetableById } from '@/lib/vegetable-database'
@@ -265,6 +275,321 @@ describe('task-generator', () => {
       const tasks = generateTasksForMonth(7 as Month, plantingsWithContext, [])
 
       expect(tasks).toHaveLength(0)
+    })
+  })
+
+  describe('getUrgency', () => {
+    it('should return overdue for negative days', () => {
+      expect(getUrgency(-3)).toBe('overdue')
+      expect(getUrgency(-1)).toBe('overdue')
+    })
+
+    it('should return today for zero days', () => {
+      expect(getUrgency(0)).toBe('today')
+    })
+
+    it('should return this-week for 1-7 days', () => {
+      expect(getUrgency(1)).toBe('this-week')
+      expect(getUrgency(7)).toBe('this-week')
+    })
+
+    it('should return upcoming for 8-14 days', () => {
+      expect(getUrgency(8)).toBe('upcoming')
+      expect(getUrgency(14)).toBe('upcoming')
+    })
+
+    it('should return later for more than 14 days', () => {
+      expect(getUrgency(15)).toBe('later')
+      expect(getUrgency(30)).toBe('later')
+    })
+  })
+
+  describe('generateDateBasedTasks', () => {
+    it('should generate harvest task when expectedHarvestStart is within 7 days', () => {
+      const today = new Date('2025-06-10')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'lettuce',
+        expectedHarvestStart: '2025-06-15',
+        expectedHarvestEnd: '2025-06-30'
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        category: 'leafy-greens',
+        planting: {
+          harvestMonths: [5, 6, 7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5, 6],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateDateBasedTasks(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].generatedType).toBe('harvest')
+      expect(tasks[0].urgency).toBe('this-week')
+      expect(tasks[0].daysRemaining).toBe(5)
+      expect(tasks[0].calculatedFrom).toBe('actual-date')
+    })
+
+    it('should mark task as overdue when past expectedHarvestStart', () => {
+      const today = new Date('2025-06-18')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'lettuce',
+        expectedHarvestStart: '2025-06-15',
+        expectedHarvestEnd: '2025-06-30'
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        category: 'leafy-greens',
+        planting: {
+          harvestMonths: [6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [4, 5],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateDateBasedTasks(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].urgency).toBe('overdue')
+      expect(tasks[0].daysRemaining).toBe(-3)
+      expect(tasks[0].priority).toBe('high')
+    })
+
+    it('should not generate harvest task for already harvested plantings', () => {
+      const today = new Date('2025-06-15')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'lettuce',
+        expectedHarvestStart: '2025-06-10',
+        expectedHarvestEnd: '2025-06-25',
+        actualHarvestStart: '2025-06-12' // Already harvested
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        category: 'leafy-greens',
+        planting: {
+          harvestMonths: [6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateDateBasedTasks(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should generate transplant reminder for indoor sowings', () => {
+      const today = new Date('2025-04-20')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'tomato',
+        sowDate: '2025-04-01',
+        sowMethod: 'indoor'
+        // No transplantDate yet
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        category: 'solanaceae',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateDateBasedTasks(
+        [{ planting, areaId: 'bed-b', areaName: 'Bed B' }],
+        today
+      )
+
+      const transplantTasks = tasks.filter(t => t.generatedType === 'transplant')
+      expect(transplantTasks).toHaveLength(1)
+      expect(transplantTasks[0].calculatedFrom).toBe('actual-date')
+      expect(transplantTasks[0].notes).toContain('Seedlings')
+    })
+  })
+
+  describe('generateSuccessionReminders', () => {
+    it('should generate succession sowing reminder when last sowing is old enough', () => {
+      const today = new Date('2025-06-15')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'lettuce',
+        sowDate: '2025-05-20' // 26 days ago
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        category: 'leafy-greens',
+        planting: {
+          harvestMonths: [5, 6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5, 6, 7],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateSuccessionReminders(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].generatedType).toBe('succession')
+      expect(tasks[0].description).toContain('Succession sow')
+      expect(tasks[0].notes).toContain('26 days ago')
+    })
+
+    it('should not generate succession reminder for non-succession crops', () => {
+      const today = new Date('2025-06-15')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'tomato', // Not a succession crop
+        sowDate: '2025-03-15' // Long ago
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        category: 'solanaceae',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateSuccessionReminders(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should not generate succession reminder outside sowing season', () => {
+      const today = new Date('2025-11-15') // November - outside sowing season for lettuce
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'lettuce',
+        sowDate: '2025-09-15' // 61 days ago
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        category: 'leafy-greens',
+        planting: {
+          harvestMonths: [5, 6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5, 6, 7], // Not in November
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateSuccessionReminders(
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        today
+      )
+
+      expect(tasks).toHaveLength(0)
+    })
+  })
+
+  describe('date-based vs month-based integration', () => {
+    it('should prefer date-based tasks over month-based for same planting', () => {
+      const today = new Date('2025-06-10')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'peas',
+        varietyName: 'Kelvedon Wonder',
+        sowDate: '2025-03-15',
+        expectedHarvestStart: '2025-06-12',
+        expectedHarvestEnd: '2025-06-30'
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'peas',
+        name: 'Peas',
+        category: 'legumes',
+        planting: {
+          harvestMonths: [6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        today
+      )
+
+      const harvestTasks = tasks.filter(t => t.generatedType === 'harvest')
+      expect(harvestTasks).toHaveLength(1)
+      expect(harvestTasks[0].calculatedFrom).toBe('actual-date')
+      expect(harvestTasks[0].daysRemaining).toBe(2)
+    })
+
+    it('should fall back to month-based for plantings without dates', () => {
+      const today = new Date('2025-06-10')
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'peas'
+        // No sowDate or expectedHarvestStart
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'peas',
+        name: 'Peas',
+        category: 'legumes',
+        planting: {
+          harvestMonths: [6, 7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        today
+      )
+
+      const harvestTasks = tasks.filter(t => t.generatedType === 'harvest')
+      expect(harvestTasks).toHaveLength(1)
+      expect(harvestTasks[0].calculatedFrom).toBe('calendar-month')
     })
   })
 })

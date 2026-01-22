@@ -5,9 +5,10 @@ import { AlertTriangle, Check, Users, Package } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { hasSeedsForYear } from '@/services/variety-storage'
-import { NewPlanting, Planting, StoredVariety } from '@/types/unified-allotment'
+import { NewPlanting, Planting, StoredVariety, SowMethod } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
+import PlantingTimeline from './PlantingTimeline'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
@@ -28,7 +29,9 @@ export default function AddPlantingForm({
 }: AddPlantingFormProps) {
   const [plantId, setVegetableId] = useState('')
   const [varietyName, setVarietyName] = useState('')
+  const [sowMethod, setSowMethod] = useState<SowMethod>('outdoor')
   const [sowDate, setSowDate] = useState('')
+  const [transplantDate, setTransplantDate] = useState('')
   const [notes, setNotes] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>(initialCategoryFilter)
 
@@ -74,14 +77,18 @@ export default function AddPlantingForm({
     onSubmit({
       plantId,
       varietyName: varietyName || undefined,
+      sowMethod: sowDate ? sowMethod : undefined,
       sowDate: sowDate || undefined,
+      transplantDate: transplantDate || undefined,
       notes: notes || undefined,
     })
 
     // Reset form
     setVegetableId('')
     setVarietyName('')
+    setSowMethod('outdoor')
     setSowDate('')
+    setTransplantDate('')
     setNotes('')
   }
 
@@ -168,9 +175,26 @@ export default function AddPlantingForm({
         )}
       </div>
 
+      {/* Sow Method Selector */}
+      <div>
+        <label htmlFor="sow-method-select" className="block text-sm font-medium text-zen-ink-700 mb-1">
+          How are you starting this plant?
+        </label>
+        <select
+          id="sow-method-select"
+          value={sowMethod}
+          onChange={(e) => setSowMethod(e.target.value as SowMethod)}
+          className="zen-input"
+        >
+          <option value="outdoor">Direct sowing outdoors</option>
+          <option value="indoor">Starting from seed indoors</option>
+          <option value="transplant-purchased">Planting purchased seedlings</option>
+        </select>
+      </div>
+
       <div>
         <label htmlFor="sow-date-input" className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Sow Date
+          {sowMethod === 'transplant-purchased' ? 'Planting Date' : 'Sow Date'}
         </label>
         <input
           id="sow-date-input"
@@ -180,6 +204,36 @@ export default function AddPlantingForm({
           className="zen-input"
         />
       </div>
+
+      {/* Transplant Date - only for indoor sowings */}
+      {sowMethod === 'indoor' && (
+        <div>
+          <label htmlFor="transplant-date-input" className="block text-sm font-medium text-zen-ink-700 mb-1">
+            Transplant Date (optional)
+          </label>
+          <input
+            id="transplant-date-input"
+            type="date"
+            value={transplantDate}
+            onChange={(e) => setTransplantDate(e.target.value)}
+            className="zen-input"
+            min={sowDate || undefined}
+          />
+          <p className="text-xs text-zen-stone-500 mt-1">
+            Leave blank to auto-estimate based on germination time
+          </p>
+        </div>
+      )}
+
+      {/* Planting Timeline Preview */}
+      {selectedVegetable && sowDate && (
+        <PlantingTimeline
+          sowDate={sowDate}
+          sowMethod={sowMethod}
+          vegetable={selectedVegetable}
+          transplantDate={transplantDate || undefined}
+        />
+      )}
 
       <div>
         <label htmlFor="notes-input" className="block text-sm font-medium text-zen-ink-700 mb-1">

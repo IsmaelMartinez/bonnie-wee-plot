@@ -277,6 +277,12 @@ export interface Planting {
 
   // Optional quantity
   quantity?: number
+
+  // Cross-year tracking (for overwintering crops like garlic, broad beans)
+  /** Year the crop was started (derived from sowDate year if not set) */
+  originYear?: number
+  /** Year of expected harvest if different from originYear (e.g., garlic: plant Oct → harvest Jul next year) */
+  harvestYear?: number
 }
 
 /**

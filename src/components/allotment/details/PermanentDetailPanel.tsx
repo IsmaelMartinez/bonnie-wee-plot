@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers, Pencil } from 'lucide-react'
+import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers, Pencil, TrendingUp } from 'lucide-react'
 import { Area, AreaKind } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { getPerennialStatusFromPlant, getStatusLabel, getStatusColorClasses } from '@/lib/perennial-calculator'
 import CareLogSection from './CareLogSection'
 import HarvestTracker from './HarvestTracker'
 import UnderplantingsList from './UnderplantingsList'
@@ -53,6 +54,13 @@ export default function PermanentDetailPanel({ area, onUpdateArea, onAreaTypeCon
       mulch: m.mulchMonths?.includes(currentMonth as 1|2|3|4|5|6|7|8|9|10|11|12),
     }
   }, [vegetableData, currentMonth])
+
+  // Calculate perennial lifecycle status
+  const currentYear = new Date().getFullYear()
+  const perennialStatus = useMemo(() => {
+    if (!area.primaryPlant || !vegetableData?.perennialInfo) return null
+    return getPerennialStatusFromPlant(area.primaryPlant, vegetableData.perennialInfo, currentYear)
+  }, [area.primaryPlant, vegetableData?.perennialInfo, currentYear])
 
   const handleEditSubmit = (areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
     onUpdateArea(areaId, updates)
@@ -103,6 +111,54 @@ export default function PermanentDetailPanel({ area, onUpdateArea, onAreaTypeCon
         <div className="flex items-center gap-2 text-sm text-zen-stone-500 mb-4">
           <Calendar className="w-4 h-4" />
           <span>Planted in {area.primaryPlant.plantedYear}</span>
+        </div>
+      )}
+
+      {/* Perennial Lifecycle Status */}
+      {perennialStatus && (
+        <div className={`rounded-zen p-4 mb-4 ${getStatusColorClasses(perennialStatus.status).replace('text-', 'border-').replace('-700', '-200')} border`}>
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-4 h-4" />
+            <span className={`text-sm font-medium ${getStatusColorClasses(perennialStatus.status).split(' ')[1]}`}>
+              {getStatusLabel(perennialStatus.status)}
+            </span>
+          </div>
+          <p className="text-sm text-zen-stone-600">{perennialStatus.description}</p>
+
+          {/* Progress bar for establishing plants */}
+          {perennialStatus.establishmentProgress !== undefined && perennialStatus.status === 'establishing' && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-zen-stone-500 mb-1">
+                <span>Establishment progress</span>
+                <span>{perennialStatus.establishmentProgress}%</span>
+              </div>
+              <div className="h-2 bg-zen-stone-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-zen-water-500 transition-all duration-300"
+                  style={{ width: `${perennialStatus.establishmentProgress}%` }}
+                />
+              </div>
+              {perennialStatus.expectedFirstHarvestYear && (
+                <p className="text-xs text-zen-stone-500 mt-1">
+                  First harvest expected: {perennialStatus.expectedFirstHarvestYear.min}-{perennialStatus.expectedFirstHarvestYear.max}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Decline warning */}
+          {perennialStatus.replacementWarning && (
+            <div className="mt-3 p-2 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen">
+              <p className="text-xs text-zen-kitsune-700">⚠️ {perennialStatus.replacementWarning}</p>
+            </div>
+          )}
+
+          {/* Productive lifespan info */}
+          {perennialStatus.expectedDeclineYear && perennialStatus.status === 'productive' && !perennialStatus.needsReplacement && (
+            <p className="text-xs text-zen-stone-500 mt-2">
+              Expected to remain productive until ~{perennialStatus.expectedDeclineYear}
+            </p>
+          )}
         </div>
       )}
 

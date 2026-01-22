@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { AlertTriangle, Check, Trash2, Droplets, Sun } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { AlertTriangle, Check, Trash2, Droplets, Sun, Calendar, ArrowRight } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
+import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
 import { Planting } from '@/types/unified-allotment'
 import { ConfirmDialog } from '@/components/ui/Dialog'
 
@@ -24,6 +25,9 @@ export default function PlantingCard({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { goods, bads } = getCompanionStatusForPlanting(planting, otherPlantings)
 
+  // Cross-year tracking
+  const crossYearInfo = useMemo(() => getCrossYearDisplayInfo(planting), [planting])
+
   return (
     <>
       <div className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'}`}>
@@ -34,6 +38,38 @@ export default function PlantingCard({
             </div>
             {planting.varietyName && (
               <div className="text-xs text-zen-stone-500">{planting.varietyName}</div>
+            )}
+
+            {/* Sow date and harvest info */}
+            {(planting.sowDate || planting.expectedHarvestStart) && (
+              <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-zen-stone-500">
+                {planting.sowDate && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Sown {new Date(planting.sowDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    {planting.sowMethod && planting.sowMethod !== 'outdoor' && (
+                      <span className="text-zen-water-600">({planting.sowMethod === 'indoor' ? 'indoors' : 'transplant'})</span>
+                    )}
+                  </span>
+                )}
+                {planting.expectedHarvestStart && planting.expectedHarvestEnd && (
+                  <span className="flex items-center gap-1">
+                    <ArrowRight className="w-3 h-3" />
+                    Harvest {new Date(planting.expectedHarvestStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    {' - '}
+                    {new Date(planting.expectedHarvestEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Cross-year indicator */}
+            {crossYearInfo.isCrossYear && (
+              <div className="flex items-center gap-1 mt-1">
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-zen-water-100 text-zen-water-700">
+                  {crossYearInfo.label}
+                </span>
+              </div>
             )}
 
             {/* Care requirements */}

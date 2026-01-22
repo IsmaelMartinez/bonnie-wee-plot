@@ -6,6 +6,7 @@ import { Planting, Area } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 import { getColorValue } from '@/lib/colors'
+import PerennialStatusBadge from './PerennialStatusBadge'
 
 interface BedItemProps {
   item: GridItemConfig
@@ -129,6 +130,11 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [], a
             <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-zen-water-100 text-zen-water-700 whitespace-nowrap">
               Since {area.createdYear}
             </span>
+          )}
+
+          {/* Perennial status badge for trees, berries, and perennial beds */}
+          {area.primaryPlant && selectedYear && (
+            <PerennialStatusBadge area={area} currentYear={selectedYear} compact />
           )}
 
           {/* Retired indicator */}
