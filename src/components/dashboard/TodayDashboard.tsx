@@ -36,6 +36,7 @@ export default function TodayDashboard() {
     currentMonth,
     seasonalPhase,
     maintenanceTasks,
+    generatedTasks,
     harvestReady,
     needsAttention,
     isLoading,
@@ -86,7 +87,7 @@ export default function TodayDashboard() {
           {/* Main Content Grid */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Tasks */}
-            <TaskList tasks={maintenanceTasks} theme={theme} />
+            <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
 
             {/* Garden Status */}
             <BedAlerts

@@ -55,6 +55,7 @@ export default function AllotmentPage() {
     getAreaSeason,
     getPlantings,
     addPlanting,
+    addPlantings,
     updatePlanting,
     removePlanting,
     createSeason,
@@ -180,14 +181,12 @@ export default function AllotmentPage() {
     // Update the bed's rotation group to the suggested one
     updateRotationGroup(selectedBedId, autoRotateInfo.suggestedGroup)
 
-    // Optionally add suggested vegetables
+    // Optionally add suggested vegetables using batch operation
     if (addSuggestedVegetables && autoRotateInfo.suggestedVegetables.length > 0) {
-      autoRotateInfo.suggestedVegetables.slice(0, 3).forEach(vegId => {
-        const newPlanting: NewPlanting = {
-          plantId: vegId,
-        }
-        addPlanting(selectedBedId, newPlanting)
-      })
+      const newPlantings: NewPlanting[] = autoRotateInfo.suggestedVegetables
+        .slice(0, 3)
+        .map(vegId => ({ plantId: vegId }))
+      addPlantings(selectedBedId, newPlantings)
     }
 
     setShowAutoRotateDialog(false)

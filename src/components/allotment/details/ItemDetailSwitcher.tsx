@@ -111,8 +111,8 @@ export default function ItemDetailSwitcher({
   }
 
   // Route based on area.kind
-  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed' || area.kind === 'berry'
-  const isPermanentPlanting = area.kind === 'tree' || area.kind === 'herb'
+  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
+  const isPermanentPlanting = area.kind === 'tree' || area.kind === 'berry' || area.kind === 'herb'
   const isInfrastructure = area.kind === 'infrastructure'
 
   // Determine which detail panel to render

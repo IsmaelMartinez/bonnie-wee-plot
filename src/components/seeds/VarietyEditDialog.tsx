@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Dialog from '@/components/ui/Dialog'
 import PlantCombobox from '@/components/allotment/PlantCombobox'
 import { VegetableCategory } from '@/types/garden-planner'
-import { StoredVariety, NewVariety, VarietyUpdate } from '@/types/variety-data'
+import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
+import { Check, Package, ShoppingCart } from 'lucide-react'
 
 interface VarietyEditDialogProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ interface VarietyEditDialogProps {
   variety?: StoredVariety
   mode: 'add' | 'edit'
   existingSuppliers?: string[]
+  selectedYear?: number | 'all'  // Currently selected year on the Seeds page
 }
 
 export default function VarietyEditDialog({
@@ -22,6 +24,7 @@ export default function VarietyEditDialog({
   variety,
   mode,
   existingSuppliers = [],
+  selectedYear,
 }: VarietyEditDialogProps) {
   const [plantId, setVegetableId] = useState('')
   const [name, setName] = useState('')
@@ -30,6 +33,10 @@ export default function VarietyEditDialog({
   const [notes, setNotes] = useState('')
   const [available, setAvailable] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
+  const [seedStatusForYear, setSeedStatusForYear] = useState<SeedStatus | null>(null)
+
+  // Determine if we should show year-specific seed status
+  const yearToTrack = typeof selectedYear === 'number' ? selectedYear : null
 
   // Reset form when dialog opens/closes or variety changes
   useEffect(() => {
@@ -40,10 +47,16 @@ export default function VarietyEditDialog({
       setPrice(variety.price?.toString() || '')
       setNotes(variety.notes || '')
       setAvailable(variety.available ?? true)
+      // Load existing seed status for the selected year
+      if (yearToTrack && variety.seedsByYear?.[yearToTrack]) {
+        setSeedStatusForYear(variety.seedsByYear[yearToTrack])
+      } else {
+        setSeedStatusForYear(null)
+      }
     } else if (isOpen && mode === 'add') {
       resetForm()
     }
-  }, [isOpen, mode, variety])
+  }, [isOpen, mode, variety, yearToTrack])
 
   const resetForm = () => {
     setVegetableId('')
@@ -52,6 +65,7 @@ export default function VarietyEditDialog({
     setPrice('')
     setNotes('')
     setAvailable(true)
+    setSeedStatusForYear(null)
   }
 
   const handleClose = () => {
@@ -65,6 +79,18 @@ export default function VarietyEditDialog({
 
     const parsedPrice = price ? (isNaN(parseFloat(price)) ? undefined : parseFloat(price)) : undefined
 
+    // Build seedsByYear - include year status if set
+    let seedsByYear: Record<number, SeedStatus> | undefined
+    if (yearToTrack && seedStatusForYear) {
+      if (mode === 'edit' && variety?.seedsByYear) {
+        seedsByYear = { ...variety.seedsByYear, [yearToTrack]: seedStatusForYear }
+      } else {
+        seedsByYear = { [yearToTrack]: seedStatusForYear }
+      }
+    } else if (mode === 'edit' && variety?.seedsByYear) {
+      seedsByYear = variety.seedsByYear
+    }
+
     if (mode === 'add') {
       const newVariety: NewVariety = {
         plantId,
@@ -73,6 +99,7 @@ export default function VarietyEditDialog({
         price: parsedPrice,
         notes: notes.trim() || undefined,
         available,
+        seedsByYear,
       }
       onSave(newVariety)
     } else if (variety) {
@@ -84,6 +111,7 @@ export default function VarietyEditDialog({
         price: parsedPrice,
         notes: notes.trim() || undefined,
         available,
+        seedsByYear,
       }
       onSave(update)
     }
@@ -218,6 +246,57 @@ export default function VarietyEditDialog({
             When checked, this variety can be selected when adding plantings to any year
           </p>
         </div>
+
+        {yearToTrack && (
+          <div className="border-t border-gray-200 pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Seed status for {yearToTrack}
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSeedStatusForYear(seedStatusForYear === 'none' ? null : 'none')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  seedStatusForYear === 'none'
+                    ? 'bg-orange-100 text-orange-700 ring-2 ring-orange-500'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Need
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeedStatusForYear(seedStatusForYear === 'ordered' ? null : 'ordered')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  seedStatusForYear === 'ordered'
+                    ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-500'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                Ordered
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeedStatusForYear(seedStatusForYear === 'have' ? null : 'have')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  seedStatusForYear === 'have'
+                    ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-500'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Check className="w-4 h-4" />
+                Have
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {seedStatusForYear
+                ? `This variety will be tracked for ${yearToTrack}`
+                : 'Optional: select to track seeds for this year'}
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <button

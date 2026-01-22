@@ -608,6 +608,7 @@ function SeedsPageContent() {
         variety={editingVariety}
         mode={editingVariety ? 'edit' : 'add'}
         existingSuppliers={suppliers}
+        selectedYear={selectedYear}
       />
     </div>
   )

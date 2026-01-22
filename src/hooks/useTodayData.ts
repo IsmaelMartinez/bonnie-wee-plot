@@ -4,6 +4,11 @@
  * Aggregates data from multiple sources for the Today Dashboard.
  * Provides current month context, seasonal phase, maintenance tasks,
  * problem beds, and plantings ready for harvest or needing attention.
+ *
+ * Now includes auto-generated tasks based on:
+ * - Current month and plantings in the allotment
+ * - Vegetable database planting/harvesting schedules
+ * - Maintenance info for perennial areas (trees, berries)
  */
 
 'use client'
@@ -12,12 +17,15 @@ import { useMemo } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { generateTasksForMonth, GeneratedTask } from '@/lib/task-generator'
 import { MaintenanceTask, Planting, AreaSeason } from '@/types/unified-allotment'
+import { Month } from '@/types/garden-planner'
 
 export interface TodayData {
   currentMonth: number
   seasonalPhase: SeasonalPhase
   maintenanceTasks: MaintenanceTask[]
+  generatedTasks: GeneratedTask[]
   harvestReady: Planting[]
   needsAttention: Planting[]
   isLoading: boolean
@@ -35,6 +43,7 @@ export function useTodayData(): TodayData {
     currentSeason,
     isLoading,
     getTasksForMonth,
+    getAllAreas,
   } = useAllotment()
 
   // Current month (1-12 for January-December, matching vegetable database)
@@ -43,12 +52,47 @@ export function useTodayData(): TodayData {
   // Seasonal phase uses 0-indexed month
   const seasonalPhase = useMemo(() => getSeasonalPhase(currentMonth - 1), [currentMonth])
 
-  // Maintenance tasks for current month
+  // Manual maintenance tasks for current month (user-created)
   const maintenanceTasks = useMemo(() => {
     return getTasksForMonth(currentMonth)
   }, [getTasksForMonth, currentMonth])
 
-  // Collect all plantings from current season with vegetable data
+  // Get all areas for perennial maintenance tasks
+  const allAreas = useMemo(() => getAllAreas(), [getAllAreas])
+
+  // Collect all plantings from current season with area context
+  const plantingsWithContext = useMemo(() => {
+    if (!currentSeason || !data) return []
+
+    const result: Array<{ planting: Planting; areaId: string; areaName: string }> = []
+
+    for (const areaSeason of currentSeason.areas) {
+      const area = allAreas.find(a => a.id === areaSeason.areaId)
+      const areaName = area?.name || areaSeason.areaId
+
+      for (const planting of (areaSeason as AreaSeason).plantings) {
+        result.push({
+          planting,
+          areaId: areaSeason.areaId,
+          areaName,
+        })
+      }
+    }
+
+    return result
+  }, [currentSeason, data, allAreas])
+
+  // Generate automatic tasks based on plantings and month
+  const generatedTasks = useMemo(() => {
+    if (!data) return []
+    return generateTasksForMonth(
+      currentMonth as Month,
+      plantingsWithContext,
+      allAreas
+    )
+  }, [currentMonth, plantingsWithContext, allAreas, data])
+
+  // Collect all plantings from current season with vegetable data (for legacy harvestReady/needsAttention)
   const allPlantingsWithVegetable = useMemo(() => {
     if (!currentSeason || !data) return []
 
@@ -94,6 +138,7 @@ export function useTodayData(): TodayData {
     currentMonth,
     seasonalPhase,
     maintenanceTasks,
+    generatedTasks,
     harvestReady,
     needsAttention,
     isLoading,

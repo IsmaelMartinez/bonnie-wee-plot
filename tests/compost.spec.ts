@@ -15,7 +15,7 @@ test.describe('Compost Page', () => {
 
   test('should display compost page with header', async ({ page }) => {
     await expect(page.locator('h1').filter({ hasText: 'Compost' })).toBeVisible()
-    await expect(page.getByText('Track your compost piles and inputs')).toBeVisible()
+    await expect(page.getByText('Monitor your compost status and care')).toBeVisible()
   })
 
   test('should display stats section', async ({ page }) => {
@@ -105,9 +105,9 @@ test.describe('Compost Pile CRUD', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
     await expect(page.getByText(pileName)).toBeVisible()
 
-    // Find the pile card and expand it
+    // Find the pile card and expand tracking details
     const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
-    await pileCard.locator('button').last().click()
+    await pileCard.getByRole('button', { name: /Tracking Details/ }).click()
 
     // Wait for expanded content and click delete
     await pileCard.getByText('Delete pile').click()
@@ -129,9 +129,9 @@ test.describe('Compost Pile CRUD', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
     await expect(page.getByText(pileName)).toBeVisible()
 
-    // Find the pile card and expand it
+    // Find the pile card and expand tracking details
     const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
-    await pileCard.locator('button').last().click()
+    await pileCard.getByRole('button', { name: /Tracking Details/ }).click()
 
     // Click delete pile link
     await pileCard.getByText('Delete pile').click()
@@ -161,8 +161,9 @@ test.describe('Compost Inputs', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
     await expect(page.getByText(pileName)).toBeVisible()
 
-    // Click Add material button (Plus icon with title)
-    await page.locator('button[title="Add material"]').first().click()
+    // Click Add Material button in the pile card
+    const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
+    await pileCard.getByRole('button', { name: 'Add Material' }).click()
 
     // Fill input form
     await expect(page.getByRole('dialog').getByRole('heading', { name: 'Add Material' })).toBeVisible()
@@ -175,9 +176,8 @@ test.describe('Compost Inputs', () => {
     // Dialog should close
     await expect(page.getByRole('dialog')).not.toBeVisible()
 
-    // Expand the pile card to see input was added
-    const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
-    await pileCard.locator('button').last().click()
+    // Expand the tracking details to see input was added
+    await pileCard.getByRole('button', { name: /Tracking Details/ }).click()
     await expect(pileCard.getByText('Kitchen scraps')).toBeVisible()
   })
 
@@ -187,8 +187,9 @@ test.describe('Compost Inputs', () => {
     await page.locator('#pile-name').fill('Test Pile')
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
 
-    // Open log input dialog
-    await page.locator('button[title="Add material"]').first().click()
+    // Open log input dialog using the Add Material button in pile card
+    const pileCard = page.locator('.zen-card').filter({ hasText: 'Test Pile' })
+    await pileCard.getByRole('button', { name: 'Add Material' }).click()
 
     // Submit button should be disabled
     const submitButton = page.getByRole('dialog').getByRole('button', { name: 'Add' })
@@ -213,8 +214,9 @@ test.describe('Compost Events', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
     await expect(page.getByText(pileName)).toBeVisible()
 
-    // Click Log event button (RotateCw icon with title)
-    await page.locator('button[title="Log event"]').first().click()
+    // Click Log Event button in the pile card
+    const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
+    await pileCard.getByRole('button', { name: 'Log Event' }).click()
 
     // Fill event form
     await expect(page.getByRole('dialog').getByRole('heading', { name: 'Log Event' })).toBeVisible()
@@ -245,9 +247,9 @@ test.describe('Compost Status Changes', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Create Pile' }).click()
     await expect(page.getByText(pileName)).toBeVisible()
 
-    // Find the pile card and expand it
+    // Find the pile card and expand tracking details
     const pileCard = page.locator('.zen-card').filter({ hasText: pileName })
-    await pileCard.locator('button').last().click()
+    await pileCard.getByRole('button', { name: /Tracking Details/ }).click()
 
     // Change status to Maturing
     await pileCard.locator('select').selectOption('maturing')
