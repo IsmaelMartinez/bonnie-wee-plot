@@ -307,7 +307,11 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     if (validData.currentYear < actualCurrentYear) {
       console.log(`Updating stale currentYear from ${validData.currentYear} to ${actualCurrentYear}`)
       const updatedData = ensureCurrentYearSeason(validData, actualCurrentYear)
-      saveAllotmentData(updatedData)
+      const saveResult = saveAllotmentData(updatedData)
+      if (!saveResult.success) {
+        logger.error('Failed to persist auto-updated currentYear', { error: saveResult.error })
+        return { success: false, error: saveResult.error ?? 'Failed to persist auto-updated current year data' }
+      }
       return { success: true, data: updatedData }
     }
 

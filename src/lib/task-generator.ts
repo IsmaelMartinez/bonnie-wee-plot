@@ -42,7 +42,6 @@ export function generateTasksForMonth(
   areas: Area[]
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
-  const seenPlantIds = new Set<string>()
 
   // Generate tasks from actual plantings in the allotment
   for (const { planting, areaId, areaName } of plantings) {
@@ -53,9 +52,6 @@ export function generateTasksForMonth(
     if (vegetable.planting.harvestMonths.includes(currentMonth)) {
       tasks.push(createHarvestTask(vegetable, areaId, areaName, currentMonth, planting.varietyName))
     }
-
-    // Track seen plant IDs for sowing suggestions
-    seenPlantIds.add(planting.plantId)
   }
 
   // Generate sowing/transplant suggestions for plants already in the allotment

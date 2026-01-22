@@ -149,9 +149,14 @@ export default function AreaTypeConverter({
   if (showConfirmation) {
     return (
       <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-zen-lg shadow-lg max-w-sm w-full p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="area-type-converter-dialog-title"
+          className="bg-white rounded-zen-lg shadow-lg max-w-sm w-full p-4"
+        >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-zen-ink-800">Confirm Conversion</h3>
+            <h3 id="area-type-converter-dialog-title" className="font-medium text-zen-ink-800">Confirm Conversion</h3>
             <button
               onClick={handleClose}
               className="text-zen-stone-400 hover:text-zen-stone-600"

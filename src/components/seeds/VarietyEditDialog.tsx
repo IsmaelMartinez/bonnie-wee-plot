@@ -87,8 +87,16 @@ export default function VarietyEditDialog({
       } else {
         seedsByYear = { [yearToTrack]: seedStatusForYear }
       }
-    } else if (mode === 'edit' && variety?.seedsByYear) {
-      seedsByYear = variety.seedsByYear
+    } else if (mode === 'edit') {
+      if (yearToTrack && seedStatusForYear === null && variety?.seedsByYear) {
+        // User cleared the status for this year: remove that year from seedsByYear
+        const rest = Object.fromEntries(
+          Object.entries(variety.seedsByYear).filter(([year]) => Number(year) !== yearToTrack)
+        )
+        seedsByYear = Object.keys(rest).length ? rest as typeof variety.seedsByYear : undefined
+      } else {
+        seedsByYear = variety?.seedsByYear
+      }
     }
 
     if (mode === 'add') {
