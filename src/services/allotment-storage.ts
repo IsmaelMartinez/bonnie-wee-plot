@@ -673,9 +673,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 10 -> 11: Synchronize plant IDs (plural to singular)
   if (migrated.version < 11) {
     const v11Data = migrateToV11(migrated)
-    v11Data.version = CURRENT_SCHEMA_VERSION
+    v11Data.version = 11
     console.log('Migrated to schema v11: synchronized plant IDs')
-    return v11Data
+    // Continue to v12 migration
+    return migrateSchema(v11Data)
+  }
+
+  // Version 11 -> 12: Add SowMethod and rename harvestDate
+  if (migrated.version < 12) {
+    const v12Data = migrateToV12(migrated)
+    v12Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v12: added SowMethod and calculated harvest fields')
+    return v12Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -906,35 +915,42 @@ function migrateToV10(data: AllotmentData): AllotmentData {
           existing.harvestTotal = perm.harvestTotal
           existing.harvestUnit = perm.harvestUnit
           // Convert underplantings to regular plantings
+          // Note: uses harvestDate (old field) - v12 migration will rename to actualHarvestStart
           if (perm.underplantings?.length) {
-            const convertedPlantings = perm.underplantings.map(u => ({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const convertedPlantings = perm.underplantings.map((u: any) => ({
               id: u.id,
               plantId: u.plantId,
               varietyName: u.varietyName,
               sowDate: u.sowDate,
               transplantDate: u.transplantDate,
-              harvestDate: u.harvestDate,
+              harvestDate: u.harvestDate, // Legacy field - renamed in v12
               success: u.success,
               notes: u.notes,
               quantity: u.quantity,
             }))
-            existing.plantings = [...existing.plantings, ...convertedPlantings]
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            existing.plantings = [...existing.plantings, ...convertedPlantings] as any
           }
         } else {
           // Create new area season from permanent
+          // Note: uses harvestDate (old field) - v12 migration will rename to actualHarvestStart
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const plantingsFromUnderplantings = perm.underplantings?.map((u: any) => ({
+            id: u.id,
+            plantId: u.plantId,
+            varietyName: u.varietyName,
+            sowDate: u.sowDate,
+            transplantDate: u.transplantDate,
+            harvestDate: u.harvestDate, // Legacy field - renamed in v12
+            success: u.success,
+            notes: u.notes,
+            quantity: u.quantity,
+          })) || []
           areaSeasonsMap.set(perm.areaId, {
             areaId: perm.areaId,
-            plantings: perm.underplantings?.map(u => ({
-              id: u.id,
-              plantId: u.plantId,
-              varietyName: u.varietyName,
-              sowDate: u.sowDate,
-              transplantDate: u.transplantDate,
-              harvestDate: u.harvestDate,
-              success: u.success,
-              notes: u.notes,
-              quantity: u.quantity,
-            })) || [],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            plantings: plantingsFromUnderplantings as any,
             careLogs: perm.careLogs,
             harvestTotal: perm.harvestTotal,
             harvestUnit: perm.harvestUnit,
@@ -1027,6 +1043,52 @@ function migrateToV11(data: AllotmentData): AllotmentData {
       return area
     }),
   }
+
+  return migrated
+}
+
+/**
+ * Migrate from v11 to v12: Add SowMethod and rename harvestDate
+ * - Rename harvestDate to actualHarvestStart
+ * - Default sowMethod to 'outdoor' when sowDate exists
+ * - Leave expectedHarvest* undefined (calculated on demand)
+ */
+function migrateToV12(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // Migrate plantings in seasons
+  migrated.seasons = migrated.seasons.map(season => ({
+    ...season,
+    areas: season.areas.map(areaSeason => ({
+      ...areaSeason,
+      plantings: areaSeason.plantings.map(planting => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const oldPlanting = planting as any
+        const newPlanting: Planting = {
+          id: planting.id,
+          plantId: planting.plantId,
+          varietyName: planting.varietyName,
+          sowDate: planting.sowDate,
+          transplantDate: planting.transplantDate,
+          success: planting.success,
+          notes: planting.notes,
+          quantity: planting.quantity,
+        }
+
+        // Rename harvestDate → actualHarvestStart
+        if (oldPlanting.harvestDate) {
+          newPlanting.actualHarvestStart = oldPlanting.harvestDate
+        }
+
+        // Default sowMethod when sowDate exists
+        if (planting.sowDate && !planting.sowMethod) {
+          newPlanting.sowMethod = 'outdoor'
+        }
+
+        return newPlanting
+      }),
+    })),
+  }))
 
   return migrated
 }

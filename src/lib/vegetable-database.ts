@@ -3209,6 +3209,10 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       notes: ['Force under pot from January for early crop', 'Remove flower stalks immediately']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 1, max: 2 },
+      productiveYears: { min: 10, max: 15 }
     }
   },
   {
@@ -3657,7 +3661,11 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 1, max: 1 },
+      productiveYears: { min: 3, max: 4 }
+    }
   },
   {
     id: 'raspberry',
@@ -3696,6 +3704,10 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [3],
       notes: ['Summer types: cut fruited canes after harvest', 'Autumn types: cut all canes to ground in Feb']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 2 },
+      productiveYears: { min: 10, max: 15 }
     }
   },
   {
@@ -3728,7 +3740,11 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'tansy', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'hyssop', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 10, max: 15 }
+    }
   },
   {
     id: 'blueberry',
@@ -3756,7 +3772,11 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Rhododendrons', 'Azaleas', 'Heathers'],
-    avoidPlants: []
+    avoidPlants: [],
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 15, max: 25 }
+    }
   },
   {
     id: 'gooseberry',
@@ -3792,6 +3812,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       notes: ['Prune to open goblet shape in winter', 'Watch for sawfly in spring']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 15, max: 20 }
     }
   },
   {
@@ -3829,6 +3853,10 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [3],
       notes: ['Remove a third of oldest wood each year after fruiting']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 10, max: 15 }
     }
   },
   {
@@ -3865,6 +3893,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       notes: ['Prune to open goblet shape like gooseberries']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 15, max: 20 }
     }
   },
   {
@@ -3902,6 +3934,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [8, 9],
       feedMonths: [3],
       notes: ['Remove fruited canes after harvest']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 2 },
+      productiveYears: { min: 10, max: 15 }
     }
   },
   {
@@ -3939,6 +3975,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [8, 9],
       feedMonths: [3],
       notes: ['Remove fruited canes after harvest']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 2 },
+      productiveYears: { min: 10, max: 15 }
     }
   },
   {
@@ -3975,6 +4015,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       notes: ['Minimal pruning needed - remove dead wood']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 15, max: 20 }
     }
   },
   {
@@ -4008,6 +4052,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       notes: ['Minimal pruning - remove dead wood only']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4041,6 +4089,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [2, 3],
       feedMonths: [3],
       notes: ['Control suckers to prevent spread']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 2 },
+      productiveYears: { min: 15, max: 20 }
     }
   },
   {
@@ -4074,6 +4126,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       notes: ['Minimal pruning needed']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4107,6 +4163,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1],
       feedMonths: [3],
       notes: ['Prune to maintain size and shape']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4140,6 +4200,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [11, 12, 1],
       feedMonths: [],
       notes: ['Minimal care - very tough plant']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 4 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
 
@@ -4181,6 +4245,10 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       notes: ['Winter prune when dormant', 'Summer prune water shoots in July-Aug']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 30, max: 50 }
     }
   },
   {
@@ -4219,6 +4287,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [7, 8],
       feedMonths: [3],
       notes: ['ONLY prune in summer to avoid silver leaf and bacterial canker']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4257,6 +4329,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [2, 3],
       feedMonths: [3],
       notes: ['Minimal pruning needed - just remove dead/crossing branches']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4295,6 +4371,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [6, 7],
       feedMonths: [3],
       notes: ['Prune in summer to avoid silver leaf disease']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4333,6 +4413,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       notes: ['Winter prune when dormant', 'May need thinning if heavy crop']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 4, max: 6 },
+      productiveYears: { min: 35, max: 50 }
     }
   },
   {
@@ -4371,6 +4455,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [6, 7],
       feedMonths: [3],
       notes: ['Prune in summer to avoid silver leaf disease']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 20, max: 30 }
     }
   },
   {
@@ -4409,6 +4497,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       notes: ['Minimal pruning needed - very low maintenance']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 30, max: 50 }
     }
   },
   {
@@ -4447,6 +4539,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       notes: ['Minimal pruning - just remove dead/crossing branches']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 30, max: 50 }
     }
   },
   {
@@ -4484,6 +4580,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [3, 4],
       feedMonths: [4, 5],
       notes: ['Prune in early spring', 'May need winter protection in cold areas']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 30, max: 50 }
     }
   },
   {
@@ -4522,6 +4622,10 @@ export const vegetables: Vegetable[] = [
       pruneMonths: [12, 1],
       feedMonths: [3],
       notes: ['Minimal pruning needed - bleeds sap if cut in growing season']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 3, max: 5 },
+      productiveYears: { min: 50, max: 100 }
     }
   },
 
@@ -5778,6 +5882,10 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       notes: ['Cut down ferns in autumn', 'Weed regularly']
+    },
+    perennialInfo: {
+      yearsToFirstHarvest: { min: 2, max: 3 },
+      productiveYears: { min: 15, max: 20 }
     }
   },
   {

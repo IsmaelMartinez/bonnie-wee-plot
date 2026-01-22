@@ -432,3 +432,137 @@ describe('addArea() temporal backfilling', () => {
     expect(areaSeason.rotationGroup).toBe('brassicas')
   })
 })
+
+describe('v11 to v12 migration', () => {
+  beforeEach(() => {
+    vi.mocked(localStorage.getItem).mockClear()
+    vi.mocked(localStorage.setItem).mockClear()
+  })
+
+  it('should rename harvestDate to actualHarvestStart', () => {
+    const v11Data = createValidAllotmentData({
+      version: 11,
+      seasons: [{
+        year: TEST_CURRENT_YEAR,
+        status: 'current',
+        areas: [{
+          areaId: 'bed-a',
+          rotationGroup: 'legumes',
+          plantings: [{
+            id: 'p1',
+            plantId: 'peas',
+            harvestDate: '2025-07-15'  // Old field name
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any]
+        }],
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
+      }]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.version).toBe(12)
+    const planting = result.data?.seasons[0].areas[0].plantings[0]
+    expect(planting?.actualHarvestStart).toBe('2025-07-15')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((planting as any).harvestDate).toBeUndefined()
+  })
+
+  it('should default sowMethod to outdoor when sowDate exists', () => {
+    const v11Data = createValidAllotmentData({
+      version: 11,
+      seasons: [{
+        year: TEST_CURRENT_YEAR,
+        status: 'current',
+        areas: [{
+          areaId: 'bed-a',
+          rotationGroup: 'legumes',
+          plantings: [{
+            id: 'p1',
+            plantId: 'peas',
+            sowDate: '2025-04-15'
+          }]
+        }],
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
+      }]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    const planting = result.data?.seasons[0].areas[0].plantings[0]
+    expect(planting?.sowMethod).toBe('outdoor')
+  })
+
+  it('should not set sowMethod when sowDate is missing', () => {
+    const v11Data = createValidAllotmentData({
+      version: 11,
+      seasons: [{
+        year: TEST_CURRENT_YEAR,
+        status: 'current',
+        areas: [{
+          areaId: 'bed-a',
+          rotationGroup: 'legumes',
+          plantings: [{
+            id: 'p1',
+            plantId: 'peas'
+            // No sowDate
+          }]
+        }],
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
+      }]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    const planting = result.data?.seasons[0].areas[0].plantings[0]
+    expect(planting?.sowMethod).toBeUndefined()
+  })
+
+  it('should preserve all other planting fields', () => {
+    const v11Data = createValidAllotmentData({
+      version: 11,
+      seasons: [{
+        year: TEST_CURRENT_YEAR,
+        status: 'current',
+        areas: [{
+          areaId: 'bed-a',
+          rotationGroup: 'legumes',
+          plantings: [{
+            id: 'p1',
+            plantId: 'peas',
+            varietyName: 'Kelvedon Wonder',
+            sowDate: '2025-04-15',
+            transplantDate: '2025-05-20',
+            success: 'good',
+            notes: 'Test notes',
+            quantity: 24
+          }]
+        }],
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
+      }]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    const planting = result.data?.seasons[0].areas[0].plantings[0]
+    expect(planting?.varietyName).toBe('Kelvedon Wonder')
+    expect(planting?.sowDate).toBe('2025-04-15')
+    expect(planting?.transplantDate).toBe('2025-05-20')
+    expect(planting?.success).toBe('good')
+    expect(planting?.notes).toBe('Test notes')
+    expect(planting?.quantity).toBe(24)
+    expect(planting?.sowMethod).toBe('outdoor')
+  })
+})
