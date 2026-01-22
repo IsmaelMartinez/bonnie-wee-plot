@@ -14,11 +14,14 @@ import {
 } from '@/services/allotment-storage'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, Area } from '@/types/unified-allotment'
 
+// Use actual current year to avoid auto-update logic during tests
+const TEST_CURRENT_YEAR = new Date().getFullYear()
+
 // Helper to create valid test data (v10 schema)
 function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): AllotmentData {
   return {
     version: CURRENT_SCHEMA_VERSION,
-    currentYear: 2025,
+    currentYear: TEST_CURRENT_YEAR,
     meta: {
       name: 'Test Allotment',
       location: 'Test Location',
@@ -47,7 +50,7 @@ function createValidAllotmentData(overrides: Partial<AllotmentData> = {}): Allot
     },
     seasons: [
       {
-        year: 2025,
+        year: TEST_CURRENT_YEAR,
         status: 'current',
         areas: [{ areaId: 'bed-a', rotationGroup: 'brassicas', plantings: [] }],
         createdAt: '2025-01-01T00:00:00.000Z',
@@ -131,7 +134,7 @@ describe('Data Repair', () => {
   })
 
   it('repairs missing version field with default', () => {
-    const dataWithoutVersion = { currentYear: 2025, meta: { name: 'Test' }, layout: { areas: [] }, seasons: [] }
+    const dataWithoutVersion = { currentYear: TEST_CURRENT_YEAR, meta: { name: 'Test' }, layout: { areas: [] }, seasons: [] }
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(dataWithoutVersion))
 
     const result = loadAllotmentData()
@@ -143,7 +146,7 @@ describe('Data Repair', () => {
   it('repairs missing meta.name with default', () => {
     const dataWithoutMetaName = {
       version: 1,
-      currentYear: 2025,
+      currentYear: TEST_CURRENT_YEAR,
       meta: { location: 'Test' },
       layout: { areas: [] },
       seasons: []
@@ -159,7 +162,7 @@ describe('Data Repair', () => {
   it('repairs missing layout.areas with empty array', () => {
     const dataWithPartialLayout = {
       version: 1,
-      currentYear: 2025,
+      currentYear: TEST_CURRENT_YEAR,
       meta: { name: 'Test' },
       layout: {}, // Missing areas
       seasons: []
@@ -175,7 +178,7 @@ describe('Data Repair', () => {
   it('repairs invalid seasons array with empty array', () => {
     const dataWithInvalidSeasons = {
       version: 1,
-      currentYear: 2025,
+      currentYear: TEST_CURRENT_YEAR,
       meta: { name: 'Test' },
       layout: { areas: [] },
       seasons: 'not an array'
@@ -311,7 +314,7 @@ describe('addArea() temporal backfilling', () => {
         { year: 2020, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
         { year: 2025, status: 'current', areas: [], createdAt: '', updatedAt: '' }
       ],
-      currentYear: 2025,
+      currentYear: TEST_CURRENT_YEAR,
       maintenanceTasks: [],
       varieties: []
     }

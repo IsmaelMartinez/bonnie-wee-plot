@@ -40,6 +40,7 @@ import {
   getAvailableYears,
   getAreaSeason as storageGetAreaSeason,
   addPlanting as storageAddPlanting,
+  addPlantings as storageAddPlantings,
   updatePlanting as storageUpdatePlanting,
   removePlanting as storageRemovePlanting,
   addSeason,
@@ -141,6 +142,7 @@ export interface UseAllotmentActions {
 
   // Planting CRUD (v10: works with any area)
   addPlanting: (areaId: string, planting: NewPlanting) => void
+  addPlantings: (areaId: string, plantings: NewPlanting[]) => void
   updatePlanting: (areaId: string, plantingId: string, updates: PlantingUpdate) => void
   removePlanting: (areaId: string, plantingId: string) => void
   getPlantings: (areaId: string) => Planting[]
@@ -364,6 +366,24 @@ export function useAllotment(): UseAllotmentReturn {
 
     if (addedPlanting) {
       syncPlantingToVariety(addedPlanting, selectedYear)
+    }
+  }, [data, selectedYear, setData])
+
+  const addPlantings = useCallback((bedId: PhysicalBedId, plantings: NewPlanting[]) => {
+    if (!data || plantings.length === 0) return
+
+    // Add all plantings in a single state update
+    const updatedData = storageAddPlantings(data, selectedYear, bedId, plantings)
+    setData(updatedData)
+
+    // Sync each added planting to variety storage
+    const areaSeason = storageGetAreaSeason(updatedData, selectedYear, bedId)
+    if (areaSeason) {
+      // Get the newly added plantings (last N items)
+      const addedPlantings = areaSeason.plantings.slice(-plantings.length)
+      addedPlantings.forEach(planting => {
+        syncPlantingToVariety(planting, selectedYear)
+      })
     }
   }, [data, selectedYear, setData])
 
@@ -741,6 +761,7 @@ export function useAllotment(): UseAllotmentReturn {
 
     // Planting CRUD
     addPlanting,
+    addPlantings,
     updatePlanting,
     removePlanting,
     getPlantings,

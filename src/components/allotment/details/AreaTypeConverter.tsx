@@ -43,10 +43,22 @@ const KIND_OPTIONS: Array<{
     description: 'Raspberries, blackberries, currants',
   },
   {
+    kind: 'herb',
+    label: 'Herb Garden',
+    icon: Leaf,
+    description: 'Perennial herbs like rosemary, thyme',
+  },
+  {
     kind: 'infrastructure',
     label: 'Infrastructure',
     icon: Warehouse,
     description: 'Shed, compost, paths, etc.',
+  },
+  {
+    kind: 'other',
+    label: 'Other',
+    icon: Grid3X3,
+    description: 'General purpose area',
   },
 ]
 
@@ -59,6 +71,23 @@ const ROTATION_GROUPS: Array<{ value: RotationGroup; label: string }> = [
   { value: 'cucurbits', label: 'Cucurbits' },
 ]
 
+// Types that require confirmation when converting away from them
+const SPECIAL_TYPES: AreaKind[] = ['infrastructure', 'other']
+
+function isSpecialType(kind: AreaKind): boolean {
+  return SPECIAL_TYPES.includes(kind)
+}
+
+function getSpecialTypeWarning(fromKind: AreaKind): string | null {
+  if (fromKind === 'infrastructure') {
+    return 'Converting from Infrastructure will remove the infrastructure subtype setting (e.g., Compost, Wildlife Area, Shed). The area name and any plantings will be preserved.'
+  }
+  if (fromKind === 'other') {
+    return 'This will change the area to a more specific type. The area name and any plantings will be preserved.'
+  }
+  return null
+}
+
 export default function AreaTypeConverter({
   areaId,
   currentKind,
@@ -68,6 +97,7 @@ export default function AreaTypeConverter({
   const [isOpen, setIsOpen] = useState(false)
   const [selectedKind, setSelectedKind] = useState<AreaKind>(currentKind)
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const handleConvert = () => {
     if (selectedKind === currentKind) {
@@ -75,13 +105,32 @@ export default function AreaTypeConverter({
       return
     }
 
+    // Show confirmation for special types
+    if (isSpecialType(currentKind) && !showConfirmation) {
+      setShowConfirmation(true)
+      return
+    }
+
     const options = selectedKind === 'rotation-bed' ? { rotationGroup } : undefined
     changeAreaKind(areaId, selectedKind, options)
     setIsOpen(false)
+    setShowConfirmation(false)
     onConvert?.()
   }
 
+  const handleClose = () => {
+    setIsOpen(false)
+    setShowConfirmation(false)
+    setSelectedKind(currentKind)
+  }
+
+  const handleBack = () => {
+    setShowConfirmation(false)
+  }
+
   const currentKindInfo = KIND_OPTIONS.find(k => k.kind === currentKind)
+  const selectedKindInfo = KIND_OPTIONS.find(k => k.kind === selectedKind)
+  const specialWarning = getSpecialTypeWarning(currentKind)
 
   if (!isOpen) {
     return (
@@ -96,13 +145,79 @@ export default function AreaTypeConverter({
     )
   }
 
+  // Confirmation dialog for special types
+  if (showConfirmation) {
+    return (
+      <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="area-type-converter-dialog-title"
+          className="bg-white rounded-zen-lg shadow-lg max-w-sm w-full p-4"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 id="area-type-converter-dialog-title" className="font-medium text-zen-ink-800">Confirm Conversion</h3>
+            <button
+              onClick={handleClose}
+              className="text-zen-stone-400 hover:text-zen-stone-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <p className="text-sm text-zen-stone-600 mb-4">
+            Converting <span className="font-medium">{currentKindInfo?.label}</span> to{' '}
+            <span className="font-medium">{selectedKindInfo?.label}</span>
+          </p>
+
+          <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3 mb-4">
+            <p className="text-sm text-zen-kitsune-700">
+              {specialWarning}
+            </p>
+          </div>
+
+          {selectedKind === 'rotation-bed' && (
+            <div className="mb-4">
+              <label className="block text-xs text-zen-stone-600 mb-1">Initial rotation group:</label>
+              <select
+                value={rotationGroup}
+                onChange={e => setRotationGroup(e.target.value as RotationGroup)}
+                className="w-full text-sm px-3 py-2 border border-zen-stone-200 rounded-zen"
+              >
+                {ROTATION_GROUPS.map(g => (
+                  <option key={g.value} value={g.value}>{g.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleConvert}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-zen-kitsune-500 text-white rounded-zen hover:bg-zen-kitsune-600 text-sm"
+            >
+              <Check className="w-4 h-4" />
+              Confirm
+            </button>
+            <button
+              onClick={handleBack}
+              className="flex-1 px-4 py-2 bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300 text-sm"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-zen-lg shadow-lg max-w-sm w-full p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium text-zen-ink-800">Convert Area Type</h3>
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
             className="text-zen-stone-400 hover:text-zen-stone-600"
           >
             <X className="w-5 h-5" />
@@ -110,7 +225,7 @@ export default function AreaTypeConverter({
         </div>
 
         <p className="text-sm text-zen-stone-600 mb-4">
-          Currently: <span className="font-medium">{currentKindInfo?.label}</span>
+          Currently: <span className="font-medium">{currentKindInfo?.label || currentKind}</span>
         </p>
 
         <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
@@ -143,7 +258,7 @@ export default function AreaTypeConverter({
           })}
         </div>
 
-        {selectedKind === 'rotation-bed' && selectedKind !== currentKind && (
+        {selectedKind === 'rotation-bed' && selectedKind !== currentKind && !isSpecialType(currentKind) && (
           <div className="mb-4">
             <label className="block text-xs text-zen-stone-600 mb-1">Initial rotation group:</label>
             <select
@@ -173,10 +288,10 @@ export default function AreaTypeConverter({
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-zen-moss-500 text-white rounded-zen hover:bg-zen-moss-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             <Check className="w-4 h-4" />
-            Convert
+            {isSpecialType(currentKind) ? 'Next' : 'Convert'}
           </button>
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
             className="flex-1 px-4 py-2 bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300 text-sm"
           >
             Cancel

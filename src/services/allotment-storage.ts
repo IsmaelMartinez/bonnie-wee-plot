@@ -302,6 +302,19 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
       return { success: true, data: repaired }
     }
 
+    // Auto-update currentYear if it's in the past
+    const actualCurrentYear = new Date().getFullYear()
+    if (validData.currentYear < actualCurrentYear) {
+      console.log(`Updating stale currentYear from ${validData.currentYear} to ${actualCurrentYear}`)
+      const updatedData = ensureCurrentYearSeason(validData, actualCurrentYear)
+      const saveResult = saveAllotmentData(updatedData)
+      if (!saveResult.success) {
+        logger.error('Failed to persist auto-updated currentYear', { error: saveResult.error })
+        return { success: false, error: saveResult.error ?? 'Failed to persist auto-updated current year data' }
+      }
+      return { success: true, data: updatedData }
+    }
+
     return { success: true, data: validData }
   } catch (error) {
     logger.error('Failed to load allotment data', { error: String(error) })
@@ -1118,6 +1131,31 @@ export function getCurrentSeason(data: AllotmentData): SeasonRecord | undefined 
 }
 
 /**
+ * Ensure data has the current year as active with a season
+ * Used when loading data with a stale currentYear
+ */
+function ensureCurrentYearSeason(data: AllotmentData, targetYear: number): AllotmentData {
+  // Check if season already exists for the target year
+  const existingSeason = data.seasons.find(s => s.year === targetYear)
+
+  if (existingSeason) {
+    // Season exists, just update currentYear
+    return {
+      ...data,
+      currentYear: targetYear,
+    }
+  }
+
+  // Need to create a new season for the target year
+  // Use addSeason which handles auto-rotation
+  return addSeason(data, {
+    year: targetYear,
+    status: 'current',
+    notes: `Season ${targetYear}`,
+  })
+}
+
+/**
  * Add a new season
  * Automatically rotates beds based on previous year's rotation groups
  * v10: Creates AreaSeason for all areas
@@ -1353,6 +1391,47 @@ export function addPlanting(
           return {
             ...area,
             plantings: [...area.plantings, newPlanting],
+          }
+        }),
+      }
+    }),
+  }
+}
+
+/**
+ * Add multiple plantings to an area in a season (v10)
+ * This performs a single state update for all plantings, avoiding stale closure issues
+ */
+export function addPlantings(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  plantings: NewPlanting[]
+): AllotmentData {
+  if (plantings.length === 0) return data
+
+  const newPlantings: Planting[] = plantings.map(planting => ({
+    ...planting,
+    id: generatePlantingId(),
+  }))
+
+  return {
+    ...data,
+    seasons: data.seasons.map(season => {
+      if (season.year !== year) return season
+
+      // Ensure the AreaSeason exists before adding plantings
+      const areasWithTarget = ensureAreaSeasonExists(season.areas, areaId)
+
+      return {
+        ...season,
+        updatedAt: new Date().toISOString(),
+        areas: areasWithTarget.map(area => {
+          if (area.areaId !== areaId) return area
+
+          return {
+            ...area,
+            plantings: [...area.plantings, ...newPlantings],
           }
         }),
       }

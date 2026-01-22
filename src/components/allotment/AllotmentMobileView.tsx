@@ -19,9 +19,9 @@ function areaToGridConfig(area: Area): GridItemConfig {
   let type: GridItemConfig['type'] = 'area'
   if (area.kind === 'rotation-bed' || area.kind === 'perennial-bed') {
     type = 'bed'
-  } else if (area.kind === 'tree') {
+  } else if (area.kind === 'tree' || area.kind === 'berry') {
     type = 'tree'
-  } else if (area.kind === 'berry' || area.kind === 'herb') {
+  } else if (area.kind === 'herb') {
     type = 'perennial'
   } else if (area.kind === 'infrastructure') {
     type = 'infrastructure'
@@ -37,7 +37,7 @@ function areaToGridConfig(area: Area): GridItemConfig {
     type,
     icon: area.icon,
     color: area.color,
-    bedId: (area.kind === 'rotation-bed' || area.kind === 'perennial-bed' || area.kind === 'berry')
+    bedId: (area.kind === 'rotation-bed' || area.kind === 'perennial-bed')
       ? area.id as GridItemConfig['bedId']
       : undefined,
   }

@@ -15,6 +15,10 @@ import {
   ChevronUp,
   Calendar,
   Sprout,
+  Flame,
+  Snowflake,
+  Lightbulb,
+  Clock,
 } from 'lucide-react'
 import { useCompost } from '@/hooks/useCompost'
 import {
@@ -36,12 +40,126 @@ const STATUS_CONFIG: Record<CompostStatus, { label: string; color: string; bg: s
 }
 
 const SYSTEM_TYPES: { value: CompostSystemType; label: string; emoji: string }[] = [
-  { value: 'hot-compost', label: 'Hot Compost', emoji: '🔥' },
+  { value: 'hot-compost', label: 'Hot Compost (Open)', emoji: '🔥' },
+  { value: 'hotbin', label: 'Hotbin / Continuous', emoji: '♨️' },
   { value: 'cold-compost', label: 'Cold Compost', emoji: '❄️' },
   { value: 'tumbler', label: 'Tumbler', emoji: '🔄' },
   { value: 'bokashi', label: 'Bokashi', emoji: '🪣' },
   { value: 'worm-bin', label: 'Worm Bin', emoji: '🪱' },
 ]
+
+// Thermal status based on recent activity and compost type
+type ThermalStatus = 'hot' | 'cold'
+
+interface SystemInfo {
+  timeline: string
+  turnFrequency: string
+  careTips: string[]
+  idealTemp?: string
+}
+
+const SYSTEM_INFO: Record<CompostSystemType, SystemInfo> = {
+  'hot-compost': {
+    timeline: '4-8 weeks',
+    turnFrequency: 'Every 3-5 days when hot',
+    idealTemp: '55-65°C',
+    careTips: [
+      'Build pile at least 1m cubed for adequate heat',
+      'Mix greens and browns roughly 1:2 ratio',
+      'Keep moist like a wrung-out sponge',
+      'Turn when temperature drops below 50°C',
+    ],
+  },
+  'hotbin': {
+    timeline: '30-90 days',
+    turnFrequency: 'No turning needed',
+    idealTemp: '40-60°C',
+    careTips: [
+      'Add material to top, harvest from bottom',
+      'Keep lid closed to retain heat',
+      'Chop materials small for faster breakdown',
+      'Add bulking agent to maintain airflow',
+    ],
+  },
+  'cold-compost': {
+    timeline: '6-12 months',
+    turnFrequency: 'Monthly or when convenient',
+    careTips: [
+      'Add materials as they become available',
+      'Layer greens and browns loosely',
+      'Keep covered to retain moisture',
+      'No need to monitor temperature',
+    ],
+  },
+  'tumbler': {
+    timeline: '4-8 weeks',
+    turnFrequency: 'Every 2-3 days',
+    careTips: [
+      'Fill in batches rather than continuously',
+      'Spin 5-10 rotations each time',
+      'Add browns if too wet or smelly',
+      'Position in sunny spot for faster decomposition',
+    ],
+  },
+  'bokashi': {
+    timeline: '2-4 weeks fermentation + 2-4 weeks soil',
+    turnFrequency: 'N/A - anaerobic process',
+    careTips: [
+      'Keep lid sealed to maintain anaerobic conditions',
+      'Drain liquid every 2-3 days',
+      'Sprinkle bran after each addition',
+      'Bury fermented material in soil or trench',
+    ],
+  },
+  'worm-bin': {
+    timeline: '3-6 months',
+    turnFrequency: 'Avoid disturbing - worms do the work',
+    idealTemp: '13-25°C',
+    careTips: [
+      'Feed in small amounts, 2-3 times per week',
+      'Avoid citrus, onions, meat, and dairy',
+      'Keep bedding moist but not wet',
+      'Harvest castings when dark and earthy-smelling',
+    ],
+  },
+}
+
+function getThermalStatus(pile: CompostPile): ThermalStatus {
+  // Cold compost and worm bins are always "cold"
+  if (pile.systemType === 'cold-compost' || pile.systemType === 'worm-bin' || pile.systemType === 'bokashi') {
+    return 'cold'
+  }
+
+  // Check recent temperature readings
+  const recentTempEvents = pile.events
+    .filter(e => e.type === 'check-temp' && e.temperature)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3)
+
+  if (recentTempEvents.length > 0) {
+    const avgTemp = recentTempEvents.reduce((sum, e) => sum + (e.temperature || 0), 0) / recentTempEvents.length
+    return avgTemp >= 45 ? 'hot' : 'cold'
+  }
+
+  // For hotbins/continuous composters, check recent inputs (they stay hot when fed)
+  if (pile.systemType === 'hotbin') {
+    const recentInputs = pile.inputs
+      .filter(i => getDaysSince(i.date) <= 14)
+    return recentInputs.length > 0 ? 'hot' : 'cold'
+  }
+
+  // For hot compost and tumblers without temp readings, check activity
+  const daysSinceStart = getDaysSince(pile.startDate)
+  const lastTurn = getLastEventOfType(pile, 'turn')
+  const daysSinceTurn = lastTurn ? getDaysSince(lastTurn) : daysSinceStart
+
+  // If recently turned and pile is young, likely hot
+  if (daysSinceTurn <= 5 && daysSinceStart <= 60) {
+    return 'hot'
+  }
+
+  return 'cold'
+}
 
 function getSystemEmoji(type: CompostSystemType): string {
   return SYSTEM_TYPES.find(t => t.value === type)?.emoji || '♻️'
@@ -192,7 +310,7 @@ export default function CompostPage() {
                 <h1 className="text-zen-ink-900 truncate">Compost</h1>
               </div>
               <p className="text-zen-stone-500 text-sm">
-                Track your compost piles and inputs
+                Monitor your compost status and care
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0 self-end sm:self-auto">
@@ -249,147 +367,226 @@ export default function CompostPage() {
 
         {/* Active Piles */}
         {activePiles.length > 0 && (
-          <div className="space-y-4 mb-8">
-            <h2 className="font-display text-zen-ink-800">Active Piles</h2>
+          <div className="space-y-6 mb-8">
+            <h2 className="font-display text-zen-ink-800">Your Compost Piles</h2>
             {activePiles.map(pile => {
               const isExpanded = expandedPiles.has(pile.id)
               const daysSinceStart = getDaysSince(pile.startDate)
               const lastTurn = getLastEventOfType(pile, 'turn')
               const daysSinceTurn = lastTurn ? getDaysSince(lastTurn) : null
               const statusConfig = STATUS_CONFIG[pile.status]
+              const thermalStatus = getThermalStatus(pile)
+              const systemInfo = SYSTEM_INFO[pile.systemType]
 
               return (
                 <div key={pile.id} className="zen-card overflow-hidden">
-                  {/* Pile Header */}
-                  <div className="p-3 sm:p-4 flex items-start sm:items-center justify-between gap-2">
-                    <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                      <span className="text-xl sm:text-2xl flex-shrink-0">{getSystemEmoji(pile.systemType)}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium text-sm sm:text-base text-zen-ink-800 truncate">{pile.name}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.color} whitespace-nowrap`}>
-                            {statusConfig.label}
-                          </span>
+                  {/* Pile Header with Thermal Status */}
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className="text-2xl sm:text-3xl flex-shrink-0">{getSystemEmoji(pile.systemType)}</span>
+                        <div className="min-w-0">
+                          <h3 className="font-medium text-lg text-zen-ink-800 truncate">{pile.name}</h3>
+                          <p className="text-sm text-zen-stone-500">{SYSTEM_TYPES.find(s => s.value === pile.systemType)?.label}</p>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-zen-stone-500 mt-1">
-                          <span className="flex items-center gap-1 whitespace-nowrap">
-                            <Calendar className="w-3 h-3" />
-                            {daysSinceStart}d old
-                          </span>
-                          {daysSinceTurn !== null && (
-                            <span className={`flex items-center gap-1 whitespace-nowrap ${daysSinceTurn > 7 ? 'text-zen-kitsune-600' : ''}`}>
-                              <RotateCw className="w-3 h-3" />
-                              {daysSinceTurn === 0 ? 'Today' : `${daysSinceTurn}d`}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1 whitespace-nowrap">
-                            <Leaf className="w-3 h-3" />
-                            {pile.inputs.length}
-                          </span>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.color} whitespace-nowrap`}>
+                        {statusConfig.label}
+                      </span>
+                    </div>
+
+                    {/* Thermal Status Banner */}
+                    <div className={`rounded-lg p-4 mb-4 ${
+                      thermalStatus === 'hot'
+                        ? 'bg-gradient-to-r from-zen-kitsune-50 to-zen-ume-50 border border-zen-kitsune-200'
+                        : 'bg-gradient-to-r from-zen-water-50 to-zen-stone-100 border border-zen-water-200'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        {thermalStatus === 'hot' ? (
+                          <Flame className="w-6 h-6 text-zen-kitsune-600" />
+                        ) : (
+                          <Snowflake className="w-6 h-6 text-zen-water-600" />
+                        )}
+                        <div>
+                          <p className={`font-medium ${thermalStatus === 'hot' ? 'text-zen-kitsune-700' : 'text-zen-water-700'}`}>
+                            {thermalStatus === 'hot' ? 'Active / Hot' : 'Sleeping / Cold'}
+                          </p>
+                          <p className="text-sm text-zen-stone-600">
+                            {thermalStatus === 'hot'
+                              ? pile.systemType === 'hotbin'
+                                ? 'Working well! Keep feeding and let it do its thing.'
+                                : 'Decomposition is happening rapidly. Keep turning and monitoring.'
+                              : pile.systemType === 'cold-compost'
+                                ? 'Slow and steady decomposition. No rush!'
+                                : pile.systemType === 'hotbin'
+                                  ? 'Add fresh material to get things heating up again.'
+                                  : 'Consider turning or adding fresh greens to heat up.'}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                      {/* Quick Actions */}
+
+                    {/* Timeline and Key Info */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-zen-stone-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-zen-stone-500 mb-1">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-xs">Timeline</span>
+                        </div>
+                        <p className="text-sm font-medium text-zen-ink-700">{systemInfo.timeline}</p>
+                      </div>
+                      <div className="bg-zen-stone-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-zen-stone-500 mb-1">
+                          <Calendar className="w-4 h-4" />
+                          <span className="text-xs">Age</span>
+                        </div>
+                        <p className="text-sm font-medium text-zen-ink-700">{daysSinceStart} days</p>
+                      </div>
+                    </div>
+
+                    {/* Care Tips */}
+                    <div className="bg-zen-moss-50 rounded-lg p-4 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="w-4 h-4 text-zen-moss-600" />
+                        <span className="text-sm font-medium text-zen-moss-700">Care Tips</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-sm text-zen-stone-600">
+                          <span className="font-medium">Turning: </span>{systemInfo.turnFrequency}
+                          {daysSinceTurn !== null && (
+                            <span className={`ml-2 ${daysSinceTurn > 7 ? 'text-zen-kitsune-600' : 'text-zen-stone-500'}`}>
+                              (last turned {daysSinceTurn === 0 ? 'today' : `${daysSinceTurn}d ago`})
+                            </span>
+                          )}
+                        </p>
+                        {systemInfo.idealTemp && (
+                          <p className="text-sm text-zen-stone-600">
+                            <span className="font-medium">Ideal temp: </span>{systemInfo.idealTemp}
+                          </p>
+                        )}
+                        <p className="text-sm text-zen-stone-600 mt-2">{systemInfo.careTips[0]}</p>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowLogEventDialog(pile.id)}
-                        className="p-1.5 sm:p-2 text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        title="Log event"
-                        aria-label="Log event"
+                        className="flex-1 zen-btn-secondary text-sm flex items-center justify-center gap-2"
                       >
                         <RotateCw className="w-4 h-4" />
+                        Log Event
                       </button>
                       <button
                         onClick={() => setShowLogInputDialog(pile.id)}
-                        className="p-1.5 sm:p-2 text-zen-water-600 hover:bg-zen-water-50 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        title="Add material"
-                        aria-label="Add material"
+                        className="flex-1 zen-btn-secondary text-sm flex items-center justify-center gap-2"
                       >
                         <Plus className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => togglePileExpanded(pile.id)}
-                        className="p-1.5 sm:p-2 text-zen-stone-500 hover:bg-zen-stone-100 rounded-zen min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        aria-label={isExpanded ? "Collapse" : "Expand"}
-                      >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        Add Material
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded Content */}
-                  {isExpanded && (
-                    <div className="border-t border-zen-stone-200 p-4 space-y-4">
-                      {/* Status Selector */}
-                      <div className="flex items-center gap-2">
-                        <label className="text-sm text-zen-stone-600">Status:</label>
-                        <select
-                          value={pile.status}
-                          onChange={(e) => updatePile(pile.id, { status: e.target.value as CompostStatus })}
-                          className="zen-select text-sm"
+                  {/* Collapsible Tracking Section */}
+                  <div className="border-t border-zen-stone-200">
+                    <button
+                      onClick={() => togglePileExpanded(pile.id)}
+                      className="w-full p-3 flex items-center justify-between text-sm text-zen-stone-600 hover:bg-zen-stone-50"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Leaf className="w-4 h-4" />
+                        Tracking Details
+                        <span className="text-zen-stone-400">({pile.inputs.length} inputs, {pile.events.length} events)</span>
+                      </span>
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="p-4 pt-0 space-y-4">
+                        {/* Status Selector */}
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm text-zen-stone-600">Status:</label>
+                          <select
+                            value={pile.status}
+                            onChange={(e) => updatePile(pile.id, { status: e.target.value as CompostStatus })}
+                            className="zen-select text-sm"
+                          >
+                            <option value="active">Active</option>
+                            <option value="maturing">Maturing</option>
+                            <option value="ready">Ready</option>
+                            <option value="applied">Applied</option>
+                          </select>
+                        </div>
+
+                        {/* More Care Tips */}
+                        <div>
+                          <h4 className="text-sm font-medium text-zen-ink-700 mb-2">All Care Tips</h4>
+                          <ul className="text-sm text-zen-stone-600 space-y-1">
+                            {systemInfo.careTips.map((tip, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="text-zen-moss-500">•</span>
+                                {tip}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Recent Inputs */}
+                        {pile.inputs.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Recent Inputs</h4>
+                            <div className="space-y-1">
+                              {pile.inputs.slice(-5).reverse().map(input => (
+                                <div key={input.id} className="flex items-center gap-2 text-sm text-zen-stone-600 bg-zen-stone-50 px-2 py-1 rounded-zen">
+                                  <span className={`w-2 h-2 rounded-full ${
+                                    input.type === 'green' ? 'bg-zen-moss-500' :
+                                    input.type === 'brown' ? 'bg-zen-kitsune-500' : 'bg-zen-stone-400'
+                                  }`} />
+                                  <span>{input.material}</span>
+                                  {input.quantity && <span className="text-zen-stone-400">({input.quantity})</span>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Recent Events */}
+                        {pile.events.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Recent Events</h4>
+                            <div className="space-y-1">
+                              {pile.events.slice(-5).reverse().map(event => (
+                                <div key={event.id} className="flex items-center gap-2 text-sm text-zen-stone-600 bg-zen-stone-50 px-2 py-1 rounded-zen">
+                                  {event.type === 'turn' && <RotateCw className="w-3 h-3 text-zen-moss-500" />}
+                                  {event.type === 'water' && <Droplets className="w-3 h-3 text-zen-water-500" />}
+                                  {event.type === 'check-temp' && <ThermometerSun className="w-3 h-3 text-zen-kitsune-500" />}
+                                  <span className="capitalize">{event.type.replace('-', ' ')}</span>
+                                  {event.temperature && <span className="text-zen-kitsune-600">{event.temperature}°C</span>}
+                                  <span className="text-zen-stone-400 ml-auto">
+                                    {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notes */}
+                        {pile.notes && (
+                          <p className="text-sm text-zen-stone-500 italic">{pile.notes}</p>
+                        )}
+
+                        {/* Delete */}
+                        <button
+                          onClick={() => setPileToDelete(pile.id)}
+                          className="text-xs text-zen-ume-600 hover:text-zen-ume-700"
                         >
-                          <option value="active">Active</option>
-                          <option value="maturing">Maturing</option>
-                          <option value="ready">Ready</option>
-                          <option value="applied">Applied</option>
-                        </select>
+                          <Trash2 className="w-3 h-3 inline mr-1" />
+                          Delete pile
+                        </button>
                       </div>
-
-                      {/* Recent Inputs */}
-                      {pile.inputs.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Recent Inputs</h4>
-                          <div className="space-y-1">
-                            {pile.inputs.slice(-5).reverse().map(input => (
-                              <div key={input.id} className="flex items-center gap-2 text-sm text-zen-stone-600 bg-zen-stone-50 px-2 py-1 rounded-zen">
-                                <span className={`w-2 h-2 rounded-full ${
-                                  input.type === 'green' ? 'bg-zen-moss-500' :
-                                  input.type === 'brown' ? 'bg-zen-kitsune-500' : 'bg-zen-stone-400'
-                                }`} />
-                                <span>{input.material}</span>
-                                {input.quantity && <span className="text-zen-stone-400">({input.quantity})</span>}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Recent Events */}
-                      {pile.events.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Recent Events</h4>
-                          <div className="space-y-1">
-                            {pile.events.slice(-5).reverse().map(event => (
-                              <div key={event.id} className="flex items-center gap-2 text-sm text-zen-stone-600 bg-zen-stone-50 px-2 py-1 rounded-zen">
-                                {event.type === 'turn' && <RotateCw className="w-3 h-3 text-zen-moss-500" />}
-                                {event.type === 'water' && <Droplets className="w-3 h-3 text-zen-water-500" />}
-                                {event.type === 'check-temp' && <ThermometerSun className="w-3 h-3 text-zen-kitsune-500" />}
-                                <span className="capitalize">{event.type.replace('-', ' ')}</span>
-                                {event.temperature && <span className="text-zen-kitsune-600">{event.temperature}°C</span>}
-                                <span className="text-zen-stone-400 ml-auto">
-                                  {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Notes */}
-                      {pile.notes && (
-                        <p className="text-sm text-zen-stone-500 italic">{pile.notes}</p>
-                      )}
-
-                      {/* Delete */}
-                      <button
-                        onClick={() => setPileToDelete(pile.id)}
-                        className="text-xs text-zen-ume-600 hover:text-zen-ume-700"
-                      >
-                        <Trash2 className="w-3 h-3 inline mr-1" />
-                        Delete pile
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )
             })}

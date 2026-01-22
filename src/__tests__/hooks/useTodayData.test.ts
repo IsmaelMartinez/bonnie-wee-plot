@@ -13,6 +13,11 @@ vi.mock('@/lib/vegetable-database', () => ({
   getVegetableById: vi.fn()
 }))
 
+// Mock task-generator
+vi.mock('@/lib/task-generator', () => ({
+  generateTasksForMonth: vi.fn().mockReturnValue([])
+}))
+
 import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 
@@ -38,6 +43,7 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -51,6 +57,7 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -70,6 +77,7 @@ describe('useTodayData', () => {
       currentSeason: { areas: [] },
       isLoading: false,
       getTasksForMonth: vi.fn().mockReturnValue(mockTasks),
+      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -94,6 +102,7 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -131,6 +140,7 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -167,6 +177,7 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     mockGetVegetableById.mockReturnValue({
@@ -193,6 +204,7 @@ describe('useTodayData', () => {
       currentSeason: null,
       isLoading: true,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -216,6 +228,7 @@ describe('useTodayData', () => {
       },
       isLoading: false,
       getTasksForMonth: () => [],
+      getAllAreas: () => [],
     })
 
     mockGetVegetableById.mockReturnValue(undefined) // Vegetable not found

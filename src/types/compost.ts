@@ -9,7 +9,7 @@
 /**
  * Type of compost system
  */
-export type CompostSystemType = 'hot-compost' | 'cold-compost' | 'tumbler' | 'bokashi' | 'worm-bin'
+export type CompostSystemType = 'hot-compost' | 'hotbin' | 'cold-compost' | 'tumbler' | 'bokashi' | 'worm-bin'
 
 /**
  * Status of a compost pile
