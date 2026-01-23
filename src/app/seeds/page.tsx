@@ -68,7 +68,8 @@ function SeedsPageContent() {
     isLoading,
     addVariety,
     updateVariety,
-    removeVariety,
+    archiveVariety,
+    unarchiveVariety,
     togglePlannedYear,
     toggleHaveSeedsForYear,
     getYears,
@@ -223,7 +224,7 @@ function SeedsPageContent() {
   }
 
   const handleDeleteVariety = (id: string) => {
-    removeVariety(id)
+    archiveVariety(id)
     setConfirmDelete(null)
   }
 
@@ -373,6 +374,8 @@ function SeedsPageContent() {
                   ? 'text-zen-ume-600 hover:text-zen-ume-700'
                   : 'text-zen-stone-500 hover:text-zen-stone-700'
               }`}
+              aria-label={showArchived ? 'Hide archived varieties' : 'Show archived varieties'}
+              aria-pressed={showArchived}
             >
               {showArchived ? 'Hide archived' : 'Show archived'}
             </button>
@@ -457,8 +460,9 @@ function SeedsPageContent() {
                         const config = statusConfig[status]
                         const Icon = config.icon
                         const isPlannedForSelectedYear = selectedYear !== 'all' && v.plannedYears.includes(selectedYear)
+                        const isArchived = v.isArchived === true
                         return (
-                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
+                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${isArchived ? 'opacity-50' : selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
                             {selectedYear === 'all' ? (
                               <div
                                 className="mt-0.5 px-2 py-1 rounded-zen bg-zen-stone-100 text-zen-stone-500 text-xs font-medium cursor-not-allowed flex items-center gap-1"
@@ -480,6 +484,11 @@ function SeedsPageContent() {
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
                                 <span className="font-medium text-zen-ink-700">{v.name}</span>
+                                {isArchived && (
+                                  <span className="px-2 py-0.5 text-xs bg-zen-stone-200 text-zen-stone-600 rounded-zen">
+                                    Archived
+                                  </span>
+                                )}
                                 {v.supplier && (
                                   <span className="text-sm text-zen-stone-500">
                                     {SUPPLIER_URLS[v.supplier] ? (
@@ -552,13 +561,21 @@ function SeedsPageContent() {
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
-                              {confirmDelete === v.id ? (
+                              {isArchived ? (
+                                <button
+                                  onClick={() => unarchiveVariety(v.id)}
+                                  className="px-2 py-1 text-xs bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200"
+                                  title="Restore variety"
+                                >
+                                  Restore
+                                </button>
+                              ) : confirmDelete === v.id ? (
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleDeleteVariety(v.id)}
                                     className="px-2 py-1 text-xs bg-zen-ume-600 text-white rounded-zen hover:bg-zen-ume-700"
                                   >
-                                    Delete
+                                    Archive
                                   </button>
                                   <button
                                     onClick={() => setConfirmDelete(null)}
@@ -571,7 +588,7 @@ function SeedsPageContent() {
                                 <button
                                   onClick={() => setConfirmDelete(v.id)}
                                   className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-ume-100 hover:text-zen-ume-600 transition"
-                                  title="Delete variety"
+                                  title="Archive variety"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

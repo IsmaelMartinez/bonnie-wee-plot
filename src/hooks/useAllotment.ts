@@ -105,8 +105,8 @@ import {
   logHarvest as storageLogHarvest,
   getHarvestTotal,
 } from '@/services/allotment-storage'
-import { syncPlantingToVariety } from '@/services/variety-allotment-sync'
 import { STORAGE_KEY } from '@/types/unified-allotment'
+import { generateId } from '@/lib/utils/id'
 import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
 
 // Re-export SaveStatus for backward compatibility
@@ -363,34 +363,98 @@ export function useAllotment(): UseAllotmentReturn {
     if (!data) return
 
     // Add planting to allotment storage
-    const updatedData = storageAddPlanting(data, selectedYear, bedId, planting)
-    setData(updatedData)
+    let updatedData = storageAddPlanting(data, selectedYear, bedId, planting)
 
-    // Sync to variety storage
-    const areaSeason = storageGetAreaSeason(updatedData, selectedYear, bedId)
-    const addedPlanting = areaSeason?.plantings[areaSeason.plantings.length - 1]
+    // Inline variety sync (no separate storage)
+    if (planting.varietyName) {
+      const normalizedName = planting.varietyName.trim().toLowerCase().replace(/\s+/g, ' ')
 
-    if (addedPlanting) {
-      syncPlantingToVariety(addedPlanting, selectedYear)
+      const variety = updatedData.varieties.find(v =>
+        v.plantId === planting.plantId &&
+        v.name.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedName
+      )
+
+      if (!variety) {
+        // Auto-create variety
+        updatedData = {
+          ...updatedData,
+          varieties: [
+            ...updatedData.varieties,
+            {
+              id: generateId('variety'),
+              plantId: planting.plantId,
+              name: planting.varietyName,
+              notes: '(Auto-created from planting)',
+              plannedYears: [selectedYear],
+              seedsByYear: {},
+              isArchived: false
+            }
+          ]
+        }
+      } else if (!variety.plannedYears.includes(selectedYear)) {
+        // Add year to existing variety
+        updatedData = {
+          ...updatedData,
+          varieties: updatedData.varieties.map(v =>
+            v.id === variety.id
+              ? { ...v, plannedYears: [...v.plannedYears, selectedYear].sort() }
+              : v
+          )
+        }
+      }
     }
+
+    setData(updatedData)
   }, [data, selectedYear, setData])
 
   const addPlantings = useCallback((bedId: PhysicalBedId, plantings: NewPlanting[]) => {
     if (!data || plantings.length === 0) return
 
     // Add all plantings in a single state update
-    const updatedData = storageAddPlantings(data, selectedYear, bedId, plantings)
-    setData(updatedData)
+    let updatedData = storageAddPlantings(data, selectedYear, bedId, plantings)
 
-    // Sync each added planting to variety storage
-    const areaSeason = storageGetAreaSeason(updatedData, selectedYear, bedId)
-    if (areaSeason) {
-      // Get the newly added plantings (last N items)
-      const addedPlantings = areaSeason.plantings.slice(-plantings.length)
-      addedPlantings.forEach(planting => {
-        syncPlantingToVariety(planting, selectedYear)
-      })
-    }
+    // Sync each planting's variety (inline, no separate storage)
+    plantings.forEach(planting => {
+      if (planting.varietyName) {
+        const normalizedName = planting.varietyName.trim().toLowerCase().replace(/\s+/g, ' ')
+
+        const variety = updatedData.varieties.find(v =>
+          v.plantId === planting.plantId &&
+          v.name.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedName
+        )
+
+        if (!variety) {
+          // Auto-create variety
+          updatedData = {
+            ...updatedData,
+            varieties: [
+              ...updatedData.varieties,
+              {
+                id: generateId('variety'),
+                plantId: planting.plantId,
+                name: planting.varietyName,
+                notes: '(Auto-created from planting)',
+                plannedYears: [selectedYear],
+                seedsByYear: {},
+                isArchived: false
+              }
+            ]
+          }
+        } else if (!variety.plannedYears.includes(selectedYear)) {
+          // Add year to existing variety
+          updatedData = {
+            ...updatedData,
+            varieties: updatedData.varieties.map(v =>
+              v.id === variety.id
+                ? { ...v, plannedYears: [...v.plannedYears, selectedYear].sort() }
+                : v
+            )
+          }
+        }
+      }
+    })
+
+    setData(updatedData)
   }, [data, selectedYear, setData])
 
   const updatePlanting = useCallback((bedId: PhysicalBedId, plantingId: string, updates: PlantingUpdate) => {
