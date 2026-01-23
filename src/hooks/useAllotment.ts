@@ -108,6 +108,7 @@ import {
 import { STORAGE_KEY } from '@/types/unified-allotment'
 import { generateId } from '@/lib/utils/id'
 import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
+import { normalizeVarietyName } from '@/lib/variety-queries'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from './usePersistedStorage'
@@ -367,11 +368,11 @@ export function useAllotment(): UseAllotmentReturn {
 
     // Inline variety sync (no separate storage)
     if (planting.varietyName) {
-      const normalizedName = planting.varietyName.trim().toLowerCase().replace(/\s+/g, ' ')
+      const normalizedName = normalizeVarietyName(planting.varietyName)
 
       const variety = updatedData.varieties.find(v =>
         v.plantId === planting.plantId &&
-        v.name.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedName
+        normalizeVarietyName(v.name) === normalizedName
       )
 
       if (!variety) {
@@ -416,11 +417,11 @@ export function useAllotment(): UseAllotmentReturn {
     // Sync each planting's variety (inline, no separate storage)
     plantings.forEach(planting => {
       if (planting.varietyName) {
-        const normalizedName = planting.varietyName.trim().toLowerCase().replace(/\s+/g, ' ')
+        const normalizedName = normalizeVarietyName(planting.varietyName)
 
         const variety = updatedData.varieties.find(v =>
           v.plantId === planting.plantId &&
-          v.name.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedName
+          normalizeVarietyName(v.name) === normalizedName
         )
 
         if (!variety) {

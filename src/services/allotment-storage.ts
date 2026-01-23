@@ -2583,10 +2583,24 @@ export function getTotalSpendForYear(data: AllotmentData, year: number): number 
 export function getAvailableVarietyYears(data: AllotmentData): number[] {
   const years = new Set<number>()
 
-  // Collect years from all varieties by computing from plantings
+  // Collect years from all varieties
   for (const variety of data.varieties || []) {
+    // Years where the variety is actually used in plantings
     const usedYears = getVarietyUsedYears(variety.id, data)
     usedYears.forEach(y => years.add(y))
+
+    // Years where the variety is planned but may not yet have plantings
+    const plannedYears = variety.plannedYears || []
+    plannedYears.forEach(y => years.add(y))
+
+    // Years that appear in seed status data
+    const seedsByYear = variety.seedsByYear || {}
+    for (const yearKey of Object.keys(seedsByYear)) {
+      const yearNum = Number(yearKey)
+      if (!Number.isNaN(yearNum)) {
+        years.add(yearNum)
+      }
+    }
   }
 
   return [...years].sort((a, b) => b - a)
