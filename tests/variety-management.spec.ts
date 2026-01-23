@@ -48,6 +48,20 @@ async function waitForImportComplete(page: Page) {
 
   // Verify we're back on the allotment page
   await expect(page.locator('h1')).toBeVisible({ timeout: 5000 })
+
+  // Wait for data to be available in localStorage after import and reload
+  // This ensures schema migration has completed and varieties have been loaded
+  await page.waitForFunction(() => {
+    const raw = localStorage.getItem('allotment-unified-data')
+    if (!raw) return false
+    try {
+      const data = JSON.parse(raw)
+      // Check that data has required fields and version exists
+      return data.version && data.meta && Array.isArray(data.varieties)
+    } catch {
+      return false
+    }
+  }, { timeout: 15000 })
 }
 
 // Helper to get allotment data from localStorage
@@ -350,6 +364,10 @@ test.describe('Variety Management E2E', () => {
 
       await waitForImportComplete(page)
 
+      // Reload page to ensure all migration has completed
+      await page.reload({ waitUntil: 'load', timeout: 60000 })
+      await page.waitForLoadState('networkidle', { timeout: 30000 })
+
       const importDuration = Date.now() - startImport
 
       // Import should complete in reasonable time
@@ -583,6 +601,10 @@ test.describe('Variety Management E2E', () => {
       await fileChooser.setFiles(tempFile)
 
       await waitForImportComplete(page)
+
+      // Reload page to ensure all migration has completed
+      await page.reload({ waitUntil: 'load', timeout: 60000 })
+      await page.waitForLoadState('networkidle', { timeout: 30000 })
 
       // Verify data migrated to v13
       const data = await getAllotmentData(page)
