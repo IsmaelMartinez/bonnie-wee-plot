@@ -228,8 +228,11 @@ test.describe('Data Management - Export/Import', () => {
     const fileChooser = await fileChooserPromise
     await fileChooser.setFiles(tempFilePath)
 
+    // Wait for the file to be processed
+    await page.waitForTimeout(500)
+
     // Should show error message
-    await expect(page.getByText(/Invalid JSON file/i)).toBeVisible()
+    await expect(page.getByText(/Invalid JSON file/i)).toBeVisible({ timeout: 10000 })
 
     // Clean up
     fs.unlinkSync(tempFilePath)

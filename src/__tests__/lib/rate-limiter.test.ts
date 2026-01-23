@@ -6,6 +6,8 @@ describe('RateLimiter', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
+    // Clear sessionStorage before each test
+    sessionStorage.clear()
     rateLimiter = new RateLimiter({
       maxRequests: 3,
       windowMs: 60000, // 1 minute
@@ -15,6 +17,7 @@ describe('RateLimiter', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    sessionStorage.clear()
   })
 
   describe('canRequest', () => {
