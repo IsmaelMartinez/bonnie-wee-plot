@@ -1,4 +1,8 @@
 import { vi, beforeEach } from 'vitest'
+import React from 'react'
+
+// Make React available globally (for Next.js client components that don't import React)
+Object.defineProperty(global, 'React', { value: React })
 
 // Mock localStorage
 const localStorageMock = {
