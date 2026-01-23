@@ -464,7 +464,7 @@ describe('v11 to v12 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(12)
+    expect(result.data?.version).toBe(13)
     const planting = result.data?.seasons[0].areas[0].plantings[0]
     expect(planting?.actualHarvestStart).toBe('2025-07-15')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -564,5 +564,122 @@ describe('v11 to v12 migration', () => {
     expect(planting?.notes).toBe('Test notes')
     expect(planting?.quantity).toBe(24)
     expect(planting?.sowMethod).toBe('outdoor')
+  })
+})
+
+describe('v12 to v13 migration', () => {
+  beforeEach(() => {
+    vi.mocked(localStorage.getItem).mockClear()
+    vi.mocked(localStorage.setItem).mockClear()
+  })
+
+  it('should remove yearsUsed from varieties', () => {
+    const v12Data = createValidAllotmentData({
+      version: 12,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          yearsUsed: [2023, 2024],
+          plannedYears: [2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.version).toBe(13)
+    const variety = result.data?.varieties[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((variety as any)?.yearsUsed).toBeUndefined()
+  })
+
+  it('should preserve all other variety fields', () => {
+    const v12Data = createValidAllotmentData({
+      version: 12,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          supplier: 'Test Supplier',
+          price: 2.99,
+          notes: 'Test notes',
+          yearsUsed: [2024],
+          plannedYears: [2025],
+          seedsByYear: { 2026: 'have' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    const variety = result.data?.varieties[0]
+    expect(variety?.id).toBe('v1')
+    expect(variety?.plantId).toBe('peas')
+    expect(variety?.name).toBe('Kelvedon Wonder')
+    expect(variety?.supplier).toBe('Test Supplier')
+    expect(variety?.price).toBe(2.99)
+    expect(variety?.notes).toBe('Test notes')
+    expect(variety?.plannedYears).toEqual([2025])
+    expect(variety?.seedsByYear).toEqual({ 2026: 'have' })
+  })
+
+  it('should handle empty varieties array', () => {
+    const v12Data = createValidAllotmentData({
+      version: 12,
+      varieties: []
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.version).toBe(13)
+    expect(result.data?.varieties).toEqual([])
+  })
+
+  it('should handle multiple varieties', () => {
+    const v12Data = createValidAllotmentData({
+      version: 12,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          yearsUsed: [2023, 2024],
+          plannedYears: [],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
+        {
+          id: 'v2',
+          plantId: 'tomato',
+          name: 'San Marzano',
+          yearsUsed: [2024],
+          plannedYears: [2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties.length).toBe(2)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((result.data?.varieties[0] as any)?.yearsUsed).toBeUndefined()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((result.data?.varieties[1] as any)?.yearsUsed).toBeUndefined()
   })
 })

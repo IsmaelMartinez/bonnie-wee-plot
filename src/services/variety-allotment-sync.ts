@@ -57,8 +57,8 @@ function ensureYearInPlannedYears(
     varieties: data.varieties.map(v => {
       if (v.id !== varietyId) return v
 
-      // Don't add if already in plannedYears or yearsUsed
-      if (v.plannedYears.includes(year) || v.yearsUsed.includes(year)) {
+      // Don't add if already in plannedYears
+      if (v.plannedYears.includes(year)) {
         return v
       }
 
@@ -85,7 +85,6 @@ function createVarietyFromPlanting(
     supplier: undefined,
     price: undefined,
     notes: '(Auto-created from allotment planting)',
-    yearsUsed: [],
     plannedYears: [year],
     seedsByYear: {},  // Initialize empty
   }

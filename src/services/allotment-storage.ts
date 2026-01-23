@@ -49,6 +49,10 @@ import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
 import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/storage-detection'
 import { logger } from '@/lib/logger'
+import {
+  getVarietyUsedYears,
+  getVarietiesForYear as getVarietiesForYearComputed,
+} from '@/lib/variety-queries'
 // Note: variety-allotment-sync.ts removed - varieties now embedded in AllotmentData
 
 // Import legacy data for migration (empty arrays for fresh start, but needed for old data migrations)
@@ -682,9 +686,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 11 -> 12: Add SowMethod and rename harvestDate
   if (migrated.version < 12) {
     const v12Data = migrateToV12(migrated)
-    v12Data.version = CURRENT_SCHEMA_VERSION
+    v12Data.version = 12
     console.log('Migrated to schema v12: added SowMethod and calculated harvest fields')
-    return v12Data
+    // Continue to v13 migration
+    return migrateSchema(v12Data)
+  }
+
+  // Version 12 -> 13: Remove yearsUsed from StoredVariety (computed from plantings)
+  if (migrated.version < 13) {
+    const v13Data = migrateToV13(migrated)
+    v13Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v13: removed yearsUsed from StoredVariety')
+    return v13Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -1089,6 +1102,25 @@ function migrateToV12(data: AllotmentData): AllotmentData {
       }),
     })),
   }))
+
+  return migrated
+}
+
+/**
+ * Migrate from v12 to v13: Remove yearsUsed from StoredVariety
+ * - Remove yearsUsed field (now computed from plantings via variety-queries)
+ */
+function migrateToV13(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // Remove yearsUsed from varieties
+  if (migrated.varieties) {
+    migrated.varieties = migrated.varieties.map(variety => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      const { yearsUsed, ...rest } = variety as any
+      return rest as StoredVariety
+    })
+  }
 
   return migrated
 }
@@ -2349,7 +2381,6 @@ export function addVariety(data: AllotmentData, variety: NewVariety): AllotmentD
     supplier: variety.supplier,
     price: variety.price,
     notes: variety.notes,
-    yearsUsed: [],
     plannedYears: variety.plannedYears || [],
     seedsByYear: variety.seedsByYear || {},
   }
@@ -2463,9 +2494,8 @@ export function hasSeedsForYear(variety: StoredVariety, year: number): boolean {
  * Get varieties planned or used for a specific year
  */
 export function getVarietiesForYear(data: AllotmentData, year: number): StoredVariety[] {
-  return (data.varieties || []).filter(
-    v => v.yearsUsed.includes(year) || v.plannedYears.includes(year)
-  )
+  // Use computed query instead of yearsUsed field
+  return getVarietiesForYearComputed(year, data)
 }
 
 /**
@@ -2482,11 +2512,9 @@ export function getSuppliers(data: AllotmentData): string[] {
  * Calculate total spend for varieties used or planned in a specific year
  */
 export function getTotalSpendForYear(data: AllotmentData, year: number): number {
-  return (data.varieties || [])
-    .filter(v =>
-      (v.yearsUsed.includes(year) || v.plannedYears.includes(year)) &&
-      v.price !== undefined
-    )
+  const varietiesForYear = getVarietiesForYearComputed(year, data)
+  return varietiesForYear
+    .filter(v => v.price !== undefined)
     .reduce((sum, v) => sum + (v.price || 0), 0)
 }
 
@@ -2495,10 +2523,13 @@ export function getTotalSpendForYear(data: AllotmentData, year: number): number 
  */
 export function getAvailableVarietyYears(data: AllotmentData): number[] {
   const years = new Set<number>()
-  for (const v of data.varieties || []) {
-    v.yearsUsed.forEach(y => years.add(y))
-    v.plannedYears.forEach(y => years.add(y))
+
+  // Collect years from all varieties by computing from plantings
+  for (const variety of data.varieties || []) {
+    const usedYears = getVarietyUsedYears(variety.id, data)
+    usedYears.forEach(y => years.add(y))
   }
+
   return [...years].sort((a, b) => b - a)
 }
 

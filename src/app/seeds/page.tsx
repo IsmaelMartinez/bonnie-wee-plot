@@ -22,6 +22,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
+import { getVarietyUsedYears } from '@/lib/variety-queries'
 
 const SUPPLIER_URLS: Record<string, string> = {
   'Organic Gardening': 'https://www.organiccatalogue.com/',
@@ -115,11 +116,14 @@ function SeedsPageContent() {
       return data.varieties || []
     }
     // Filter varieties for the selected year
-    return (data.varieties || []).filter(v =>
-      v.plannedYears.includes(selectedYear) ||
-      (v.seedsByYear && selectedYear in v.seedsByYear) ||
-      v.yearsUsed.includes(selectedYear)
-    )
+    return (data.varieties || []).filter(v => {
+      const yearsUsed = getVarietyUsedYears(v.id, data)
+      return (
+        v.plannedYears.includes(selectedYear) ||
+        (v.seedsByYear && selectedYear in v.seedsByYear) ||
+        yearsUsed.includes(selectedYear)
+      )
+    })
   }, [data, selectedYear])
 
   const suppliers = useMemo(() => {
@@ -312,7 +316,10 @@ function SeedsPageContent() {
               <div className="text-2xl font-bold text-zen-kitsune-600">
                 £{(() => {
                   const total = (data.varieties || [])
-                    .filter(v => v.yearsUsed.includes(CURRENT_YEAR - 1))
+                    .filter(v => {
+                      const yearsUsed = getVarietyUsedYears(v.id, data)
+                      return yearsUsed.includes(CURRENT_YEAR - 1)
+                    })
                     .reduce((sum, v) => sum + (v.price || 0), 0)
                   return total.toFixed(2)
                 })()}
@@ -324,7 +331,10 @@ function SeedsPageContent() {
             <div className="text-2xl font-bold text-zen-kitsune-600">
               £{(() => {
                 const total = (data.varieties || [])
-                  .filter(v => v.yearsUsed.includes(CURRENT_YEAR))
+                  .filter(v => {
+                    const yearsUsed = getVarietyUsedYears(v.id, data)
+                    return yearsUsed.includes(CURRENT_YEAR)
+                  })
                   .reduce((sum, v) => sum + (v.price || 0), 0)
                 return total.toFixed(2)
               })()}
@@ -475,15 +485,21 @@ function SeedsPageContent() {
                                 )}
                               </div>
                               <div className="text-sm text-zen-stone-500 flex flex-wrap gap-x-3">
-                                {v.yearsUsed.length > 0 && (
-                                  <span>Used: {v.yearsUsed.join(', ')}</span>
-                                )}
+                                {(() => {
+                                  const yearsUsed = getVarietyUsedYears(v.id, data)
+                                  return yearsUsed.length > 0 && (
+                                    <span>Used: {yearsUsed.join(', ')}</span>
+                                  )
+                                })()}
                                 {v.plannedYears.length > 0 && (
                                   <span className="text-zen-water-600">Planned: {v.plannedYears.join(', ')}</span>
                                 )}
-                                {v.yearsUsed.length === 0 && v.plannedYears.length === 0 && (
-                                  <span className="text-zen-ume-600">Not used yet</span>
-                                )}
+                                {(() => {
+                                  const yearsUsed = getVarietyUsedYears(v.id, data)
+                                  return yearsUsed.length === 0 && v.plannedYears.length === 0 && (
+                                    <span className="text-zen-ume-600">Not used yet</span>
+                                  )
+                                })()}
                               </div>
                               {v.notes && (() => {
                                 const isWarning = /rotten|poor|failed|bad|damaged|diseased/i.test(v.notes)

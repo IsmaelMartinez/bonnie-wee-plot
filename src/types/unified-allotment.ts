@@ -395,7 +395,6 @@ export interface StoredVariety {
   supplier?: string
   price?: number
   notes?: string
-  yearsUsed: number[]                // Historical record of years used
   plannedYears: number[]             // @deprecated - inferred from plantings in allotment
   available?: boolean                // If true, available for selection in any year
   seedsByYear: Record<number, SeedStatus>  // Per-year inventory status
@@ -425,7 +424,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 12 // Added SowMethod and calculated harvest fields
+export const CURRENT_SCHEMA_VERSION = 13 // Removed yearsUsed from StoredVariety (computed from plantings)
 
 // ============ HELPER TYPES ============
 

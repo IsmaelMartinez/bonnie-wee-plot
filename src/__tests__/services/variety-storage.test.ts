@@ -117,7 +117,7 @@ describe('Initialization', () => {
 
   it('returns existing data if already stored', () => {
     const existingData = createValidVarietyData({
-      varieties: [{ id: 'test-1', plantId: 'peas', name: 'Test Pea', yearsUsed: [], plannedYears: [], seedsByYear: {} }],
+      varieties: [{ id: 'test-1', plantId: 'peas', name: 'Test Pea', plannedYears: [], seedsByYear: {} }],
     })
     vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(existingData))
 
@@ -144,7 +144,6 @@ describe('CRUD Operations', () => {
     expect(updated.varieties[0].plantId).toBe('peas')
     expect(updated.varieties[0].supplier).toBe('Test Supplier')
     expect(updated.varieties[0].id).toContain('variety-')
-    expect(updated.varieties[0].yearsUsed).toEqual([])
     expect(updated.varieties[0].plannedYears).toEqual([])
   })
 
@@ -166,7 +165,6 @@ describe('CRUD Operations', () => {
         id: 'v-1',
         plantId: 'peas',
         name: 'Original Name',
-        yearsUsed: [2024],
         plannedYears: [],
         seedsByYear: {},
       }],
@@ -179,14 +177,13 @@ describe('CRUD Operations', () => {
 
     expect(updated.varieties[0].name).toBe('Updated Name')
     expect(updated.varieties[0].notes).toBe('New notes')
-    expect(updated.varieties[0].yearsUsed).toEqual([2024])
   })
 
   it('removes a variety', () => {
     const data = createValidVarietyData({
       varieties: [
-        { id: 'v-1', plantId: 'peas', name: 'Variety 1', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-2', plantId: 'beans', name: 'Variety 2', yearsUsed: [], plannedYears: [], seedsByYear: {} },
+        { id: 'v-1', plantId: 'peas', name: 'Variety 1', plannedYears: [], seedsByYear: {} },
+        { id: 'v-2', plantId: 'beans', name: 'Variety 2', plannedYears: [], seedsByYear: {} },
       ],
     })
 
@@ -204,7 +201,6 @@ describe('Year Planning', () => {
         id: 'v-1',
         plantId: 'peas',
         name: 'Peas',
-        yearsUsed: [],
         plannedYears: [],
         seedsByYear: {},
       }],
@@ -221,7 +217,6 @@ describe('Year Planning', () => {
         id: 'v-1',
         plantId: 'peas',
         name: 'Peas',
-        yearsUsed: [],
         plannedYears: [2025],
         seedsByYear: {},
       }],
@@ -238,7 +233,6 @@ describe('Year Planning', () => {
         id: 'v-1',
         plantId: 'peas',
         name: 'Peas',
-        yearsUsed: [],
         plannedYears: [2027],
         seedsByYear: {},
       }],
@@ -252,10 +246,10 @@ describe('Year Planning', () => {
   it('gets varieties for year including both used and planned', () => {
     const data = createValidVarietyData({
       varieties: [
-        { id: 'v-1', plantId: 'peas', name: 'Used in 2024', yearsUsed: [2024], plannedYears: [], seedsByYear: {} },
-        { id: 'v-2', plantId: 'beans', name: 'Planned for 2025', yearsUsed: [], plannedYears: [2025], seedsByYear: {} },
-        { id: 'v-3', plantId: 'carrots', name: 'Both', yearsUsed: [2025], plannedYears: [2025], seedsByYear: {} },
-        { id: 'v-4', plantId: 'onions', name: 'Neither', yearsUsed: [], plannedYears: [], seedsByYear: {} },
+        { id: 'v-1', plantId: 'peas', name: 'Used in 2024', plannedYears: [2024], seedsByYear: {} },
+        { id: 'v-2', plantId: 'beans', name: 'Planned for 2025', plannedYears: [2025], seedsByYear: {} },
+        { id: 'v-3', plantId: 'carrots', name: 'Both', plannedYears: [2025], seedsByYear: {} },
+        { id: 'v-4', plantId: 'onions', name: 'Neither', plannedYears: [], seedsByYear: {} },
       ],
     })
 
@@ -270,7 +264,7 @@ describe('Year Planning', () => {
 describe('Have Seeds (Per Year)', () => {
   it('toggles have seeds to ordered for a specific year', () => {
     const data = createValidVarietyData({
-      varieties: [{ id: 'v-1', plantId: 'peas', name: 'Peas', yearsUsed: [], plannedYears: [], seedsByYear: {} }],
+      varieties: [{ id: 'v-1', plantId: 'peas', name: 'Peas', plannedYears: [], seedsByYear: {} }],
     })
 
     const updated = toggleHaveSeedsForYear(data, 'v-1', 2026)
@@ -280,7 +274,7 @@ describe('Have Seeds (Per Year)', () => {
 
   it('cycles seed status through states', () => {
     const data = createValidVarietyData({
-      varieties: [{ id: 'v-1', plantId: 'peas', name: 'Peas', yearsUsed: [], plannedYears: [], seedsByYear: {} }],
+      varieties: [{ id: 'v-1', plantId: 'peas', name: 'Peas', plannedYears: [], seedsByYear: {} }],
     })
 
     // none -> ordered
@@ -309,9 +303,9 @@ describe('Query Functions', () => {
   it('gets varieties by vegetable', () => {
     const data = createValidVarietyData({
       varieties: [
-        { id: 'v-1', plantId: 'peas', name: 'Pea 1', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-2', plantId: 'peas', name: 'Pea 2', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-3', plantId: 'beans', name: 'Bean 1', yearsUsed: [], plannedYears: [], seedsByYear: {} },
+        { id: 'v-1', plantId: 'peas', name: 'Pea 1', plannedYears: [], seedsByYear: {} },
+        { id: 'v-2', plantId: 'peas', name: 'Pea 2', plannedYears: [], seedsByYear: {} },
+        { id: 'v-3', plantId: 'beans', name: 'Bean 1', plannedYears: [], seedsByYear: {} },
       ],
     })
 
@@ -324,10 +318,10 @@ describe('Query Functions', () => {
   it('gets unique sorted suppliers', () => {
     const data = createValidVarietyData({
       varieties: [
-        { id: 'v-1', plantId: 'peas', name: 'Pea 1', supplier: 'Supplier B', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-2', plantId: 'beans', name: 'Bean 1', supplier: 'Supplier A', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-3', plantId: 'carrots', name: 'Carrot 1', supplier: 'Supplier B', yearsUsed: [], plannedYears: [], seedsByYear: {} },
-        { id: 'v-4', plantId: 'onions', name: 'Onion 1', yearsUsed: [], plannedYears: [], seedsByYear: {} },
+        { id: 'v-1', plantId: 'peas', name: 'Pea 1', supplier: 'Supplier B', plannedYears: [], seedsByYear: {} },
+        { id: 'v-2', plantId: 'beans', name: 'Bean 1', supplier: 'Supplier A', plannedYears: [], seedsByYear: {} },
+        { id: 'v-3', plantId: 'carrots', name: 'Carrot 1', supplier: 'Supplier B', plannedYears: [], seedsByYear: {} },
+        { id: 'v-4', plantId: 'onions', name: 'Onion 1', plannedYears: [], seedsByYear: {} },
       ],
     })
 
@@ -339,10 +333,10 @@ describe('Query Functions', () => {
   it('calculates total spend for year', () => {
     const data = createValidVarietyData({
       varieties: [
-        { id: 'v-1', plantId: 'peas', name: 'Pea 1', price: 2.99, yearsUsed: [2024], plannedYears: [], seedsByYear: {} },
-        { id: 'v-2', plantId: 'beans', name: 'Bean 1', price: 3.50, yearsUsed: [2024], plannedYears: [], seedsByYear: {} },
-        { id: 'v-3', plantId: 'carrots', name: 'Carrot 1', price: 1.99, yearsUsed: [2025], plannedYears: [], seedsByYear: {} },
-        { id: 'v-4', plantId: 'onions', name: 'Onion 1', yearsUsed: [2024], plannedYears: [], seedsByYear: {} },
+        { id: 'v-1', plantId: 'peas', name: 'Pea 1', price: 2.99, plannedYears: [2024], seedsByYear: {} },
+        { id: 'v-2', plantId: 'beans', name: 'Bean 1', price: 3.50, plannedYears: [2024], seedsByYear: {} },
+        { id: 'v-3', plantId: 'carrots', name: 'Carrot 1', price: 1.99, plannedYears: [2025], seedsByYear: {} },
+        { id: 'v-4', plantId: 'onions', name: 'Onion 1', plannedYears: [2024], seedsByYear: {} },
       ],
     })
 

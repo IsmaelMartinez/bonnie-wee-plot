@@ -134,7 +134,6 @@ export function addVariety(data: VarietyData, variety: NewVariety): VarietyData 
     supplier: variety.supplier,
     price: variety.price,
     notes: variety.notes,
-    yearsUsed: [],
     plannedYears: variety.plannedYears || [],
     seedsByYear: {},  // Initialize empty - user will mark seeds per year
   }
@@ -199,10 +198,11 @@ export function togglePlannedYear(
 
 /**
  * Get varieties planned for a specific year (either used or planned)
+ * Note: yearsUsed removed in v13, now only uses plannedYears
  */
 export function getVarietiesForYear(data: VarietyData, year: number): StoredVariety[] {
   return data.varieties.filter(
-    v => v.yearsUsed.includes(year) || v.plannedYears.includes(year)
+    v => v.plannedYears.includes(year)
   )
 }
 
@@ -275,10 +275,11 @@ export function getVarietiesWithSeedsForYear(data: VarietyData, year: number): S
 /**
  * Get varieties that need seeds for a specific year
  * (planned or used but don't have seeds)
+ * Note: yearsUsed removed in v13, now only uses plannedYears
  */
 export function getVarietiesNeedingSeedsForYear(data: VarietyData, year: number): StoredVariety[] {
   return data.varieties.filter(v =>
-    (v.plannedYears.includes(year) || v.yearsUsed.includes(year)) &&
+    v.plannedYears.includes(year) &&
     needsSeedsForYear(v, year)
   )
 }
@@ -307,11 +308,12 @@ export function getSuppliers(data: VarietyData): string[] {
 
 /**
  * Calculate total spend for varieties used or planned in a specific year
+ * Note: yearsUsed removed in v13, now only uses plannedYears
  */
 export function getTotalSpendForYear(data: VarietyData, year: number): number {
   return data.varieties
     .filter(v =>
-      (v.yearsUsed.includes(year) || v.plannedYears.includes(year)) &&
+      v.plannedYears.includes(year) &&
       v.price !== undefined
     )
     .reduce((sum, v) => sum + (v.price || 0), 0)

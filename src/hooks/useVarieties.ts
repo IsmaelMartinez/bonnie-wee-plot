@@ -154,9 +154,6 @@ export function useVarieties(): UseVarietiesReturn {
           yearsSet.add(parseInt(yearStr))
         })
       }
-
-      // Add years from yearsUsed
-      v.yearsUsed.forEach(year => yearsSet.add(year))
     })
 
     // If no years found, add current and next year as defaults
