@@ -1,41 +1,21 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
 import { CompostData } from '@/types/compost'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, loadAllotmentData } from '@/services/allotment-storage'
-import { STORAGE_KEY } from '@/types/unified-allotment'
 import { loadVarietyData } from '@/services/variety-storage'
 import { loadCompostData, saveCompostData } from '@/services/compost-storage'
+import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
+import { ImportError, ExportError } from '@/types/errors'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface DataManagementProps {
   data: AllotmentData | null
   onDataImported: () => void
   flushSave?: () => Promise<boolean>
-}
-
-/**
- * Create a backup of current data before import
- * This is a safety measure to prevent accidental data loss
- */
-function createPreImportBackup(): boolean {
-  if (typeof window === 'undefined') return false
-
-  try {
-    const result = loadAllotmentData()
-    if (!result.success || !result.data) return false
-
-    const backupKey = `${STORAGE_KEY}-pre-import-${Date.now()}`
-    localStorage.setItem(backupKey, JSON.stringify(result.data))
-    console.log(`Created pre-import backup: ${backupKey}`)
-    return true
-  } catch (error) {
-    console.error('Failed to create pre-import backup:', error)
-    return false
-  }
 }
 
 /**
@@ -99,18 +79,26 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
 export default function DataManagement({ data, onDataImported, flushSave }: DataManagementProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
+  const [importError, setImportError] = useState<ImportError | null>(null)
   const [importSuccess, setImportSuccess] = useState(false)
+  const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   // Get storage statistics
   const stats = getStorageStats()
+  const quota = checkStorageQuota()
 
   // Export data as JSON file (includes allotment, varieties, and compost)
   const handleExport = useCallback(() => {
     if (!data) return
 
     try {
+      // Check storage quota before export and warn if high
+      const currentQuota = checkStorageQuota()
+      if (currentQuota.percentageUsed > 80) {
+        console.warn(`Storage usage is at ${currentQuota.percentageUsed.toFixed(1)}% - consider clearing old data`)
+      }
+
       // Load varieties data
       const varietyResult = loadVarietyData()
       const varieties = varietyResult.success && varietyResult.data ? varietyResult.data : {
@@ -149,6 +137,12 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Export failed:', error)
+      throw new ExportError(
+        'Failed to export data',
+        'EXPORT_FAILED',
+        true,
+        ['Try again', 'Check browser console for details']
+      )
     }
   }, [data])
 
@@ -159,12 +153,18 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
     setImportError(null)
     setImportSuccess(false)
+    setLastBackupKey(null)
 
     // Flush any pending saves before importing
     if (flushSave) {
       const flushed = await flushSave()
       if (!flushed) {
-        setImportError('Cannot import: pending changes failed to save. Please try again.')
+        setImportError(new ImportError(
+          'Cannot import while pending changes are being saved',
+          'FLUSH_FAILED',
+          true,
+          ['Wait a moment and try again', 'Refresh the page if the issue persists']
+        ))
         return
       }
     }
@@ -179,19 +179,43 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         try {
           parsed = JSON.parse(content)
         } catch {
-          setImportError('Invalid JSON file. Please select a valid backup file.')
+          setImportError(new ImportError(
+            'Invalid JSON file',
+            'INVALID_JSON',
+            true,
+            ['Ensure the file is a valid JSON export from this application', 'Try exporting a new backup']
+          ))
           return
         }
 
         // Validate data structure before proceeding
         const validation = validateImportData(parsed)
         if (!validation.valid) {
-          setImportError(validation.error || 'Invalid backup file')
+          const errorMsg = validation.error || 'Invalid backup file'
+          const code = errorMsg.includes('newer version') ? 'VERSION_MISMATCH' : 'INVALID_FORMAT'
+          const recoverable = !errorMsg.includes('newer version')
+          const suggestions = errorMsg.includes('newer version')
+            ? ['Update the application to the latest version', 'Use an older backup file']
+            : ['Check that the file is a valid backup', 'Try exporting a new backup']
+
+          setImportError(new ImportError(errorMsg, code, recoverable, suggestions))
           return
         }
 
         // Create backup of existing data before import
-        createPreImportBackup()
+        const backupResult = createPreImportBackup()
+        if (!backupResult.success) {
+          setImportError(new ImportError(
+            backupResult.error || 'Failed to create safety backup',
+            'BACKUP_FAILED',
+            false,
+            ['Free up storage space', 'Clear browser cache', 'Try a different browser']
+          ))
+          return
+        }
+
+        // Store backup key for potential restore
+        setLastBackupKey(backupResult.backupKey || null)
 
         let allotmentData: AllotmentData
         let varietyData: VarietyData | null = null
@@ -227,7 +251,17 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         const allotmentResult = saveAllotmentData(finalAllotmentData)
 
         if (!allotmentResult.success) {
-          setImportError(allotmentResult.error || 'Failed to save allotment data')
+          const errorMsg = allotmentResult.error || 'Failed to save allotment data'
+          const isQuotaError = errorMsg.toLowerCase().includes('quota')
+
+          setImportError(new ImportError(
+            errorMsg,
+            isQuotaError ? 'QUOTA_EXCEEDED' : 'SAVE_FAILED',
+            true,
+            isQuotaError
+              ? ['Free up storage space by deleting old backups', 'Clear browser cache', 'Export and save your data externally']
+              : ['Try again', 'Refresh the page', 'Check browser console for details']
+          ))
           return
         }
 
@@ -243,10 +277,17 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         // Verify data persisted correctly
         const verifyResult = loadAllotmentData()
         if (!verifyResult.success || !verifyResult.data) {
-          setImportError('Import verification failed: data did not persist correctly')
+          setImportError(new ImportError(
+            'Import verification failed: data did not persist correctly',
+            'VERIFICATION_FAILED',
+            true,
+            ['Use "Restore from backup" button below', 'Refresh the page and try again', 'Check browser storage settings']
+          ))
           return
         }
 
+        // Success! Clear the backup key
+        setLastBackupKey(null)
         setImportSuccess(true)
         setTimeout(() => {
           setImportSuccess(false)
@@ -255,12 +296,23 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         }, 1500)
       } catch (error) {
         console.error('Import failed:', error)
-        setImportError('Unexpected error during import. Please try again.')
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        setImportError(new ImportError(
+          `Unexpected error during import: ${errorMsg}`,
+          'UNEXPECTED_ERROR',
+          true,
+          ['Use "Restore from backup" button below', 'Try again with a different backup file', 'Check browser console for details']
+        ))
       }
     }
 
     reader.onerror = () => {
-      setImportError('Failed to read file. Please try again.')
+      setImportError(new ImportError(
+        'Failed to read the backup file',
+        'FILE_READ_ERROR',
+        true,
+        ['Try selecting the file again', 'Check that the file is not corrupted', 'Try a different backup file']
+      ))
     }
 
     reader.readAsText(file)
@@ -270,6 +322,26 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       fileInputRef.current.value = ''
     }
   }, [onDataImported, flushSave])
+
+  // Restore from the last backup created before import
+  const handleRestoreBackup = useCallback(() => {
+    if (!lastBackupKey) return
+
+    const result = restoreFromBackup(lastBackupKey)
+    if (result.success) {
+      setImportError(null)
+      setLastBackupKey(null)
+      setImportSuccess(false)
+      onDataImported()
+    } else {
+      setImportError(new ImportError(
+        result.error || 'Failed to restore backup',
+        'RESTORE_FAILED',
+        false,
+        ['Refresh the page', 'Contact support if you lost important data']
+      ))
+    }
+  }, [lastBackupKey, onDataImported])
 
   // Clear all data
   const handleClear = useCallback(() => {
@@ -302,11 +374,11 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         maxWidth="md"
       >
         <div className="space-y-6">
-          {/* Storage Stats */}
+          {/* Storage Stats with Quota Warning */}
           {stats && (
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className={`rounded-lg p-4 ${quota.percentageUsed > 80 ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Storage Usage</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-2">
                 <div>
                   <p className="text-xs text-gray-500">Allotment Data</p>
                   <p className="text-lg font-semibold text-gray-900">{stats.dataSize}</p>
@@ -316,6 +388,31 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                   <p className="text-lg font-semibold text-gray-900">{stats.used}</p>
                 </div>
               </div>
+              {/* Quota usage bar */}
+              <div className="mt-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Quota Usage</span>
+                  <span>{quota.percentageUsed.toFixed(1)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      quota.percentageUsed > 90 ? 'bg-red-500' :
+                      quota.percentageUsed > 80 ? 'bg-amber-500' :
+                      'bg-emerald-500'
+                    }`}
+                    style={{ width: `${Math.min(quota.percentageUsed, 100)}%` }}
+                  />
+                </div>
+              </div>
+              {quota.percentageUsed > 80 && (
+                <div className="mt-3 flex items-start gap-2 text-xs text-amber-700">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p>
+                    Storage is {quota.percentageUsed.toFixed(0)}% full. Consider exporting your data and clearing old backups.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -362,9 +459,42 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
             {/* Import Status Messages */}
             {importError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{importError}</p>
+              <div className="mt-3 space-y-3">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-700">{importError.message}</p>
+                      <p className="text-xs text-red-600 mt-1">Error Code: {importError.code}</p>
+                    </div>
+                  </div>
+
+                  {/* Recovery suggestions */}
+                  {importError.suggestions.length > 0 && (
+                    <div className="mt-3 pl-6">
+                      <p className="text-xs font-medium text-red-700 mb-1">Recovery Steps:</p>
+                      <ul className="text-xs text-red-600 space-y-1">
+                        {importError.suggestions.map((suggestion, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <span className="text-red-400 mt-0.5">•</span>
+                            <span>{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Restore from backup button */}
+                {lastBackupKey && importError.recoverable && (
+                  <button
+                    onClick={handleRestoreBackup}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition w-full justify-center"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Restore from Backup
+                  </button>
+                )}
               </div>
             )}
             
