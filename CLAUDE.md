@@ -76,13 +76,13 @@ Query functions in `src/lib/variety-queries.ts`:
 ### Storage Service
 
 `src/services/allotment-storage.ts` handles all localStorage operations:
-- Schema validation and migration (current version: 13)
+- Schema validation and migration (current version: 14)
 - Legacy data migration from hardcoded historical plans
 - Immutable update functions (return new data, don't mutate)
 - Promise-based `flushSave()` for reliable import/export coordination
 - Automatic backup creation before imports
 
-Schema v13 consolidated variety storage from dual localStorage locations into single source of truth. Users on older schemas automatically migrate on next app load with automatic backup creation.
+Schema v14 moved grid positions from a separate localStorage key into `AreaSeason.gridPosition`, enabling per-year layouts and ensuring positions are included in export/import. Users on older schemas automatically migrate on next app load with automatic backup creation.
 
 ### Date Calculator
 
@@ -111,7 +111,8 @@ Split into index and full data for performance:
 - `AreaKind` - discriminator for area types (`rotation-bed`, `perennial-bed`, `tree`, `berry`, `herb`, `infrastructure`, `other`)
 - `Planting` - instance of a plant in an area, with sow method tracking (`indoor`/`outdoor`/`transplant-purchased`), expected harvest dates (calculated), and actual harvest dates
 - `PrimaryPlant` - permanent plants (trees, berries) with perennial lifecycle status tracking
-- `StoredVariety` - seed variety with per-year inventory status (current schema: v13)
+- `StoredVariety` - seed variety with per-year inventory status
+- `AreaSeason.gridPosition` - per-year grid layout positions (schema v14)
 
 ### AI Advisor
 
@@ -134,17 +135,18 @@ Split into index and full data for performance:
 
 ## Migration and Backward Compatibility
 
-The app supports automatic schema migration for users on older data versions. Current schema is v13. Users on older schemas (v1-v12) automatically migrate on next app load with automatic backup creation.
+The app supports automatic schema migration for users on older data versions. Current schema is v14. Users on older schemas (v1-v13) automatically migrate on next app load with automatic backup creation.
 
 ### Key Schema Milestones
 
+- **v14** (2026-01-23): Moved grid positions to `AreaSeason.gridPosition` for per-year layouts
 - **v13** (2026-01-22): Consolidated variety storage from dual localStorage into `AllotmentData.varieties`
 - **v12**: Added `SowMethod` tracking and harvest date fields
 - **v11**: Synchronized plant IDs to singular form
 - **v10**: Unified Area type replacing separate bed/permanent/infrastructure types
 - **v9**: Introduced unified area system with underplantings
 
-See `docs/architecture/ADR-018-variety-refactor.md` for details on the v13 consolidation.
+See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. See `docs/adrs/019-per-year-grid-positions.md` for the v14 per-year grid positions feature.
 
 ## Code Conventions
 

@@ -23,3 +23,5 @@ This directory contains Architecture Decision Records documenting significant te
 | [015](015-accessibility-patterns.md) | Mobile & Accessibility Patterns | Accepted |
 | [016](016-temporal-metadata.md) | Temporal Metadata for Areas | Accepted |
 | [017](017-dynamic-date-system.md) | Dynamic Date System | Accepted |
+| [018](018-variety-refactor.md) | Variety Management Refactor | Accepted |
+| [019](019-per-year-grid-positions.md) | Per-Year Grid Positions | Accepted |

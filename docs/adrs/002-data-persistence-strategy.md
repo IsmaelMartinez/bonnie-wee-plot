@@ -7,7 +7,7 @@ Accepted
 2025-01-01 (retrospective)
 
 ## Last Updated
-2026-01-22 (Schema v13 - Unified Variety Storage)
+2026-01-23 (Schema v14 - Per-Year Grid Positions)
 
 ## Context
 
@@ -23,12 +23,11 @@ Use browser-native storage (localStorage and sessionStorage) for all data persis
 
 | Data Type | Storage | Persistent | Key |
 |-----------|---------|------------|-----|
-| Allotment data (includes varieties) | localStorage | Yes | `allotment-unified-data` |
-| Grid layout | localStorage | Yes | `allotment-grid-layout` |
+| Allotment data (includes varieties, grid positions) | localStorage | Yes | `allotment-unified-data` |
 | API tokens | sessionStorage | Session only | `aitor_api_token` |
 | AI chat history | Memory | No | n/a |
 
-Note: As of schema v13, seed varieties are stored within `AllotmentData.varieties` rather than separate storage. The legacy `community-allotment-varieties` key is no longer used.
+Note: As of schema v13, seed varieties are stored within `AllotmentData.varieties`. As of schema v14, grid positions are stored per-year in `AreaSeason.gridPosition` rather than in a separate `allotment-grid-layout` key.
 
 ### Allotment Storage Service
 
@@ -70,7 +69,7 @@ const storedToken = sessionStorage.getItem('aitor_api_token')
 
 The DataManagement component provides export/import functionality that exports complete state (allotment data with embedded varieties) to a single JSON file. Automatic backup is created before each import. A temporary Excel import script (`scripts/excel-to-backup.py`) enables one-time migration from existing spreadsheets.
 
-Schema v13 (2026-01-22) consolidated variety storage from separate `community-allotment-varieties` key into `AllotmentData.varieties`, eliminating dual storage issues and improving import/export reliability.
+Schema v13 (2026-01-22) consolidated variety storage from separate `community-allotment-varieties` key into `AllotmentData.varieties`, eliminating dual storage issues and improving import/export reliability. Schema v14 (2026-01-23) moved grid positions from separate `allotment-grid-layout` key into `AreaSeason.gridPosition`, enabling per-year layouts and ensuring positions are included in export/import.
 
 ### When to Reconsider
 
@@ -82,3 +81,4 @@ This decision should be revisited if user accounts are added (need user database
 - Variety queries: `src/lib/variety-queries.ts`
 - useAllotment hook: `src/hooks/useAllotment.ts`
 - ADR-018: Variety Management Refactor (schema v13)
+- ADR-019: Per-Year Grid Positions (schema v14)
