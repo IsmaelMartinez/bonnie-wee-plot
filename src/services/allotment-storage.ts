@@ -257,7 +257,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
       logger.error('Failed to parse stored JSON', { error: String(parseError) })
       return { success: false, error: 'Corrupted data: invalid JSON' }
     }
-    
+
     // Validate the parsed data
     const validation = validateAllotmentData(data)
     
@@ -298,7 +298,12 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     }
 
     // Ensure areas is populated (v10 unified system)
-    if (!validData.layout.areas || validData.layout.areas.length === 0) {
+    // BUT: Only do this repair if varieties are empty or if we're on legacy data
+    // This prevents losing imported varieties when they exist but areas are empty
+    const hasEmptyAreas = !validData.layout.areas || validData.layout.areas.length === 0
+    const hasEmptyVarieties = !validData.varieties || validData.varieties.length === 0
+
+    if (hasEmptyAreas && hasEmptyVarieties) {
       console.log('Repairing: populating empty areas from default layout')
       // Re-run migration to populate areas
       const repaired = migrateSchema({ ...validData, version: 1 })
@@ -387,9 +392,9 @@ export function saveAllotmentData(data: AllotmentData): StorageResult<void> {
         updatedAt: new Date().toISOString(),
       },
     }
-    
+
     const jsonString = JSON.stringify(dataToSave)
-    
+
     try {
       localStorage.setItem(STORAGE_KEY, jsonString)
       return { success: true }
@@ -514,6 +519,14 @@ function clearMigrationState(data: AllotmentData): AllotmentData {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { migrationState, ...cleanMeta } = data.meta
   return { ...data, meta: cleanMeta }
+}
+
+/**
+ * Migrate data from older schema versions to current version
+ * Exported for use by import/migration processes
+ */
+export function migrateSchemaForImport(data: AllotmentData): AllotmentData {
+  return migrateSchema(data)
 }
 
 /**

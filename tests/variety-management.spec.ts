@@ -2,52 +2,53 @@ import { test, expect, type Page } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 
-// Helper to wait for import to complete (dialog closes after success)
+// Helper to wait for import to complete
+// Import now does an immediate page reload, so we race between success message and navigation
 async function waitForImportComplete(page: Page) {
-  // Wait for either success or error message
-  const successMsg = page.getByText(/imported successfully/i)
-  const errorMsg = page.getByText(/save failed|error|invalid|failed/i).first()
+  console.log('Test: waitForImportComplete - waiting for import signal...')
 
-  let messageType = 'none'
+  // Race between success message, error message, and page reload
+  // The import handler now does window.location.reload() immediately after saving
+  const result = await Promise.race([
+    // Success message (legacy behavior, may not appear with immediate reload)
+    page.getByText(/imported successfully/i).waitFor({ timeout: 15000 })
+      .then(() => ({ type: 'success' as const }))
+      .catch(() => null),
 
-  try {
-    // Try waiting for success message first
-    await expect(successMsg).toBeVisible({ timeout: 5000 })
-    messageType = 'success'
-  } catch {
-    // Try waiting for error message
-    try {
-      await expect(errorMsg).toBeVisible({ timeout: 5000 })
-      messageType = 'error'
-      const text = await errorMsg.textContent()
-      throw new Error(`Import failed: ${text}`)
-    } catch {
-      // No success or error message - maybe it failed silently
-      // Check if we can still access the page
-      const pageContent = await page.content()
-      if (!pageContent.includes('Data management')) {
-        // Page might have navigation issues
-        throw new Error('Page state unclear after import attempt')
-      }
-      // Otherwise, assume import is still processing or completed very quickly
-      messageType = 'processing'
-    }
+    // Error message
+    page.getByText(/save failed|error|invalid|failed/i).first().waitFor({ timeout: 15000 })
+      .then(async (el) => {
+        const text = await el?.textContent()
+        return { type: 'error' as const, message: text }
+      })
+      .catch(() => null),
+
+    // Page reload/navigation (current behavior)
+    page.waitForNavigation({ timeout: 15000 })
+      .then(() => ({ type: 'navigation' as const }))
+      .catch(() => null),
+  ])
+
+  console.log('Test: Import complete signal received')
+
+  if (result?.type === 'error') {
+    throw new Error(`Import failed: ${result.message}`)
   }
 
-  // Wait for the success message to disappear (if it appeared)
-  if (messageType === 'success') {
+  // If we got a success message, wait for dialog to close
+  if (result?.type === 'success') {
     try {
-      await expect(successMsg).not.toBeVisible({ timeout: 10000 })
+      await page.getByText(/imported successfully/i).waitFor({ state: 'hidden', timeout: 10000 })
     } catch {
       // Message already gone, that's fine
     }
   }
 
-  // Give React time to update with the reloaded data (onDataImported callback)
-  await page.waitForTimeout(3000)
+  // Wait briefly for page to stabilize after navigation/reload
+  await page.waitForTimeout(500)
 
   // Verify we're back on the allotment page
-  await expect(page.locator('h1')).toBeVisible({ timeout: 5000 })
+  await expect(page.locator('h1')).toBeVisible({ timeout: 10000 })
 
   // Wait for data to be available in localStorage after import and reload
   // This ensures schema migration has completed and varieties have been loaded
@@ -198,7 +199,8 @@ test.describe('Variety Management E2E', () => {
       const fileChooser2 = await fileChooserPromise2
       await fileChooser2.setFiles(downloadPath!)
 
-      await expect(page.getByText(/imported successfully/i)).toBeVisible({ timeout: 10000 })
+      // Wait for import to complete (may reload instead of showing success message)
+      await waitForImportComplete(page)
 
       // 7. Verify data persisted correctly
       const finalData = await getAllotmentData(page)
@@ -370,8 +372,8 @@ test.describe('Variety Management E2E', () => {
 
       const importDuration = Date.now() - startImport
 
-      // Import should complete in reasonable time
-      expect(importDuration).toBeLessThan(10000)
+      // Import should complete in reasonable time (allows for page reload overhead)
+      expect(importDuration).toBeLessThan(20000)
 
       // Verify data loaded correctly
       const data = await getAllotmentData(page)
@@ -558,6 +560,8 @@ test.describe('Variety Management E2E', () => {
     })
 
     test('should import v12 format successfully', async ({ page }) => {
+      // Capture console messages
+      page.on('console', msg => console.log('BROWSER:', msg.text()))
       const v12Data = {
         allotment: {
           version: 12,
@@ -598,9 +602,22 @@ test.describe('Variety Management E2E', () => {
       const fileChooserPromise = page.waitForEvent('filechooser')
       await page.getByText('Select Backup File').click()
       const fileChooser = await fileChooserPromise
+      console.log('Test: Setting files...')
       await fileChooser.setFiles(tempFile)
+      console.log('Test: Files set, waiting for import to complete...')
+      // Add extra time for file reader to process
+      await page.waitForTimeout(500)
 
       await waitForImportComplete(page)
+      console.log('Test: Import complete signal received')
+
+      // Debug: Check data immediately after import before reload
+      const beforeReloadData = await getAllotmentData(page)
+      console.log('Data before reload:', {
+        version: beforeReloadData?.version,
+        varietiesLength: beforeReloadData?.varieties?.length,
+        varieties: beforeReloadData?.varieties
+      })
 
       // Reload page to ensure all migration has completed
       await page.reload({ waitUntil: 'load', timeout: 60000 })
@@ -608,12 +625,21 @@ test.describe('Variety Management E2E', () => {
 
       // Verify data migrated to v13
       const data = await getAllotmentData(page)
+      console.log('Data after reload:', {
+        version: data?.version,
+        varietiesLength: data?.varieties?.length,
+        varieties: data?.varieties
+      })
       expect(data.version).toBe(13)
       expect(data.varieties).toHaveLength(1)
       expect(data.varieties[0].name).toBe('V12 Variety')
 
       // Cleanup
-      fs.unlinkSync(tempFile)
+      try {
+        fs.unlinkSync(tempFile)
+      } catch {
+        // File may have been deleted already during reload
+      }
     })
   })
 
