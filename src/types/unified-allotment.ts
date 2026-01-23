@@ -590,6 +590,7 @@ export interface AllotmentItemRef {
 export interface CompleteExport {
   allotment: AllotmentData
   varieties: import('./variety-data').VarietyData
+  compost?: import('./compost').CompostData  // Optional for backward compatibility
   exportedAt: string
   exportVersion: number
 }

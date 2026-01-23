@@ -226,7 +226,7 @@ export interface UseAllotmentActions {
 
   // Data operations
   reload: () => void
-  flushSave: () => void  // Force immediate save of pending data
+  flushSave: () => Promise<boolean>  // Force immediate save of pending data, returns true if successful
   clearSaveError: () => void  // Clear any save error
 
   // Metadata operations

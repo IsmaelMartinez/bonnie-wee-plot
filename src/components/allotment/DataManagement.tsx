@@ -4,14 +4,17 @@ import { useState, useRef, useCallback } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
+import { CompostData } from '@/types/compost'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, loadAllotmentData } from '@/services/allotment-storage'
 import { STORAGE_KEY } from '@/types/unified-allotment'
 import { loadVarietyData } from '@/services/variety-storage'
+import { loadCompostData, saveCompostData } from '@/services/compost-storage'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface DataManagementProps {
   data: AllotmentData | null
   onDataImported: () => void
+  flushSave?: () => Promise<boolean>
 }
 
 /**
@@ -36,9 +39,64 @@ function createPreImportBackup(): boolean {
 }
 
 /**
+ * Validate import data structure before preview
+ */
+function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
+  // Check if it's a valid object
+  if (!parsed || typeof parsed !== 'object') {
+    return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
+  }
+
+  const obj = parsed as Record<string, unknown>
+
+  // Check for CompleteExport format (new format with allotment + varieties)
+  if (obj.allotment && obj.varieties) {
+    const allotment = obj.allotment as Record<string, unknown>
+
+    // Validate required AllotmentData fields
+    if (typeof allotment.version !== 'number') {
+      return { valid: false, error: 'Invalid backup: missing or invalid version' }
+    }
+
+    if (!allotment.meta || typeof allotment.meta !== 'object') {
+      return { valid: false, error: 'Invalid backup: missing metadata' }
+    }
+
+    if (!Array.isArray(allotment.seasons)) {
+      return { valid: false, error: 'Invalid backup: missing seasons data' }
+    }
+
+    // Check version compatibility
+    if (allotment.version > CURRENT_SCHEMA_VERSION) {
+      return {
+        valid: false,
+        error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
+      }
+    }
+
+    return { valid: true }
+  }
+
+  // Check for old format (just AllotmentData)
+  if (typeof obj.version === 'number' && obj.meta && Array.isArray(obj.seasons)) {
+    // Check version compatibility
+    if (obj.version > CURRENT_SCHEMA_VERSION) {
+      return {
+        valid: false,
+        error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
+      }
+    }
+
+    return { valid: true }
+  }
+
+  return { valid: false, error: 'Invalid backup file: unrecognized format' }
+}
+
+/**
  * Component for managing allotment data - export, import, and clear
  */
-export default function DataManagement({ data, onDataImported }: DataManagementProps) {
+export default function DataManagement({ data, onDataImported, flushSave }: DataManagementProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
@@ -48,7 +106,7 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
   // Get storage statistics
   const stats = getStorageStats()
 
-  // Export data as JSON file (includes both allotment and varieties)
+  // Export data as JSON file (includes allotment, varieties, and compost)
   const handleExport = useCallback(() => {
     if (!data) return
 
@@ -64,9 +122,14 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
         }
       }
 
+      // Load compost data (optional - not critical if it doesn't exist)
+      const compostResult = loadCompostData()
+      const compost = compostResult.success && compostResult.data ? compostResult.data : undefined
+
       const exportData: CompleteExport = {
         allotment: data,
         varieties,
+        compost,
         exportedAt: new Date().toISOString(),
         exportVersion: CURRENT_SCHEMA_VERSION,
       }
@@ -90,37 +153,56 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
   }, [data])
 
   // Import data from JSON file (supports both old and new formats)
-  const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     setImportError(null)
     setImportSuccess(false)
 
+    // Flush any pending saves before importing
+    if (flushSave) {
+      const flushed = await flushSave()
+      if (!flushed) {
+        setImportError('Cannot import: pending changes failed to save. Please try again.')
+        return
+      }
+    }
+
     const reader = new FileReader()
 
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        // Parse and validate JSON first
+        const content = e.target?.result as string
+        let parsed: unknown
+        try {
+          parsed = JSON.parse(content)
+        } catch {
+          setImportError('Invalid JSON file. Please select a valid backup file.')
+          return
+        }
+
+        // Validate data structure before proceeding
+        const validation = validateImportData(parsed)
+        if (!validation.valid) {
+          setImportError(validation.error || 'Invalid backup file')
+          return
+        }
+
         // Create backup of existing data before import
         createPreImportBackup()
 
-        const content = e.target?.result as string
-        const parsed = JSON.parse(content)
-
         let allotmentData: AllotmentData
         let varietyData: VarietyData | null = null
+        let compostData: CompostData | null = null
 
         // Check if this is the new format (has allotment + varieties)
-        if (parsed.allotment && parsed.varieties) {
+        if ((parsed as Record<string, unknown>).allotment && (parsed as Record<string, unknown>).varieties) {
           const complete = parsed as CompleteExport
           allotmentData = complete.allotment
           varietyData = complete.varieties
-
-          // Check version compatibility
-          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
-            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
-            return
-          }
+          compostData = complete.compost || null
 
           // Merge varieties into allotment data
           // The app expects varieties to be in AllotmentData.varieties, not in separate storage
@@ -130,18 +212,6 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
         } else {
           // Old format - just AllotmentData
           allotmentData = parsed as AllotmentData
-
-          // Basic validation
-          if (!allotmentData.version || !allotmentData.meta || !allotmentData.seasons) {
-            setImportError('Invalid backup file: missing required fields')
-            return
-          }
-
-          // Check version compatibility
-          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
-            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
-            return
-          }
         }
 
         // Update timestamps
@@ -161,6 +231,22 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
           return
         }
 
+        // Save compost data if present
+        if (compostData) {
+          const compostResult = saveCompostData(compostData)
+          if (!compostResult.success) {
+            console.warn('Failed to import compost data:', compostResult.error)
+            // Don't fail the entire import if compost save fails
+          }
+        }
+
+        // Verify data persisted correctly
+        const verifyResult = loadAllotmentData()
+        if (!verifyResult.success || !verifyResult.data) {
+          setImportError('Import verification failed: data did not persist correctly')
+          return
+        }
+
         setImportSuccess(true)
         setTimeout(() => {
           setImportSuccess(false)
@@ -169,7 +255,7 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
         }, 1500)
       } catch (error) {
         console.error('Import failed:', error)
-        setImportError('Invalid JSON file. Please select a valid backup file.')
+        setImportError('Unexpected error during import. Please try again.')
       }
     }
 
@@ -183,7 +269,7 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [onDataImported])
+  }, [onDataImported, flushSave])
 
   // Clear all data
   const handleClear = useCallback(() => {

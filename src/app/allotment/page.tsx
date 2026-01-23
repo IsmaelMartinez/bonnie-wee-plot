@@ -64,6 +64,7 @@ export default function AllotmentPage() {
     getPerennialBeds,
     clearSaveError,
     reload,
+    flushSave,
     saveStatus,
     lastSavedAt,
     getAreaNotes,
@@ -248,7 +249,7 @@ export default function AllotmentPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto overflow-x-auto">
-              <DataManagement data={data} onDataImported={reload} />
+              <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
               <Link
                 href="/ai-advisor"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
