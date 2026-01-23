@@ -30,6 +30,8 @@ import {
   AreaKind,
   CareLogEntry,
   NewCareLogEntry,
+  // v14 grid position
+  GridPosition,
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PhysicalBed, AllotmentItemRef, AllotmentItemType, PermanentPlanting, InfrastructureItem } from '@/types/garden-planner'
 import {
@@ -48,6 +50,7 @@ import {
   updateSeason,
   setCurrentYear,
   updateAreaRotationGroup as storageUpdateAreaRotationGroup,
+  updateAreaSeasonPosition as storageUpdateAreaSeasonPosition,
   getPlantingsForArea as storageGetPlantingsForArea,
   getBedById,
   getRotationBeds as storageGetRotationBeds,
@@ -154,6 +157,7 @@ export interface UseAllotmentActions {
   // Area season operations (v10)
   getAreaSeason: (areaId: string) => AreaSeason | undefined
   updateRotationGroup: (areaId: string, group: RotationGroup) => void
+  updateAreaSeasonPosition: (areaId: string, position: GridPosition) => void
 
   // Season operations
   createSeason: (year: number, notes?: string) => void
@@ -484,6 +488,13 @@ export function useAllotment(): UseAllotmentReturn {
     if (!data) return
     setData(storageUpdateAreaRotationGroup(data, selectedYear, areaId, group))
   }, [data, selectedYear, setData])
+
+  const updateAreaSeasonPositionFn = useCallback((areaId: string, position: GridPosition) => {
+    setData(prevData => {
+      if (!prevData) return prevData
+      return storageUpdateAreaSeasonPosition(prevData, selectedYear, areaId, position)
+    })
+  }, [selectedYear, setData])
 
   // ============ SEASON OPERATIONS ============
 
@@ -855,6 +866,7 @@ export function useAllotment(): UseAllotmentReturn {
     // Area season operations (v10)
     getAreaSeason: getAreaSeasonData,
     updateRotationGroup,
+    updateAreaSeasonPosition: updateAreaSeasonPositionFn,
 
     // Season operations
     createSeason,

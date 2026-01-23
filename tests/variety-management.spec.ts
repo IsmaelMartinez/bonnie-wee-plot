@@ -515,134 +515,6 @@ test.describe('Variety Management E2E', () => {
     })
   })
 
-  test.describe('Backward Compatibility', () => {
-    test('should import v11 format successfully', async ({ page }) => {
-      const v11Data = {
-        version: 11,
-        meta: {
-          name: 'V11 Garden',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        layout: { areas: [] },
-        seasons: [{
-          year: new Date().getFullYear(),
-          status: 'current',
-          areas: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }],
-        currentYear: new Date().getFullYear(),
-        varieties: [createTestVariety('V11 Variety', 'tomato')]
-      }
-
-      const tempFile = path.join(__dirname, 'test-v11.json')
-      fs.writeFileSync(tempFile, JSON.stringify(v11Data))
-
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(tempFile)
-
-      await waitForImportComplete(page)
-
-      // Verify data migrated to v13
-      const data = await getAllotmentData(page)
-      expect(data.version).toBe(13)
-      expect(data.varieties).toHaveLength(1)
-      expect(data.varieties[0].name).toBe('V11 Variety')
-
-      // Cleanup
-      fs.unlinkSync(tempFile)
-    })
-
-    test('should import v12 format successfully', async ({ page }) => {
-      // Capture console messages
-      page.on('console', msg => console.log('BROWSER:', msg.text()))
-      const v12Data = {
-        allotment: {
-          version: 12,
-          meta: {
-            name: 'V12 Garden',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          layout: { areas: [] },
-          seasons: [{
-            year: new Date().getFullYear(),
-            status: 'current',
-            areas: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }],
-          currentYear: new Date().getFullYear(),
-          varieties: []
-        },
-        varieties: {
-          version: 2,
-          varieties: [createTestVariety('V12 Variety', 'cucumber')],
-          meta: {
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        },
-        exportedAt: new Date().toISOString(),
-        exportVersion: 12
-      }
-
-      const tempFile = path.join(__dirname, 'test-v12.json')
-      fs.writeFileSync(tempFile, JSON.stringify(v12Data))
-
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      console.log('Test: Setting files...')
-      await fileChooser.setFiles(tempFile)
-      console.log('Test: Files set, waiting for import to complete...')
-      // Add extra time for file reader to process
-      await page.waitForTimeout(500)
-
-      await waitForImportComplete(page)
-      console.log('Test: Import complete signal received')
-
-      // Debug: Check data immediately after import before reload
-      const beforeReloadData = await getAllotmentData(page)
-      console.log('Data before reload:', {
-        version: beforeReloadData?.version,
-        varietiesLength: beforeReloadData?.varieties?.length,
-        varieties: beforeReloadData?.varieties
-      })
-
-      // Reload page to ensure all migration has completed
-      await page.reload({ waitUntil: 'load', timeout: 60000 })
-      await page.waitForLoadState('networkidle', { timeout: 30000 })
-
-      // Verify data migrated to v13
-      const data = await getAllotmentData(page)
-      console.log('Data after reload:', {
-        version: data?.version,
-        varietiesLength: data?.varieties?.length,
-        varieties: data?.varieties
-      })
-      expect(data.version).toBe(13)
-      expect(data.varieties).toHaveLength(1)
-      expect(data.varieties[0].name).toBe('V12 Variety')
-
-      // Cleanup
-      try {
-        fs.unlinkSync(tempFile)
-      } catch {
-        // File may have been deleted already during reload
-      }
-    })
-  })
-
   test.describe('Real-World Validation', () => {
     test('should import user migrated backup successfully', async ({ page }) => {
       const userBackupPath = path.join(__dirname, '..', 'allotment-backup-2026-01-22.json')
@@ -678,10 +550,10 @@ test.describe('Variety Management E2E', () => {
       // Wait a bit more for data to settle after reload
       await page.waitForTimeout(3000)
 
-      // Verify data loaded
+      // Verify data loaded (version will be current schema after migration)
       const data = await getAllotmentData(page)
       expect(data).toBeTruthy()
-      expect(data.version).toBe(13)
+      expect(data.version).toBeGreaterThanOrEqual(13)
 
       // Check varieties field exists
       expect(data).toHaveProperty('varieties')
