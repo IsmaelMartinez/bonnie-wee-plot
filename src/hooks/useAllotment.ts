@@ -490,9 +490,11 @@ export function useAllotment(): UseAllotmentReturn {
   }, [data, selectedYear, setData])
 
   const updateAreaSeasonPositionFn = useCallback((areaId: string, position: GridPosition) => {
-    if (!data) return
-    setData(storageUpdateAreaSeasonPosition(data, selectedYear, areaId, position))
-  }, [data, selectedYear, setData])
+    setData(prevData => {
+      if (!prevData) return prevData
+      return storageUpdateAreaSeasonPosition(prevData, selectedYear, areaId, position)
+    })
+  }, [selectedYear, setData])
 
   // ============ SEASON OPERATIONS ============
 

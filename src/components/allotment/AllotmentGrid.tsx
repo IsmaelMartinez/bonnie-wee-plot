@@ -187,8 +187,9 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
 
     // v14: Save position changes via callback for each changed item
     if (onPositionChange) {
+      const previousItemsById = new Map(items.map(item => [item.i, item] as const))
       for (const layoutItem of newLayout) {
-        const currentItem = items.find(i => i.i === layoutItem.i)
+        const currentItem = previousItemsById.get(layoutItem.i)
         if (currentItem &&
             (currentItem.x !== layoutItem.x ||
              currentItem.y !== layoutItem.y ||
@@ -212,40 +213,8 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
       return
     }
 
-    // Reset each area to its Area.gridPosition default
-    const resetConfig = visibleAreas
-      .filter(area => !area.isArchived)
-      .map(area => {
-        let type: GridItemConfig['type'] = 'area'
-        if (area.kind === 'rotation-bed' || area.kind === 'perennial-bed') {
-          type = 'bed'
-        } else if (area.kind === 'tree' || area.kind === 'berry') {
-          type = 'tree'
-        } else if (area.kind === 'herb') {
-          type = 'perennial'
-        } else if (area.kind === 'infrastructure') {
-          type = 'infrastructure'
-        }
-
-        // Use Area.gridPosition as default (not AreaSeason)
-        const pos = area.gridPosition ?? { x: 0, y: 20, w: 2, h: 1 }
-
-        return {
-          i: area.id,
-          x: pos.x,
-          y: pos.y,
-          w: pos.w,
-          h: pos.h,
-          label: area.name,
-          type,
-          icon: area.icon,
-          color: area.color,
-          bedId: (area.kind === 'rotation-bed' || area.kind === 'perennial-bed')
-            ? area.id as GridItemConfig['bedId']
-            : undefined,
-        }
-      })
-
+    // Reuse shared Area -> GridItemConfig mapping, using Area.gridPosition defaults (no areaSeasons)
+    const resetConfig = areasToGridConfig(visibleAreas, undefined)
     setItems(resetConfig)
 
     // Update each position via callback
