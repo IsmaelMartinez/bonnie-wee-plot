@@ -2,9 +2,9 @@
 
 > **Note**: This Excel import script is a **temporary migration tool** for users moving from Excel-based planning to the app's native system. Once you've imported your historical data, use the app's built-in export/import feature (DataManagement component) for all future backups and data transfers.
 
-## What's New in V11
+## What's New in V13
 
-The import script now generates v11 format backups with these improvements:
+The import script now generates v13 format backups with these improvements:
 
 - **Unified Areas System**: All beds, permanent plantings, and infrastructure are now represented as a single `Area` type with different kinds (rotation-bed, perennial-bed, tree, berry, herb, infrastructure)
 - **Grid Positions**: Each area includes grid position data for proper visual layout
@@ -14,7 +14,9 @@ The import script now generates v11 format backups with these improvements:
 
 ## Overview
 
-Convert your Excel planning workbook to the app's native v11 backup format with unified areas system, then import it through the existing import/export interface.
+Convert your Excel planning workbook to the app's native v13 backup format with unified storage, then import it through the existing import/export interface.
+
+**Note**: As of schema v13, seed varieties are stored within `AllotmentData.varieties` rather than separate storage, eliminating data drift issues.
 
 ## Prerequisites
 
@@ -33,8 +35,8 @@ python3 scripts/excel-to-backup.py "Allotment planning workbook.xlsx" my-backup.
 ```
 
 This creates a JSON file in the same format as the app's export function, containing:
-- **AllotmentData**: All seasons, beds, and plantings
-- **VarietyData**: All seed varieties with suppliers, prices, and status
+- **AllotmentData**: All seasons, areas, plantings, and varieties (unified storage)
+- **CompostData**: Compost pile tracking (if present)
 
 ## Step 2: Import via Web Interface
 
@@ -98,14 +100,14 @@ The script includes mappings for 50+ common plant names. If you see warnings abo
 2. Re-run the conversion
 3. Check plant IDs match those in `src/lib/vegetable-database.ts`
 
-## Backup Format (V11)
+## Backup Format (V13)
 
-The output matches the app's v11 export format exactly:
+The output matches the app's v13 export format exactly:
 
 ```json
 {
   "allotment": {
-    "version": 11,
+    "version": 13,
     "meta": {
       "name": "My Allotment",
       "location": "Scotland",
@@ -141,17 +143,27 @@ The output matches the app's v11 export format exactly:
       }
     ],
     "currentYear": 2025,
-    "varieties": [],
+    "varieties": [
+      {
+        "id": "variety-123",
+        "plantId": "carrot",
+        "name": "Nantes 2",
+        "supplier": "Kings Seeds",
+        "price": 2.99,
+        "seedsByYear": {"2024": "have", "2025": "have"},
+        "plannedYears": [],
+        "available": true
+      }
+    ],
     "maintenanceTasks": [],
     "gardenEvents": []
   },
-  "varieties": {
-    "version": 2,
-    "varieties": [...],
-    "meta": {...}
+  "compost": {
+    "version": 1,
+    "piles": []
   },
-  "exportedAt": "2026-01-11T12:00:00Z",
-  "exportVersion": 11
+  "exportedAt": "2026-01-22T12:00:00Z",
+  "exportVersion": 13
 }
 ```
 

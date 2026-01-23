@@ -1,7 +1,9 @@
 # ADR 010: Seed Variety Tracking
 
 ## Status
-Accepted (Updated 2026-01-01)
+Superseded by ADR-018 (Variety Management Refactor)
+
+See ADR-018 for current architecture using unified storage in `AllotmentData.varieties`.
 
 ## Date
 2026-01-01
@@ -85,3 +87,15 @@ Patterns followed from allotment storage:
 - Could integrate with allotment planting (auto-suggest varieties)
 - Could add seed expiry tracking
 - Could add cloud sync for cross-device support
+
+## 2026-01-22 Update: Refactored to Unified Storage
+
+The dual storage architecture described in this ADR (separate `VarietyData` localStorage) was refactored in schema v13 to consolidate all variety data into `AllotmentData.varieties`. This eliminated data drift and race conditions.
+
+Key changes:
+- Varieties now stored exclusively in `AllotmentData.varieties`
+- `yearsUsed` computed dynamically from plantings (not stored)
+- Soft delete via `isArchived` preserves referential integrity
+- Import/export more reliable with Promise-based flush mechanism
+
+See ADR-018 for complete details of the refactor rationale and implementation.
