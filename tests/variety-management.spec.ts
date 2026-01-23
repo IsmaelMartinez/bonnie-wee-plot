@@ -4,18 +4,49 @@ import * as path from 'path'
 
 // Helper to wait for import to complete (dialog closes after success)
 async function waitForImportComplete(page: Page) {
-  // Try to catch success message, but don't fail if we miss it (reload might be too fast)
+  // Wait for either success or error message
+  const successMsg = page.getByText(/imported successfully/i)
+  const errorMsg = page.getByText(/save failed|error|invalid|failed/i).first()
+
+  let messageType = 'none'
+
   try {
-    await expect(page.getByText(/imported successfully/i)).toBeVisible({ timeout: 5000 })
+    // Try waiting for success message first
+    await expect(successMsg).toBeVisible({ timeout: 5000 })
+    messageType = 'success'
   } catch {
-    // Message appeared and disappeared quickly, continue
+    // Try waiting for error message
+    try {
+      await expect(errorMsg).toBeVisible({ timeout: 5000 })
+      messageType = 'error'
+      const text = await errorMsg.textContent()
+      throw new Error(`Import failed: ${text}`)
+    } catch {
+      // No success or error message - maybe it failed silently
+      // Check if we can still access the page
+      const pageContent = await page.content()
+      if (!pageContent.includes('Data management')) {
+        // Page might have navigation issues
+        throw new Error('Page state unclear after import attempt')
+      }
+      // Otherwise, assume import is still processing or completed very quickly
+      messageType = 'processing'
+    }
   }
 
-  // Wait for page reload to complete (import triggers a reload)
-  await page.waitForLoadState('networkidle', { timeout: 30000 })
-  await page.waitForTimeout(2000)
+  // Wait for the success message to disappear (if it appeared)
+  if (messageType === 'success') {
+    try {
+      await expect(successMsg).not.toBeVisible({ timeout: 10000 })
+    } catch {
+      // Message already gone, that's fine
+    }
+  }
 
-  // Verify we're back on the allotment page (confirms reload completed)
+  // Give React time to update with the reloaded data (onDataImported callback)
+  await page.waitForTimeout(3000)
+
+  // Verify we're back on the allotment page
   await expect(page.locator('h1')).toBeVisible({ timeout: 5000 })
 }
 
@@ -326,6 +357,7 @@ test.describe('Variety Management E2E', () => {
 
       // Verify data loaded correctly
       const data = await getAllotmentData(page)
+      expect(data).toBeTruthy()
       expect(data.varieties).toHaveLength(100)
 
       // Measure export time
