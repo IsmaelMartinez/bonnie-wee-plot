@@ -72,6 +72,7 @@ function SeedsPageContent() {
     togglePlannedYear,
     toggleHaveSeedsForYear,
     getYears,
+    getActiveVarieties,
   } = useAllotment()
 
   // Use local state for seeds year selection (can be different from allotment page)
@@ -87,6 +88,7 @@ function SeedsPageContent() {
   const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'have' | 'need'>('all')
+  const [showArchived, setShowArchived] = useState(false)
 
   // Handle URL param filtering (Spike 3)
   const searchParams = useSearchParams()
@@ -109,14 +111,18 @@ function SeedsPageContent() {
     }
   }, [selectedYear, statusFilter])
 
-  // Get varieties to display based on selected year
+  // Get varieties to display based on selected year and archive status
   const displayVarieties = useMemo(() => {
     if (!data) return []
+
+    // Get active varieties (filtering archived unless showArchived is true)
+    const activeVarieties = getActiveVarieties(showArchived)
+
     if (selectedYear === 'all') {
-      return data.varieties || []
+      return activeVarieties
     }
     // Filter varieties for the selected year
-    return (data.varieties || []).filter(v => {
+    return activeVarieties.filter(v => {
       const yearsUsed = getVarietyUsedYears(v.id, data)
       return (
         v.plannedYears.includes(selectedYear) ||
@@ -124,7 +130,7 @@ function SeedsPageContent() {
         yearsUsed.includes(selectedYear)
       )
     })
-  }, [data, selectedYear])
+  }, [data, selectedYear, getActiveVarieties, showArchived])
 
   const suppliers = useMemo(() => {
     if (!data) return []
@@ -358,6 +364,17 @@ function SeedsPageContent() {
               className="text-xs sm:text-sm text-zen-moss-600 hover:text-zen-moss-700 min-h-[44px] px-2"
             >
               Collapse all
+            </button>
+            <span className="text-zen-stone-300">|</span>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`text-xs sm:text-sm min-h-[44px] px-2 transition ${
+                showArchived
+                  ? 'text-zen-ume-600 hover:text-zen-ume-700'
+                  : 'text-zen-stone-500 hover:text-zen-stone-700'
+              }`}
+            >
+              {showArchived ? 'Hide archived' : 'Show archived'}
             </button>
           </div>
           <button

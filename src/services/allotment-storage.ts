@@ -1109,16 +1109,20 @@ function migrateToV12(data: AllotmentData): AllotmentData {
 /**
  * Migrate from v12 to v13: Remove yearsUsed from StoredVariety
  * - Remove yearsUsed field (now computed from plantings via variety-queries)
+ * - Initialize isArchived to false for all existing varieties
  */
 function migrateToV13(data: AllotmentData): AllotmentData {
   const migrated = { ...data }
 
-  // Remove yearsUsed from varieties
+  // Remove yearsUsed from varieties and initialize isArchived
   if (migrated.varieties) {
     migrated.varieties = migrated.varieties.map(variety => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
       const { yearsUsed, ...rest } = variety as any
-      return rest as StoredVariety
+      return {
+        ...rest,
+        isArchived: false,
+      } as StoredVariety
     })
   }
 
@@ -2418,6 +2422,48 @@ export function removeVariety(data: AllotmentData, id: string): AllotmentData {
     varieties: (data.varieties || []).filter(v => v.id !== id),
     meta: { ...data.meta, updatedAt: new Date().toISOString() },
   }
+}
+
+/**
+ * Archive a variety (soft delete)
+ * Preserves planting references while hiding from UI
+ */
+export function archiveVariety(data: AllotmentData, id: string): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v =>
+      v.id === id ? { ...v, isArchived: true } : v
+    ),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Unarchive a variety (restore from archive)
+ */
+export function unarchiveVariety(data: AllotmentData, id: string): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v =>
+      v.id === id ? { ...v, isArchived: false } : v
+    ),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Get active (non-archived) varieties
+ * @param includeArchived - if true, returns all varieties including archived
+ */
+export function getActiveVarieties(
+  data: AllotmentData,
+  includeArchived = false
+): StoredVariety[] {
+  const varieties = data.varieties || []
+  if (includeArchived) {
+    return varieties
+  }
+  return varieties.filter(v => !v.isArchived)
 }
 
 /**

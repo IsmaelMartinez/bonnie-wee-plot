@@ -73,6 +73,9 @@ import {
   addVariety as storageAddVariety,
   updateVariety as storageUpdateVariety,
   removeVariety as storageRemoveVariety,
+  archiveVariety as storageArchiveVariety,
+  unarchiveVariety as storageUnarchiveVariety,
+  getActiveVarieties as storageGetActiveVarieties,
   togglePlannedYear as storageTogglePlannedYear,
   toggleHaveSeedsForYear as storageToggleHaveSeedsForYear,
   hasSeedsForYear as storageHasSeedsForYear,
@@ -190,6 +193,9 @@ export interface UseAllotmentActions {
   addVariety: (variety: NewVariety) => void
   updateVariety: (id: string, updates: VarietyUpdate) => void
   removeVariety: (id: string) => void
+  archiveVariety: (id: string) => void
+  unarchiveVariety: (id: string) => void
+  getActiveVarieties: (includeArchived?: boolean) => StoredVariety[]
   togglePlannedYear: (varietyId: string, year: number) => void
   toggleHaveSeedsForYear: (varietyId: string, year: number) => void
   hasSeedsForYear: (varietyId: string, year: number) => boolean
@@ -574,6 +580,21 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRemoveVariety(data, id))
   }, [data, setData])
 
+  const archiveVarietyData = useCallback((id: string) => {
+    if (!data) return
+    setData(storageArchiveVariety(data, id))
+  }, [data, setData])
+
+  const unarchiveVarietyData = useCallback((id: string) => {
+    if (!data) return
+    setData(storageUnarchiveVariety(data, id))
+  }, [data, setData])
+
+  const getActiveVarietiesData = useCallback((includeArchived = false): StoredVariety[] => {
+    if (!data) return []
+    return storageGetActiveVarieties(data, includeArchived)
+  }, [data])
+
   const togglePlannedYearData = useCallback((varietyId: string, year: number) => {
     if (!data) return
     setData(storageTogglePlannedYear(data, varietyId, year))
@@ -809,6 +830,9 @@ export function useAllotment(): UseAllotmentReturn {
     addVariety: addVarietyData,
     updateVariety: updateVarietyData,
     removeVariety: removeVarietyData,
+    archiveVariety: archiveVarietyData,
+    unarchiveVariety: unarchiveVarietyData,
+    getActiveVarieties: getActiveVarietiesData,
     togglePlannedYear: togglePlannedYearData,
     toggleHaveSeedsForYear: toggleHaveSeedsForYearData,
     hasSeedsForYear: hasSeedsForYearData,

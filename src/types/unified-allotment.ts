@@ -398,6 +398,7 @@ export interface StoredVariety {
   plannedYears: number[]             // @deprecated - inferred from plantings in allotment
   available?: boolean                // If true, available for selection in any year
   seedsByYear: Record<number, SeedStatus>  // Per-year inventory status
+  isArchived?: boolean               // Soft delete - hides from UI without breaking planting references
   perenualId?: string                // Future: external API integration
   gbifId?: string                    // Future: taxonomic validation
 }

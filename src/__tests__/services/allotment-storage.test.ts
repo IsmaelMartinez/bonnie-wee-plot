@@ -11,6 +11,9 @@ import {
   saveAllotmentData,
   initializeStorage,
   addArea,
+  archiveVariety,
+  unarchiveVariety,
+  getActiveVarieties,
 } from '@/services/allotment-storage'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, Area } from '@/types/unified-allotment'
 
@@ -681,5 +684,213 @@ describe('v12 to v13 migration', () => {
     expect((result.data?.varieties[0] as any)?.yearsUsed).toBeUndefined()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.data?.varieties[1] as any)?.yearsUsed).toBeUndefined()
+  })
+
+  it('initializes isArchived to false for varieties during v12 -> v13 migration', () => {
+    const v12Data = {
+      ...createValidAllotmentData(),
+      version: 12,
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          plannedYears: [2024],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    }
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties[0].isArchived).toBe(false)
+  })
+})
+
+describe('Archive Functionality', () => {
+  it('archives a variety', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: false,
+        }
+      ]
+    })
+
+    const updated = archiveVariety(data, 'var-1')
+
+    expect(updated.varieties[0].isArchived).toBe(true)
+  })
+
+  it('unarchives a variety', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: true,
+        }
+      ]
+    })
+
+    const updated = unarchiveVariety(data, 'var-1')
+
+    expect(updated.varieties[0].isArchived).toBe(false)
+  })
+
+  it('preserves other variety fields when archiving', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          supplier: 'Test Supplier',
+          price: 2.99,
+          notes: 'Good variety',
+          plannedYears: [2024, 2025],
+          seedsByYear: { 2024: 'have' },
+          isArchived: false,
+        }
+      ]
+    })
+
+    const updated = archiveVariety(data, 'var-1')
+
+    const variety = updated.varieties[0]
+    expect(variety.isArchived).toBe(true)
+    expect(variety.name).toBe('Alderman')
+    expect(variety.supplier).toBe('Test Supplier')
+    expect(variety.price).toBe(2.99)
+    expect(variety.notes).toBe('Good variety')
+    expect(variety.plannedYears).toEqual([2024, 2025])
+    expect(variety.seedsByYear).toEqual({ 2024: 'have' })
+  })
+
+  it('does nothing when archiving a non-existent variety', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: false,
+        }
+      ]
+    })
+
+    const updated = archiveVariety(data, 'non-existent')
+
+    expect(updated.varieties[0].isArchived).toBe(false)
+  })
+
+  it('updates timestamp when archiving', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Alderman',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: false,
+        }
+      ]
+    })
+
+    const originalTimestamp = data.meta.updatedAt
+
+    const updated = archiveVariety(data, 'var-1')
+
+    expect(updated.meta.updatedAt).not.toBe(originalTimestamp)
+  })
+})
+
+describe('Query Filtering with Archive Status', () => {
+  it('getActiveVarieties returns only non-archived varieties by default', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Active Pea',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: false,
+        },
+        {
+          id: 'var-2',
+          plantId: 'beans',
+          name: 'Archived Bean',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: true,
+        },
+        {
+          id: 'var-3',
+          plantId: 'carrots',
+          name: 'Carrot (no flag)',
+          plannedYears: [],
+          seedsByYear: {},
+        }
+      ]
+    })
+
+    const active = getActiveVarieties(data)
+
+    expect(active.length).toBe(2)
+    expect(active.map((v: { id: string }) => v.id)).toEqual(['var-1', 'var-3'])
+  })
+
+  it('getActiveVarieties includes archived when includeArchived is true', () => {
+    const data = createValidAllotmentData({
+      varieties: [
+        {
+          id: 'var-1',
+          plantId: 'peas',
+          name: 'Active Pea',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: false,
+        },
+        {
+          id: 'var-2',
+          plantId: 'beans',
+          name: 'Archived Bean',
+          plannedYears: [],
+          seedsByYear: {},
+          isArchived: true,
+        }
+      ]
+    })
+
+    const all = getActiveVarieties(data, true)
+
+    expect(all.length).toBe(2)
+    expect(all.map((v: { id: string }) => v.id)).toEqual(['var-1', 'var-2'])
+  })
+
+  it('getActiveVarieties handles missing varieties array', () => {
+    const data = createValidAllotmentData({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      varieties: undefined as any,
+    })
+
+    const active = getActiveVarieties(data)
+
+    expect(active).toEqual([])
   })
 })
