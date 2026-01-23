@@ -16,12 +16,12 @@ async function waitForImportComplete(page: Page) {
       .catch(() => null),
 
     // Error message
-    page.getByText(/save failed|error|invalid|failed/i).first().waitFor({ timeout: 15000 })
-      .then(async (el) => {
-        const text = await el?.textContent()
-        return { type: 'error' as const, message: text }
-      })
-      .catch(() => null),
+    (async () => {
+      const errorLocator = page.getByText(/save failed|error|invalid|failed/i).first()
+      await errorLocator.waitFor({ timeout: 15000 })
+      const text = await errorLocator.textContent()
+      return { type: 'error' as const, message: text }
+    })().catch(() => null),
 
     // Page reload/navigation (current behavior)
     page.waitForNavigation({ timeout: 15000 })
