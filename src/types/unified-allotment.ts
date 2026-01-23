@@ -237,6 +237,7 @@ export interface AreaSeason {
   careLogs?: CareLogEntry[]          // Care logs for permanent areas
   harvestTotal?: number              // Aggregated harvest for the year
   harvestUnit?: string               // kg, lbs, count, etc.
+  gridPosition?: GridPosition        // Per-year layout position (v14)
 }
 
 // ============ PLANTINGS ============
@@ -425,7 +426,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 13 // Removed yearsUsed from StoredVariety (computed from plantings)
+export const CURRENT_SCHEMA_VERSION = 14 // Added gridPosition to AreaSeason for per-year layouts
 
 // ============ HELPER TYPES ============
 

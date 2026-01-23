@@ -138,10 +138,9 @@ export interface GridItemConfig {
 // Areas added through UI will auto-position or be manually positioned
 export const DEFAULT_GRID_LAYOUT: GridItemConfig[] = []
 
-// Local storage key for saved layout
-export const LAYOUT_STORAGE_KEY = 'allotment-grid-layout'
-
 // Get grid item by ID
 export function getGridItemById(id: string): GridItemConfig | undefined {
   return DEFAULT_GRID_LAYOUT.find(item => item.i === id)
 }
+
+// Note: LAYOUT_STORAGE_KEY removed in v14 - grid positions now stored in AreaSeason.gridPosition

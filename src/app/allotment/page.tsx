@@ -16,7 +16,7 @@ import {
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
-import { Planting, NewPlanting, AreaSeason } from '@/types/unified-allotment'
+import { Planting, NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
@@ -82,6 +82,8 @@ export default function AllotmentPage() {
     archiveArea,
     // Variety operations
     getVarietiesForYear,
+    // v14 per-year position updates
+    updateAreaSeasonPosition,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -114,6 +116,11 @@ export default function AllotmentPage() {
   const getPreviousRotation = useCallback((areaId: string): RotationGroup | null => {
     return getPreviousYearRotationGroup(areaId, selectedYear, data?.seasons || [])
   }, [selectedYear, data?.seasons])
+
+  // v14: Handle grid position changes for per-year layouts (must be before early returns)
+  const handlePositionChange = useCallback((areaId: string, position: GridPosition) => {
+    updateAreaSeasonPosition(areaId, position)
+  }, [updateAreaSeasonPosition])
 
   // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
   const autoRotateInfo = useMemo(() => {
@@ -439,8 +446,10 @@ export default function AllotmentPage() {
                     selectedItemRef={selectedItemRef}
                     getPlantingsForBed={getPlantings}
                     areas={getAllAreas()}
+                    areaSeasons={currentSeason?.areas}
                     selectedYear={selectedYear}
                     onEditingChange={setIsGridEditing}
+                    onPositionChange={handlePositionChange}
                   />
                 </div>
               </div>

@@ -708,9 +708,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 12 -> 13: Remove yearsUsed from StoredVariety (computed from plantings)
   if (migrated.version < 13) {
     const v13Data = migrateToV13(migrated)
-    v13Data.version = CURRENT_SCHEMA_VERSION
+    v13Data.version = 13
     console.log('Migrated to schema v13: removed yearsUsed from StoredVariety')
-    return v13Data
+    // Continue to v14 migration
+    return migrateSchema(v13Data)
+  }
+
+  // Version 13 -> 14: Add gridPosition to AreaSeason for per-year layouts
+  if (migrated.version < 14) {
+    const v14Data = migrateToV14(migrated)
+    v14Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v14: added per-year grid positions to AreaSeason')
+    return v14Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -1142,6 +1151,66 @@ function migrateToV13(data: AllotmentData): AllotmentData {
   return migrated
 }
 
+/**
+ * Migrate from v13 to v14: Add gridPosition to AreaSeason for per-year layouts
+ * - Populate AreaSeason.gridPosition from separate 'allotment-grid-layout' localStorage key (if exists)
+ * - Fallback to Area.gridPosition in layout.areas[]
+ * - Delete the separate layout key after migration
+ */
+function migrateToV14(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // Try to load saved positions from separate localStorage key
+  let savedLayoutPositions: Record<string, GridPosition> = {}
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('allotment-grid-layout')
+      if (saved) {
+        const savedLayout = JSON.parse(saved) as Array<{ i: string; x: number; y: number; w: number; h: number }>
+        savedLayoutPositions = savedLayout.reduce((acc, item) => {
+          acc[item.i] = { x: item.x, y: item.y, w: item.w, h: item.h }
+          return acc
+        }, {} as Record<string, GridPosition>)
+        logger.info('v14 migration: loaded positions from allotment-grid-layout', { count: Object.keys(savedLayoutPositions).length })
+      }
+    } catch (e) {
+      logger.warn('v14 migration: failed to load saved layout positions', { error: String(e) })
+    }
+  }
+
+  // Build area position lookup from layout.areas
+  const areaPositions: Record<string, GridPosition> = {}
+  for (const area of migrated.layout.areas || []) {
+    if (area.gridPosition) {
+      areaPositions[area.id] = area.gridPosition
+    }
+  }
+
+  // Update each season's areas with gridPosition
+  migrated.seasons = migrated.seasons.map(season => ({
+    ...season,
+    areas: (season.areas || []).map(areaSeason => {
+      // Priority: savedLayoutPositions > areaPositions > undefined
+      const position = savedLayoutPositions[areaSeason.areaId] ?? areaPositions[areaSeason.areaId]
+      return position ? { ...areaSeason, gridPosition: position } : areaSeason
+    }),
+  }))
+
+  // Delete the separate layout key after migration
+  if (typeof window !== 'undefined') {
+    try {
+      if (localStorage.getItem('allotment-grid-layout')) {
+        localStorage.removeItem('allotment-grid-layout')
+        logger.info('v14 migration: removed allotment-grid-layout key')
+      }
+    } catch (e) {
+      logger.warn('v14 migration: failed to remove allotment-grid-layout key', { error: String(e) })
+    }
+  }
+
+  return migrated
+}
+
 // ============ LEGACY DATA MIGRATION ============
 
 /**
@@ -1274,7 +1343,7 @@ function ensureCurrentYearSeason(data: AllotmentData, targetYear: number): Allot
 export function addSeason(data: AllotmentData, input: NewSeasonInput): AllotmentData {
   const now = new Date().toISOString()
 
-  // Find previous year's season for auto-rotation
+  // Find previous year's season for auto-rotation and position copying
   const previousYear = input.year - 1
   const previousSeason = data.seasons.find(s => s.year === previousYear)
 
@@ -1298,10 +1367,15 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
         })
       }
 
+      // Copy grid position from previous year's AreaSeason, fallback to Area default
+      const previousAreaSeason = previousSeason?.areas?.find(a => a.areaId === area.id)
+      const gridPosition = previousAreaSeason?.gridPosition ?? area.gridPosition
+
       return {
         areaId: area.id,
         rotationGroup,
         plantings: [],
+        gridPosition,
       }
     })
 
@@ -1460,6 +1534,38 @@ export function updateBedRotationGroup(
   rotationGroup: RotationGroup
 ): AllotmentData {
   return updateAreaRotationGroup(data, year, bedId, rotationGroup)
+}
+
+/**
+ * Update grid position for a specific area in a specific year (v14)
+ * Used for per-year layouts where each year can have different positions
+ */
+export function updateAreaSeasonPosition(
+  data: AllotmentData,
+  year: number,
+  areaId: string,
+  position: GridPosition
+): AllotmentData {
+  return {
+    ...data,
+    seasons: data.seasons.map(season => {
+      if (season.year !== year) return season
+
+      const existingArea = season.areas?.find(a => a.areaId === areaId)
+
+      return {
+        ...season,
+        updatedAt: new Date().toISOString(),
+        areas: existingArea
+          ? (season.areas || []).map(area =>
+              area.areaId === areaId
+                ? { ...area, gridPosition: position }
+                : area
+            )
+          : [...(season.areas || []), { areaId, plantings: [], gridPosition: position }],
+      }
+    }),
+  }
 }
 
 // ============ PLANTING OPERATIONS ============

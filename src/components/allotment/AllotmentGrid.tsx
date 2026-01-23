@@ -5,11 +5,10 @@ import ReactGridLayout from 'react-grid-layout'
 import { Lock, Unlock, RotateCcw, Move } from 'lucide-react'
 import {
   DEFAULT_GRID_LAYOUT,
-  LAYOUT_STORAGE_KEY,
   GridItemConfig
 } from '@/data/allotment-layout'
 import { AllotmentItemRef } from '@/types/garden-planner'
-import { Area, Planting } from '@/types/unified-allotment'
+import { Area, Planting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
 import AllotmentMobileView from './AllotmentMobileView'
@@ -22,8 +21,10 @@ interface AllotmentGridProps {
   selectedItemRef?: AllotmentItemRef | null
   getPlantingsForBed?: (bedId: string) => Planting[]
   areas?: Area[]
+  areaSeasons?: AreaSeason[]  // v14: per-year position data
   selectedYear: number
   onEditingChange?: (isEditing: boolean) => void
+  onPositionChange?: (areaId: string, position: GridPosition) => void  // v14: callback for position updates
 }
 
 // Layout item type for react-grid-layout
@@ -71,8 +72,18 @@ function mergeLayoutWithConfig(
   })
 }
 
-// Convert Area[] to GridItemConfig[]
-function areasToGridConfig(areas: Area[]): GridItemConfig[] {
+// Convert Area[] to GridItemConfig[], using AreaSeason positions if available (v14)
+function areasToGridConfig(areas: Area[], areaSeasons?: AreaSeason[]): GridItemConfig[] {
+  // Build lookup for per-year positions
+  const seasonPositions: Record<string, GridPosition> = {}
+  if (areaSeasons) {
+    for (const as of areaSeasons) {
+      if (as.gridPosition) {
+        seasonPositions[as.areaId] = as.gridPosition
+      }
+    }
+  }
+
   return areas
     .filter(area => !area.isArchived) // Don't show archived areas
     .map(area => {
@@ -88,8 +99,8 @@ function areasToGridConfig(areas: Area[]): GridItemConfig[] {
         type = 'infrastructure'
       }
 
-      // Use grid position from area or default to bottom
-      const pos = area.gridPosition || { x: 0, y: 20, w: 2, h: 2 }
+      // v14: Resolve position: AreaSeason.gridPosition > Area.gridPosition > default
+      const pos = seasonPositions[area.id] ?? area.gridPosition ?? { x: 0, y: 20, w: 2, h: 1 }
 
       return {
         i: area.id,
@@ -108,7 +119,7 @@ function areasToGridConfig(areas: Area[]): GridItemConfig[] {
     })
 }
 
-export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, selectedYear, onEditingChange }: AllotmentGridProps) {
+export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, areaSeasons, selectedYear, onEditingChange, onPositionChange }: AllotmentGridProps) {
   // Filter areas by selected year
   const visibleAreas = useMemo(() => {
     if (!areas) return undefined
@@ -116,7 +127,8 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   }, [areas, selectedYear])
 
   // Use visible areas from props if provided, otherwise fall back to DEFAULT_GRID_LAYOUT
-  const baseConfig = visibleAreas ? areasToGridConfig(visibleAreas) : DEFAULT_GRID_LAYOUT
+  // v14: Pass areaSeasons for per-year position resolution
+  const baseConfig = visibleAreas ? areasToGridConfig(visibleAreas, areaSeasons) : DEFAULT_GRID_LAYOUT
   const [items, setItems] = useState<GridItemConfig[]>(baseConfig)
   const [isEditing, setIsEditing] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -133,50 +145,18 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   // Grid column count (used in layout calculations and keyboard repositioning)
   const cols = 12
 
-  // Update items when visible areas change
+  // Update items when visible areas or areaSeasons change (v14: positions come from areaSeasons)
   useEffect(() => {
     if (visibleAreas) {
-      const newConfig = areasToGridConfig(visibleAreas)
-      // Merge with any saved layout positions
-      try {
-        const saved = localStorage.getItem(LAYOUT_STORAGE_KEY)
-        if (saved) {
-          const savedLayout = JSON.parse(saved) as LayoutItem[]
-          const merged = mergeLayoutWithConfig(savedLayout, newConfig)
-          setItems(merged)
-        } else {
-          setItems(newConfig)
-        }
-      } catch (e) {
-        console.error('Failed to load saved grid layout, using default config', {
-          error: e instanceof Error ? e.message : String(e),
-          selectedYear,
-          areaCount: newConfig?.length || 0,
-          stack: e instanceof Error ? e.stack : undefined
-        })
-        setItems(newConfig)
-      }
+      const newConfig = areasToGridConfig(visibleAreas, areaSeasons)
+      setItems(newConfig)
     }
-  }, [visibleAreas, selectedYear])
+  }, [visibleAreas, areaSeasons, selectedYear])
 
-  // Load saved layout from localStorage on mount
+  // Mark as mounted (v14: no localStorage loading - positions come from data model)
   useEffect(() => {
     setMounted(true)
-
-    if (!visibleAreas) {
-      // Only use DEFAULT_GRID_LAYOUT if no areas prop
-      try {
-        const saved = localStorage.getItem(LAYOUT_STORAGE_KEY)
-        if (saved) {
-          const savedLayout = JSON.parse(saved) as LayoutItem[]
-          const merged = mergeLayoutWithConfig(savedLayout, DEFAULT_GRID_LAYOUT)
-          setItems(merged)
-        }
-      } catch (e) {
-        console.warn('Failed to load saved layout:', e)
-      }
-    }
-  }, [visibleAreas])
+  }, [])
 
   // Track container width and mobile state
   useEffect(() => {
@@ -198,26 +178,83 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     onEditingChange?.(isEditing)
   }, [isEditing, onEditingChange])
 
-  // Handle layout change
+  // Handle layout change (v14: calls onPositionChange callback instead of localStorage)
   const handleLayoutChange = useCallback((newLayout: LayoutItem[]) => {
     if (!isEditing) return
-    
+
     const merged = mergeLayoutWithConfig(newLayout, items)
     setItems(merged)
-    
-    // Save to localStorage
-    try {
-      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(newLayout))
-    } catch (e) {
-      console.warn('Failed to save layout:', e)
-    }
-  }, [isEditing, items])
 
-  // Reset to default layout
-  const handleReset = () => {
-    setItems(DEFAULT_GRID_LAYOUT)
-    localStorage.removeItem(LAYOUT_STORAGE_KEY)
-  }
+    // v14: Save position changes via callback for each changed item
+    if (onPositionChange) {
+      for (const layoutItem of newLayout) {
+        const currentItem = items.find(i => i.i === layoutItem.i)
+        if (currentItem &&
+            (currentItem.x !== layoutItem.x ||
+             currentItem.y !== layoutItem.y ||
+             currentItem.w !== layoutItem.w ||
+             currentItem.h !== layoutItem.h)) {
+          onPositionChange(layoutItem.i, {
+            x: layoutItem.x,
+            y: layoutItem.y,
+            w: layoutItem.w,
+            h: layoutItem.h,
+          })
+        }
+      }
+    }
+  }, [isEditing, items, onPositionChange])
+
+  // Reset to Area default positions (v14: resets AreaSeason positions to Area.gridPosition)
+  const handleReset = useCallback(() => {
+    if (!visibleAreas) {
+      setItems(DEFAULT_GRID_LAYOUT)
+      return
+    }
+
+    // Reset each area to its Area.gridPosition default
+    const resetConfig = visibleAreas
+      .filter(area => !area.isArchived)
+      .map(area => {
+        let type: GridItemConfig['type'] = 'area'
+        if (area.kind === 'rotation-bed' || area.kind === 'perennial-bed') {
+          type = 'bed'
+        } else if (area.kind === 'tree' || area.kind === 'berry') {
+          type = 'tree'
+        } else if (area.kind === 'herb') {
+          type = 'perennial'
+        } else if (area.kind === 'infrastructure') {
+          type = 'infrastructure'
+        }
+
+        // Use Area.gridPosition as default (not AreaSeason)
+        const pos = area.gridPosition ?? { x: 0, y: 20, w: 2, h: 1 }
+
+        return {
+          i: area.id,
+          x: pos.x,
+          y: pos.y,
+          w: pos.w,
+          h: pos.h,
+          label: area.name,
+          type,
+          icon: area.icon,
+          color: area.color,
+          bedId: (area.kind === 'rotation-bed' || area.kind === 'perennial-bed')
+            ? area.id as GridItemConfig['bedId']
+            : undefined,
+        }
+      })
+
+    setItems(resetConfig)
+
+    // Update each position via callback
+    if (onPositionChange) {
+      for (const item of resetConfig) {
+        onPositionChange(item.i, { x: item.x, y: item.y, w: item.w, h: item.h })
+      }
+    }
+  }, [visibleAreas, onPositionChange])
 
   // Handle item click - convert grid item to AllotmentItemRef
   const handleItemClick = useCallback((item: GridItemConfig) => {

@@ -136,7 +136,7 @@ export default function AddAreaForm({
         x: 0,
         y: maxY,
         w: 2,
-        h: 2,
+        h: 1,  // v14: reduced from h:2 (100px) to h:1 (50px) for more compact layout
       },
       ...(kind === 'rotation-bed' && { rotationGroup }),
       ...(kind === 'infrastructure' && { infrastructureSubtype }),
