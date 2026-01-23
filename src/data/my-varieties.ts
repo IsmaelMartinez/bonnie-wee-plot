@@ -1,7 +1,9 @@
 /**
  * User's seed varieties database
- * Tracks specific varieties, suppliers, and years used
+ * Tracks specific varieties and suppliers
  * Extracted from the Allotment Planning Workbook Excel file
+ *
+ * Note: Years used are computed from plantings data, not stored here.
  */
 
 import { PlantVariety } from '@/types/garden-planner'
@@ -14,14 +16,12 @@ export const myVarieties: PlantVariety[] = [
     name: 'Kelvedon Wonder',
     supplier: 'Organic Gardening',
     price: 2.99,
-    yearsUsed: [2024, 2025],
     notes: 'Reliable performer, good for Scotland. Compact plants.'
   },
   {
     id: 'var-pea-jumbo',
     plantId: 'peas',
     name: 'Jumbo',
-    yearsUsed: [2024],
     notes: 'Large pods'
   },
 
@@ -32,7 +32,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Ratio',
     supplier: 'Organic Gardening',
     price: 2.99,
-    yearsUsed: [2025],
     notes: 'First year trying this variety'
   },
 
@@ -43,7 +42,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Borlotti Stokkievitsboon',
     supplier: 'Organic Gardening',
     price: 3.99,
-    yearsUsed: [2025],
     notes: 'Climbing borlotti type, good for drying'
   },
 
@@ -54,7 +52,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Charlotte',
     supplier: 'Potato House',
     price: 7.30,
-    yearsUsed: [2024],
     notes: 'Salad potato, waxy texture'
   },
   {
@@ -63,7 +60,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Heidi Red',
     supplier: 'Potato House',
     price: 9.25,
-    yearsUsed: [2024],
     notes: 'Red-skinned variety'
   },
   {
@@ -72,7 +68,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Colleen (Organic Early)',
     supplier: 'Allotment',
     price: 2.50,
-    yearsUsed: [2025],
     notes: 'Early variety, organic seed potatoes'
   },
   {
@@ -81,7 +76,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Setanta (Organic Main)',
     supplier: 'Allotment',
     price: 2.50,
-    yearsUsed: [2025],
     notes: 'Maincrop variety, good blight resistance'
   },
 
@@ -92,14 +86,12 @@ export const myVarieties: PlantVariety[] = [
     name: 'Keravel Pink (Spring)',
     supplier: 'Organic Gardening',
     price: 11.99,
-    yearsUsed: [2024],
     notes: 'Spring planted sets, pink/red colour'
   },
   {
     id: 'var-onion-senshyu',
     plantId: 'onions',
     name: 'Senshyu (White Autumn)',
-    yearsUsed: [2025],
     notes: 'Japanese overwintering onion sets'
   },
   {
@@ -108,7 +100,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Electric (Red Autumn)',
     supplier: 'Organic Gardening',
     price: 9.99,
-    yearsUsed: [2025],
     notes: 'Red autumn sets, RHS recommended'
   },
   {
@@ -117,7 +108,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Centurion',
     supplier: 'Organic Gardening',
     price: 9.99,
-    yearsUsed: [2025],
     notes: 'Spring planted sets'
   },
 
@@ -128,7 +118,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Parade (Organic)',
     supplier: 'Organic Gardening',
     price: 2.49,
-    yearsUsed: [2024],
     notes: 'Organic seeds'
   },
   {
@@ -137,7 +126,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Lilia',
     supplier: 'Organic Gardening',
     price: 0.89,
-    yearsUsed: [2025],
     notes: 'Budget option'
   },
 
@@ -146,7 +134,6 @@ export const myVarieties: PlantVariety[] = [
     id: 'var-garlic-picardy',
     plantId: 'garlic',
     name: 'Picardy Wight (Spring)',
-    yearsUsed: [2024],
     notes: 'Spring planted garlic'
   },
   {
@@ -155,7 +142,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Kingsland Wight',
     supplier: 'Organic Gardening',
     price: 9.99,
-    yearsUsed: [2025],
     notes: 'Autumn planted, hardneck variety'
   },
   {
@@ -164,7 +150,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Caulk Wight (Hardneck)',
     supplier: 'Allotment',
     price: 2.50,
-    yearsUsed: [2025],
     notes: 'Hardneck variety for autumn 2025 planting'
   },
   {
@@ -173,7 +158,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Flavor',
     supplier: 'Organic Gardening',
     price: 9.99,
-    yearsUsed: [],
     notes: 'ROTTEN - arrived in poor condition, not used'
   },
 
@@ -184,7 +168,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Leeks Seeds Tape',
     supplier: 'Organic Gardening',
     price: 2.99,
-    yearsUsed: [2024],
     notes: 'Convenient seed tape format'
   },
   {
@@ -193,7 +176,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Lancelot',
     supplier: 'Allotment',
     price: 4.00,
-    yearsUsed: [2025],
     notes: 'Approximately 50 in bunch, good variety for Scotland'
   },
 
@@ -204,7 +186,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Nantes 2 (Organic)',
     supplier: 'Organic Gardening',
     price: 1.99,
-    yearsUsed: [2024, 2025],
     notes: 'Reliable variety, organic seeds. Used both years.'
   },
 
@@ -215,7 +196,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Rhonda',
     supplier: 'Organic Gardening',
     price: 2.99,
-    yearsUsed: [2025],
     notes: 'Round variety'
   },
 
@@ -224,7 +204,6 @@ export const myVarieties: PlantVariety[] = [
     id: 'var-courgette-defender',
     plantId: 'courgettes',
     name: 'Defender F1',
-    yearsUsed: [2024],
     notes: 'Very productive'
   },
   {
@@ -233,7 +212,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Wave Climber',
     supplier: 'Organic Gardening',
     price: 3.99,
-    yearsUsed: [2025],
     notes: 'Climbing courgette variety - saves space'
   },
 
@@ -242,7 +220,6 @@ export const myVarieties: PlantVariety[] = [
     id: 'var-pumpkin-spooky',
     plantId: 'pumpkin',
     name: 'Spooky Face',
-    yearsUsed: [2024],
     notes: 'Good for carving'
   },
 
@@ -253,7 +230,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Palco F1',
     supplier: 'Organic Gardening',
     price: 2.49,
-    yearsUsed: [2025],
     notes: 'F1 hybrid, bolt resistant'
   },
 
@@ -263,7 +239,6 @@ export const myVarieties: PlantVariety[] = [
     plantId: 'chard',
     name: 'Organic Rainbow Chard',
     supplier: 'Organic Gardening',
-    yearsUsed: [2024, 2025],
     notes: 'Colorful stems, very hardy for Scotland'
   },
 
@@ -273,7 +248,6 @@ export const myVarieties: PlantVariety[] = [
     plantId: 'lettuce',
     name: 'Marvel of 4 Seasons (Organic)',
     supplier: 'Organic Gardening',
-    yearsUsed: [2024, 2025],
     notes: 'Hardy variety, good for extended season'
   },
 
@@ -284,7 +258,6 @@ export const myVarieties: PlantVariety[] = [
     name: 'Pak Choi Baby',
     supplier: 'Organic Gardening',
     price: 2.99,
-    yearsUsed: [2025],
     notes: 'Compact Asian greens variety, quick growing'
   },
 
@@ -294,7 +267,6 @@ export const myVarieties: PlantVariety[] = [
     plantId: 'cauliflower',
     name: 'Skywalker F1 (Organic)',
     supplier: 'Organic Gardening',
-    yearsUsed: [2024, 2025],
     notes: 'Good for Scottish climate'
   },
 
@@ -310,17 +282,13 @@ export const myVarieties: PlantVariety[] = [
   // }
 ]
 
-// Helper functions
+// Helper functions for static variety data
 export function getVarietiesByVegetable(plantId: string): PlantVariety[] {
   return myVarieties.filter(v => v.plantId === plantId)
 }
 
 export function getVarietyById(varietyId: string): PlantVariety | undefined {
   return myVarieties.find(v => v.id === varietyId)
-}
-
-export function getVarietiesUsedInYear(year: number): PlantVariety[] {
-  return myVarieties.filter(v => v.yearsUsed.includes(year))
 }
 
 export function getVarietiesBySupplier(supplier: string): PlantVariety[] {
@@ -335,10 +303,7 @@ export function getSuppliers(): string[] {
   return [...new Set(suppliers)].sort()
 }
 
-// Calculate total spend for a year
-export function getTotalSpendForYear(year: number): number {
-  return myVarieties
-    .filter(v => v.yearsUsed.includes(year) && v.price)
-    .reduce((sum, v) => sum + (v.price || 0), 0)
-}
+// Note: For year-based queries (getVarietiesUsedInYear, getTotalSpendForYear),
+// use the computed queries from @/lib/variety-queries instead of these static helpers.
+// Years used are determined dynamically from plantings data.
 

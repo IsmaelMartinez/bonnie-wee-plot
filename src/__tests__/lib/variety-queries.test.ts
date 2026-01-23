@@ -343,7 +343,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }
@@ -351,7 +350,6 @@ describe('getVarietiesForYear', () => {
       id: 'v2',
       plantId: 'tomato',
       name: 'San Marzano',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }
@@ -359,7 +357,6 @@ describe('getVarietiesForYear', () => {
       id: 'v3',
       plantId: 'carrot',
       name: 'Nantes 2',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }
@@ -397,7 +394,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }
@@ -423,7 +419,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }
@@ -449,7 +444,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      yearsUsed: [],
       plannedYears: [],
       seedsByYear: {},
     }

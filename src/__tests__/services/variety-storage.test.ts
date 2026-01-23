@@ -291,7 +291,7 @@ describe('Have Seeds (Per Year)', () => {
   })
 
   it('checks if seeds exist for a year', () => {
-    const variety = { id: 'v-1', plantId: 'peas', name: 'Peas', yearsUsed: [], plannedYears: [], seedsByYear: { 2026: 'have' as const, 2027: 'have' as const } }
+    const variety = { id: 'v-1', plantId: 'peas', name: 'Peas', plannedYears: [], seedsByYear: { 2026: 'have' as const, 2027: 'have' as const } }
 
     expect(hasSeedsForYear(variety, 2026)).toBe(true)
     expect(hasSeedsForYear(variety, 2027)).toBe(true)
