@@ -22,6 +22,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
+import { getVarietyUsedYears } from '@/lib/variety-queries'
 
 const SUPPLIER_URLS: Record<string, string> = {
   'Organic Gardening': 'https://www.organiccatalogue.com/',
@@ -67,10 +68,12 @@ function SeedsPageContent() {
     isLoading,
     addVariety,
     updateVariety,
-    removeVariety,
+    archiveVariety,
+    unarchiveVariety,
     togglePlannedYear,
     toggleHaveSeedsForYear,
     getYears,
+    getActiveVarieties,
   } = useAllotment()
 
   // Use local state for seeds year selection (can be different from allotment page)
@@ -86,6 +89,7 @@ function SeedsPageContent() {
   const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'have' | 'need'>('all')
+  const [showArchived, setShowArchived] = useState(false)
 
   // Handle URL param filtering (Spike 3)
   const searchParams = useSearchParams()
@@ -108,19 +112,26 @@ function SeedsPageContent() {
     }
   }, [selectedYear, statusFilter])
 
-  // Get varieties to display based on selected year
+  // Get varieties to display based on selected year and archive status
   const displayVarieties = useMemo(() => {
     if (!data) return []
+
+    // Get active varieties (filtering archived unless showArchived is true)
+    const activeVarieties = getActiveVarieties(showArchived)
+
     if (selectedYear === 'all') {
-      return data.varieties || []
+      return activeVarieties
     }
     // Filter varieties for the selected year
-    return (data.varieties || []).filter(v =>
-      v.plannedYears.includes(selectedYear) ||
-      (v.seedsByYear && selectedYear in v.seedsByYear) ||
-      v.yearsUsed.includes(selectedYear)
-    )
-  }, [data, selectedYear])
+    return activeVarieties.filter(v => {
+      const yearsUsed = getVarietyUsedYears(v.id, data)
+      return (
+        v.plannedYears.includes(selectedYear) ||
+        (v.seedsByYear && selectedYear in v.seedsByYear) ||
+        yearsUsed.includes(selectedYear)
+      )
+    })
+  }, [data, selectedYear, getActiveVarieties, showArchived])
 
   const suppliers = useMemo(() => {
     if (!data) return []
@@ -213,7 +224,7 @@ function SeedsPageContent() {
   }
 
   const handleDeleteVariety = (id: string) => {
-    removeVariety(id)
+    archiveVariety(id)
     setConfirmDelete(null)
   }
 
@@ -312,7 +323,10 @@ function SeedsPageContent() {
               <div className="text-2xl font-bold text-zen-kitsune-600">
                 £{(() => {
                   const total = (data.varieties || [])
-                    .filter(v => v.yearsUsed.includes(CURRENT_YEAR - 1))
+                    .filter(v => {
+                      const yearsUsed = getVarietyUsedYears(v.id, data)
+                      return yearsUsed.includes(CURRENT_YEAR - 1)
+                    })
                     .reduce((sum, v) => sum + (v.price || 0), 0)
                   return total.toFixed(2)
                 })()}
@@ -324,7 +338,10 @@ function SeedsPageContent() {
             <div className="text-2xl font-bold text-zen-kitsune-600">
               £{(() => {
                 const total = (data.varieties || [])
-                  .filter(v => v.yearsUsed.includes(CURRENT_YEAR))
+                  .filter(v => {
+                    const yearsUsed = getVarietyUsedYears(v.id, data)
+                    return yearsUsed.includes(CURRENT_YEAR)
+                  })
                   .reduce((sum, v) => sum + (v.price || 0), 0)
                 return total.toFixed(2)
               })()}
@@ -348,6 +365,19 @@ function SeedsPageContent() {
               className="text-xs sm:text-sm text-zen-moss-600 hover:text-zen-moss-700 min-h-[44px] px-2"
             >
               Collapse all
+            </button>
+            <span className="text-zen-stone-300">|</span>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`text-xs sm:text-sm min-h-[44px] px-2 transition ${
+                showArchived
+                  ? 'text-zen-ume-600 hover:text-zen-ume-700'
+                  : 'text-zen-stone-500 hover:text-zen-stone-700'
+              }`}
+              aria-label={showArchived ? 'Hide archived varieties' : 'Show archived varieties'}
+              aria-pressed={showArchived}
+            >
+              {showArchived ? 'Hide archived' : 'Show archived'}
             </button>
           </div>
           <button
@@ -430,8 +460,9 @@ function SeedsPageContent() {
                         const config = statusConfig[status]
                         const Icon = config.icon
                         const isPlannedForSelectedYear = selectedYear !== 'all' && v.plannedYears.includes(selectedYear)
+                        const isArchived = v.isArchived === true
                         return (
-                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
+                          <div key={v.id} className={`pl-7 flex items-start gap-3 ${isArchived ? 'opacity-50' : selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
                             {selectedYear === 'all' ? (
                               <div
                                 className="mt-0.5 px-2 py-1 rounded-zen bg-zen-stone-100 text-zen-stone-500 text-xs font-medium cursor-not-allowed flex items-center gap-1"
@@ -453,6 +484,11 @@ function SeedsPageContent() {
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
                                 <span className="font-medium text-zen-ink-700">{v.name}</span>
+                                {isArchived && (
+                                  <span className="px-2 py-0.5 text-xs bg-zen-stone-200 text-zen-stone-600 rounded-zen">
+                                    Archived
+                                  </span>
+                                )}
                                 {v.supplier && (
                                   <span className="text-sm text-zen-stone-500">
                                     {SUPPLIER_URLS[v.supplier] ? (
@@ -475,15 +511,21 @@ function SeedsPageContent() {
                                 )}
                               </div>
                               <div className="text-sm text-zen-stone-500 flex flex-wrap gap-x-3">
-                                {v.yearsUsed.length > 0 && (
-                                  <span>Used: {v.yearsUsed.join(', ')}</span>
-                                )}
+                                {(() => {
+                                  const yearsUsed = getVarietyUsedYears(v.id, data)
+                                  return yearsUsed.length > 0 && (
+                                    <span>Used: {yearsUsed.join(', ')}</span>
+                                  )
+                                })()}
                                 {v.plannedYears.length > 0 && (
                                   <span className="text-zen-water-600">Planned: {v.plannedYears.join(', ')}</span>
                                 )}
-                                {v.yearsUsed.length === 0 && v.plannedYears.length === 0 && (
-                                  <span className="text-zen-ume-600">Not used yet</span>
-                                )}
+                                {(() => {
+                                  const yearsUsed = getVarietyUsedYears(v.id, data)
+                                  return yearsUsed.length === 0 && v.plannedYears.length === 0 && (
+                                    <span className="text-zen-ume-600">Not used yet</span>
+                                  )
+                                })()}
                               </div>
                               {v.notes && (() => {
                                 const isWarning = /rotten|poor|failed|bad|damaged|diseased/i.test(v.notes)
@@ -519,13 +561,21 @@ function SeedsPageContent() {
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
-                              {confirmDelete === v.id ? (
+                              {isArchived ? (
+                                <button
+                                  onClick={() => unarchiveVariety(v.id)}
+                                  className="px-2 py-1 text-xs bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200"
+                                  title="Restore variety"
+                                >
+                                  Restore
+                                </button>
+                              ) : confirmDelete === v.id ? (
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleDeleteVariety(v.id)}
                                     className="px-2 py-1 text-xs bg-zen-ume-600 text-white rounded-zen hover:bg-zen-ume-700"
                                   >
-                                    Delete
+                                    Archive
                                   </button>
                                   <button
                                     onClick={() => setConfirmDelete(null)}
@@ -538,7 +588,7 @@ function SeedsPageContent() {
                                 <button
                                   onClick={() => setConfirmDelete(v.id)}
                                   className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-ume-100 hover:text-zen-ume-600 transition"
-                                  title="Delete variety"
+                                  title="Archive variety"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

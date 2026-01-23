@@ -467,7 +467,6 @@ export interface PlantVariety {
   supplier?: string               // e.g., "Organic Gardening"
   price?: number
   notes?: string
-  yearsUsed: number[]             // Years this variety was planted
 }
 
 // ============ HISTORICAL PLAN TYPES ============

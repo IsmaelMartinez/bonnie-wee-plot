@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { AlertTriangle, Check, Users, Package } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
-import { hasSeedsForYear } from '@/services/variety-storage'
 import { NewPlanting, Planting, StoredVariety, SowMethod } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
@@ -17,6 +16,11 @@ interface AddPlantingFormProps {
   selectedYear: number
   varieties?: StoredVariety[]
   initialCategoryFilter?: VegetableCategory | 'all'
+}
+
+// Helper to check if variety has seeds for year
+function hasSeedsForYear(variety: StoredVariety, year: number): boolean {
+  return variety.seedsByYear?.[year] === 'have'
 }
 
 export default function AddPlantingForm({

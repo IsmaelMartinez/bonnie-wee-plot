@@ -1,72 +1,137 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Download, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, GitMerge, Info } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
-import { saveAllotmentData, clearAllotmentData, getStorageStats, loadAllotmentData } from '@/services/allotment-storage'
-import { STORAGE_KEY } from '@/types/unified-allotment'
-import { loadVarietyData } from '@/services/variety-storage'
+import { CompostData } from '@/types/compost'
+import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
+import { loadCompostData, saveCompostData } from '@/services/compost-storage'
+import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
+import { ImportError, ExportError } from '@/types/errors'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
+import {
+  migrateDryRun,
+  migrateVarietyStorage,
+  rollbackMigration,
+  listMigrationBackups,
+  deleteMigrationBackup,
+  getBackupMetadata,
+  type MigrationPlan,
+  type MigrationResult,
+} from '@/lib/migration-utils'
 
 interface DataManagementProps {
   data: AllotmentData | null
   onDataImported: () => void
+  flushSave?: () => Promise<boolean>
 }
 
 /**
- * Create a backup of current data before import
- * This is a safety measure to prevent accidental data loss
+ * Validate import data structure before preview
  */
-function createPreImportBackup(): boolean {
-  if (typeof window === 'undefined') return false
-
-  try {
-    const result = loadAllotmentData()
-    if (!result.success || !result.data) return false
-
-    const backupKey = `${STORAGE_KEY}-pre-import-${Date.now()}`
-    localStorage.setItem(backupKey, JSON.stringify(result.data))
-    console.log(`Created pre-import backup: ${backupKey}`)
-    return true
-  } catch (error) {
-    console.error('Failed to create pre-import backup:', error)
-    return false
+function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
+  // Check if it's a valid object
+  if (!parsed || typeof parsed !== 'object') {
+    return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
   }
+
+  const obj = parsed as Record<string, unknown>
+
+  // Check for CompleteExport format (new format with allotment + varieties)
+  if (obj.allotment && obj.varieties) {
+    const allotment = obj.allotment as Record<string, unknown>
+
+    // Validate required AllotmentData fields
+    if (typeof allotment.version !== 'number') {
+      return { valid: false, error: 'Invalid backup: missing or invalid version' }
+    }
+
+    if (!allotment.meta || typeof allotment.meta !== 'object') {
+      return { valid: false, error: 'Invalid backup: missing metadata' }
+    }
+
+    if (!Array.isArray(allotment.seasons)) {
+      return { valid: false, error: 'Invalid backup: missing seasons data' }
+    }
+
+    // Check version compatibility
+    if (allotment.version > CURRENT_SCHEMA_VERSION) {
+      return {
+        valid: false,
+        error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
+      }
+    }
+
+    return { valid: true }
+  }
+
+  // Check for old format (just AllotmentData)
+  if (typeof obj.version === 'number' && obj.meta && Array.isArray(obj.seasons)) {
+    // Check version compatibility
+    if (obj.version > CURRENT_SCHEMA_VERSION) {
+      return {
+        valid: false,
+        error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
+      }
+    }
+
+    return { valid: true }
+  }
+
+  return { valid: false, error: 'Invalid backup file: unrecognized format' }
 }
 
 /**
  * Component for managing allotment data - export, import, and clear
  */
-export default function DataManagement({ data, onDataImported }: DataManagementProps) {
+export default function DataManagement({ data, onDataImported, flushSave }: DataManagementProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
+  const [importError, setImportError] = useState<ImportError | null>(null)
   const [importSuccess, setImportSuccess] = useState(false)
+  const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
+  // Migration state
+  const [migrationPlan, setMigrationPlan] = useState<MigrationPlan | null>(null)
+  const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null)
+  const [migrationBackups, setMigrationBackups] = useState<string[]>([])
+  const [migrationError, setMigrationError] = useState<string | null>(null)
+
   // Get storage statistics
   const stats = getStorageStats()
+  const quota = checkStorageQuota()
 
-  // Export data as JSON file (includes both allotment and varieties)
+  // Export data as JSON file (includes allotment, varieties, and compost)
   const handleExport = useCallback(() => {
     if (!data) return
 
     try {
-      // Load varieties data
-      const varietyResult = loadVarietyData()
-      const varieties = varietyResult.success && varietyResult.data ? varietyResult.data : {
+      // Check storage quota before export and warn if high
+      const currentQuota = checkStorageQuota()
+      if (currentQuota.percentageUsed > 80) {
+        console.warn(`Storage usage is at ${currentQuota.percentageUsed.toFixed(1)}% - consider clearing old data`)
+      }
+
+      // Create VarietyData from allotment varieties for backward compatibility
+      const varieties: VarietyData = {
         version: 2,
-        varieties: [],
+        varieties: data.varieties || [],
         meta: {
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: data.meta.createdAt,
+          updatedAt: data.meta.updatedAt
         }
       }
+
+      // Load compost data (optional - not critical if it doesn't exist)
+      const compostResult = loadCompostData()
+      const compost = compostResult.success && compostResult.data ? compostResult.data : undefined
 
       const exportData: CompleteExport = {
         allotment: data,
         varieties,
+        compost,
         exportedAt: new Date().toISOString(),
         exportVersion: CURRENT_SCHEMA_VERSION,
       }
@@ -86,66 +151,147 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
       URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Export failed:', error)
+      throw new ExportError(
+        'Failed to export data',
+        'EXPORT_FAILED',
+        true,
+        ['Try again', 'Check browser console for details']
+      )
     }
   }, [data])
 
   // Import data from JSON file (supports both old and new formats)
-  const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[DataManagement] handleImport called')
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file) {
+      console.log('[DataManagement] No file selected')
+      return
+    }
+
+    console.log('[DataManagement] File selected:', file.name, file.size)
 
     setImportError(null)
     setImportSuccess(false)
+    setLastBackupKey(null)
 
-    const reader = new FileReader()
-
-    reader.onload = (e) => {
+    // Flush any pending saves before importing
+    // Note: flushSave can fail due to verification issues, but we'll still try the import
+    // since the import process has its own verification step
+    if (flushSave) {
+      console.log('[DataManagement] flushSave is provided, calling it...')
       try {
-        // Create backup of existing data before import
-        createPreImportBackup()
+        const flushed = await flushSave()
+        console.log('[DataManagement] flushSave returned:', flushed)
+        if (!flushed) {
+          console.log('[DataManagement] flushSave verification failed, but continuing with import')
+          // Don't block import - it has its own verification
+        }
+      } catch (err) {
+        console.log('[DataManagement] flushSave threw error:', err)
+        // Continue anyway
+      }
+    } else {
+      console.log('[DataManagement] No flushSave provided, continuing...')
+    }
 
+    console.log('[DataManagement] Creating FileReader...')
+    const reader = new FileReader()
+    console.log('[DataManagement] FileReader created')
+
+    reader.onload = async (e) => {
+      try {
+        // Parse and validate JSON first
         const content = e.target?.result as string
-        const parsed = JSON.parse(content)
+        console.log('[DataManagement] File loaded, content length:', content.length)
+
+        let parsed: unknown
+        try {
+          parsed = JSON.parse(content)
+          console.log('[DataManagement] JSON parsed successfully')
+        } catch {
+          console.log('[DataManagement] JSON parse error')
+          setImportError(new ImportError(
+            'Invalid JSON file',
+            'INVALID_JSON',
+            true,
+            ['Ensure the file is a valid JSON export from this application', 'Try exporting a new backup']
+          ))
+          return
+        }
+
+        // Validate data structure before proceeding
+        const validation = validateImportData(parsed)
+        console.log('[DataManagement] Validation result:', validation)
+        if (!validation.valid) {
+          const errorMsg = validation.error || 'Invalid backup file'
+          const code = errorMsg.includes('newer version') ? 'VERSION_MISMATCH' : 'INVALID_FORMAT'
+          const recoverable = !errorMsg.includes('newer version')
+          const suggestions = errorMsg.includes('newer version')
+            ? ['Update the application to the latest version', 'Use an older backup file']
+            : ['Check that the file is a valid backup', 'Try exporting a new backup']
+
+          setImportError(new ImportError(errorMsg, code, recoverable, suggestions))
+          return
+        }
+
+        // Create backup of existing data before import
+        const backupResult = createPreImportBackup()
+        if (!backupResult.success) {
+          setImportError(new ImportError(
+            backupResult.error || 'Failed to create safety backup',
+            'BACKUP_FAILED',
+            false,
+            ['Free up storage space', 'Clear browser cache', 'Try a different browser']
+          ))
+          return
+        }
+
+        // Store backup key for potential restore
+        setLastBackupKey(backupResult.backupKey || null)
 
         let allotmentData: AllotmentData
         let varietyData: VarietyData | null = null
+        let compostData: CompostData | null = null
 
         // Check if this is the new format (has allotment + varieties)
-        if (parsed.allotment && parsed.varieties) {
+        if ((parsed as Record<string, unknown>).allotment && (parsed as Record<string, unknown>).varieties) {
           const complete = parsed as CompleteExport
           allotmentData = complete.allotment
           varietyData = complete.varieties
+          compostData = complete.compost || null
 
-          // Check version compatibility
-          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
-            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
-            return
-          }
+          console.log('[DataManagement] Import detected v13+ format', {
+            hasAllotment: !!complete.allotment,
+            hasVarieties: !!complete.varieties,
+            varietyDataVarietiesLength: varietyData?.varieties?.length,
+            allotmentDataVarietiesLength: complete.allotment?.varieties?.length
+          })
 
           // Merge varieties into allotment data
           // The app expects varieties to be in AllotmentData.varieties, not in separate storage
           if (varietyData && varietyData.varieties) {
+            console.log('[DataManagement] Merging varieties from varietyData', {
+              count: varietyData.varieties.length,
+              varieties: varietyData.varieties
+            })
             allotmentData.varieties = varietyData.varieties
+            console.log('[DataManagement] After merge, allotmentData.varieties', {
+              length: allotmentData.varieties?.length,
+              varieties: allotmentData.varieties
+            })
           }
         } else {
           // Old format - just AllotmentData
+          console.log('[DataManagement] Import detected legacy format (AllotmentData only)', {
+            version: (parsed as AllotmentData)?.version,
+            varietiesLength: (parsed as AllotmentData)?.varieties?.length
+          })
           allotmentData = parsed as AllotmentData
-
-          // Basic validation
-          if (!allotmentData.version || !allotmentData.meta || !allotmentData.seasons) {
-            setImportError('Invalid backup file: missing required fields')
-            return
-          }
-
-          // Check version compatibility
-          if (allotmentData.version > CURRENT_SCHEMA_VERSION) {
-            setImportError(`Backup is from a newer version (v${allotmentData.version}). Please update the app first.`)
-            return
-          }
         }
 
         // Update timestamps
-        const finalAllotmentData: AllotmentData = {
+        const timestampedData: AllotmentData = {
           ...allotmentData,
           meta: {
             ...allotmentData.meta,
@@ -153,37 +299,114 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
           }
         }
 
+        console.log('[DataManagement] allotmentData before migration:', {
+          version: allotmentData.version,
+          varietiesLength: allotmentData.varieties?.length,
+          varietiesIds: allotmentData.varieties?.map(v => v.id)
+        })
+
+        // Migrate imported data to current schema to ensure areas and other fields are properly initialized
+        const migratedData = migrateSchemaForImport(timestampedData)
+
+        console.log('[DataManagement] After migration:', {
+          version: migratedData.version,
+          varietiesLength: migratedData.varieties?.length,
+          varietiesIds: migratedData.varieties?.map(v => v.id)
+        })
+
+        const finalAllotmentData = migratedData
+
         // Save allotment data (now includes varieties merged from varietyData)
+        console.log('[DataManagement] About to save with varieties length:', finalAllotmentData.varieties?.length)
         const allotmentResult = saveAllotmentData(finalAllotmentData)
 
         if (!allotmentResult.success) {
-          setImportError(allotmentResult.error || 'Failed to save allotment data')
+          const errorMsg = allotmentResult.error || 'Failed to save allotment data'
+          const isQuotaError = errorMsg.toLowerCase().includes('quota')
+
+          setImportError(new ImportError(
+            errorMsg,
+            isQuotaError ? 'QUOTA_EXCEEDED' : 'SAVE_FAILED',
+            true,
+            isQuotaError
+              ? ['Free up storage space by deleting old backups', 'Clear browser cache', 'Export and save your data externally']
+              : ['Try again', 'Refresh the page', 'Check browser console for details']
+          ))
           return
         }
 
-        setImportSuccess(true)
-        setTimeout(() => {
-          setImportSuccess(false)
-          setIsOpen(false)
-          onDataImported()
-        }, 1500)
+        // Save compost data if present
+        if (compostData) {
+          const compostResult = saveCompostData(compostData)
+          if (!compostResult.success) {
+            console.warn('Failed to import compost data:', compostResult.error)
+            // Don't fail the entire import if compost save fails
+          }
+        }
+
+        // Skip verification - saveAllotmentData has already validated the save was successful
+        // Verification via loadAllotmentData can trigger side effects (repair logic) that corrupt the data
+        console.log('[DataManagement] Import saved successfully, triggering reload')
+
+        // Success! Import is complete and data is persisted to localStorage
+        // CRITICAL: Set flag to prevent usePersistedStorage from overwriting imported data
+        // The hook's debounced save might fire with stale in-memory state before reload completes
+        window.__disablePersistenceUntilReload = true
+
+        // Do an immediate hard reload to ensure the new data is loaded cleanly
+        // This avoids any React state conflicts with the hook
+        window.location.reload()
       } catch (error) {
         console.error('Import failed:', error)
-        setImportError('Invalid JSON file. Please select a valid backup file.')
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        setImportError(new ImportError(
+          `Unexpected error during import: ${errorMsg}`,
+          'UNEXPECTED_ERROR',
+          true,
+          ['Use "Restore from backup" button below', 'Try again with a different backup file', 'Check browser console for details']
+        ))
       }
     }
 
     reader.onerror = () => {
-      setImportError('Failed to read file. Please try again.')
+      console.log('[DataManagement] FileReader error')
+      setImportError(new ImportError(
+        'Failed to read the backup file',
+        'FILE_READ_ERROR',
+        true,
+        ['Try selecting the file again', 'Check that the file is not corrupted', 'Try a different backup file']
+      ))
     }
 
+    console.log('[DataManagement] Calling readAsText...')
     reader.readAsText(file)
+    console.log('[DataManagement] readAsText called, waiting for onload callback')
 
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [onDataImported])
+  }, [flushSave])
+
+  // Restore from the last backup created before import
+  const handleRestoreBackup = useCallback(() => {
+    if (!lastBackupKey) return
+
+    const result = restoreFromBackup(lastBackupKey)
+    if (result.success) {
+      setImportError(null)
+      setLastBackupKey(null)
+      setImportSuccess(false)
+      onDataImported()
+    } else {
+      setImportError(new ImportError(
+        result.error || 'Failed to restore backup',
+        'RESTORE_FAILED',
+        false,
+        ['Refresh the page', 'Contact support if you lost important data']
+      ))
+    }
+  }, [lastBackupKey, onDataImported])
 
   // Clear all data
   const handleClear = useCallback(() => {
@@ -194,6 +417,61 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
       onDataImported()
     }
   }, [onDataImported])
+
+  // Migration handlers
+  const handleCheckMigration = useCallback(() => {
+    if (!data) return
+
+    setMigrationError(null)
+    const plan = migrateDryRun(data)
+    setMigrationPlan(plan)
+
+    // Load existing backups
+    const backups = listMigrationBackups()
+    setMigrationBackups(backups)
+  }, [data])
+
+  const handleMigrateStorage = useCallback(() => {
+    if (!data) return
+
+    setMigrationError(null)
+    setMigrationResult(null)
+
+    const result = migrateVarietyStorage(data)
+    setMigrationResult(result)
+
+    if (result.success) {
+      // Reload data after successful migration
+      setTimeout(() => {
+        onDataImported()
+        // Refresh migration status
+        handleCheckMigration()
+      }, 1500)
+    } else {
+      setMigrationError(result.error || 'Migration failed')
+    }
+  }, [data, onDataImported, handleCheckMigration])
+
+  const handleRollbackMigration = useCallback((backupKey: string) => {
+    const result = rollbackMigration(backupKey)
+
+    if (result.success) {
+      setMigrationResult(null)
+      setMigrationPlan(null)
+      setMigrationError(null)
+      onDataImported()
+      handleCheckMigration()
+    } else {
+      setMigrationError(result.error || 'Rollback failed')
+    }
+  }, [onDataImported, handleCheckMigration])
+
+  const handleDeleteBackup = useCallback((backupKey: string) => {
+    const result = deleteMigrationBackup(backupKey)
+    if (result.success) {
+      setMigrationBackups(prev => prev.filter(key => key !== backupKey))
+    }
+  }, [])
 
   return (
     <>
@@ -216,11 +494,11 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
         maxWidth="md"
       >
         <div className="space-y-6">
-          {/* Storage Stats */}
+          {/* Storage Stats with Quota Warning */}
           {stats && (
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className={`rounded-lg p-4 ${quota.percentageUsed > 80 ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Storage Usage</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-2">
                 <div>
                   <p className="text-xs text-gray-500">Allotment Data</p>
                   <p className="text-lg font-semibold text-gray-900">{stats.dataSize}</p>
@@ -230,6 +508,31 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
                   <p className="text-lg font-semibold text-gray-900">{stats.used}</p>
                 </div>
               </div>
+              {/* Quota usage bar */}
+              <div className="mt-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Quota Usage</span>
+                  <span>{quota.percentageUsed.toFixed(1)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      quota.percentageUsed > 90 ? 'bg-red-500' :
+                      quota.percentageUsed > 80 ? 'bg-amber-500' :
+                      'bg-emerald-500'
+                    }`}
+                    style={{ width: `${Math.min(quota.percentageUsed, 100)}%` }}
+                  />
+                </div>
+              </div>
+              {quota.percentageUsed > 80 && (
+                <div className="mt-3 flex items-start gap-2 text-xs text-amber-700">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p>
+                    Storage is {quota.percentageUsed.toFixed(0)}% full. Consider exporting your data and clearing old backups.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -276,9 +579,42 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
 
             {/* Import Status Messages */}
             {importError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{importError}</p>
+              <div className="mt-3 space-y-3">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-700">{importError.message}</p>
+                      <p className="text-xs text-red-600 mt-1">Error Code: {importError.code}</p>
+                    </div>
+                  </div>
+
+                  {/* Recovery suggestions */}
+                  {importError.suggestions.length > 0 && (
+                    <div className="mt-3 pl-6">
+                      <p className="text-xs font-medium text-red-700 mb-1">Recovery Steps:</p>
+                      <ul className="text-xs text-red-600 space-y-1">
+                        {importError.suggestions.map((suggestion, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <span className="text-red-400 mt-0.5">•</span>
+                            <span>{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Restore from backup button */}
+                {lastBackupKey && importError.recoverable && (
+                  <button
+                    onClick={handleRestoreBackup}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition w-full justify-center"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Restore from Backup
+                  </button>
+                )}
               </div>
             )}
             
@@ -286,6 +622,148 @@ export default function DataManagement({ data, onDataImported }: DataManagementP
               <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 <p className="text-sm text-green-700">Data imported successfully! Reloading...</p>
+              </div>
+            )}
+          </div>
+
+          {/* Storage Migration Section */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
+              <GitMerge className="w-4 h-4" />
+              Storage Migration
+            </h3>
+            <p className="text-sm text-gray-500 mb-3">
+              Migrate variety data from separate storage into allotment data. This consolidates your seed variety tracking.
+            </p>
+
+            {/* Check Migration Status Button */}
+            <button
+              onClick={handleCheckMigration}
+              disabled={!data}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+            >
+              <Info className="w-4 h-4" />
+              Check Migration Status
+            </button>
+
+            {/* Migration Plan Display */}
+            {migrationPlan && (
+              <div className="mt-3 space-y-3">
+                {!migrationPlan.needsMigration ? (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <p className="text-sm text-green-700">No migration needed. All varieties are already in allotment storage.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">Migration Plan</h4>
+                      <div className="space-y-1 text-sm text-blue-700">
+                        <p>Varieties to merge: {migrationPlan.varietiesToMerge.length}</p>
+                        <p>Duplicates found: {migrationPlan.duplicatesFound.length}</p>
+                        <p>Total after migration: {migrationPlan.totalVarietiesAfterMigration}</p>
+                      </div>
+
+                      {migrationPlan.duplicatesFound.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-blue-200">
+                          <p className="text-xs font-medium text-blue-800 mb-1">Duplicate Resolution:</p>
+                          <ul className="text-xs text-blue-600 space-y-1">
+                            {migrationPlan.conflictResolution.slice(0, 3).map((resolution, idx) => (
+                              <li key={idx}>
+                                {resolution.plantId} - {resolution.normalizedName}: {resolution.reason}
+                              </li>
+                            ))}
+                            {migrationPlan.conflictResolution.length > 3 && (
+                              <li>... and {migrationPlan.conflictResolution.length - 3} more</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Migrate Button */}
+                    <button
+                      onClick={handleMigrateStorage}
+                      className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition w-full justify-center"
+                    >
+                      <GitMerge className="w-4 h-4" />
+                      Migrate Storage
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Migration Result Display */}
+            {migrationResult && migrationResult.success && (
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <p className="text-sm font-medium text-green-700">Migration completed successfully!</p>
+                </div>
+                <div className="text-sm text-green-600 space-y-1">
+                  <p>Varieties merged: {migrationResult.varietiesMerged}</p>
+                  <p>Duplicates skipped: {migrationResult.duplicatesSkipped}</p>
+                  {migrationResult.backupKey && (
+                    <p className="text-xs mt-2">Backup created: {migrationResult.backupKey}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Migration Error Display */}
+            {migrationError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{migrationError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Migration Backups List */}
+            {migrationBackups.length > 0 && (
+              <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Migration Backups</h4>
+                <div className="space-y-2">
+                  {migrationBackups.slice(0, 3).map(backupKey => {
+                    const metadata = getBackupMetadata(backupKey)
+                    return (
+                      <div key={backupKey} className="flex items-center justify-between text-xs">
+                        <div className="flex-1">
+                          <p className="text-gray-700 font-medium">{metadata?.date ? new Date(metadata.date).toLocaleString() : 'Unknown date'}</p>
+                          <p className="text-gray-500">{backupKey}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleRollbackMigration(backupKey)}
+                            className="px-2 py-1 text-amber-600 hover:bg-amber-50 rounded transition"
+                            title="Rollback to this backup"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBackup(backupKey)}
+                            className="px-2 py-1 text-red-600 hover:bg-red-50 rounded transition"
+                            title="Delete this backup"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {migrationBackups.length > 3 && (
+                    <p className="text-xs text-gray-500 text-center pt-2">
+                      ... and {migrationBackups.length - 3} more backups
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Warning: These backups are kept indefinitely. Delete old backups to free up storage space.
+                </p>
               </div>
             )}
           </div>

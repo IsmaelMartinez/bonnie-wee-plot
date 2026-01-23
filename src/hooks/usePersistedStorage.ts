@@ -18,6 +18,15 @@ export type { SaveStatus, StorageResult } from '@/types/storage'
 
 const SAVE_DEBOUNCE_MS = 500
 
+// Global flag to prevent saves during import/reload
+// This is set by DataManagement before triggering reload to prevent
+// the hook from overwriting just-imported data with stale in-memory state
+declare global {
+  interface Window {
+    __disablePersistenceUntilReload?: boolean
+  }
+}
+
 export interface UsePersistedStorageOptions<T> {
   storageKey: string
   load: () => StorageResult<T>
@@ -36,7 +45,7 @@ export interface UsePersistedStorageReturn<T> {
   isSyncedFromOtherTab: boolean
   lastSavedAt: Date | null
   reload: () => void
-  flushSave: () => void
+  flushSave: () => Promise<boolean>
   clearSaveError: () => void
   retrySave: () => void
 }
@@ -131,6 +140,12 @@ export function usePersistedStorage<T>(
   // Debounced save function
   const debouncedSave = useCallback(
     (dataToSave: T) => {
+      // Check if saves are disabled (e.g., during import before reload)
+      if (typeof window !== 'undefined' && window.__disablePersistenceUntilReload) {
+        console.log('[usePersistedStorage] Saves disabled - skipping debouncedSave')
+        return
+      }
+
       pendingDataRef.current = dataToSave
       setSaveError(null)
       setSaveStatus('saving')
@@ -140,6 +155,15 @@ export function usePersistedStorage<T>(
       }
 
       saveTimeoutRef.current = setTimeout(() => {
+        // Double-check the flag inside the timeout in case it was set after scheduling
+        if (typeof window !== 'undefined' && window.__disablePersistenceUntilReload) {
+          console.log('[usePersistedStorage] Saves disabled - skipping scheduled save')
+          pendingDataRef.current = null
+          saveTimeoutRef.current = null
+          setSaveStatus('idle')
+          return
+        }
+
         if (pendingDataRef.current) {
           // Add to recent saves set before saving to detect our own storage events
           const serialized = JSON.stringify(pendingDataRef.current)
@@ -209,27 +233,53 @@ export function usePersistedStorage<T>(
     setIsLoading(false)
   }, [load])
 
-  const flushSave = useCallback(() => {
+  const flushSave = useCallback(async (): Promise<boolean> => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
       saveTimeoutRef.current = null
     }
-    if (pendingDataRef.current) {
-      const serialized = JSON.stringify(pendingDataRef.current)
+    if (!pendingDataRef.current) return true
+
+    try {
+      const dataToSave = pendingDataRef.current
+      const serialized = JSON.stringify(dataToSave)
       recentSavesRef.current.add(serialized)
-      const result = save(pendingDataRef.current)
+
+      const result = save(dataToSave)
       if (!result.success) {
         setSaveError(result.error || 'Failed to save data')
         setSaveStatus('error')
         recentSavesRef.current.delete(serialized)
-      } else {
+        return false
+      }
+
+      // Verify write succeeded by re-loading
+      const verification = load()
+      const verified = verification.success &&
+                       verification.data &&
+                       JSON.stringify(verification.data) === serialized
+
+      if (verified) {
+        pendingDataRef.current = null
         setSaveError(null)
         setSaveStatus('saved')
+        setLastSavedAt(new Date())
+        setTimeout(() => setSaveStatus('idle'), 2000)
         setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
+        return true
+      } else {
+        setSaveError('Verification failed: data did not persist correctly')
+        setSaveStatus('error')
+        recentSavesRef.current.delete(serialized)
+        return false
       }
-      pendingDataRef.current = null
+    } catch (error) {
+      console.error('Flush failed:', error)
+      setSaveError('Flush failed: unexpected error')
+      setSaveStatus('error')
+      return false
     }
-  }, [save])
+  }, [save, load])
 
   const clearSaveError = useCallback(() => {
     setSaveError(null)
