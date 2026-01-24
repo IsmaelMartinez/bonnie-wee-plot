@@ -4,6 +4,8 @@
 
 Welcome to your personal digital garden assistant, specifically tuned for those brave souls who garden where horizontal rain is a lifestyle choice. Plan your plot, get AI-powered advice, and learn proven techniques for growing in Scotland's "interesting" climate—all in one place.
 
+**Try it now:** [Bonnie Wee Plot on GitHub Pages](https://ismaelmartinez.github.io/bonnie-wee-plot)
+
 ## 🤖 AI-Generated Code Disclaimer
 
 **This entire project was created using Claude Sonnet (Anthropic's AI assistant) via VS Code's agent mode.** Every line of code, configuration, test, and documentation was generated through AI assistance, demonstrating the current capabilities of AI-powered software development.
@@ -175,13 +177,9 @@ Learn about the project and its AI-powered origins.
 - The linter occasionally throws temper tantrums about array keys
 - The growing calendar assumes you're somewhere in central Scotland—Shetland folk, you know to adjust
 
-## 🤝 Want to Help Make This Less Ridiculous?
+## Want to Help?
 
-1. Fork it (the code, not your actual garden fork)
-2. Branch it (again, the code)
-3. Fix something or break something new
-4. Test it (please, for the love of all things green)
-5. Send us a pull request with your improvements
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## 📜 License & Usage Policy
 
