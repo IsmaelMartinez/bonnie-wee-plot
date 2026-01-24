@@ -161,5 +161,5 @@ See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. Se
 
 - Plan files in `docs/plans/` are temporary working documents - delete them after implementation is complete
 - Research documents in `docs/research/` should be reviewed periodically and removed when obsolete
-- ADRs are permanent records - update status but don't delete
+- ADRs can be deleted or merged when conflicting or superseded - clarity matters more than preserving every decision
 - Keep documentation minimal and current; avoid accumulating stale artifacts
