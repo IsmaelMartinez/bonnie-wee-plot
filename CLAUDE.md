@@ -156,3 +156,10 @@ See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. Se
 - Playwright tests must pass before pushing
 - Test files: unit tests in `src/__tests__/`, e2e tests in `tests/`
 - Immutable update patterns: storage functions return new data, never mutate
+
+## Documentation Hygiene
+
+- Plan files in `docs/plans/` are temporary working documents - delete them after implementation is complete
+- Research documents in `docs/research/` should be reviewed periodically and removed when obsolete
+- ADRs are permanent records - update status but don't delete
+- Keep documentation minimal and current; avoid accumulating stale artifacts
