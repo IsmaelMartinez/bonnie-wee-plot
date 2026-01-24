@@ -14,7 +14,7 @@
 Every aspect of this project was created through AI assistance:
 
 ### Code Architecture & Implementation
-- ✅ Full Next.js 14 application structure
+- ✅ Full Next.js 15 application structure
 - ✅ TypeScript components and type definitions
 - ✅ Tailwind CSS styling and responsive design
 - ✅ API routes and data handling
