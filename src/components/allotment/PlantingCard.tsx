@@ -1,16 +1,61 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { AlertTriangle, Check, Trash2, Droplets, Sun, Calendar, ArrowRight } from 'lucide-react'
+import { AlertTriangle, Check, Trash2, Droplets, Sun, Calendar, ArrowRight, Sprout, Leaf, Home } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
-import { Planting } from '@/types/unified-allotment'
+import { getPlantingPhase, getSowMethodShortLabel, PlantingPhaseInfo } from '@/lib/planting-utils'
+import { Planting, PlantingUpdate } from '@/types/unified-allotment'
 import { ConfirmDialog } from '@/components/ui/Dialog'
+
+/**
+ * Get the icon for a planting phase
+ */
+function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
+  switch (phase) {
+    case 'planned':
+      return Calendar
+    case 'germinating':
+    case 'growing-indoor':
+      return Home
+    case 'ready-to-transplant':
+      return Sprout
+    case 'growing':
+    case 'ready-to-harvest':
+    case 'harvesting':
+      return Leaf
+    default:
+      return Leaf
+  }
+}
+
+/**
+ * Get the Tailwind color classes for a phase badge
+ */
+function getPhaseColors(color: PlantingPhaseInfo['color']): string {
+  switch (color) {
+    case 'gray':
+      return 'bg-zen-stone-100 text-zen-stone-700'
+    case 'blue':
+      return 'bg-zen-water-100 text-zen-water-700'
+    case 'green':
+      return 'bg-zen-moss-100 text-zen-moss-700'
+    case 'yellow':
+      return 'bg-yellow-100 text-yellow-700'
+    case 'orange':
+      return 'bg-zen-kitsune-100 text-zen-kitsune-700'
+    case 'red':
+      return 'bg-zen-ume-100 text-zen-ume-700'
+    default:
+      return 'bg-zen-stone-100 text-zen-stone-700'
+  }
+}
 
 interface PlantingCardProps {
   planting: Planting
   onDelete: () => void
+  onUpdate: (updates: PlantingUpdate) => void
   onUpdateSuccess: (success: Planting['success']) => void
   otherPlantings?: Planting[]
 }
@@ -18,6 +63,7 @@ interface PlantingCardProps {
 export default function PlantingCard({
   planting,
   onDelete,
+  onUpdate,
   onUpdateSuccess,
   otherPlantings = []
 }: PlantingCardProps) {
@@ -28,16 +74,37 @@ export default function PlantingCard({
   // Cross-year tracking
   const crossYearInfo = useMemo(() => getCrossYearDisplayInfo(planting), [planting])
 
+  // Phase tracking
+  const phaseInfo = useMemo(() => getPlantingPhase(planting), [planting])
+  const PhaseIcon = getPhaseIcon(phaseInfo.phase)
+
   return (
     <>
       <div className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'}`}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-zen-ink-800">
-              {veg?.name || planting.plantId}
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-zen-ink-800">
+                {veg?.name || planting.plantId}
+              </span>
+              {/* Phase Badge */}
+              <span
+                className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${getPhaseColors(phaseInfo.color)}`}
+                title={phaseInfo.description}
+              >
+                <PhaseIcon className="w-3 h-3" />
+                {phaseInfo.label}
+              </span>
             </div>
             {planting.varietyName && (
               <div className="text-xs text-zen-stone-500">{planting.varietyName}</div>
+            )}
+
+            {/* Planned sow method hint (for planned plantings without sow date) */}
+            {phaseInfo.phase === 'planned' && planting.sowMethod && (
+              <div className="text-xs text-zen-stone-500 mt-1">
+                Plan: {getSowMethodShortLabel(planting.sowMethod)}
+              </div>
             )}
 
             {/* Sow date and harvest info */}
@@ -117,6 +184,61 @@ export default function PlantingCard({
             )}
             {planting.notes && (
               <div className="text-xs text-zen-stone-400 mt-1 line-clamp-2">{planting.notes}</div>
+            )}
+
+            {/* Lifecycle Actions */}
+            {phaseInfo.canAdvanceTo && phaseInfo.canAdvanceTo.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {/* Mark as Sown - for planned plantings */}
+                {phaseInfo.phase === 'planned' && (
+                  <button
+                    onClick={() => onUpdate({
+                      sowDate: new Date().toISOString().split('T')[0],
+                      status: 'active'
+                    })}
+                    className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
+                  >
+                    Mark as Sown
+                  </button>
+                )}
+
+                {/* Mark as Transplanted - for indoor seedlings ready to go out */}
+                {phaseInfo.phase === 'ready-to-transplant' && (
+                  <button
+                    onClick={() => onUpdate({
+                      transplantDate: new Date().toISOString().split('T')[0]
+                    })}
+                    className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
+                  >
+                    Mark as Transplanted
+                  </button>
+                )}
+
+                {/* Start Harvest - for ready to harvest */}
+                {phaseInfo.phase === 'ready-to-harvest' && (
+                  <button
+                    onClick={() => onUpdate({
+                      actualHarvestStart: new Date().toISOString().split('T')[0]
+                    })}
+                    className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
+                  >
+                    Start Harvest
+                  </button>
+                )}
+
+                {/* Complete Harvest - for harvesting */}
+                {phaseInfo.phase === 'harvesting' && (
+                  <button
+                    onClick={() => onUpdate({
+                      actualHarvestEnd: new Date().toISOString().split('T')[0],
+                      status: 'harvested'
+                    })}
+                    className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
+                  >
+                    Complete Harvest
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
