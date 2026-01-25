@@ -251,6 +251,15 @@ export interface AreaSeason {
 export type SowMethod = 'indoor' | 'outdoor' | 'transplant-purchased'
 
 /**
+ * Status of a planting in its lifecycle
+ * - planned: Intention to plant, no dates set yet
+ * - active: Seeds sown or transplant planted, growing
+ * - harvested: Harvest complete
+ * - removed: Plant removed or failed (allows tracking failures)
+ */
+export type PlantingStatus = 'planned' | 'active' | 'harvested' | 'removed'
+
+/**
  * A single planting within an area for a season
  */
 export interface Planting {
@@ -284,6 +293,10 @@ export interface Planting {
   originYear?: number
   /** Year of expected harvest if different from originYear (e.g., garlic: plant Oct → harvest Jul next year) */
   harvestYear?: number
+
+  // Lifecycle status (v15)
+  /** Current status of this planting. Defaults to 'planned' if no dates, 'active' if sowDate set */
+  status?: PlantingStatus
 }
 
 /**
@@ -426,7 +439,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 14 // Added gridPosition to AreaSeason for per-year layouts
+export const CURRENT_SCHEMA_VERSION = 15 // Added PlantingStatus for lifecycle tracking
 
 // ============ HELPER TYPES ============
 

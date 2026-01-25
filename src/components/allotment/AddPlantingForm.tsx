@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { AlertTriangle, Check, Users, Package } from 'lucide-react'
+import { AlertTriangle, Check, Users, Package, Lightbulb } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
-import { NewPlanting, Planting, StoredVariety, SowMethod } from '@/types/unified-allotment'
+import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
+import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
 import PlantingTimeline from './PlantingTimeline'
@@ -34,10 +35,25 @@ export default function AddPlantingForm({
   const [plantId, setVegetableId] = useState('')
   const [varietyName, setVarietyName] = useState('')
   const [sowMethod, setSowMethod] = useState<SowMethod>('outdoor')
+  const [sowMethodRecommendation, setSowMethodRecommendation] = useState<SowMethodRecommendation | null>(null)
   const [sowDate, setSowDate] = useState('')
   const [transplantDate, setTransplantDate] = useState('')
   const [notes, setNotes] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>(initialCategoryFilter)
+
+  // Get current month for sow method recommendation
+  const currentMonth = new Date().getMonth() + 1 // 1-12
+
+  // Update sow method recommendation when plant changes
+  useEffect(() => {
+    if (plantId) {
+      const recommendation = getRecommendedSowMethod(plantId, currentMonth)
+      setSowMethodRecommendation(recommendation)
+      setSowMethod(recommendation.recommended)
+    } else {
+      setSowMethodRecommendation(null)
+    }
+  }, [plantId, currentMonth])
 
   // Get matching varieties from seed library for autocomplete
   // Sort: varieties with seeds first, then alphabetically
@@ -78,19 +94,24 @@ export default function AddPlantingForm({
     e.preventDefault()
     if (!plantId) return
 
+    // Determine status based on dates
+    const status: PlantingStatus = sowDate ? 'active' : 'planned'
+
     onSubmit({
       plantId,
       varietyName: varietyName || undefined,
-      sowMethod: sowDate ? sowMethod : undefined,
+      sowMethod, // Always include sow method (user intent even for planned)
       sowDate: sowDate || undefined,
       transplantDate: transplantDate || undefined,
       notes: notes || undefined,
+      status,
     })
 
     // Reset form
     setVegetableId('')
     setVarietyName('')
     setSowMethod('outdoor')
+    setSowMethodRecommendation(null)
     setSowDate('')
     setTransplantDate('')
     setNotes('')
@@ -194,6 +215,26 @@ export default function AddPlantingForm({
           <option value="indoor">Starting from seed indoors</option>
           <option value="transplant-purchased">Planting purchased seedlings</option>
         </select>
+
+        {/* Sow Method Recommendation */}
+        {sowMethodRecommendation && plantId && (
+          <div className="mt-2 space-y-1">
+            {sowMethod === sowMethodRecommendation.recommended ? (
+              <div className="flex items-start gap-1.5 text-xs text-zen-moss-700 bg-zen-moss-50 px-2 py-1.5 rounded-zen">
+                <Lightbulb className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                <span>{sowMethodRecommendation.reason}</span>
+              </div>
+            ) : (
+              <div className="flex items-start gap-1.5 text-xs text-zen-kitsune-700 bg-zen-kitsune-50 px-2 py-1.5 rounded-zen">
+                <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                <span>
+                  Recommended: <strong>{sowMethodRecommendation.recommended === 'indoor' ? 'Start indoors' : sowMethodRecommendation.recommended === 'outdoor' ? 'Direct sow' : 'Purchase seedlings'}</strong>
+                  {' — '}{sowMethodRecommendation.reason}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div>

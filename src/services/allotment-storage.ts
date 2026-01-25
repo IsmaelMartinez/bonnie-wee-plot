@@ -717,9 +717,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 13 -> 14: Add gridPosition to AreaSeason for per-year layouts
   if (migrated.version < 14) {
     const v14Data = migrateToV14(migrated)
-    v14Data.version = CURRENT_SCHEMA_VERSION
+    v14Data.version = 14
     console.log('Migrated to schema v14: added per-year grid positions to AreaSeason')
-    return v14Data
+    // Continue to v15 migration
+    return migrateSchema(v14Data)
+  }
+
+  // Version 14 -> 15: Add PlantingStatus for lifecycle tracking
+  if (migrated.version < 15) {
+    const v15Data = migrateToV15(migrated)
+    v15Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v15: added PlantingStatus for lifecycle tracking')
+    return v15Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -1208,6 +1217,37 @@ function migrateToV14(data: AllotmentData): AllotmentData {
     }
   }
 
+  return migrated
+}
+
+/**
+ * Migrate from v14 to v15: Add PlantingStatus for lifecycle tracking
+ * - Infer status from existing dates: harvested if actualHarvestEnd, active if sowDate, planned otherwise
+ */
+function migrateToV15(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // Update each season's plantings with inferred status
+  migrated.seasons = migrated.seasons.map(season => ({
+    ...season,
+    areas: (season.areas || []).map(areaSeason => ({
+      ...areaSeason,
+      plantings: (areaSeason.plantings || []).map(planting => {
+        // Infer status from dates
+        let status: 'planned' | 'active' | 'harvested' | 'removed'
+        if (planting.actualHarvestEnd) {
+          status = 'harvested'
+        } else if (planting.sowDate || planting.transplantDate) {
+          status = 'active'
+        } else {
+          status = 'planned'
+        }
+        return { ...planting, status }
+      }),
+    })),
+  }))
+
+  logger.info('v15 migration: added PlantingStatus to all plantings')
   return migrated
 }
 

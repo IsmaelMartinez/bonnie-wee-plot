@@ -468,6 +468,7 @@ export default function AllotmentPage() {
               selectedYear={selectedYear}
               onAddPlanting={() => setShowAddDialog(true)}
               onDeletePlanting={handleDeletePlanting}
+              onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
               onUpdateSuccess={handleUpdateSuccess}
               onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
               onUpdateNote={(noteId, updates) => selectedBedId && updateAreaNote(selectedBedId, noteId, updates)}
