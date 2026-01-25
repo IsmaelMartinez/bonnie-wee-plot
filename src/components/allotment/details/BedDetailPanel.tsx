@@ -6,7 +6,7 @@ import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
-import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
@@ -22,6 +22,7 @@ interface BedDetailPanelProps {
   previousYearRotation?: RotationGroup | null
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
+  onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
   onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
@@ -41,6 +42,7 @@ export default function BedDetailPanel({
   previousYearRotation,
   onAddPlanting,
   onDeletePlanting,
+  onUpdatePlanting,
   onUpdateSuccess,
   onAddNote,
   onUpdateNote,
@@ -224,6 +226,7 @@ export default function BedDetailPanel({
                 key={p.id}
                 planting={p}
                 onDelete={() => onDeletePlanting(p.id)}
+                onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                 onUpdateSuccess={(success) => onUpdateSuccess(p.id, success)}
                 otherPlantings={plantings}
               />

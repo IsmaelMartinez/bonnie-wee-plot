@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Map, Trash2 } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
-import { Planting, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import { ConfirmDialog } from '@/components/ui/Dialog'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
@@ -27,6 +27,7 @@ interface ItemDetailSwitcherProps {
   selectedYear: number
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
+  onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
   onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
@@ -81,6 +82,7 @@ export default function ItemDetailSwitcher({
   selectedYear,
   onAddPlanting,
   onDeletePlanting,
+  onUpdatePlanting,
   onUpdateSuccess,
   onAddNote,
   onUpdateNote,
@@ -130,6 +132,7 @@ export default function ItemDetailSwitcher({
         previousYearRotation={getPreviousYearRotation(area.id)}
         onAddPlanting={onAddPlanting}
         onDeletePlanting={onDeletePlanting}
+        onUpdatePlanting={onUpdatePlanting}
         onUpdateSuccess={onUpdateSuccess}
         onAddNote={onAddNote}
         onUpdateNote={onUpdateNote}
