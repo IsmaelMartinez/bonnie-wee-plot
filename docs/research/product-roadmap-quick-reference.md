@@ -163,9 +163,23 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ---
 
-## Immediate Next Step: Section-by-Section UX Review
+## Production Preparation Steps
 
-Before implementing progressive disclosure, conduct a comprehensive review of each app section:
+Before implementing progressive disclosure, complete these UX improvements:
+
+### Step 1: Plant Dialog UX Implementation (NEXT)
+
+**Problem:** Users can view plant information but cannot edit plantings from the plant dialog. This is a core UX gap.
+
+**Solution:** Implement the plant dialog with edit capabilities as researched in `docs/research/plant-dialog-ux-research.md`:
+- Bottom sheet pattern for mobile
+- Edit/delete planting actions
+- Harvest date tracking
+- Notes and status updates
+
+### Step 2: Section-by-Section UX Review
+
+Review each app section in isolation to identify issues and improvements:
 
 | Section | Purpose | Key Questions |
 |---------|---------|---------------|
@@ -176,7 +190,15 @@ Before implementing progressive disclosure, conduct a comprehensive review of ea
 | **Compost** | Pile tracking | Is the C:N ratio tracking useful? Event logging UX? |
 | **AI Advisor** | Chat with Aitor | Should it be able to modify data (see AI inventory research)? |
 
-**Goal:** Understand each section in isolation, then map the user journey across sections to identify friction points and opportunities.
+### Step 3: Holistic UX Review
+
+After reviewing sections individually, map the user journey across sections:
+- Identify friction points in cross-section workflows
+- Ensure consistent patterns and terminology
+- Validate navigation and information architecture
+- Test complete user scenarios (e.g., "plan a new bed" → "track harvest")
+
+**Goal:** Ship a polished, coherent experience before adding progressive disclosure complexity.
 
 ---
 
@@ -191,4 +213,4 @@ Before implementing progressive disclosure, conduct a comprehensive review of ea
 ---
 
 **Status:** ✅ Ready for review and feedback
-**Next:** Section-by-section UX review, then user interviews to validate strategy
+**Next:** Implement Plant Dialog UX (Step 1)
