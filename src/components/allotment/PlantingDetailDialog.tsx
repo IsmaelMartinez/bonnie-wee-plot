@@ -92,10 +92,18 @@ export default function PlantingDetailDialog({
 }: PlantingDetailDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [localNotes, setLocalNotes] = useState(planting?.notes || '')
+  const [localSowDate, setLocalSowDate] = useState(formatDateForInput(planting?.sowDate))
+  const [localTransplantDate, setLocalTransplantDate] = useState(formatDateForInput(planting?.transplantDate))
+  const [localHarvestStart, setLocalHarvestStart] = useState(formatDateForInput(planting?.actualHarvestStart))
+  const [localHarvestEnd, setLocalHarvestEnd] = useState(formatDateForInput(planting?.actualHarvestEnd))
 
   useEffect(() => {
     setLocalNotes(planting?.notes || '')
-  }, [planting?.notes])
+    setLocalSowDate(formatDateForInput(planting?.sowDate))
+    setLocalTransplantDate(formatDateForInput(planting?.transplantDate))
+    setLocalHarvestStart(formatDateForInput(planting?.actualHarvestStart))
+    setLocalHarvestEnd(formatDateForInput(planting?.actualHarvestEnd))
+  }, [planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart, planting?.actualHarvestEnd])
 
   const veg = planting ? getVegetableById(planting.plantId) : null
   const { goods, bads } = planting
@@ -114,6 +122,10 @@ export default function PlantingDetailDialog({
 
   const handleDateChange = useCallback(
     (field: keyof PlantingUpdate, value: string) => {
+      if (field === 'sowDate') setLocalSowDate(value)
+      else if (field === 'transplantDate') setLocalTransplantDate(value)
+      else if (field === 'actualHarvestStart') setLocalHarvestStart(value)
+      else if (field === 'actualHarvestEnd') setLocalHarvestEnd(value)
       onUpdate({ [field]: value || undefined })
     },
     [onUpdate]
@@ -252,7 +264,7 @@ export default function PlantingDetailDialog({
                 <input
                   id="sow-date"
                   type="date"
-                  value={formatDateForInput(planting.sowDate)}
+                  value={localSowDate}
                   onChange={(e) => handleDateChange('sowDate', e.target.value)}
                   className="zen-input text-sm w-full"
                 />
@@ -286,7 +298,7 @@ export default function PlantingDetailDialog({
                   <input
                     id="transplant-date"
                     type="date"
-                    value={formatDateForInput(planting.transplantDate)}
+                    value={localTransplantDate}
                     onChange={(e) => handleDateChange('transplantDate', e.target.value)}
                     className="zen-input text-sm w-full"
                   />
@@ -314,7 +326,7 @@ export default function PlantingDetailDialog({
                   <input
                     id="harvest-start"
                     type="date"
-                    value={formatDateForInput(planting.actualHarvestStart)}
+                    value={localHarvestStart}
                     onChange={(e) => handleDateChange('actualHarvestStart', e.target.value)}
                     className="zen-input text-sm w-full"
                   />
@@ -326,7 +338,7 @@ export default function PlantingDetailDialog({
                   <input
                     id="harvest-end"
                     type="date"
-                    value={formatDateForInput(planting.actualHarvestEnd)}
+                    value={localHarvestEnd}
                     onChange={(e) => handleDateChange('actualHarvestEnd', e.target.value)}
                     className="zen-input text-sm w-full"
                   />
