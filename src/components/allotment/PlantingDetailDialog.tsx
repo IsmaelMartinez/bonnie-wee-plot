@@ -10,16 +10,14 @@ import {
   AlertTriangle,
   Trash2,
   Ruler,
-  Leaf,
-  Home,
-  Sprout,
   Info,
+  Leaf,
 } from 'lucide-react'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import { Planting, PlantingUpdate, SowMethod } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
-import { getPlantingPhase, getSowMethodLabel, PlantingPhaseInfo } from '@/lib/planting-utils'
+import { getPlantingPhase, getSowMethodLabel, getPhaseIcon, getPhaseColors, formatDate, formatDateForInput } from '@/lib/planting-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
 
 interface PlantingDetailDialogProps {
@@ -29,57 +27,6 @@ interface PlantingDetailDialogProps {
   onUpdate: (updates: PlantingUpdate) => void
   onDelete: () => void
   otherPlantings?: Planting[]
-}
-
-function getPhaseColors(color: PlantingPhaseInfo['color']): string {
-  switch (color) {
-    case 'gray':
-      return 'bg-zen-stone-100 text-zen-stone-700'
-    case 'blue':
-      return 'bg-zen-water-100 text-zen-water-700'
-    case 'green':
-      return 'bg-zen-moss-100 text-zen-moss-700'
-    case 'yellow':
-      return 'bg-yellow-100 text-yellow-700'
-    case 'orange':
-      return 'bg-zen-kitsune-100 text-zen-kitsune-700'
-    case 'red':
-      return 'bg-zen-ume-100 text-zen-ume-700'
-    default:
-      return 'bg-zen-stone-100 text-zen-stone-700'
-  }
-}
-
-function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
-  switch (phase) {
-    case 'planned':
-      return Calendar
-    case 'germinating':
-    case 'growing-indoor':
-      return Home
-    case 'ready-to-transplant':
-      return Sprout
-    case 'growing':
-    case 'ready-to-harvest':
-    case 'harvesting':
-      return Leaf
-    default:
-      return Leaf
-  }
-}
-
-function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-function formatDateForInput(dateStr: string | undefined): string {
-  if (!dateStr) return ''
-  return dateStr.split('T')[0]
 }
 
 export default function PlantingDetailDialog({

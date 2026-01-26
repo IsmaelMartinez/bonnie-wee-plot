@@ -1,49 +1,12 @@
 'use client'
 
 import { useMemo } from 'react'
-import { AlertTriangle, Check, Droplets, Sun, Calendar, ArrowRight, Sprout, Leaf, Home } from 'lucide-react'
+import { AlertTriangle, Check, Droplets, Sun, ArrowRight, Calendar } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
-import { getPlantingPhase, getSowMethodShortLabel, PlantingPhaseInfo } from '@/lib/planting-utils'
+import { getPlantingPhase, getSowMethodShortLabel, getPhaseIcon, getPhaseColors } from '@/lib/planting-utils'
 import { Planting, PlantingUpdate } from '@/types/unified-allotment'
-
-function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
-  switch (phase) {
-    case 'planned':
-      return Calendar
-    case 'germinating':
-    case 'growing-indoor':
-      return Home
-    case 'ready-to-transplant':
-      return Sprout
-    case 'growing':
-    case 'ready-to-harvest':
-    case 'harvesting':
-      return Leaf
-    default:
-      return Leaf
-  }
-}
-
-function getPhaseColors(color: PlantingPhaseInfo['color']): string {
-  switch (color) {
-    case 'gray':
-      return 'bg-zen-stone-100 text-zen-stone-700'
-    case 'blue':
-      return 'bg-zen-water-100 text-zen-water-700'
-    case 'green':
-      return 'bg-zen-moss-100 text-zen-moss-700'
-    case 'yellow':
-      return 'bg-yellow-100 text-yellow-700'
-    case 'orange':
-      return 'bg-zen-kitsune-100 text-zen-kitsune-700'
-    case 'red':
-      return 'bg-zen-ume-100 text-zen-ume-700'
-    default:
-      return 'bg-zen-stone-100 text-zen-stone-700'
-  }
-}
 
 interface PlantingCardProps {
   planting: Planting
