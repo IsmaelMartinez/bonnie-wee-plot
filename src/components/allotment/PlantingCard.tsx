@@ -58,6 +58,7 @@ interface PlantingCardProps {
   onUpdate: (updates: PlantingUpdate) => void
   onUpdateSuccess: (success: Planting['success']) => void
   otherPlantings?: Planting[]
+  onClick?: () => void
 }
 
 export default function PlantingCard({
@@ -65,7 +66,8 @@ export default function PlantingCard({
   onDelete,
   onUpdate,
   onUpdateSuccess,
-  otherPlantings = []
+  otherPlantings = [],
+  onClick,
 }: PlantingCardProps) {
   const veg = getVegetableById(planting.plantId)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -78,9 +80,42 @@ export default function PlantingCard({
   const phaseInfo = useMemo(() => getPlantingPhase(planting), [planting])
   const PhaseIcon = getPhaseIcon(phaseInfo.phase)
 
+  // Handle card click - only if onClick is provided
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on interactive elements
+    const target = e.target as HTMLElement
+    if (
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'SELECT' ||
+      target.tagName === 'INPUT' ||
+      target.closest('button') ||
+      target.closest('select')
+    ) {
+      return
+    }
+    onClick?.()
+  }
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick?.()
+    }
+  }
+
   return (
     <>
-      <div className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'}`}>
+      <div
+        className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'} ${
+          onClick ? 'cursor-pointer hover:bg-zen-stone-100/50 focus-within:ring-2 focus-within:ring-zen-moss-500 focus-within:ring-offset-2 transition' : ''
+        }`}
+        onClick={handleCardClick}
+        onKeyDown={onClick ? handleKeyDown : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        role={onClick ? 'button' : undefined}
+        aria-label={onClick ? `View details for ${veg?.name || planting.plantId}${planting.varietyName ? ` (${planting.varietyName})` : ''}` : undefined}
+      >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -192,10 +227,14 @@ export default function PlantingCard({
                 {/* Mark as Sown - for planned plantings */}
                 {phaseInfo.phase === 'planned' && (
                   <button
-                    onClick={() => onUpdate({
-                      sowDate: new Date().toISOString().split('T')[0],
-                      status: 'active'
-                    })}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdate({
+                        sowDate: new Date().toISOString().split('T')[0],
+                        status: 'active'
+                      })
+                    }}
                     className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
                   >
                     Mark as Sown
@@ -205,9 +244,13 @@ export default function PlantingCard({
                 {/* Mark as Transplanted - for indoor seedlings ready to go out */}
                 {phaseInfo.phase === 'ready-to-transplant' && (
                   <button
-                    onClick={() => onUpdate({
-                      transplantDate: new Date().toISOString().split('T')[0]
-                    })}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdate({
+                        transplantDate: new Date().toISOString().split('T')[0]
+                      })
+                    }}
                     className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
                   >
                     Mark as Transplanted
@@ -217,9 +260,13 @@ export default function PlantingCard({
                 {/* Start Harvest - for ready to harvest */}
                 {phaseInfo.phase === 'ready-to-harvest' && (
                   <button
-                    onClick={() => onUpdate({
-                      actualHarvestStart: new Date().toISOString().split('T')[0]
-                    })}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdate({
+                        actualHarvestStart: new Date().toISOString().split('T')[0]
+                      })
+                    }}
                     className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
                   >
                     Start Harvest
@@ -229,10 +276,14 @@ export default function PlantingCard({
                 {/* Complete Harvest - for harvesting */}
                 {phaseInfo.phase === 'harvesting' && (
                   <button
-                    onClick={() => onUpdate({
-                      actualHarvestEnd: new Date().toISOString().split('T')[0],
-                      status: 'harvested'
-                    })}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onUpdate({
+                        actualHarvestEnd: new Date().toISOString().split('T')[0],
+                        status: 'harvested'
+                      })
+                    }}
                     className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
                   >
                     Complete Harvest
@@ -251,6 +302,7 @@ export default function PlantingCard({
               id={`success-${planting.id}`}
               value={planting.success || ''}
               onChange={(e) => onUpdateSuccess((e.target.value || undefined) as Planting['success'])}
+              onClick={(e) => e.stopPropagation()}
               className="text-xs px-2 py-2.5 min-h-[44px] border border-zen-stone-200 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
               aria-label="Rate planting success"
             >
@@ -261,7 +313,11 @@ export default function PlantingCard({
               <option value="poor">Poor</option>
             </select>
             <button
-              onClick={() => setShowDeleteConfirm(true)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowDeleteConfirm(true)
+              }}
               className="p-2.5 min-w-[44px] min-h-[44px] text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500 flex items-center justify-center"
               aria-label={`Delete ${veg?.name || planting.plantId}`}
             >
