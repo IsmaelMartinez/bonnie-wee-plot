@@ -31,9 +31,6 @@ interface PlantingDetailDialogProps {
   otherPlantings?: Planting[]
 }
 
-/**
- * Get the Tailwind color classes for a phase badge
- */
 function getPhaseColors(color: PlantingPhaseInfo['color']): string {
   switch (color) {
     case 'gray':
@@ -53,9 +50,6 @@ function getPhaseColors(color: PlantingPhaseInfo['color']): string {
   }
 }
 
-/**
- * Get the icon for a planting phase
- */
 function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
   switch (phase) {
     case 'planned':
@@ -74,9 +68,6 @@ function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
   }
 }
 
-/**
- * Format a date string for display
- */
 function formatDate(dateStr: string | undefined): string {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-GB', {
@@ -86,9 +77,6 @@ function formatDate(dateStr: string | undefined): string {
   })
 }
 
-/**
- * Format a date for input field (YYYY-MM-DD)
- */
 function formatDateForInput(dateStr: string | undefined): string {
   if (!dateStr) return ''
   return dateStr.split('T')[0]
@@ -106,7 +94,6 @@ export default function PlantingDetailDialog({
   const [localNotes, setLocalNotes] = useState(planting?.notes || '')
   const [localHarvestNotes, setLocalHarvestNotes] = useState(planting?.harvestNotes || '')
 
-  // Sync local state when planting changes
   useEffect(() => {
     setLocalNotes(planting?.notes || '')
     setLocalHarvestNotes(planting?.harvestNotes || '')
@@ -120,7 +107,6 @@ export default function PlantingDetailDialog({
   const crossYearInfo = planting ? getCrossYearDisplayInfo(planting) : null
   const PhaseIcon = phaseInfo ? getPhaseIcon(phaseInfo.phase) : Leaf
 
-  // Debounced update for notes
   const handleNotesBlur = useCallback(() => {
     if (planting && localNotes !== planting.notes) {
       onUpdate({ notes: localNotes || undefined })
@@ -174,7 +160,6 @@ export default function PlantingDetailDialog({
         maxWidth="lg"
       >
         <div className="space-y-6">
-          {/* Phase Badge and Status */}
           <div className="flex flex-wrap items-center gap-2">
             {phaseInfo && (
               <span
@@ -192,7 +177,6 @@ export default function PlantingDetailDialog({
             )}
           </div>
 
-          {/* Plant Info Section */}
           {veg && (
             <section>
               <h3 className="text-sm font-medium text-zen-stone-500 mb-2 flex items-center gap-1.5">
@@ -200,12 +184,10 @@ export default function PlantingDetailDialog({
                 Plant Info
               </h3>
               <div className="bg-zen-stone-50 rounded-zen p-4 space-y-3">
-                {/* Description */}
                 {veg.description && (
                   <p className="text-sm text-zen-stone-600">{veg.description}</p>
                 )}
 
-                {/* Care Requirements */}
                 <div className="flex flex-wrap gap-4 text-sm">
                   <span className="flex items-center gap-1.5" title={`Water: ${veg.care.water}`}>
                     <Droplets
@@ -232,14 +214,11 @@ export default function PlantingDetailDialog({
                   {veg.care.spacing && (
                     <span className="flex items-center gap-1.5" title="Spacing">
                       <Ruler className="w-4 h-4 text-zen-stone-400" />
-                      <span className="text-zen-stone-600">
-                        {veg.care.spacing.between}cm apart
-                      </span>
+                      <span className="text-zen-stone-600">{veg.care.spacing.between}cm apart</span>
                     </span>
                   )}
                 </div>
 
-                {/* Days to Harvest */}
                 {veg.planting.daysToHarvest && (
                   <div className="text-sm text-zen-stone-600">
                     <span className="font-medium">Days to harvest:</span>{' '}
@@ -247,23 +226,18 @@ export default function PlantingDetailDialog({
                   </div>
                 )}
 
-                {/* Companion Status */}
                 {(goods.length > 0 || bads.length > 0) && (
                   <div className="space-y-1">
                     {goods.length > 0 && (
                       <div className="flex items-center gap-1.5 text-sm">
                         <Check className="w-4 h-4 text-zen-moss-600" />
-                        <span className="text-zen-moss-700">
-                          Good with {goods.join(', ')}
-                        </span>
+                        <span className="text-zen-moss-700">Good with {goods.join(', ')}</span>
                       </div>
                     )}
                     {bads.length > 0 && (
                       <div className="flex items-center gap-1.5 text-sm">
                         <AlertTriangle className="w-4 h-4 text-zen-kitsune-500" />
-                        <span className="text-zen-kitsune-600">
-                          Conflicts with {bads.join(', ')}
-                        </span>
+                        <span className="text-zen-kitsune-600">Conflicts with {bads.join(', ')}</span>
                       </div>
                     )}
                   </div>
@@ -272,14 +246,12 @@ export default function PlantingDetailDialog({
             </section>
           )}
 
-          {/* Dates Section */}
           <section>
             <h3 className="text-sm font-medium text-zen-stone-500 mb-2 flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
               Dates
             </h3>
             <div className="bg-zen-stone-50 rounded-zen p-4 space-y-4">
-              {/* Sow Date */}
               <div>
                 <label htmlFor="sow-date" className="block text-xs font-medium text-zen-stone-500 mb-1">
                   Sow Date
@@ -293,7 +265,6 @@ export default function PlantingDetailDialog({
                 />
               </div>
 
-              {/* Sow Method */}
               <div>
                 <label htmlFor="sow-method" className="block text-xs font-medium text-zen-stone-500 mb-1">
                   Sow Method
@@ -310,13 +281,10 @@ export default function PlantingDetailDialog({
                   <option value="transplant-purchased">Purchased transplant</option>
                 </select>
                 {planting.sowMethod && (
-                  <p className="text-xs text-zen-stone-500 mt-1">
-                    {getSowMethodLabel(planting.sowMethod)}
-                  </p>
+                  <p className="text-xs text-zen-stone-500 mt-1">{getSowMethodLabel(planting.sowMethod)}</p>
                 )}
               </div>
 
-              {/* Transplant Date - only show for indoor sowing */}
               {planting.sowMethod === 'indoor' && (
                 <div>
                   <label htmlFor="transplant-date" className="block text-xs font-medium text-zen-stone-500 mb-1">
@@ -332,7 +300,6 @@ export default function PlantingDetailDialog({
                 </div>
               )}
 
-              {/* Expected Harvest (calculated, read-only) */}
               {(planting.expectedHarvestStart || planting.expectedHarvestEnd) && (
                 <div className="bg-zen-moss-50 rounded-zen p-3">
                   <div className="text-xs font-medium text-zen-moss-600 mb-1">Expected Harvest</div>
@@ -346,7 +313,6 @@ export default function PlantingDetailDialog({
                 </div>
               )}
 
-              {/* Actual Harvest Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="harvest-start" className="block text-xs font-medium text-zen-stone-500 mb-1">
@@ -376,7 +342,6 @@ export default function PlantingDetailDialog({
             </div>
           </section>
 
-          {/* Success Rating */}
           <section>
             <h3 className="text-sm font-medium text-zen-stone-500 mb-2">Success Rating</h3>
             <div className="flex flex-wrap gap-2">
@@ -402,7 +367,6 @@ export default function PlantingDetailDialog({
             </div>
           </section>
 
-          {/* Notes Section */}
           <section>
             <h3 className="text-sm font-medium text-zen-stone-500 mb-2">Notes</h3>
             <div className="space-y-3">
@@ -437,7 +401,6 @@ export default function PlantingDetailDialog({
             </div>
           </section>
 
-          {/* Delete Button */}
           <section className="pt-4 border-t border-zen-stone-200">
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -450,7 +413,6 @@ export default function PlantingDetailDialog({
         </div>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
