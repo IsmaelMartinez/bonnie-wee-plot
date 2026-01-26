@@ -156,6 +156,30 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ---
 
+## Related Research
+
+- **Plant Dialog UX Research** (`docs/research/plant-dialog-ux-research.md`) - Detailed analysis of how to implement plant detail dialogs with bottom sheet pattern, competitor analysis, and accessibility considerations
+- **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
+
+---
+
+## Immediate Next Step: Section-by-Section UX Review
+
+Before implementing progressive disclosure, conduct a comprehensive review of each app section:
+
+| Section | Purpose | Key Questions |
+|---------|---------|---------------|
+| **Today** | Daily dashboard | What actions do users take most? Is the information hierarchy correct? |
+| **This Month** | Seasonal calendar | Does it answer "what should I do now?" effectively? |
+| **Seeds** | Seed inventory & catalog | Is variety tracking intuitive? How does it connect to plantings? |
+| **Allotment** | Garden layout & plantings | Can users easily add/edit plants? How does grid interact with bed details? |
+| **Compost** | Pile tracking | Is the C:N ratio tracking useful? Event logging UX? |
+| **AI Advisor** | Chat with Aitor | Should it be able to modify data (see AI inventory research)? |
+
+**Goal:** Understand each section in isolation, then map the user journey across sections to identify friction points and opportunities.
+
+---
+
 ## Questions for Review
 
 1. **Unlock criteria:** Are 3 visits / 5 plantings the right thresholds?
@@ -167,4 +191,4 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 ---
 
 **Status:** ✅ Ready for review and feedback
-**Next:** User interviews to validate strategy
+**Next:** Section-by-section UX review, then user interviews to validate strategy

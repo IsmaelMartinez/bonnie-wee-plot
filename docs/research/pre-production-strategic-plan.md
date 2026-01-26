@@ -40,32 +40,29 @@ Maintainability shows some issues: 3 failing unit tests erode CI trust, the stor
 
 This work can proceed in parallel with other phases and should be completed before Supabase migration.
 
+#### Scottish Outdoor Plant Validation ✅ COMPLETE (January 2026)
+
+Removed 8 greenhouse-requiring plants from the database to focus on Scottish outdoor growing:
+- Removed: basil, pepper, aubergine, tomato, beefsteak-tomato, cucumber, luffa, outdoor-melon
+- Kept: cherry-tomato, blight-resistant-tomato (cold-hardy varieties)
+- Cleaned up all companion/avoid references to removed plants
+
 #### Phase 1 Analysis Complete ✅ (January 15, 2026)
 
-Initial audit of the 205 plant entries revealed the following:
+Initial audit of plant entries revealed companion data quality issues:
 
 **Data Quality Statistics:**
 - 107 unique companion plant names referenced across the database
-- 31 unique avoid plant names referenced
 - 43 companion names match database IDs exactly (after case/hyphen normalization)
 - 8 names need plural→singular normalization
 - 12 names need semantic mapping to correct IDs
 - 16 vague/generic references need removal or replacement
 - 11 plants have empty companion arrays (all mushrooms and green manures - justified)
 
-**Critical Gaps in Database:**
-Three common plants are referenced as companions but missing from the database entirely:
-- Basil (referenced 6 times) - major culinary herb
-- Peppers/Chili - common solanaceae family member
-- Aubergine/Eggplant - common solanaceae family member
-
-**Vague References to Remove (16 items):**
-Generic terms like "Vegetables (general)", "Most vegetables", "All vegetables", "Herbs", "Alliums", "Brassicas", "Native plants", "Water-loving plants" don't map to specific plant IDs. One entry ("Dill should be kept separate") is an instruction masquerading as a companion plant.
-
 **OpenFarm API Status:**
 The OpenFarm API is DOWN (redirects to GitHub). The repository was archived April 22, 2025. Data is CC0 licensed and could be recovered from Internet Archive snapshots if needed.
 
-See `/tasks/plant-data-validation.md` for complete Phase 1 findings and normalization maps.
+See `docs/research/plant-data-validation-strategy.md` for detailed implementation guidance.
 
 #### Parallel Implementation Plan Available
 
@@ -460,11 +457,13 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 - Accessibility Analysis: Agent abea409
 
 ### Existing Research Documents
-- System Evolution Plan: docs/research/system-evolution-plan.md
-- Clerk User Management: docs/research/clerk-user-management.md
-- Supabase Data Storage: docs/research/supabase-data-storage.md
-- Multi-Provider AI Integration: docs/research/multi-provider-ai-integration.md
+- Product Roadmap Quick Reference: docs/research/product-roadmap-quick-reference.md
+- Plant Dialog UX Research: docs/research/plant-dialog-ux-research.md
+- AI Inventory Management: docs/research/ai-inventory-management.md
 - Plant Data Validation Strategy: docs/research/plant-data-validation-strategy.md
+- Clerk User Management: docs/research/clerk-user-management.md (future)
+- Supabase Data Storage: docs/research/supabase-data-storage.md (future)
+- Multi-Provider AI Integration: docs/research/multi-provider-ai-integration.md (future)
 
 ### Key External Sources
 - [RHS Crop Rotation](https://www.rhs.org.uk/vegetables/crop-rotation)
@@ -476,5 +475,5 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 ---
 
 *Document created: January 14, 2026*
-*Last updated: January 16, 2026 - Phase 4 (Accessibility Critical Fixes) complete*
+*Last updated: January 26, 2026 - Added plant dialog UX research, Scottish outdoor plant validation complete*
 *Analysis method: Multi-persona Opus ultrathink review*
