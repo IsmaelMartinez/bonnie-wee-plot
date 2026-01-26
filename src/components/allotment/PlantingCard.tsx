@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { AlertTriangle, Check, Trash2, Droplets, Sun, Calendar, ArrowRight, Sprout, Leaf, Home } from 'lucide-react'
+import { useMemo } from 'react'
+import { AlertTriangle, Check, Droplets, Sun, Calendar, ArrowRight, Sprout, Leaf, Home } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
 import { getPlantingPhase, getSowMethodShortLabel, PlantingPhaseInfo } from '@/lib/planting-utils'
 import { Planting, PlantingUpdate } from '@/types/unified-allotment'
-import { ConfirmDialog } from '@/components/ui/Dialog'
 
 /**
  * Get the icon for a planting phase
@@ -54,23 +53,18 @@ function getPhaseColors(color: PlantingPhaseInfo['color']): string {
 
 interface PlantingCardProps {
   planting: Planting
-  onDelete: () => void
   onUpdate: (updates: PlantingUpdate) => void
-  onUpdateSuccess: (success: Planting['success']) => void
   otherPlantings?: Planting[]
   onClick?: () => void
 }
 
 export default function PlantingCard({
   planting,
-  onDelete,
   onUpdate,
-  onUpdateSuccess,
   otherPlantings = [],
   onClick,
 }: PlantingCardProps) {
   const veg = getVegetableById(planting.plantId)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { goods, bads } = getCompanionStatusForPlanting(planting, otherPlantings)
 
   // Cross-year tracking
@@ -292,52 +286,8 @@ export default function PlantingCard({
               </div>
             )}
           </div>
-
-          {/* Actions - always visible for accessibility and mobile */}
-          <div className="flex items-center gap-1 shrink-0">
-            <label htmlFor={`success-${planting.id}`} className="sr-only">
-              Rate success for {veg?.name || planting.plantId}
-            </label>
-            <select
-              id={`success-${planting.id}`}
-              value={planting.success || ''}
-              onChange={(e) => onUpdateSuccess((e.target.value || undefined) as Planting['success'])}
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs px-2 py-2.5 min-h-[44px] border border-zen-stone-200 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
-              aria-label="Rate planting success"
-            >
-              <option value="">Rate...</option>
-              <option value="excellent">Excellent</option>
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-              <option value="poor">Poor</option>
-            </select>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowDeleteConfirm(true)
-              }}
-              className="p-2.5 min-w-[44px] min-h-[44px] text-zen-ume-500 hover:bg-zen-ume-50 rounded-zen focus:outline-none focus:ring-2 focus:ring-zen-ume-500 flex items-center justify-center"
-              aria-label={`Delete ${veg?.name || planting.plantId}`}
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={onDelete}
-        title="Delete Planting"
-        message={`Are you sure you want to delete "${veg?.name || planting.plantId}"${planting.varietyName ? ` (${planting.varietyName})` : ''}? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Keep"
-        variant="danger"
-      />
     </>
   )
 }

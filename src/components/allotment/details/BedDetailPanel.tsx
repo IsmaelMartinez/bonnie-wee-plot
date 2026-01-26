@@ -24,7 +24,6 @@ interface BedDetailPanelProps {
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
-  onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
   onRemoveNote: (noteId: string) => void
@@ -44,7 +43,6 @@ export default function BedDetailPanel({
   onAddPlanting,
   onDeletePlanting,
   onUpdatePlanting,
-  onUpdateSuccess,
   onAddNote,
   onUpdateNote,
   onRemoveNote,
@@ -227,9 +225,7 @@ export default function BedDetailPanel({
               <PlantingCard
                 key={p.id}
                 planting={p}
-                onDelete={() => onDeletePlanting(p.id)}
                 onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
-                onUpdateSuccess={(success) => onUpdateSuccess(p.id, success)}
                 otherPlantings={plantings}
                 onClick={() => setSelectedPlanting(p)}
               />

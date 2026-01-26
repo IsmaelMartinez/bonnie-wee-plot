@@ -28,7 +28,6 @@ interface ItemDetailSwitcherProps {
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
-  onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
   onRemoveNote: (noteId: string) => void
@@ -83,7 +82,6 @@ export default function ItemDetailSwitcher({
   onAddPlanting,
   onDeletePlanting,
   onUpdatePlanting,
-  onUpdateSuccess,
   onAddNote,
   onUpdateNote,
   onRemoveNote,
@@ -133,7 +131,6 @@ export default function ItemDetailSwitcher({
         onAddPlanting={onAddPlanting}
         onDeletePlanting={onDeletePlanting}
         onUpdatePlanting={onUpdatePlanting}
-        onUpdateSuccess={onUpdateSuccess}
         onAddNote={onAddNote}
         onUpdateNote={onUpdateNote}
         onRemoveNote={onRemoveNote}
