@@ -9,6 +9,7 @@ import { RotationGroup } from '@/types/garden-planner'
 import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
+import PlantingDetailDialog from '@/components/allotment/PlantingDetailDialog'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
 import AreaTypeConverter from '@/components/allotment/details/AreaTypeConverter'
 import Dialog from '@/components/ui/Dialog'
@@ -23,7 +24,6 @@ interface BedDetailPanelProps {
   onAddPlanting: () => void
   onDeletePlanting: (plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
-  onUpdateSuccess: (plantingId: string, success: Planting['success']) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
   onRemoveNote: (noteId: string) => void
@@ -43,7 +43,6 @@ export default function BedDetailPanel({
   onAddPlanting,
   onDeletePlanting,
   onUpdatePlanting,
-  onUpdateSuccess,
   onAddNote,
   onUpdateNote,
   onRemoveNote,
@@ -53,6 +52,7 @@ export default function BedDetailPanel({
   onAreaTypeConvert,
 }: BedDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
+  const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
   // Determine if this is a rotation bed (vs perennial bed)
   const isRotationBed = area.kind === 'rotation-bed'
 
@@ -225,10 +225,9 @@ export default function BedDetailPanel({
               <PlantingCard
                 key={p.id}
                 planting={p}
-                onDelete={() => onDeletePlanting(p.id)}
                 onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
-                onUpdateSuccess={(success) => onUpdateSuccess(p.id, success)}
                 otherPlantings={plantings}
+                onClick={() => setSelectedPlanting(p)}
               />
             ))}
           </div>
@@ -254,6 +253,25 @@ export default function BedDetailPanel({
         onCancel={() => setIsEditMode(false)}
       />
     </Dialog>
+
+    {/* Planting Detail Dialog */}
+    <PlantingDetailDialog
+      planting={selectedPlanting}
+      isOpen={!!selectedPlanting}
+      onClose={() => setSelectedPlanting(null)}
+      onUpdate={(updates) => {
+        if (selectedPlanting) {
+          onUpdatePlanting(selectedPlanting.id, updates)
+        }
+      }}
+      onDelete={() => {
+        if (selectedPlanting) {
+          onDeletePlanting(selectedPlanting.id)
+          setSelectedPlanting(null)
+        }
+      }}
+      otherPlantings={plantings}
+    />
   </>
   )
 }

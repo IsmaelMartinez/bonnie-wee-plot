@@ -16,7 +16,7 @@ import {
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
-import { Planting, NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
+import { NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
@@ -165,12 +165,6 @@ export default function AllotmentPage() {
   const handleDeletePlanting = (plantingId: string) => {
     if (selectedBedId) {
       removePlanting(selectedBedId, plantingId)
-    }
-  }
-
-  const handleUpdateSuccess = (plantingId: string, success: Planting['success']) => {
-    if (selectedBedId) {
-      updatePlanting(selectedBedId, plantingId, { success })
     }
   }
 
@@ -469,7 +463,6 @@ export default function AllotmentPage() {
               onAddPlanting={() => setShowAddDialog(true)}
               onDeletePlanting={handleDeletePlanting}
               onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
-              onUpdateSuccess={handleUpdateSuccess}
               onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
               onUpdateNote={(noteId, updates) => selectedBedId && updateAreaNote(selectedBedId, noteId, updates)}
               onRemoveNote={(noteId) => selectedBedId && removeAreaNote(selectedBedId, noteId)}
