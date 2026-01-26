@@ -199,22 +199,6 @@ export default function PlantingCard({
 
           {phaseInfo.canAdvanceTo && phaseInfo.canAdvanceTo.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {phaseInfo.phase === 'planned' && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdate({
-                      sowDate: new Date().toISOString().split('T')[0],
-                      status: 'active'
-                    })
-                  }}
-                  className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
-                >
-                  Mark as Sown
-                </button>
-              )}
-
               {phaseInfo.phase === 'ready-to-transplant' && (
                 <button
                   type="button"
