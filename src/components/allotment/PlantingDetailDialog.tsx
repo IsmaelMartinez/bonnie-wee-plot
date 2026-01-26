@@ -92,12 +92,10 @@ export default function PlantingDetailDialog({
 }: PlantingDetailDialogProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [localNotes, setLocalNotes] = useState(planting?.notes || '')
-  const [localHarvestNotes, setLocalHarvestNotes] = useState(planting?.harvestNotes || '')
 
   useEffect(() => {
     setLocalNotes(planting?.notes || '')
-    setLocalHarvestNotes(planting?.harvestNotes || '')
-  }, [planting?.notes, planting?.harvestNotes])
+  }, [planting?.notes])
 
   const veg = planting ? getVegetableById(planting.plantId) : null
   const { goods, bads } = planting
@@ -113,11 +111,6 @@ export default function PlantingDetailDialog({
     }
   }, [planting, localNotes, onUpdate])
 
-  const handleHarvestNotesBlur = useCallback(() => {
-    if (planting && localHarvestNotes !== planting.harvestNotes) {
-      onUpdate({ harvestNotes: localHarvestNotes || undefined })
-    }
-  }, [planting, localHarvestNotes, onUpdate])
 
   const handleDateChange = useCallback(
     (field: keyof PlantingUpdate, value: string) => {
@@ -372,7 +365,7 @@ export default function PlantingDetailDialog({
             <div className="space-y-3">
               <div>
                 <label htmlFor="planting-notes" className="block text-xs font-medium text-zen-stone-500 mb-1">
-                  General Notes
+                  Notes
                 </label>
                 <textarea
                   id="planting-notes"
@@ -381,20 +374,6 @@ export default function PlantingDetailDialog({
                   onBlur={handleNotesBlur}
                   placeholder="Add notes about this planting..."
                   rows={3}
-                  className="zen-input text-sm w-full resize-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="harvest-notes" className="block text-xs font-medium text-zen-stone-500 mb-1">
-                  Harvest Notes
-                </label>
-                <textarea
-                  id="harvest-notes"
-                  value={localHarvestNotes}
-                  onChange={(e) => setLocalHarvestNotes(e.target.value)}
-                  onBlur={handleHarvestNotesBlur}
-                  placeholder="Notes about the harvest (yield, quality, timing)..."
-                  rows={2}
                   className="zen-input text-sm w-full resize-none"
                 />
               </div>
