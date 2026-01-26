@@ -362,22 +362,15 @@ export default function PlantingDetailDialog({
 
           <section>
             <h3 className="text-sm font-medium text-zen-stone-500 mb-2">Notes</h3>
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="planting-notes" className="block text-xs font-medium text-zen-stone-500 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  id="planting-notes"
-                  value={localNotes}
-                  onChange={(e) => setLocalNotes(e.target.value)}
-                  onBlur={handleNotesBlur}
-                  placeholder="Add notes about this planting..."
-                  rows={3}
-                  className="zen-input text-sm w-full resize-none"
-                />
-              </div>
-            </div>
+            <textarea
+              id="planting-notes"
+              value={localNotes}
+              onChange={(e) => setLocalNotes(e.target.value)}
+              onBlur={handleNotesBlur}
+              placeholder="Add notes about this planting..."
+              rows={3}
+              className="zen-input text-sm w-full resize-none"
+            />
           </section>
 
           <section className="pt-4 border-t border-zen-stone-200">
