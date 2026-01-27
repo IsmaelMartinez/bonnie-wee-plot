@@ -470,7 +470,6 @@ export default function AllotmentPage() {
               onAutoRotate={() => setShowAutoRotateDialog(true)}
               onArchiveArea={handleArchiveArea}
               onUpdateArea={updateArea}
-              onItemSelect={selectItem}
               quickStats={quickStats}
             />
 
