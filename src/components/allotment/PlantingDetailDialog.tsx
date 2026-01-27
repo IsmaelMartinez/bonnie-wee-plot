@@ -50,7 +50,7 @@ export default function PlantingDetailDialog({
     setLocalTransplantDate(formatDateForInput(planting?.transplantDate))
     setLocalHarvestStart(formatDateForInput(planting?.actualHarvestStart))
     setLocalHarvestEnd(formatDateForInput(planting?.actualHarvestEnd))
-  }, [planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart, planting?.actualHarvestEnd])
+  }, [planting?.id, planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart, planting?.actualHarvestEnd])
 
   const veg = planting ? getVegetableById(planting.plantId) : null
   const { goods, bads } = planting
@@ -300,8 +300,9 @@ export default function PlantingDetailDialog({
               {(['excellent', 'good', 'fair', 'poor'] as const).map((rating) => (
                 <button
                   key={rating}
+                  type="button"
                   onClick={() => handleSuccessChange(planting.success === rating ? undefined : rating)}
-                  className={`px-4 py-2.5 min-h-[44px] text-sm rounded-zen capitalize transition ${
+                  className={`px-4 py-2.5 min-h-[44px] min-w-[44px] text-sm rounded-zen capitalize transition ${
                     planting.success === rating
                       ? rating === 'excellent'
                         ? 'bg-zen-moss-600 text-white'
@@ -334,6 +335,7 @@ export default function PlantingDetailDialog({
 
           <section className="pt-4 border-t border-zen-stone-200">
             <button
+              type="button"
               onClick={() => setShowDeleteConfirm(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 min-h-[44px] text-zen-ume-600 border border-zen-ume-200 rounded-zen hover:bg-zen-ume-50 transition"
             >
