@@ -18,11 +18,10 @@ test.describe('Compost Page', () => {
     await expect(page.getByText('Monitor your compost status and care')).toBeVisible()
   })
 
-  test('should display stats section', async ({ page }) => {
-    await expect(page.getByText('Active')).toBeVisible()
-    await expect(page.getByText('Maturing')).toBeVisible()
-    await expect(page.getByText('Ready')).toBeVisible()
-    await expect(page.getByText('Applied')).toBeVisible()
+  test('should display care tips section', async ({ page }) => {
+    await expect(page.getByText('Compost Care Tips')).toBeVisible()
+    await expect(page.getByText('Too wet or smelly?')).toBeVisible()
+    await expect(page.getByText('Be patient - composting takes time!')).toBeVisible()
   })
 
   test('should display New Compost Pile button', async ({ page }) => {
