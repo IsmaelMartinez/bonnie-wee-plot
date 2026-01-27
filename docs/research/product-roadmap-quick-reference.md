@@ -156,9 +156,9 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ---
 
-## Related Research
+## Related Documentation
 
-- **Plant Dialog UX Research** (`docs/research/plant-dialog-ux-research.md`) - Detailed analysis of how to implement plant detail dialogs with bottom sheet pattern, competitor analysis, and accessibility considerations
+- **ADR-020: Planting Detail Dialog** (`docs/adrs/020-planting-detail-dialog.md`) - Architecture decision record documenting the bottom sheet dialog pattern and UI decisions
 - **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
 
 ---
@@ -167,15 +167,24 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 Before implementing progressive disclosure, complete these UX improvements:
 
-### Step 1: Plant Dialog UX Implementation (NEXT)
+### Step 1: Plant Dialog UX Implementation (✅ COMPLETE)
 
-**Problem:** Users can view plant information but cannot edit plantings from the plant dialog. This is a core UX gap.
+**Status:** Completed in PR #68 and #69 (January 27, 2026)
 
-**Solution:** Implement the plant dialog with edit capabilities as researched in `docs/research/plant-dialog-ux-research.md`:
-- Bottom sheet pattern for mobile
-- Edit/delete planting actions
-- Harvest date tracking
-- Notes and status updates
+**What was implemented:**
+- Bottom sheet dialog pattern for mobile-first UX
+- Full inline editing of planting information (dates, notes, success ratings)
+- Sow method selection with conditional transplant date field
+- Harvest date tracking (expected and actual)
+- Companion planting visibility with good/conflict indicators
+- Plant care information display (water, sun, spacing, days to harvest)
+- Delete functionality with confirmation
+- Full accessibility support (ARIA labels, keyboard navigation, 44px touch targets)
+- Shared utility functions for code maintainability
+
+**Related PRs:**
+- PR #68: Add planting detail dialog with expanded editing capabilities
+- PR #69: Fix planting dialog accessibility and state management issues
 
 ### Step 2: Section-by-Section UX Review
 
@@ -212,5 +221,5 @@ After reviewing sections individually, map the user journey across sections:
 
 ---
 
-**Status:** ✅ Ready for review and feedback
-**Next:** Implement Plant Dialog UX (Step 1)
+**Status:** ✅ Step 1 Complete | Ready for Step 2
+**Next:** Section-by-Section UX Review (Step 2)

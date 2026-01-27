@@ -51,7 +51,7 @@ export default function PlantingCard({
   return (
     <div
       className={`rounded-zen p-3 ${bads.length > 0 ? 'bg-zen-kitsune-50 border border-zen-kitsune-200' : 'bg-zen-stone-50'} ${
-        onClick ? 'cursor-pointer hover:bg-zen-stone-100/50 focus-within:ring-2 focus-within:ring-zen-moss-500 focus-within:ring-offset-2 transition' : ''
+        onClick ? 'cursor-pointer hover:bg-zen-stone-100/50 focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2 transition' : ''
       }`}
       onClick={handleCardClick}
       onKeyDown={onClick ? handleKeyDown : undefined}
