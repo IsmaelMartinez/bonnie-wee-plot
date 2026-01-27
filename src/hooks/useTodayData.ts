@@ -16,7 +16,6 @@
 import { useMemo } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
-import { getVegetableById } from '@/lib/vegetable-database'
 import { generateTasksForMonth, GeneratedTask } from '@/lib/task-generator'
 import { MaintenanceTask, Planting, AreaSeason } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
@@ -26,8 +25,6 @@ export interface TodayData {
   seasonalPhase: SeasonalPhase
   maintenanceTasks: MaintenanceTask[]
   generatedTasks: GeneratedTask[]
-  harvestReady: Planting[]
-  needsAttention: Planting[]
   isLoading: boolean
 }
 
@@ -83,6 +80,7 @@ export function useTodayData(): TodayData {
   }, [currentSeason, data, allAreas])
 
   // Generate automatic tasks based on plantings and month
+  // Task generator now handles status filtering internally
   const generatedTasks = useMemo(() => {
     if (!data) return []
     return generateTasksForMonth(
@@ -92,55 +90,11 @@ export function useTodayData(): TodayData {
     )
   }, [currentMonth, plantingsWithContext, allAreas, data])
 
-  // Collect all plantings from current season with vegetable data (for legacy harvestReady/needsAttention)
-  const allPlantingsWithVegetable = useMemo(() => {
-    if (!currentSeason || !data) return []
-
-    const result: Array<{ planting: Planting; harvestMonths: number[]; sowMonths: number[] }> = []
-
-    for (const area of currentSeason.areas) {
-      for (const planting of (area as AreaSeason).plantings) {
-        const vegetable = getVegetableById(planting.plantId)
-        if (vegetable) {
-          const harvestMonths = vegetable.planting?.harvestMonths || []
-          const sowIndoors = vegetable.planting?.sowIndoorsMonths || []
-          const sowOutdoors = vegetable.planting?.sowOutdoorsMonths || []
-          const transplant = vegetable.planting?.transplantMonths || []
-          const sowMonths = [...sowIndoors, ...sowOutdoors, ...transplant]
-
-          result.push({
-            planting,
-            harvestMonths,
-            sowMonths,
-          })
-        }
-      }
-    }
-
-    return result
-  }, [currentSeason, data])
-
-  // Plantings ready for harvest (current month is in harvestMonths)
-  const harvestReady = useMemo(() => {
-    return allPlantingsWithVegetable
-      .filter(({ harvestMonths }) => harvestMonths.includes(currentMonth))
-      .map(({ planting }) => planting)
-  }, [allPlantingsWithVegetable, currentMonth])
-
-  // Plantings needing attention (current month is in sowMonths or transplantMonths)
-  const needsAttention = useMemo(() => {
-    return allPlantingsWithVegetable
-      .filter(({ sowMonths }) => sowMonths.includes(currentMonth))
-      .map(({ planting }) => planting)
-  }, [allPlantingsWithVegetable, currentMonth])
-
   return {
     currentMonth,
     seasonalPhase,
     maintenanceTasks,
     generatedTasks,
-    harvestReady,
-    needsAttention,
     isLoading,
   }
 }

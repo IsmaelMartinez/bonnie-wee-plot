@@ -39,6 +39,27 @@ interface PlantingWithContext {
   areaName: string
 }
 
+/**
+ * Filter plantings by status for task generation
+ * - Harvest tasks: only for 'active' plantings (growing, not yet harvested)
+ * - Other tasks: exclude 'harvested' and 'removed' plantings
+ */
+function filterPlantingsForTaskType(
+  plantings: PlantingWithContext[],
+  taskType: 'harvest' | 'other'
+): PlantingWithContext[] {
+  return plantings.filter(({ planting }) => {
+    const status = planting.status || 'active'
+
+    if (taskType === 'harvest') {
+      // Only active plantings can be harvested
+      return status === 'active'
+    }
+    // For sow/transplant/succession: exclude harvested and removed plantings
+    return status !== 'harvested' && status !== 'removed'
+  })
+}
+
 // Crops suitable for succession sowing
 const SUCCESSION_CROPS = ['lettuce', 'radish', 'spinach', 'rocket', 'beetroot', 'spring-onion']
 const SUCCESSION_INTERVAL_DAYS = 21
@@ -73,7 +94,10 @@ export function generateDateBasedTasks(
   const tasks: GeneratedTask[] = []
   const currentMonth = (today.getMonth() + 1) as Month
 
-  for (const { planting, areaId, areaName } of plantings) {
+  // Filter for harvest-eligible plantings (active only)
+  const harvestEligible = filterPlantingsForTaskType(plantings, 'harvest')
+
+  for (const { planting, areaId, areaName } of harvestEligible) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 
@@ -100,6 +124,14 @@ export function generateDateBasedTasks(
         })
       }
     }
+  }
+
+  // Filter for transplant-eligible plantings (exclude harvested/removed)
+  const transplantEligible = filterPlantingsForTaskType(plantings, 'other')
+
+  for (const { planting, areaId, areaName } of transplantEligible) {
+    const vegetable = getVegetableById(planting.plantId)
+    if (!vegetable) continue
 
     // Transplant reminders for indoor sowings
     if (planting.sowMethod === 'indoor' && planting.sowDate && !planting.transplantDate) {
@@ -153,6 +185,9 @@ export function generateSuccessionReminders(
   const tasks: GeneratedTask[] = []
   const currentMonth = (today.getMonth() + 1) as Month
 
+  // Filter for succession-eligible plantings (exclude harvested/removed)
+  const successionEligible = filterPlantingsForTaskType(plantings, 'other')
+
   for (const cropId of SUCCESSION_CROPS) {
     const vegetable = getVegetableById(cropId)
     if (!vegetable) continue
@@ -163,7 +198,7 @@ export function generateSuccessionReminders(
     if (!canSowOutdoors && !canSowIndoors) continue
 
     // Find most recent sowing of this crop
-    const sowingsOfCrop = plantings
+    const sowingsOfCrop = successionEligible
       .filter(p => p.planting.plantId === cropId && p.planting.sowDate)
       .sort((a, b) => b.planting.sowDate!.localeCompare(a.planting.sowDate!))
 
@@ -203,8 +238,12 @@ function generateMonthBasedTasks(
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
 
-  // Generate tasks from actual plantings in the allotment
-  for (const { planting, areaId, areaName } of plantings) {
+  // Filter plantings by status for different task types
+  const harvestEligible = filterPlantingsForTaskType(plantings, 'harvest')
+  const sowEligible = filterPlantingsForTaskType(plantings, 'other')
+
+  // Generate harvest tasks from active plantings only
+  for (const { planting, areaId, areaName } of harvestEligible) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 
@@ -215,8 +254,8 @@ function generateMonthBasedTasks(
     }
   }
 
-  // Generate sowing/transplant suggestions for plants already in the allotment
-  for (const { planting, areaId, areaName } of plantings) {
+  // Generate sowing/transplant suggestions for planned plantings only
+  for (const { planting, areaId, areaName } of sowEligible) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 

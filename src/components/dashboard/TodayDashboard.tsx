@@ -4,7 +4,6 @@ import { useTodayData } from '@/hooks/useTodayData'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
-import BedAlerts from './BedAlerts'
 import QuickActions from './QuickActions'
 import AIInsight from './AIInsight'
 import CompostAlerts from './CompostAlerts'
@@ -37,8 +36,6 @@ export default function TodayDashboard() {
     seasonalPhase,
     maintenanceTasks,
     generatedTasks,
-    harvestReady,
-    needsAttention,
     isLoading,
   } = useTodayData()
 
@@ -84,18 +81,8 @@ export default function TodayDashboard() {
           {/* Quick Actions */}
           <QuickActions />
 
-          {/* Main Content Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Tasks */}
-            <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
-
-            {/* Garden Status */}
-            <BedAlerts
-              harvestReady={harvestReady}
-              needsAttention={needsAttention}
-              theme={theme}
-            />
-          </div>
+          {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
+          <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
 
           {/* Compost Alerts */}
           <CompostAlerts />
@@ -105,8 +92,6 @@ export default function TodayDashboard() {
             input={{
               seasonalPhase,
               currentMonth,
-              harvestReady,
-              needsAttention,
               maintenanceTasks,
             }}
           />

@@ -40,16 +40,12 @@ export default function QuickTopics({ onSelectTopic }: QuickTopicsProps) {
   const suggestions = generateAISuggestions({
     seasonalPhase: todayData.seasonalPhase,
     currentMonth: todayData.currentMonth,
-    harvestReady: todayData.harvestReady,
-    needsAttention: todayData.needsAttention,
     maintenanceTasks: todayData.maintenanceTasks,
   })
 
   const isPersonalized = hasPersonalizedData({
     seasonalPhase: todayData.seasonalPhase,
     currentMonth: todayData.currentMonth,
-    harvestReady: todayData.harvestReady,
-    needsAttention: todayData.needsAttention,
     maintenanceTasks: todayData.maintenanceTasks,
   })
 

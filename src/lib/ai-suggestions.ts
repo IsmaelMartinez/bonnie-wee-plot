@@ -16,8 +16,7 @@ import {
   Recycle,
 } from 'lucide-react'
 import { SeasonalPhase } from '@/lib/seasons'
-import { MaintenanceTask, Planting } from '@/types/unified-allotment'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { MaintenanceTask } from '@/types/unified-allotment'
 
 export interface AISuggestion {
   icon: LucideIcon
@@ -115,72 +114,6 @@ function getSeasonalSuggestions(phase: SeasonalPhase, month: number): AISuggesti
 }
 
 /**
- * Generate suggestions based on harvest-ready plantings
- */
-function getHarvestSuggestions(harvestReady: Planting[]): AISuggestion[] {
-  if (harvestReady.length === 0) return []
-
-  const suggestions: AISuggestion[] = []
-
-  // Get unique vegetable names
-  const veggies = harvestReady
-    .map(p => getVegetableById(p.plantId)?.name)
-    .filter((name): name is string => !!name)
-  const uniqueVeggies = [...new Set(veggies)]
-
-  if (uniqueVeggies.length > 0) {
-    const vegList = uniqueVeggies.slice(0, 3).join(', ')
-    suggestions.push({
-      icon: Carrot,
-      title: 'Harvest Tips',
-      query: `I have ${vegList} ready to harvest. How do I know when they're at peak ripeness and how should I store them?`,
-      priority: 85,
-      category: 'harvest',
-    })
-  }
-
-  if (uniqueVeggies.length > 2) {
-    suggestions.push({
-      icon: Recycle,
-      title: 'Preserving Harvest',
-      query: `I'm harvesting lots of vegetables. What are the best ways to preserve ${uniqueVeggies[0]} and ${uniqueVeggies[1]}?`,
-      priority: 70,
-      category: 'harvest',
-    })
-  }
-
-  return suggestions
-}
-
-/**
- * Generate suggestions based on plantings needing attention
- */
-function getPlantingSuggestions(needsAttention: Planting[]): AISuggestion[] {
-  if (needsAttention.length === 0) return []
-
-  const suggestions: AISuggestion[] = []
-
-  // Get unique vegetable names
-  const veggies = needsAttention
-    .map(p => getVegetableById(p.plantId)?.name)
-    .filter((name): name is string => !!name)
-  const uniqueVeggies = [...new Set(veggies)]
-
-  if (uniqueVeggies.length > 0) {
-    const vegList = uniqueVeggies.slice(0, 2).join(' and ')
-    suggestions.push({
-      icon: Sprout,
-      title: 'Sowing Window',
-      query: `The sowing window is open for ${vegList}. What's the best technique for starting them?`,
-      priority: 80,
-      category: 'planting',
-    })
-  }
-
-  return suggestions
-}
-
-/**
  * Generate suggestions based on maintenance tasks
  */
 function getMaintenanceSuggestions(tasks: MaintenanceTask[]): AISuggestion[] {
@@ -218,8 +151,6 @@ function getMaintenanceSuggestions(tasks: MaintenanceTask[]): AISuggestion[] {
 export interface GenerateSuggestionsInput {
   seasonalPhase: SeasonalPhase
   currentMonth: number
-  harvestReady: Planting[]
-  needsAttention: Planting[]
   maintenanceTasks: MaintenanceTask[]
 }
 
@@ -233,8 +164,6 @@ export function generateAISuggestions(
 ): AISuggestion[] {
   const allSuggestions: AISuggestion[] = [
     ...getSeasonalSuggestions(input.seasonalPhase, input.currentMonth),
-    ...getHarvestSuggestions(input.harvestReady),
-    ...getPlantingSuggestions(input.needsAttention),
     ...getMaintenanceSuggestions(input.maintenanceTasks),
   ]
 
@@ -254,9 +183,5 @@ export function generateAISuggestions(
  * Check if we have enough personalized data to show dynamic suggestions
  */
 export function hasPersonalizedData(input: GenerateSuggestionsInput): boolean {
-  return (
-    input.harvestReady.length > 0 ||
-    input.needsAttention.length > 0 ||
-    input.maintenanceTasks.length > 0
-  )
+  return input.maintenanceTasks.length > 0
 }
