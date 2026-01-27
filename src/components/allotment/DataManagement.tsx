@@ -162,55 +162,33 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
   // Import data from JSON file (supports both old and new formats)
   const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[DataManagement] handleImport called')
     const file = event.target.files?.[0]
-    if (!file) {
-      console.log('[DataManagement] No file selected')
-      return
-    }
-
-    console.log('[DataManagement] File selected:', file.name, file.size)
+    if (!file) return
 
     setImportError(null)
     setImportSuccess(false)
     setLastBackupKey(null)
 
     // Flush any pending saves before importing
-    // Note: flushSave can fail due to verification issues, but we'll still try the import
-    // since the import process has its own verification step
     if (flushSave) {
-      console.log('[DataManagement] flushSave is provided, calling it...')
       try {
-        const flushed = await flushSave()
-        console.log('[DataManagement] flushSave returned:', flushed)
-        if (!flushed) {
-          console.log('[DataManagement] flushSave verification failed, but continuing with import')
-          // Don't block import - it has its own verification
-        }
-      } catch (err) {
-        console.log('[DataManagement] flushSave threw error:', err)
-        // Continue anyway
+        await flushSave()
+      } catch {
+        // Continue anyway - import has its own verification
       }
-    } else {
-      console.log('[DataManagement] No flushSave provided, continuing...')
     }
 
-    console.log('[DataManagement] Creating FileReader...')
     const reader = new FileReader()
-    console.log('[DataManagement] FileReader created')
 
     reader.onload = async (e) => {
       try {
         // Parse and validate JSON first
         const content = e.target?.result as string
-        console.log('[DataManagement] File loaded, content length:', content.length)
 
         let parsed: unknown
         try {
           parsed = JSON.parse(content)
-          console.log('[DataManagement] JSON parsed successfully')
         } catch {
-          console.log('[DataManagement] JSON parse error')
           setImportError(new ImportError(
             'Invalid JSON file',
             'INVALID_JSON',
@@ -222,7 +200,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
         // Validate data structure before proceeding
         const validation = validateImportData(parsed)
-        console.log('[DataManagement] Validation result:', validation)
         if (!validation.valid) {
           const errorMsg = validation.error || 'Invalid backup file'
           const code = errorMsg.includes('newer version') ? 'VERSION_MISMATCH' : 'INVALID_FORMAT'
@@ -261,32 +238,12 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           varietyData = complete.varieties
           compostData = complete.compost || null
 
-          console.log('[DataManagement] Import detected v13+ format', {
-            hasAllotment: !!complete.allotment,
-            hasVarieties: !!complete.varieties,
-            varietyDataVarietiesLength: varietyData?.varieties?.length,
-            allotmentDataVarietiesLength: complete.allotment?.varieties?.length
-          })
-
           // Merge varieties into allotment data
-          // The app expects varieties to be in AllotmentData.varieties, not in separate storage
           if (varietyData && varietyData.varieties) {
-            console.log('[DataManagement] Merging varieties from varietyData', {
-              count: varietyData.varieties.length,
-              varieties: varietyData.varieties
-            })
             allotmentData.varieties = varietyData.varieties
-            console.log('[DataManagement] After merge, allotmentData.varieties', {
-              length: allotmentData.varieties?.length,
-              varieties: allotmentData.varieties
-            })
           }
         } else {
           // Old format - just AllotmentData
-          console.log('[DataManagement] Import detected legacy format (AllotmentData only)', {
-            version: (parsed as AllotmentData)?.version,
-            varietiesLength: (parsed as AllotmentData)?.varieties?.length
-          })
           allotmentData = parsed as AllotmentData
         }
 
@@ -299,25 +256,11 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           }
         }
 
-        console.log('[DataManagement] allotmentData before migration:', {
-          version: allotmentData.version,
-          varietiesLength: allotmentData.varieties?.length,
-          varietiesIds: allotmentData.varieties?.map(v => v.id)
-        })
-
         // Migrate imported data to current schema to ensure areas and other fields are properly initialized
         const migratedData = migrateSchemaForImport(timestampedData)
-
-        console.log('[DataManagement] After migration:', {
-          version: migratedData.version,
-          varietiesLength: migratedData.varieties?.length,
-          varietiesIds: migratedData.varieties?.map(v => v.id)
-        })
-
         const finalAllotmentData = migratedData
 
         // Save allotment data (now includes varieties merged from varietyData)
-        console.log('[DataManagement] About to save with varieties length:', finalAllotmentData.varieties?.length)
         const allotmentResult = saveAllotmentData(finalAllotmentData)
 
         if (!allotmentResult.success) {
@@ -345,9 +288,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         }
 
         // Skip verification - saveAllotmentData has already validated the save was successful
-        // Verification via loadAllotmentData can trigger side effects (repair logic) that corrupt the data
-        console.log('[DataManagement] Import saved successfully, triggering reload')
-
         // Success! Import is complete and data is persisted to localStorage
         // CRITICAL: Set flag to prevent usePersistedStorage from overwriting imported data
         // The hook's debounced save might fire with stale in-memory state before reload completes
@@ -369,7 +309,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     }
 
     reader.onerror = () => {
-      console.log('[DataManagement] FileReader error')
       setImportError(new ImportError(
         'Failed to read the backup file',
         'FILE_READ_ERROR',
@@ -378,9 +317,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       ))
     }
 
-    console.log('[DataManagement] Calling readAsText...')
     reader.readAsText(file)
-    console.log('[DataManagement] readAsText called, waiting for onload callback')
 
     // Reset file input
     if (fileInputRef.current) {
