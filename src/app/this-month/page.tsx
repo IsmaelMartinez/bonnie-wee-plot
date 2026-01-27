@@ -567,6 +567,9 @@ export default function ThisMonthPage() {
             <button
               onClick={() => setIsTreeCareOpen(!isTreeCareOpen)}
               className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition"
+              aria-expanded={isTreeCareOpen}
+              aria-controls="tree-care-content"
+              aria-label="Toggle tree and perennials care section"
             >
               <div className="flex items-center">
                 <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
@@ -579,7 +582,7 @@ export default function ThisMonthPage() {
               )}
             </button>
             {isTreeCareOpen && (
-              <>
+              <div id="tree-care-content">
                 <p className="text-zen-stone-600 text-sm mb-4">
                   General maintenance tasks for fruit trees, berry bushes, and perennials this month.
                 </p>
@@ -588,7 +591,7 @@ export default function ThisMonthPage() {
                     <MaintenanceCard key={`${task.vegetable.id}-${task.type}-${index}`} task={task} />
                   ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -616,6 +619,9 @@ export default function ThisMonthPage() {
           <button
             onClick={() => setIsExpertTipsOpen(!isExpertTipsOpen)}
             className="w-full flex items-center justify-between text-lg font-display text-zen-ink-800 mb-4 hover:text-zen-moss-700 transition"
+            aria-expanded={isExpertTipsOpen}
+            aria-controls="expert-tips-content"
+            aria-label="Toggle expert tips section"
           >
             <span>Expert Tips for {data.month}</span>
             {isExpertTipsOpen ? (
@@ -625,7 +631,7 @@ export default function ThisMonthPage() {
             )}
           </button>
           {isExpertTipsOpen && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div id="expert-tips-content" className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <TipCard
                 icon={Recycle}
                 title="Composting"

@@ -89,7 +89,9 @@ export default function CompostPage() {
   const [inputQuantity, setInputQuantity] = useState('')
 
   // Form state for event
-  const [eventType, setEventType] = useState<'turn' | 'water' | 'harvest' | 'other'>('turn')
+  // Note: 'check-temp' remains in CompostEvent type for backward compatibility with existing data
+  // but is no longer exposed via the UI as part of simplification
+  const [eventType, setEventType] = useState<Exclude<NewCompostEvent['type'], 'check-temp'>>('turn')
   const [eventNotes, setEventNotes] = useState('')
 
   // Close handlers that reset form state
