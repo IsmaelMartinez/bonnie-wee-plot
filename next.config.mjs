@@ -48,6 +48,9 @@ const nextConfig = {
   // Trailing slash for better compatibility with static hosting
   trailingSlash: true,
 
+  // Enable Turbopack (Next.js 16+ default) - empty config silences webpack warning
+  turbopack: {},
+
   // Server Actions configuration (for non-static builds)
   ...(!isGitHubPages && {
     experimental: {
