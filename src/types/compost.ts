@@ -39,9 +39,8 @@ export interface CompostInput {
 export interface CompostEvent {
   id: string
   date: string                    // ISO date string
-  type: 'turn' | 'water' | 'check-temp' | 'harvest' | 'other'
+  type: 'turn' | 'water' | 'harvest' | 'other'
   notes?: string
-  temperature?: number            // Optional temp reading in Celsius
 }
 
 /**

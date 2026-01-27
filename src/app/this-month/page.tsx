@@ -2,22 +2,23 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { 
-  Calendar, 
-  Sprout, 
-  Shovel, 
-  Carrot, 
-  CheckCircle, 
-  Recycle, 
-  RotateCcw, 
-  Users, 
-  Leaf, 
+import {
+  Calendar,
+  Sprout,
+  Shovel,
+  Carrot,
+  CheckCircle,
+  Recycle,
+  RotateCcw,
+  Users,
+  Leaf,
   Cloud,
   Lightbulb,
   Home,
-  MapPin
+  MapPin,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
-import GuideCTA from '@/components/GuideCTA'
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
@@ -173,6 +174,8 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
 
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
+  const [isExpertTipsOpen, setIsExpertTipsOpen] = useState(false)
+  const [isTreeCareOpen, setIsTreeCareOpen] = useState(false)
 
   // Load allotment data for personalization
   const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreasByKind } = useAllotment()
@@ -558,21 +561,38 @@ export default function ThisMonthPage() {
           </div>
         )}
 
-        {/* Generic Trees & Shrubs Maintenance Section */}
+        {/* Generic Trees & Shrubs Maintenance Section - Collapsible */}
         {maintenanceTasks.length > 0 && (
           <div className="zen-card p-6 mb-8">
-            <div className="flex items-center mb-4">
-              <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
-              <h3 className="font-display text-zen-ink-800">All Trees & Perennials Care</h3>
-            </div>
-            <p className="text-zen-stone-600 text-sm mb-4">
-              General maintenance tasks for fruit trees, berry bushes, and perennials this month.
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {maintenanceTasks.map((task, index) => (
-                <MaintenanceCard key={`${task.vegetable.id}-${task.type}-${index}`} task={task} />
-              ))}
-            </div>
+            <button
+              onClick={() => setIsTreeCareOpen(!isTreeCareOpen)}
+              className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition"
+              aria-expanded={isTreeCareOpen}
+              aria-controls="tree-care-content"
+              aria-label="Toggle tree and perennials care section"
+            >
+              <div className="flex items-center">
+                <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
+                <h3 className="font-display text-zen-ink-800">All Trees & Perennials Care</h3>
+              </div>
+              {isTreeCareOpen ? (
+                <ChevronUp className="w-5 h-5 text-zen-stone-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-zen-stone-500" />
+              )}
+            </button>
+            {isTreeCareOpen && (
+              <div id="tree-care-content">
+                <p className="text-zen-stone-600 text-sm mb-4">
+                  General maintenance tasks for fruit trees, berry bushes, and perennials this month.
+                </p>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {maintenanceTasks.map((task, index) => (
+                    <MaintenanceCard key={`${task.vegetable.id}-${task.type}-${index}`} task={task} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -594,37 +614,50 @@ export default function ThisMonthPage() {
           </div>
         </div>
 
-        {/* Specialization Tips */}
+        {/* Specialization Tips - Collapsible */}
         <div className="mb-8">
-          <h3 className="text-lg font-display text-zen-ink-800 mb-4 text-center">
-            Expert Tips for {data.month}
-          </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <TipCard
-              icon={Recycle}
-              title="Composting"
-              content={data.composting}
-              color="green"
-            />
-            <TipCard
-              icon={RotateCcw}
-              title="Crop Rotation"
-              content={data.rotation}
-              color="blue"
-            />
-            <TipCard
-              icon={Users}
-              title="Companions"
-              content={data.companions}
-              color="purple"
-            />
-            <TipCard
-              icon={Leaf}
-              title="Organic"
-              content={data.organic}
-              color="amber"
-            />
-          </div>
+          <button
+            onClick={() => setIsExpertTipsOpen(!isExpertTipsOpen)}
+            className="w-full flex items-center justify-between text-lg font-display text-zen-ink-800 mb-4 hover:text-zen-moss-700 transition"
+            aria-expanded={isExpertTipsOpen}
+            aria-controls="expert-tips-content"
+            aria-label="Toggle expert tips section"
+          >
+            <span>Expert Tips for {data.month}</span>
+            {isExpertTipsOpen ? (
+              <ChevronUp className="w-5 h-5 text-zen-stone-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-zen-stone-500" />
+            )}
+          </button>
+          {isExpertTipsOpen && (
+            <div id="expert-tips-content" className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <TipCard
+                icon={Recycle}
+                title="Composting"
+                content={data.composting}
+                color="green"
+              />
+              <TipCard
+                icon={RotateCcw}
+                title="Crop Rotation"
+                content={data.rotation}
+                color="blue"
+              />
+              <TipCard
+                icon={Users}
+                title="Companions"
+                content={data.companions}
+                color="purple"
+              />
+              <TipCard
+                icon={Leaf}
+                title="Organic"
+                content={data.organic}
+                color="amber"
+              />
+            </div>
+          )}
         </div>
 
         {/* Weather & Tip Callouts */}
@@ -647,22 +680,6 @@ export default function ThisMonthPage() {
             <p className="text-zen-kitsune-700 leading-relaxed">{data.tip}</p>
           </div>
         </div>
-
-        {/* CTA to AI Advisor */}
-        <GuideCTA
-          icon={Calendar}
-          title="Need Personalized Advice?"
-          description="Aitor can give you tailored recommendations based on your specific plot, the vegetables you're growing, and your local conditions."
-          bulletPoints={[
-            '• What to prioritize on your plot this month',
-            '• Troubleshooting specific problems',
-            '• Planning your sowing and harvesting schedule',
-            '• Adapting tasks for your microclimate'
-          ]}
-          buttonText="Ask Aitor for Help"
-          gradientFrom="from-green-600"
-          gradientTo="to-blue-600"
-        />
 
         {/* Footer Note */}
         <footer className="mt-16 pt-8 border-t border-zen-stone-200 text-center">
