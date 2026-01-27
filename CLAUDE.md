@@ -148,6 +148,14 @@ The app supports automatic schema migration for users on older data versions. Cu
 
 See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. See `docs/adrs/019-per-year-grid-positions.md` for the v14 per-year grid positions feature.
 
+## Design Principle: Simplicity First
+
+**For Users:** Keep each section focused on one clear purpose. Remove or hide complexity that isn't essential to solving the immediate problem. Features that simplify workflows (e.g., AI Advisor modifying data) are prioritized over features that add complexity without clear user benefit (e.g., overly detailed monthly planning, complex compost tracking). When in doubt, remove it or hide it until users demonstrate they need it.
+
+**For Maintainers:** Code should be easy to understand and modify. Prefer simple patterns over clever abstractions. Avoid feature flag sprawl and conditional complexity. Delete unused code, outdated pages, or experimental features regularly. Before adding a new feature, audit the existing codebase for duplication or technical debt that should be addressed first.
+
+**Application:** Each page/section should do one thing well. If a page tries to solve multiple problems, break it into clearer pieces or remove the less essential problem entirely.
+
 ## Code Conventions
 
 - TypeScript strict mode with `noUnusedLocals` and `noUnusedParameters`
