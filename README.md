@@ -161,8 +161,6 @@ Learn about the project and its AI-powered origins.
 
 ### Coming Eventually™
 - **Scottish Weather Integration**: So you know when to rush out and cover your brassicas before the next storm
-- **Mobile App**: For when you need garden advice while standing in your actual plot (in the rain, obviously)
-- **Multi-language Support**: Including Scots and Gaelic, naturally
 - **Garden Data Persistence**: Cloud sync for your garden plans
 
 ### Pie-in-the-Sky Features

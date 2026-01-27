@@ -156,6 +156,52 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 
 ---
 
+## Related Research
+
+- **Plant Dialog UX Research** (`docs/research/plant-dialog-ux-research.md`) - Detailed analysis of how to implement plant detail dialogs with bottom sheet pattern, competitor analysis, and accessibility considerations
+- **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
+
+---
+
+## Production Preparation Steps
+
+Before implementing progressive disclosure, complete these UX improvements:
+
+### Step 1: Plant Dialog UX Implementation (NEXT)
+
+**Problem:** Users can view plant information but cannot edit plantings from the plant dialog. This is a core UX gap.
+
+**Solution:** Implement the plant dialog with edit capabilities as researched in `docs/research/plant-dialog-ux-research.md`:
+- Bottom sheet pattern for mobile
+- Edit/delete planting actions
+- Harvest date tracking
+- Notes and status updates
+
+### Step 2: Section-by-Section UX Review
+
+Review each app section in isolation to identify issues and improvements:
+
+| Section | Purpose | Key Questions |
+|---------|---------|---------------|
+| **Today** | Daily dashboard | What actions do users take most? Is the information hierarchy correct? |
+| **This Month** | Seasonal calendar | Does it answer "what should I do now?" effectively? |
+| **Seeds** | Seed inventory & catalog | Is variety tracking intuitive? How does it connect to plantings? |
+| **Allotment** | Garden layout & plantings | Can users easily add/edit plants? How does grid interact with bed details? |
+| **Compost** | Pile tracking | Is the C:N ratio tracking useful? Event logging UX? |
+| **AI Advisor** | Chat with Aitor | Should it be able to modify data (see AI inventory research)? |
+
+### Step 3: Holistic UX Review
+
+After reviewing sections individually, map the user journey across sections:
+- Identify friction points in cross-section workflows
+- Ensure consistent patterns and terminology
+- Validate navigation and information architecture
+- Test complete user scenarios (e.g., "plan a new bed" → "track harvest")
+
+**Goal:** Ship a polished, coherent experience before adding progressive disclosure complexity.
+
+---
+
 ## Questions for Review
 
 1. **Unlock criteria:** Are 3 visits / 5 plantings the right thresholds?
@@ -167,4 +213,4 @@ Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, A
 ---
 
 **Status:** ✅ Ready for review and feedback
-**Next:** User interviews to validate strategy
+**Next:** Implement Plant Dialog UX (Step 1)

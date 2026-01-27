@@ -4,6 +4,7 @@
  * Utilities for managing plant location, sow methods, and planting lifecycle.
  */
 
+import { Calendar, Home, Sprout, Leaf } from 'lucide-react'
 import { SowMethod, Planting, PlantingStatus } from '@/types/unified-allotment'
 import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from './vegetable-database'
@@ -392,4 +393,67 @@ export function getSowMethodShortLabel(method: SowMethod): string {
     default:
       return method
   }
+}
+
+/**
+ * Get CSS classes for phase badge styling
+ */
+export function getPhaseColors(color: PlantingPhaseInfo['color']): string {
+  switch (color) {
+    case 'gray':
+      return 'bg-zen-stone-100 text-zen-stone-700'
+    case 'blue':
+      return 'bg-zen-water-100 text-zen-water-700'
+    case 'green':
+      return 'bg-zen-moss-100 text-zen-moss-700'
+    case 'yellow':
+      return 'bg-yellow-100 text-yellow-700'
+    case 'orange':
+      return 'bg-zen-kitsune-100 text-zen-kitsune-700'
+    case 'red':
+      return 'bg-zen-ume-100 text-zen-ume-700'
+    default:
+      return 'bg-zen-stone-100 text-zen-stone-700'
+  }
+}
+
+/**
+ * Get icon component for a planting phase
+ */
+export function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
+  switch (phase) {
+    case 'planned':
+      return Calendar
+    case 'germinating':
+    case 'growing-indoor':
+      return Home
+    case 'ready-to-transplant':
+      return Sprout
+    case 'growing':
+    case 'ready-to-harvest':
+    case 'harvesting':
+      return Leaf
+    default:
+      return Leaf
+  }
+}
+
+/**
+ * Format a date string for display (e.g., "1 Mar 2025")
+ */
+export function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
+ * Format a date string for input fields (YYYY-MM-DD)
+ */
+export function formatDateForInput(dateStr: string | undefined): string {
+  if (!dateStr) return ''
+  return dateStr.split('T')[0]
 }

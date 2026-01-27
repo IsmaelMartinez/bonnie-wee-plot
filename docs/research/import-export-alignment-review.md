@@ -1,7 +1,9 @@
 # Import/Export Alignment Review
 
 **Date**: 2026-01-18
-**Status**: Completed
+**Status**: Completed (partially superseded by schema v13-v14 changes)
+
+> **Note**: This document was written when the app used schema v11 with dual variety storage. Schema v13 consolidated all varieties into `AllotmentData.varieties` (see ADR-018). The partial import recommendations remain valid.
 
 ## Executive Summary
 
