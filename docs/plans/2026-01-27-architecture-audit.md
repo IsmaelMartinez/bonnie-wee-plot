@@ -95,15 +95,16 @@ This is blocking Phase 1 launch—we can't hide features if the architecture is 
 **Hypothesis:** Some pages have too many features or responsibilities
 
 **Pages to Audit:**
-- **Compost page** - User concern: Too detailed for most gardeners
-  - Question: Is C:N ratio tracking necessary? Or is simple pile status enough?
-  - Question: Is event logging essential or feature creep?
-  - Decision: Either simplify (show only: pile name, status, input count) or hide until Phase 2+
+- **Compost page** - ✅ SIMPLIFIED (PR #73)
+  - Removed: thermal status, temperature tracking, system-specific tips, stats dashboard, input type classification
+  - Kept: pile management, basic event logging (turn/water/harvest), generic care tips
+  - Decision: Simplified to ~605 lines. Still visible but may hide in Phase 1 progressive disclosure
 
-- **This Month page** - User concern: Overly detailed calendar view
-  - Question: What do users actually do on this page?
-  - Question: Can we reduce it to "tasks I should do this week"?
-  - Decision: Review usage patterns; consider MVP vs. current implementation
+- **This Month page** - ✅ IMPROVED HIERARCHY (PR #73)
+  - Changed: Expert Tips and Tree Care sections now collapsible (default collapsed)
+  - Removed: AI Advisor CTA (redundant with nav)
+  - Kept: Personalized section at top, all other content
+  - Decision: Improved visual hierarchy; ready for Phase 1
 
 - **Seeds page** - User concern: Seed inventory might be confusing
   - Question: Is per-year inventory status needed? Or just "ordered/have/none"?
@@ -281,6 +282,31 @@ After codebase audit, systematically review each section per the roadmap:
 
 ---
 
-**Status:** 🔲 Ready for review and approval
+**Status:** 🟡 In Progress
 **Owner:** TBD
 **Timeline:** Target completion by early February 2026 (before Phase 1 launch)
+
+---
+
+## Progress Tracker
+
+### Completed
+- [x] **Compost page simplification** (PR #73) - Replaced system-specific tips with generic care guidance, removed thermal status/temperature tracking
+- [x] **This Month page hierarchy** (PR #73) - Collapsible Expert Tips and Tree Care sections, removed AI CTA
+- [x] **Dead code: plan-history folder** (PR #72) - Removed unused RotationTimeline, SeasonView, Year2026Planning components
+- [x] **check-temp type removal** (PR #73) - Removed unused event type from CompostEvent
+
+### In Progress / Blocking
+- [ ] **PR #12: Security scanning + Vercel migration** - Needs Snyk token setup after merge
+
+### Pending UX Reviews (Part 3)
+- [ ] **Today** - Daily dashboard review
+- [ ] **Seeds** - Seed inventory & catalog review
+- [ ] **Allotment** - Layout & plantings (recently improved with PlantingDialog)
+- [ ] **AI Advisor** - Decide: keep read-only OR extend with function calling for data modification
+
+### Pending Architecture Checks (Part 4)
+- [ ] Dead code search (beyond what's been removed)
+- [ ] Duplication check
+- [ ] Technical debt assessment
+- [ ] Dependencies check (`npm audit`, unused packages)
