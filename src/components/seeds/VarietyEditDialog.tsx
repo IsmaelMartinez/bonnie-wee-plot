@@ -5,7 +5,7 @@ import Dialog from '@/components/ui/Dialog'
 import PlantCombobox from '@/components/allotment/PlantCombobox'
 import { VegetableCategory } from '@/types/garden-planner'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
-import { Check, Package, ShoppingCart } from 'lucide-react'
+import { Check, CheckCheck, Package, ShoppingCart } from 'lucide-react'
 
 interface VarietyEditDialogProps {
   isOpen: boolean
@@ -31,7 +31,6 @@ export default function VarietyEditDialog({
   const [supplier, setSupplier] = useState('')
   const [price, setPrice] = useState('')
   const [notes, setNotes] = useState('')
-  const [available, setAvailable] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
   const [seedStatusForYear, setSeedStatusForYear] = useState<SeedStatus | null>(null)
 
@@ -46,7 +45,6 @@ export default function VarietyEditDialog({
       setSupplier(variety.supplier || '')
       setPrice(variety.price?.toString() || '')
       setNotes(variety.notes || '')
-      setAvailable(variety.available ?? true)
       // Load existing seed status for the selected year
       if (yearToTrack && variety.seedsByYear?.[yearToTrack]) {
         setSeedStatusForYear(variety.seedsByYear[yearToTrack])
@@ -64,7 +62,6 @@ export default function VarietyEditDialog({
     setSupplier('')
     setPrice('')
     setNotes('')
-    setAvailable(true)
     setSeedStatusForYear(null)
   }
 
@@ -106,7 +103,6 @@ export default function VarietyEditDialog({
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
-        available,
         seedsByYear,
       }
       onSave(newVariety)
@@ -118,7 +114,6 @@ export default function VarietyEditDialog({
         supplier: supplier.trim() || undefined,
         price: parsedPrice,
         notes: notes.trim() || undefined,
-        available,
         seedsByYear,
       }
       onSave(update)
@@ -238,23 +233,6 @@ export default function VarietyEditDialog({
           />
         </div>
 
-        <div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={available}
-              onChange={(e) => setAvailable(e.target.checked)}
-              className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              Available for planting
-            </span>
-          </label>
-          <p className="text-xs text-gray-500 mt-1 ml-6">
-            When checked, this variety can be selected when adding plantings to any year
-          </p>
-        </div>
-
         {yearToTrack && (
           <div className="border-t border-gray-200 pt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -296,6 +274,18 @@ export default function VarietyEditDialog({
               >
                 <Check className="w-4 h-4" />
                 Have
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeedStatusForYear(seedStatusForYear === 'had' ? null : 'had')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                  seedStatusForYear === 'had'
+                    ? 'bg-gray-200 text-gray-700 ring-2 ring-gray-500'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <CheckCheck className="w-4 h-4" />
+                Had
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2">

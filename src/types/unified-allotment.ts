@@ -396,8 +396,12 @@ export type NewGardenEvent = Omit<GardenEvent, 'id' | 'createdAt'>
 
 /**
  * Seed inventory status for a specific year
+ * - none: Need to order seeds
+ * - ordered: Seeds have been ordered
+ * - have: Currently have seeds
+ * - had: Had seeds but used/expired (no longer available)
  */
-export type SeedStatus = 'none' | 'ordered' | 'have'
+export type SeedStatus = 'none' | 'ordered' | 'have' | 'had'
 
 /**
  * A stored seed variety with year tracking
@@ -410,7 +414,6 @@ export interface StoredVariety {
   price?: number
   notes?: string
   plannedYears: number[]             // @deprecated - inferred from plantings in allotment
-  available?: boolean                // If true, available for selection in any year
   seedsByYear: Record<number, SeedStatus>  // Per-year inventory status
   isArchived?: boolean               // Soft delete - hides from UI without breaking planting references
   perenualId?: string                // Future: external API integration
@@ -426,7 +429,6 @@ export interface NewVariety {
   supplier?: string
   price?: number
   notes?: string
-  available?: boolean                // If true, available for selection in any year
   plannedYears?: number[]            // @deprecated - kept for backward compatibility
   seedsByYear?: Record<number, SeedStatus>
 }

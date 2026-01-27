@@ -2652,7 +2652,7 @@ export function togglePlannedYear(
 
 /**
  * Cycle seed status for a variety in a specific year
- * Cycles: none → ordered → have → none
+ * Cycles: none → ordered → have → had → none
  */
 export function toggleHaveSeedsForYear(
   data: AllotmentData,
@@ -2668,7 +2668,8 @@ export function toggleHaveSeedsForYear(
       const next: Record<SeedStatus, SeedStatus> = {
         'none': 'ordered',
         'ordered': 'have',
-        'have': 'none'
+        'have': 'had',
+        'had': 'none'
       }
       const nextState = next[current]
 

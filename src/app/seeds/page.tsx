@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Package,
   Check,
+  CheckCheck,
   ShoppingCart,
   AlertTriangle,
   Plus,
@@ -38,7 +39,8 @@ function getNextStatus(current: SeedStatus): SeedStatus {
   const cycle: Record<SeedStatus, SeedStatus> = {
     'none': 'ordered',
     'ordered': 'have',
-    'have': 'none'
+    'have': 'had',
+    'had': 'none'
   }
   return cycle[current]
 }
@@ -59,6 +61,11 @@ const statusConfig: Record<SeedStatus, { label: string; icon: LucideIcon; classN
     label: 'Have',
     icon: Check,
     className: 'bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200'
+  },
+  'had': {
+    label: 'Had',
+    icon: CheckCheck,
+    className: 'bg-zen-stone-200 text-zen-stone-600 hover:bg-zen-stone-300'
   }
 }
 
