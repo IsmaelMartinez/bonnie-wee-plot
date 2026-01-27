@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Map, Trash2 } from 'lucide-react'
+import { Map } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
 import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
-import { ConfirmDialog } from '@/components/ui/Dialog'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
 import InfrastructureDetailPanel from './InfrastructureDetailPanel'
@@ -35,7 +33,6 @@ interface ItemDetailSwitcherProps {
   onAutoRotate: () => void
   onArchiveArea: (areaId: string) => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  onItemSelect: (ref: AllotmentItemRef | null) => void
   // Quick stats for empty state
   quickStats: QuickStats
 }
@@ -89,11 +86,8 @@ export default function ItemDetailSwitcher({
   onAutoRotate,
   onArchiveArea,
   onUpdateArea,
-  onItemSelect,
   quickStats,
 }: ItemDetailSwitcherProps) {
-  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
-
   if (!selectedItemRef) {
     return <EmptyState stats={quickStats} />
   }
@@ -101,14 +95,6 @@ export default function ItemDetailSwitcher({
   // Get the area by ID
   const area = getArea(selectedItemRef.id)
   if (!area) return <EmptyState stats={quickStats} />
-
-  // Handler for area type conversion - re-select to force refresh
-  const handleAreaTypeConvert = () => {
-    if (!selectedItemRef) return
-    // Temporarily clear selection and re-select to force full refresh
-    onItemSelect(null)
-    setTimeout(() => onItemSelect(selectedItemRef), 0)
-  }
 
   // Route based on area.kind
   const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
@@ -137,46 +123,16 @@ export default function ItemDetailSwitcher({
         onUpdateRotation={onUpdateRotation}
         onAutoRotate={onAutoRotate}
         onUpdateArea={onUpdateArea}
-        onAreaTypeConvert={handleAreaTypeConvert}
+        onArchiveArea={onArchiveArea}
       />
     )
   } else if (isPermanentPlanting) {
-    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onAreaTypeConvert={handleAreaTypeConvert} />
+    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
   } else if (isInfrastructure) {
-    detailPanel = <InfrastructureDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onAreaTypeConvert={handleAreaTypeConvert} />
+    detailPanel = <InfrastructureDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
   } else {
     return <EmptyState stats={quickStats} />
   }
 
-  const handleArchiveConfirm = () => {
-    onArchiveArea(area.id)
-    setShowArchiveConfirm(false)
-  }
-
-  return (
-    <div className="space-y-4">
-      {detailPanel}
-
-      {/* Archive/Delete Section */}
-      <div className="zen-card p-4">
-        <button
-          onClick={() => setShowArchiveConfirm(true)}
-          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span>Remove this area</span>
-        </button>
-      </div>
-
-      <ConfirmDialog
-        isOpen={showArchiveConfirm}
-        onClose={() => setShowArchiveConfirm(false)}
-        onConfirm={handleArchiveConfirm}
-        title="Remove Area"
-        message={`Are you sure you want to remove "${area.name}"? This will archive the area and hide it from the layout. Historical data will be preserved.`}
-        confirmText="Remove"
-        variant="danger"
-      />
-    </div>
-  )
+  return detailPanel
 }

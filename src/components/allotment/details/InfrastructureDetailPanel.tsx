@@ -2,17 +2,16 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Warehouse, Droplets, ExternalLink, Recycle, Footprints, HelpCircle, Flower2, Fish, Bird, Pencil } from 'lucide-react'
+import { Warehouse, Droplets, ExternalLink, Recycle, Footprints, HelpCircle, Flower2, Fish, Bird, Pencil, Trash2 } from 'lucide-react'
 import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
 import { useCompost } from '@/hooks/useCompost'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
-import AreaTypeConverter from '@/components/allotment/details/AreaTypeConverter'
-import Dialog from '@/components/ui/Dialog'
+import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface InfrastructureDetailPanelProps {
   area: Area
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  onAreaTypeConvert?: () => void
+  onArchiveArea: (areaId: string) => void
 }
 
 const SUBTYPE_CONFIG: Record<InfrastructureSubtype, { icon: typeof Warehouse; label: string; color: string }> = {
@@ -99,8 +98,9 @@ function CompostSummary() {
   )
 }
 
-export default function InfrastructureDetailPanel({ area, onUpdateArea, onAreaTypeConvert }: InfrastructureDetailPanelProps) {
+export default function InfrastructureDetailPanel({ area, onUpdateArea, onArchiveArea }: InfrastructureDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const subtype = area.infrastructureSubtype || 'other'
   const config = SUBTYPE_CONFIG[subtype]
   const Icon = config.icon
@@ -123,23 +123,13 @@ export default function InfrastructureDetailPanel({ area, onUpdateArea, onAreaTy
             <h3 className="font-display text-zen-ink-800">{area.name}</h3>
             <div className={`text-xs text-${config.color}-600`}>{config.label}</div>
           </div>
-          <div className="flex items-center gap-1">
-            <AreaTypeConverter
-              areaId={area.id}
-              currentKind={area.kind}
-              onConvert={() => {
-                setIsEditMode(false)
-                onAreaTypeConvert?.()
-              }}
-            />
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
-              title="Edit area details"
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsEditMode(true)}
+            className="p-2 text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+            title="Edit area details"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
         </div>
 
       {/* Type-specific description */}
@@ -169,6 +159,16 @@ export default function InfrastructureDetailPanel({ area, onUpdateArea, onAreaTy
         </div>
       )}
 
+      {/* Remove Area */}
+      <div className="mt-6 pt-4 border-t border-zen-stone-100">
+        <button
+          onClick={() => setShowArchiveConfirm(true)}
+          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Remove this area</span>
+        </button>
+      </div>
     </div>
 
     {/* Edit Dialog */}
@@ -185,6 +185,20 @@ export default function InfrastructureDetailPanel({ area, onUpdateArea, onAreaTy
         onCancel={() => setIsEditMode(false)}
       />
     </Dialog>
+
+    {/* Archive Confirm Dialog */}
+    <ConfirmDialog
+      isOpen={showArchiveConfirm}
+      onClose={() => setShowArchiveConfirm(false)}
+      onConfirm={() => {
+        onArchiveArea(area.id)
+        setShowArchiveConfirm(false)
+      }}
+      title="Remove Area"
+      message={`Are you sure you want to remove "${area.name}"? This will archive the area and hide it from the layout. Historical data will be preserved.`}
+      confirmText="Remove"
+      variant="danger"
+    />
   </>
   )
 }

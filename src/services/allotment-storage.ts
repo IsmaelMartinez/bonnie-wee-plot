@@ -2917,57 +2917,6 @@ export function removeArea(data: AllotmentData, areaId: string): AllotmentData {
   }
 }
 
-/**
- * Change an area's kind (simplified v10 type conversion)
- * In v10, all data stays in AreaSeason - we just change the area's kind
- */
-export function changeAreaKind(
-  data: AllotmentData,
-  areaId: string,
-  newKind: AreaKind,
-  options?: {
-    rotationGroup?: RotationGroup
-    primaryPlant?: { plantId: string; variety?: string; plantedYear?: number }
-    infrastructureSubtype?: Area['infrastructureSubtype']
-  }
-): AllotmentData {
-  const area = getAreaById(data, areaId)
-  if (!area) return data
-
-  const updates: Partial<Area> = { kind: newKind }
-
-  // Add/remove rotation group based on new kind
-  if (newKind === 'rotation-bed') {
-    updates.rotationGroup = options?.rotationGroup || 'legumes'
-    updates.canHavePlantings = true
-  } else {
-    updates.rotationGroup = undefined
-  }
-
-  // Add/remove primary plant based on new kind
-  if (newKind === 'tree' || newKind === 'berry' || newKind === 'herb' || newKind === 'perennial-bed') {
-    updates.primaryPlant = options?.primaryPlant
-    updates.canHavePlantings = true
-  } else if (newKind !== 'rotation-bed') {
-    updates.primaryPlant = undefined
-  }
-
-  // Handle infrastructure subtype
-  if (newKind === 'infrastructure') {
-    updates.infrastructureSubtype = options?.infrastructureSubtype || 'other'
-    updates.canHavePlantings = false // Most infrastructure can't have plantings by default
-  } else {
-    updates.infrastructureSubtype = undefined
-  }
-
-  // Other kinds can have plantings
-  if (newKind === 'other') {
-    updates.canHavePlantings = true
-  }
-
-  return updateArea(data, areaId, updates)
-}
-
 // ============ CARE LOG CRUD OPERATIONS (v10) ============
 
 /**

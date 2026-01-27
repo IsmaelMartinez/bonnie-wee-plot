@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Sprout, Plus, ArrowRight, Leaf, Pencil } from 'lucide-react'
+import { Sprout, Plus, ArrowRight, Leaf, Pencil, Trash2 } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
@@ -11,8 +11,7 @@ import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
 import PlantingDetailDialog from '@/components/allotment/PlantingDetailDialog'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
-import AreaTypeConverter from '@/components/allotment/details/AreaTypeConverter'
-import Dialog from '@/components/ui/Dialog'
+import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface BedDetailPanelProps {
   area: Area
@@ -30,7 +29,7 @@ interface BedDetailPanelProps {
   onUpdateRotation: (group: RotationGroup) => void
   onAutoRotate: () => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
-  onAreaTypeConvert?: () => void
+  onArchiveArea: (areaId: string) => void
 }
 
 export default function BedDetailPanel({
@@ -49,10 +48,11 @@ export default function BedDetailPanel({
   onUpdateRotation,
   onAutoRotate,
   onUpdateArea,
-  onAreaTypeConvert,
+  onArchiveArea,
 }: BedDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   // Determine if this is a rotation bed (vs perennial bed)
   const isRotationBed = area.kind === 'rotation-bed'
 
@@ -112,23 +112,13 @@ export default function BedDetailPanel({
               {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <AreaTypeConverter
-              areaId={area.id}
-              currentKind={area.kind}
-              onConvert={() => {
-                setIsEditMode(false)
-                onAreaTypeConvert?.()
-              }}
-            />
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
-              title="Edit area details"
-            >
-              <Pencil className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsEditMode(true)}
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-zen-stone-500 hover:text-zen-moss-600 hover:bg-zen-moss-50 rounded-zen transition"
+            title="Edit area details"
+          >
+            <Pencil className="w-5 h-5" />
+          </button>
         </div>
 
       {/* Rotation Type Selector - Only for rotation beds */}
@@ -237,6 +227,17 @@ export default function BedDetailPanel({
           </div>
         )}
       </div>
+
+      {/* Remove Area */}
+      <div className="mt-6 pt-4 border-t border-zen-stone-100">
+        <button
+          onClick={() => setShowArchiveConfirm(true)}
+          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Remove this area</span>
+        </button>
+      </div>
     </div>
 
     {/* Edit Dialog */}
@@ -271,6 +272,20 @@ export default function BedDetailPanel({
         }
       }}
       otherPlantings={plantings}
+    />
+
+    {/* Archive Confirm Dialog */}
+    <ConfirmDialog
+      isOpen={showArchiveConfirm}
+      onClose={() => setShowArchiveConfirm(false)}
+      onConfirm={() => {
+        onArchiveArea(area.id)
+        setShowArchiveConfirm(false)
+      }}
+      title="Remove Area"
+      message={`Are you sure you want to remove "${area.name}"? This will archive the area and hide it from the layout. Historical data will be preserved.`}
+      confirmText="Remove"
+      variant="danger"
     />
   </>
   )

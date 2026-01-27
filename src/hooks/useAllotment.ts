@@ -98,7 +98,6 @@ import {
   removeArea as storageRemoveArea,
   archiveArea as storageArchiveArea,
   restoreArea as storageRestoreArea,
-  changeAreaKind as storageChangeAreaKind,
   // v10 care log operations
   addCareLogEntry as storageAddCareLogEntry,
   updateCareLogEntry as storageUpdateCareLogEntry,
@@ -218,7 +217,6 @@ export interface UseAllotmentActions {
   removeArea: (areaId: string) => void
   archiveArea: (areaId: string) => void
   restoreArea: (areaId: string) => void
-  changeAreaKind: (areaId: string, newKind: AreaKind, options?: { rotationGroup?: RotationGroup }) => void
 
   // v10 care log operations
   addCareLog: (areaId: string, entry: NewCareLogEntry) => string
@@ -760,11 +758,6 @@ export function useAllotment(): UseAllotmentReturn {
     setData(storageRestoreArea(data, areaId))
   }, [data, setData])
 
-  const changeAreaKindData = useCallback((areaId: string, newKind: AreaKind, options?: { rotationGroup?: RotationGroup }) => {
-    if (!data) return
-    setData(storageChangeAreaKind(data, areaId, newKind, options))
-  }, [data, setData])
-
   // ============ V10 CARE LOG OPERATIONS ============
 
   const addCareLogData = useCallback((areaId: string, entry: NewCareLogEntry): string => {
@@ -927,7 +920,6 @@ export function useAllotment(): UseAllotmentReturn {
     removeArea: removeAreaData,
     archiveArea: archiveAreaData,
     restoreArea: restoreAreaData,
-    changeAreaKind: changeAreaKindData,
 
     // v10 care log operations
     addCareLog: addCareLogData,
