@@ -22,10 +22,10 @@ Three independent tracks run simultaneously:
 ## Week 1: Foundation
 
 ### Track A: Audit Completion (4-5 days)
-- [ ] Allotment page UX review (verify PlantingDialog improvements)
-- [ ] Dead code search (beyond completed items)
-- [ ] Dependency audit (`npm audit`, unused packages)
-- [ ] AI Advisor decision: document choice to extend with function calling
+- [x] Allotment page UX review (verify PlantingDialog improvements)
+- [x] Dead code search (beyond completed items) - Findings documented in architecture audit
+- [x] Dependency audit (`npm audit`, unused packages) - 0 vulnerabilities, no unused prod deps
+- [x] AI Advisor decision: document choice to extend with function calling (ADR 022)
 - [ ] Mark architecture audit complete
 
 ### Track B: AI Inventory Start (2-3 days)
@@ -100,7 +100,7 @@ Three independent tracks run simultaneously:
 
 ## Success Criteria
 
-- [ ] Architecture audit 100% complete
+- [~] Architecture audit 100% complete (Track A items done, pending dead code cleanup PR)
 - [ ] AI Inventory: Users can add/update/remove plantings via chat
 - [ ] Progressive Disclosure: New users see 3-item nav with unlock paths
 - [ ] Onboarding: Welcome experience guides users to first meaningful action
