@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { aiAdvisorRequestSchema } from '@/lib/validations/ai-advisor'
 import { logger } from '@/lib/logger'
+import {
+  PLANTING_TOOLS,
+  type ToolCall,
+  requiresConfirmation,
+} from '@/lib/ai-tools-schema'
+
+// Feature flag for AI tools (function calling)
+// Set to true to enable AI-powered inventory management
+const AI_TOOLS_ENABLED = process.env.AI_TOOLS_ENABLED === 'true'
 
 // Types for OpenAI API messages
 interface OpenAIMessage {
@@ -20,6 +29,13 @@ interface OpenAIMessageContent {
 interface IncomingMessage {
   role: 'user' | 'assistant'
   content: string
+}
+
+// Type for OpenAI response message
+interface OpenAIResponseMessage {
+  role: 'assistant'
+  content: string | null
+  tool_calls?: ToolCall[]
 }
 
 // System prompt to make Aitor a specialized gardening assistant
@@ -145,7 +161,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { message, messages = [], image, allotmentContext } = validationResult.data
+    const { message: userInputMessage, messages = [], image, allotmentContext, enableTools } = validationResult.data
+
+    // Determine if tools should be included in this request
+    // Both the feature flag AND the request param must be true
+    const useTools = AI_TOOLS_ENABLED && enableTools
 
     // Get and validate API key
     let apiKey, isUserProvidedToken
@@ -169,9 +189,35 @@ export async function POST(request: NextRequest) {
 
     // Build system prompt with optional allotment context
     let systemPrompt = AITOR_SYSTEM_PROMPT
-    
+
     if (allotmentContext && typeof allotmentContext === 'string' && allotmentContext.trim()) {
       systemPrompt += `\n\n📊 USER'S ALLOTMENT DATA:\n${allotmentContext}\n\nUse this context to provide personalized advice. When relevant, reference the user's specific beds, plantings, and any noted problem areas. Consider their planting history when making rotation and succession suggestions.`
+    }
+
+    // Add tools guidance to system prompt when tools are enabled
+    if (useTools) {
+      systemPrompt += `
+
+🔧 TOOL USAGE GUIDELINES:
+
+You have access to tools that can modify the user's garden records. Use them wisely:
+
+When users mention planting, sowing, or adding plants:
+- Offer to add it to their records: "Would you like me to add that to your garden plan?"
+- Confirm bed/area location before adding
+- Use today's date if no sowing date is specified
+- Ask for variety name if it seems like a specific cultivar
+
+When users ask "what did I plant in bed A?" or similar queries:
+- Use the allotment context provided to answer
+- Don't call tools unless the user wants to make changes
+
+Important rules:
+- Do NOT promise to call a function later. If required, emit it now.
+- ALWAYS confirm destructive actions (remove_planting) with explicit user approval
+- Only call add_planting when the user explicitly wants to record a planting
+- Only call update_planting when the user wants to modify existing plant details
+- Only call remove_planting when the user explicitly wants to delete a planting`
     }
     
     // Prepare messages for AI API
@@ -184,14 +230,14 @@ export async function POST(request: NextRequest) {
     ]
 
     // Handle image in the user message if provided
-    const userMessage: OpenAIMessage = { role: 'user', content: message }
-    
+    const userMessage: OpenAIMessage = { role: 'user', content: userInputMessage }
+
     if (image && image.data) {
       // For vision API, content needs to be an array with text and image
       userMessage.content = [
         {
           type: 'text',
-          text: message
+          text: userInputMessage
         },
         {
           type: 'image_url',
@@ -211,19 +257,28 @@ export async function POST(request: NextRequest) {
     // Determine which model to use based on whether image is included
     const model = image ? 'gpt-4o' : 'gpt-4o-mini' // Use gpt-4o for vision, gpt-4o-mini for text only
 
+    // Build OpenAI API request body
+    const requestBody: Record<string, unknown> = {
+      model,
+      messages: apiMessages,
+      max_tokens: 1500, // Increased for detailed image analysis
+      temperature: 0.7, // Balanced creativity vs accuracy for gardening advice
+      presence_penalty: 0.6, // Encourage varied responses
+      frequency_penalty: 0.3,
+      stream: false, // Ensure we get complete responses
+    }
+
+    // Include tools when enabled
+    if (useTools) {
+      requestBody.tools = PLANTING_TOOLS
+      requestBody.tool_choice = 'auto' // Let the model decide when to use tools
+    }
+
     // Call OpenAI API
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        max_tokens: 1500, // Increased for detailed image analysis
-        temperature: 0.7, // Balanced creativity vs accuracy for gardening advice
-        presence_penalty: 0.6, // Encourage varied responses
-        frequency_penalty: 0.3,
-        stream: false // Ensure we get complete responses
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -265,7 +320,36 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json()
-    const aiResponse = data.choices[0]?.message?.content
+    const responseMessage = data.choices[0]?.message as OpenAIResponseMessage | undefined
+
+    if (!responseMessage) {
+      return NextResponse.json(
+        { error: 'No response from AI Aitor' },
+        { status: 500 }
+      )
+    }
+
+    // Check if the model wants to call tools
+    if (useTools && responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+      const toolCalls = responseMessage.tool_calls
+
+      // Check if any tool calls require confirmation
+      const needsConfirmation = toolCalls.some((tc) =>
+        requiresConfirmation(tc.function.name)
+      )
+
+      return NextResponse.json({
+        type: 'tool_calls',
+        tool_calls: toolCalls,
+        requires_confirmation: needsConfirmation,
+        // Include any text content the model also wants to say
+        content: responseMessage.content || null,
+        usage: data.usage,
+      })
+    }
+
+    // Regular text response
+    const aiResponse = responseMessage.content
 
     if (!aiResponse) {
       return NextResponse.json(
@@ -274,9 +358,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
+      type: 'text',
       response: aiResponse,
-      usage: data.usage // Optional: track token usage
+      usage: data.usage, // Optional: track token usage
     })
 
   } catch (error) {
