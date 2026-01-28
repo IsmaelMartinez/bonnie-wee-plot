@@ -110,6 +110,7 @@ import { STORAGE_KEY } from '@/types/unified-allotment'
 import { generateId } from '@/lib/utils/id'
 import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
 import { normalizeVarietyName } from '@/lib/variety-queries'
+import { trackEvent } from '@/lib/analytics'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from './usePersistedStorage'
@@ -362,6 +363,9 @@ export function useAllotment(): UseAllotmentReturn {
 
   const addPlanting = useCallback((bedId: PhysicalBedId, planting: NewPlanting) => {
     if (!data) return
+
+    // Track planting addition
+    trackEvent('planting', 'added', planting.plantId)
 
     // Add planting to allotment storage
     let updatedData = storageAddPlanting(data, selectedYear, bedId, planting)

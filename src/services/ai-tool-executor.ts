@@ -37,6 +37,7 @@ import {
   ListAreasArgs,
 } from '@/lib/ai-tools-schema'
 import { getVegetableById, searchVegetables } from '@/lib/vegetable-database'
+import { trackEvent } from '@/lib/analytics'
 
 // ============ ERROR HELPERS ============
 
@@ -189,6 +190,9 @@ export function executeToolCalls(
     )
     currentData = updatedData
     results.push(result)
+
+    // Track AI tool execution
+    trackEvent('ai', 'tool-executed', toolCall.function.name)
   }
 
   return { updatedData: currentData, results }
