@@ -54,8 +54,7 @@ function buildErrorWithSuggestion(
  * Suggest similar plant names when a plant is not found
  */
 function suggestSimilarPlants(plantId: string): string[] {
-  // Try to find similar plants by searching (strip trailing 's' for plurals)
-  const searchTerm = plantId.replace(/s$/, '').toLowerCase()
+  const searchTerm = normalizePlantId(plantId)
   const results = searchVegetables(searchTerm).slice(0, 5)
   return results.map(v => v.id)
 }
@@ -65,13 +64,14 @@ function suggestSimilarPlants(plantId: string): string[] {
  * - "tomatoes" -> "tomato"
  * - "Carrots" -> "carrot"
  * - "runner-beans" -> "runner-bean"
+ * - "berries" -> "berry"
  */
 function normalizePlantId(plantId: string): string {
   return plantId
     .toLowerCase()
     .trim()
-    .replace(/s$/, '')  // Remove trailing 's' (plurals)
-    .replace(/ies$/, 'y')  // "berries" -> "berry" (but keep 'es' handling separate)
+    .replace(/ies$/, 'y')  // "berries" -> "berry" (must be before trailing 's' removal)
+    .replace(/s$/, '')     // Remove trailing 's' (plurals)
 }
 
 /**
