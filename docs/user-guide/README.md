@@ -4,7 +4,7 @@ Documentation for Bonnie Wee Plot users.
 
 ## Contents
 
-- Getting Started (coming soon)
+- [Getting Started](./getting-started.md) - Your first steps with Bonnie Wee Plot
 - FAQ (coming soon)
 
 ## Contributing
