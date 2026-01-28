@@ -1,4 +1,4 @@
-# ADR 020: Planting Detail Dialog
+# ADR 021: Planting Detail Dialog
 
 **Date:** 2026-01-26
 **Status:** Accepted
