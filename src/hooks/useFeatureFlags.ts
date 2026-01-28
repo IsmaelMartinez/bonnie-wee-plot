@@ -3,11 +3,12 @@
  *
  * React hook for managing progressive feature disclosure.
  * Tracks user engagement and provides feature unlock status.
+ * Detects newly unlocked features for celebration modals.
  */
 
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   EngagementData,
   FeatureUnlockStatus,
@@ -25,6 +26,39 @@ import {
 } from '@/lib/feature-flags'
 import { AllotmentData } from '@/types/unified-allotment'
 
+// ============ CELEBRATION TRACKING ============
+
+const CELEBRATION_STORAGE_KEY = 'allotment-celebrations-shown'
+
+/**
+ * Load which celebrations have already been shown
+ */
+function loadCelebrationsShown(): UnlockableFeature[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(CELEBRATION_STORAGE_KEY)
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Mark a celebration as shown
+ */
+function markCelebrationShown(feature: UnlockableFeature): void {
+  if (typeof window === 'undefined') return
+  try {
+    const shown = loadCelebrationsShown()
+    if (!shown.includes(feature)) {
+      shown.push(feature)
+      localStorage.setItem(CELEBRATION_STORAGE_KEY, JSON.stringify(shown))
+    }
+  } catch {
+    // Silently fail - celebration tracking is non-critical
+  }
+}
+
 // ============ HOOK TYPES ============
 
 export interface UseFeatureFlagsState {
@@ -34,6 +68,8 @@ export interface UseFeatureFlagsState {
   isLoaded: boolean
   /** Current unlock status for all features */
   unlockStatus: FeatureUnlockStatus
+  /** Feature that was just unlocked and needs celebration (null if none) */
+  newlyUnlockedFeature: UnlockableFeature | null
 }
 
 export interface UseFeatureFlagsActions {
@@ -47,6 +83,8 @@ export interface UseFeatureFlagsActions {
   getAllProgress: () => UnlockProgress[]
   /** Refresh engagement data from storage */
   refresh: () => void
+  /** Dismiss the celebration for the newly unlocked feature */
+  dismissCelebration: () => void
 }
 
 export type UseFeatureFlagsReturn = UseFeatureFlagsState & UseFeatureFlagsActions
@@ -65,6 +103,10 @@ export function useFeatureFlags(allotmentData: AllotmentData | null): UseFeature
     manuallyUnlocked: [],
   }))
   const [isLoaded, setIsLoaded] = useState(false)
+  const [newlyUnlockedFeature, setNewlyUnlockedFeature] = useState<UnlockableFeature | null>(null)
+
+  // Track previous unlock status to detect changes
+  const prevUnlockStatusRef = useRef<FeatureUnlockStatus | null>(null)
 
   // Load engagement data and record visit on mount
   useEffect(() => {
@@ -77,6 +119,32 @@ export function useFeatureFlags(allotmentData: AllotmentData | null): UseFeature
   const unlockStatus = useMemo(() => {
     return getFeatureUnlockStatus(engagement, allotmentData)
   }, [engagement, allotmentData])
+
+  // Detect newly unlocked features and trigger celebration
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const prev = prevUnlockStatusRef.current
+    const celebrationsShown = loadCelebrationsShown()
+
+    // Check each feature for new unlock
+    const features: UnlockableFeature[] = ['ai-advisor', 'compost', 'allotment-layout']
+
+    for (const feature of features) {
+      const wasLocked = prev === null ? true : !prev[feature]
+      const isNowUnlocked = unlockStatus[feature]
+      const celebrationNotShown = !celebrationsShown.includes(feature)
+
+      if (wasLocked && isNowUnlocked && celebrationNotShown) {
+        // Feature just became unlocked and celebration hasn't been shown
+        setNewlyUnlockedFeature(feature)
+        break // Only show one celebration at a time
+      }
+    }
+
+    // Update the ref for next comparison
+    prevUnlockStatusRef.current = unlockStatus
+  }, [unlockStatus, isLoaded])
 
   // Check if a specific feature is unlocked
   const isUnlocked = useCallback(
@@ -128,11 +196,20 @@ export function useFeatureFlags(allotmentData: AllotmentData | null): UseFeature
     setEngagement(data)
   }, [])
 
+  // Dismiss celebration and mark as shown
+  const dismissCelebration = useCallback((): void => {
+    if (newlyUnlockedFeature) {
+      markCelebrationShown(newlyUnlockedFeature)
+      setNewlyUnlockedFeature(null)
+    }
+  }, [newlyUnlockedFeature])
+
   return {
     // State
     engagement,
     isLoaded,
     unlockStatus,
+    newlyUnlockedFeature,
 
     // Actions
     isUnlocked,
@@ -140,5 +217,6 @@ export function useFeatureFlags(allotmentData: AllotmentData | null): UseFeature
     getProgress,
     getAllProgress,
     refresh,
+    dismissCelebration,
   }
 }

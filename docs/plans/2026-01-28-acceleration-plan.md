@@ -63,22 +63,22 @@ Three independent tracks run simultaneously:
 
 ---
 
-## Week 3: Progressive Disclosure Core
+## Week 3: Progressive Disclosure Core (COMPLETE)
 
 ### Navigation & Gating (5 days)
-- [ ] Simplify navigation to 3 primary items (Today, This Month, Seeds)
-- [ ] Implement unlock logic based on engagement
-- [ ] Add unlock CTAs to hidden features
-- [ ] Hide AI Advisor, Compost, Allotment Layout initially
-- [ ] Create basic onboarding wizard (3 screens)
-  - [ ] Welcome with three paths (explore/plan/ask)
-  - [ ] First meaningful action guidance
-  - [ ] Success confirmation
+- [x] Simplify navigation to 3 primary items (Today, This Month, Seeds) - PR #92
+- [x] Implement unlock logic based on engagement - PR #92
+- [x] Add unlock CTAs to hidden features - PR #92
+- [x] Hide AI Advisor, Compost, Allotment Layout initially - PR #92
+- [x] Create basic onboarding wizard (3 screens) - PR #91
+  - [x] Welcome with three paths (explore/plan/ask)
+  - [x] First meaningful action guidance
+  - [x] Success confirmation
 
 ### Track B: AI Inventory Polish
-- [ ] Batch operations support (multiple plantings in one message)
-- [ ] Improved error messages with suggestions
-- [ ] Loading states for tool execution
+- [x] Improved error messages with suggestions - PR #93
+- [x] Loading states for tool execution - PR #93
+- [x] Area name resolution (use names instead of IDs) - PR #94, #95
 
 ---
 
@@ -101,9 +101,9 @@ Three independent tracks run simultaneously:
 ## Success Criteria
 
 - [~] Architecture audit 100% complete (Track A items done, pending dead code cleanup PR)
-- [ ] AI Inventory: Users can add/update/remove plantings via chat
-- [ ] Progressive Disclosure: New users see 3-item nav with unlock paths
-- [ ] Onboarding: Welcome experience guides users to first meaningful action
+- [x] AI Inventory: Users can add/update/remove plantings via chat (PRs #87, #89, #90, #93-95)
+- [x] Progressive Disclosure: New users see 3-item nav with unlock paths (PR #92)
+- [x] Onboarding: Welcome experience guides users to first meaningful action (PR #91)
 - [ ] Quality: All tests passing, no accessibility regressions
 - [ ] Documentation: Getting started guide published
 
