@@ -151,7 +151,7 @@ describe('executeToolCall', () => {
       const { updatedData, result } = executeToolCall(toolCall, mockData, 2026)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('not found in the vegetable database')
+      expect(result.error).toContain('not found in the database')
       expect(updatedData).toEqual(mockData)
     })
 
@@ -212,7 +212,7 @@ describe('executeToolCall', () => {
       const { updatedData, result } = executeToolCall(toolCall, mockData, 2026)
 
       expect(result.success).toBe(false)
-      expect(result.error).toMatch(/not found|No planting/i)
+      expect(result.error).toMatch(/not found|No .*carrot/i)
       expect(updatedData).toEqual(mockData)
     })
 
@@ -253,7 +253,7 @@ describe('executeToolCall', () => {
       const { updatedData, result } = executeToolCall(toolCall, mockData, 2026)
 
       expect(result.success).toBe(false)
-      expect(result.error).toMatch(/not found|No planting/i)
+      expect(result.error).toMatch(/not found|No .*tomato|empty/i)
       expect(updatedData).toEqual(mockData)
     })
   })
@@ -475,5 +475,219 @@ describe('formatResultsForAI', () => {
 
     expect(formatted).toContain('Successfully completed 1 operation')
     expect(formatted).toContain('Failed 1 operation')
+  })
+})
+
+// ============ NEW EDGE CASE TESTS ============
+
+describe('plural form handling', () => {
+  let mockData: AllotmentData
+
+  beforeEach(() => {
+    mockData = createMockAllotmentData()
+    // Update mock data to use 'carrot' instead of 'tomato' for testing
+    // since 'carrot' exists in the database
+    const bedA = mockData.seasons[0].areas.find(a => a.areaId === 'bed-a')
+    if (bedA && bedA.plantings.length > 0) {
+      bedA.plantings[0].plantId = 'carrot'
+      bedA.plantings[0].varietyName = 'Nantes 2'
+    }
+  })
+
+  it('should handle plural plant names when adding (carrots -> carrot)', () => {
+    const toolCall = createToolCall('add_planting', {
+      areaId: 'bed-b',
+      plantId: 'carrots', // Plural form
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(true)
+    // The normalized ID should be 'carrot'
+    expect((result.result as { plantId: string }).plantId).toBe('carrot')
+  })
+
+  it('should handle case-insensitive plant names', () => {
+    const toolCall = createToolCall('add_planting', {
+      areaId: 'bed-b',
+      plantId: 'CARROT', // Uppercase
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('should find existing planting with plural form (remove carrots -> carrot)', () => {
+    const toolCall = createToolCall('remove_planting', {
+      areaId: 'bed-a',
+      plantId: 'carrots', // Plural form, existing plant is 'carrot'
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('should update existing planting with uppercase name', () => {
+    const toolCall = createToolCall('update_planting', {
+      areaId: 'bed-a',
+      plantId: 'CARROT', // Uppercase
+      updates: { notes: 'Updated via case-insensitive match' },
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('error messages with recovery suggestions', () => {
+  let mockData: AllotmentData
+
+  beforeEach(() => {
+    mockData = createMockAllotmentData()
+  })
+
+  it('should include suggestions for invalid area', () => {
+    const toolCall = createToolCall('add_planting', {
+      areaId: 'invalid-bed',
+      plantId: 'carrot',
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('Suggestion')
+    expect(result.error).toContain('bed-a') // Should suggest available beds
+  })
+
+  it('should include suggestions for invalid plant', () => {
+    const toolCall = createToolCall('add_planting', {
+      areaId: 'bed-b',
+      plantId: 'xyznonexistent', // Completely invalid plant
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('Suggestion')
+  })
+
+  it('should suggest available plants when updating non-existent planting', () => {
+    const toolCall = createToolCall('update_planting', {
+      areaId: 'bed-a',
+      plantId: 'lettuce', // Not in bed-a (which has tomato)
+      updates: { notes: 'test' },
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('Suggestion')
+    // Mock data has 'tomato' in bed-a, so should mention that
+    expect(result.error?.toLowerCase()).toContain('tomato')
+  })
+
+  it('should indicate empty bed when removing from empty area', () => {
+    const toolCall = createToolCall('remove_planting', {
+      areaId: 'bed-b', // Empty bed
+      plantId: 'carrot',
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('empty')
+  })
+
+  it('should reject infrastructure areas with helpful suggestion', () => {
+    const toolCall = createToolCall('add_planting', {
+      areaId: 'shed',
+      plantId: 'carrot',
+    })
+
+    const { result } = executeToolCall(toolCall, mockData, 2026)
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('infrastructure')
+    expect(result.error).toContain('Suggestion')
+    expect(result.error).toContain('bed-a') // Should suggest a plantable bed
+  })
+})
+
+describe('batch operations', () => {
+  let mockData: AllotmentData
+
+  beforeEach(() => {
+    mockData = createMockAllotmentData()
+  })
+
+  it('should handle "planted 3 carrots" scenario - multiple plants same type', () => {
+    // This simulates adding multiple plants of the same type
+    const toolCalls = [
+      createToolCall('add_planting', {
+        areaId: 'bed-b',
+        plantId: 'carrot',
+        quantity: 3,
+        notes: 'First batch',
+      }),
+    ]
+
+    const { updatedData, results } = executeToolCalls(toolCalls, mockData, 2026)
+
+    expect(results[0].success).toBe(true)
+    const bedB = updatedData.seasons[0].areas.find(a => a.areaId === 'bed-b')
+    expect(bedB?.plantings[0].quantity).toBe(3)
+  })
+
+  it('should handle "sowed carrots and beans in bed B" scenario - multiple plant types', () => {
+    const toolCalls = [
+      createToolCall('add_planting', {
+        areaId: 'bed-b',
+        plantId: 'carrot',
+      }),
+      createToolCall('add_planting', {
+        areaId: 'bed-b',
+        plantId: 'broad-beans', // Note: database uses 'broad-beans' (plural)
+      }),
+    ]
+
+    const { updatedData, results } = executeToolCalls(toolCalls, mockData, 2026)
+
+    expect(results[0].success).toBe(true)
+    expect(results[1].success).toBe(true)
+
+    const bedB = updatedData.seasons[0].areas.find(a => a.areaId === 'bed-b')
+    expect(bedB?.plantings).toHaveLength(2)
+    expect(bedB?.plantings.map(p => p.plantId)).toContain('carrot')
+    expect(bedB?.plantings.map(p => p.plantId)).toContain('broad-beans')
+  })
+
+  it('should handle mixed operations in batch', () => {
+    // First update mock data to use a plant that exists in the database
+    const bedA = mockData.seasons[0].areas.find(a => a.areaId === 'bed-a')
+    if (bedA && bedA.plantings.length > 0) {
+      bedA.plantings[0].plantId = 'carrot'
+    }
+
+    const toolCalls = [
+      createToolCall('add_planting', {
+        areaId: 'bed-b',
+        plantId: 'lettuce',
+      }),
+      createToolCall('update_planting', {
+        areaId: 'bed-a',
+        plantId: 'carrot',
+        updates: { status: 'harvested' },
+      }),
+      createToolCall('list_areas', {}),
+    ]
+
+    const { results } = executeToolCalls(toolCalls, mockData, 2026)
+
+    expect(results[0].success).toBe(true) // Add succeeded
+    expect(results[1].success).toBe(true) // Update succeeded
+    expect(results[2].success).toBe(true) // List succeeded
   })
 })

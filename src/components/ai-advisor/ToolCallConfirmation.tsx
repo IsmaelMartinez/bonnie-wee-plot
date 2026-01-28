@@ -37,6 +37,8 @@ export function ToolCallConfirmation({
     return null
   }
 
+  const isBatchOperation = confirmableCalls.length > 1
+
   return (
     <div
       className="bg-amber-50 border border-amber-200 rounded-lg p-4 my-3"
@@ -45,26 +47,41 @@ export function ToolCallConfirmation({
       aria-describedby="tool-confirm-desc"
     >
       <div className="flex items-start gap-3 mb-3">
-        <AlertCircle
-          className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
-          aria-hidden="true"
-        />
+        {isExecuting ? (
+          <Loader2
+            className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-spin"
+            aria-hidden="true"
+          />
+        ) : (
+          <AlertCircle
+            className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
+        )}
         <div className="flex-1">
           <h3
             id="tool-confirm-title"
             className="font-medium text-gray-800 mb-2"
           >
-            Confirm Changes
+            {isExecuting ? 'Applying Changes...' : 'Confirm Changes'}
           </h3>
           <p
             id="tool-confirm-desc"
             className="text-sm text-gray-600 mb-3"
           >
-            Aitor would like to make the following changes to your garden:
+            {isExecuting
+              ? `Updating your garden records (${confirmableCalls.length} ${isBatchOperation ? 'changes' : 'change'})...`
+              : `Aitor would like to make the following ${isBatchOperation ? `${confirmableCalls.length} changes` : 'change'} to your garden:`}
           </p>
-          <div className="space-y-2" role="list" aria-label="Proposed changes">
-            {confirmableCalls.map((call) => (
-              <ToolCallItem key={call.id} toolCall={call} />
+          <div className={`space-y-2 ${isExecuting ? 'opacity-60' : ''}`} role="list" aria-label="Proposed changes">
+            {confirmableCalls.map((call, index) => (
+              <ToolCallItem
+                key={call.id}
+                toolCall={call}
+                isExecuting={isExecuting}
+                index={index}
+                total={confirmableCalls.length}
+              />
             ))}
           </div>
         </div>
@@ -74,7 +91,7 @@ export function ToolCallConfirmation({
         <button
           onClick={() => onConfirm(false)}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Decline changes"
         >
           <X className="w-4 h-4" aria-hidden="true" />
@@ -83,7 +100,7 @@ export function ToolCallConfirmation({
         <button
           onClick={() => onConfirm(true)}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Approve changes"
         >
           {isExecuting ? (
@@ -94,7 +111,7 @@ export function ToolCallConfirmation({
           ) : (
             <>
               <Check className="w-4 h-4" aria-hidden="true" />
-              Confirm Changes
+              {isBatchOperation ? `Confirm All (${confirmableCalls.length})` : 'Confirm'}
             </>
           )}
         </button>
@@ -103,24 +120,42 @@ export function ToolCallConfirmation({
   )
 }
 
+interface ToolCallItemProps {
+  toolCall: ToolCall
+  isExecuting?: boolean
+  index?: number
+  total?: number
+}
+
 /**
  * Individual tool call item in the confirmation list
  */
-function ToolCallItem({ toolCall }: { toolCall: ToolCall }) {
+function ToolCallItem({ toolCall, isExecuting = false, index = 0, total = 1 }: ToolCallItemProps) {
   const details = getToolCallDetails(toolCall)
 
   return (
     <div
-      className="flex items-start gap-2 text-sm text-gray-700 bg-white p-2 rounded border border-amber-100"
+      className={`flex items-start gap-2 text-sm text-gray-700 bg-white p-2 rounded border transition-all ${
+        isExecuting ? 'border-amber-300' : 'border-amber-100'
+      }`}
       role="listitem"
     >
-      <span className="text-amber-500 flex-shrink-0">{details.icon}</span>
-      <div>
+      {isExecuting ? (
+        <Loader2 className="w-4 h-4 text-amber-500 flex-shrink-0 animate-spin" aria-hidden="true" />
+      ) : (
+        <span className="text-amber-500 flex-shrink-0">{details.icon}</span>
+      )}
+      <div className="flex-1">
         <span className="font-medium">{details.action}</span>
         {details.extra && (
           <span className="text-gray-500 ml-1">{details.extra}</span>
         )}
       </div>
+      {total > 1 && (
+        <span className="text-xs text-gray-400 flex-shrink-0">
+          {index + 1}/{total}
+        </span>
+      )}
     </div>
   )
 }
