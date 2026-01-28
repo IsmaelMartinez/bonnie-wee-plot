@@ -46,6 +46,8 @@ function createAllotmentDataWithPlantings(plantingCount: number) {
       {
         year: 2026,
         status: 'current',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
         areas: [
           {
             areaId: 'bed-a',
@@ -80,6 +82,8 @@ function createAllotmentDataWithHarvest() {
       {
         year: 2026,
         status: 'current',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
         areas: [
           {
             areaId: 'bed-a',
