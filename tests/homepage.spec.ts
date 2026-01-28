@@ -1,6 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
 
+// Helper to unlock all features for navigation tests
+async function unlockAllFeatures(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('allotment-engagement', JSON.stringify({
+      visitCount: 10,
+      lastVisit: new Date().toISOString(),
+      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
+    }));
+  });
+}
+
 test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
     await page.goto('/');
@@ -12,6 +23,10 @@ test.describe('Homepage and Navigation', () => {
   test('should navigate to AI advisor page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
+
+    // Unlock all features for navigation testing
+    await unlockAllFeatures(page);
+    await page.reload();
 
     // AI advisor is now in "More" dropdown - click More button first
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
@@ -100,6 +115,10 @@ test.describe('More Dropdown Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
+    // Unlock all features for navigation testing
+    await unlockAllFeatures(page);
+    await page.reload();
+
     // Open dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
@@ -112,16 +131,12 @@ test.describe('More Dropdown Navigation', () => {
     await expect(page).toHaveURL(/compost/);
   });
 
-  test('should navigate to This Month from dropdown', async ({ page }) => {
+  test('should navigate to This Month from primary navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Open dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' });
-    await moreButton.click();
-
-    // Wait for and click on This Month
-    const thisMonthLink = page.getByRole('menuitem', { name: /This Month/i });
+    // This Month is now in primary navigation (not dropdown)
+    const thisMonthLink = page.getByRole('link', { name: /This Month/i });
     await expect(thisMonthLink).toBeVisible();
     await thisMonthLink.click();
 

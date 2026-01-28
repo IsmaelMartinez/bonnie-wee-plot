@@ -3,20 +3,58 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle } from 'lucide-react'
+import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
+import { useFeatureFlags } from '@/hooks/useFeatureFlags'
+import type { UnlockableFeature } from '@/lib/feature-flags'
 
-const navLinks = [
+// Primary navigation - always visible (3 items for simplicity)
+const primaryNavLinks = [
   { href: '/', label: 'Today' },
-  { href: '/allotment', label: 'Allotment', icon: Map },
+  { href: '/this-month', label: 'This Month', icon: Calendar },
   { href: '/seeds', label: 'Seeds', icon: Package },
 ]
 
-const moreLinks = [
-  { href: '/compost', label: 'Compost', icon: Recycle, description: 'Track your piles' },
-  { href: '/this-month', label: 'This Month', icon: Calendar, description: 'Seasonal calendar' },
-  { href: '/ai-advisor', label: 'Ask Aitor', icon: Leaf, description: 'Garden advice' },
+// Features with progressive disclosure
+interface LockedFeatureConfig {
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  description: string
+  feature: UnlockableFeature
+  unlockHint: string
+}
+
+const lockedFeatures: LockedFeatureConfig[] = [
+  {
+    href: '/ai-advisor',
+    label: 'Ask Aitor',
+    icon: Leaf,
+    description: 'AI garden advice',
+    feature: 'ai-advisor',
+    unlockHint: 'Add a planting to unlock',
+  },
+  {
+    href: '/compost',
+    label: 'Compost',
+    icon: Recycle,
+    description: 'Track your piles',
+    feature: 'compost',
+    unlockHint: 'Record a harvest to unlock',
+  },
+  {
+    href: '/allotment',
+    label: 'Allotment',
+    icon: Map,
+    description: 'Plan your layout',
+    feature: 'allotment-layout',
+    unlockHint: 'Add 5 plantings to unlock',
+  },
+]
+
+// Always-available secondary links
+const secondaryLinks = [
   { href: '/about', label: 'About', icon: BookOpen, description: 'Learn more' },
 ]
 
@@ -27,8 +65,15 @@ export default function Navigation() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const { data } = useAllotment()
+  const { isUnlocked, unlock, getProgress } = useFeatureFlags(data)
 
   const theme = getSeasonalTheme(getCurrentSeason())
+
+  // Handle unlock CTA click
+  const handleUnlockClick = (feature: UnlockableFeature) => {
+    unlock(feature)
+    setIsMoreOpen(false)
+  }
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -81,7 +126,7 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {primaryNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -95,7 +140,7 @@ export default function Navigation() {
               </Link>
             ))}
 
-            {/* More Dropdown */}
+            {/* More Dropdown with Progressive Disclosure */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -117,9 +162,99 @@ export default function Navigation() {
               {isMoreOpen && (
                 <div
                   role="menu"
-                  className="absolute top-full right-0 mt-1 w-56 bg-white rounded-zen-lg border border-zen-stone-200 shadow-zen-md py-1 z-50"
+                  className="absolute top-full right-0 mt-1 w-64 bg-white rounded-zen-lg border border-zen-stone-200 shadow-zen-md py-1 z-50"
                 >
-                  {moreLinks.map((link) => {
+                  {/* Locked/Unlocked Features */}
+                  {lockedFeatures.map((item) => {
+                    const IconComponent = item.icon
+                    const unlocked = isUnlocked(item.feature)
+                    const progress = getProgress(item.feature)
+
+                    if (unlocked) {
+                      // Unlocked - show as regular link
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          className={`flex items-start gap-3 px-4 py-3 transition-colors ${
+                            isActive(item.href)
+                              ? 'bg-zen-moss-50'
+                              : 'hover:bg-zen-stone-50'
+                          }`}
+                          onClick={() => setIsMoreOpen(false)}
+                        >
+                          <IconComponent
+                            className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                              isActive(item.href) ? 'text-zen-moss-600' : 'text-zen-stone-400'
+                            }`}
+                          />
+                          <div>
+                            <div className={`text-sm font-medium ${
+                              isActive(item.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
+                            }`}>
+                              {item.label}
+                            </div>
+                            <div className="text-xs text-zen-stone-500 mt-0.5">
+                              {item.description}
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    }
+
+                    // Locked - show with progress and unlock CTA
+                    return (
+                      <div
+                        key={item.href}
+                        role="menuitem"
+                        className="px-4 py-3 hover:bg-zen-stone-50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="relative">
+                            <IconComponent className="w-5 h-5 mt-0.5 flex-shrink-0 text-zen-stone-300" />
+                            <Lock className="w-3 h-3 absolute -bottom-1 -right-1 text-zen-stone-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-zen-stone-500">
+                              {item.label}
+                            </div>
+                            <div className="text-xs text-zen-stone-500 mt-0.5">
+                              {item.description}
+                            </div>
+                            {/* Progress bar */}
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <span className="text-zen-stone-500">{progress.unlockCondition}</span>
+                                <span className="text-zen-stone-500">{progress.currentValue}/{progress.targetValue}</span>
+                              </div>
+                              <div className="h-1 bg-zen-stone-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-zen-moss-400 transition-all duration-300"
+                                  style={{ width: `${progress.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                            {/* Unlock CTA */}
+                            <button
+                              type="button"
+                              onClick={() => handleUnlockClick(item.feature)}
+                              className="mt-2 flex items-center gap-1 text-xs text-zen-moss-600 hover:text-zen-moss-700 font-medium"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              <span>Unlock now</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Divider */}
+                  <div className="border-t border-zen-stone-100 my-1" />
+
+                  {/* Always-available links */}
+                  {secondaryLinks.map((link) => {
                     const IconComponent = link.icon
                     return (
                       <Link
@@ -172,7 +307,7 @@ export default function Navigation() {
         {isMobileMenuOpen && (
           <div className="lg:hidden pb-4 border-t border-zen-stone-100">
             <div className="pt-3 space-y-1">
-              {navLinks.map((link) => (
+              {primaryNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -187,7 +322,7 @@ export default function Navigation() {
                 </Link>
               ))}
 
-              {/* Mobile More Section */}
+              {/* Mobile More Section with Progressive Disclosure */}
               <div className="pt-2 border-t border-zen-stone-100 mt-2">
                 <button
                   type="button"
@@ -203,7 +338,71 @@ export default function Navigation() {
 
                 {isMobileMoreOpen && (
                   <div className="ml-3 mt-1 space-y-1 border-l-2 border-zen-stone-200 pl-3">
-                    {moreLinks.map((link) => {
+                    {/* Locked/Unlocked Features */}
+                    {lockedFeatures.map((item) => {
+                      const IconComponent = item.icon
+                      const unlocked = isUnlocked(item.feature)
+                      const progress = getProgress(item.feature)
+
+                      if (unlocked) {
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-2 py-2 text-sm transition-colors ${
+                              isActive(item.href)
+                                ? 'text-zen-moss-700'
+                                : 'text-zen-ink-600 hover:text-zen-ink-800'
+                            }`}
+                            onClick={closeMobileMenu}
+                          >
+                            <IconComponent className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </Link>
+                        )
+                      }
+
+                      // Locked - show with unlock option
+                      return (
+                        <div key={item.href} className="py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="relative">
+                              <IconComponent className="w-4 h-4 text-zen-stone-300" />
+                              <Lock className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5 text-zen-stone-400" />
+                            </div>
+                            <span className="text-sm text-zen-stone-500">{item.label}</span>
+                          </div>
+                          <div className="mt-1 ml-6">
+                            <div className="flex items-center gap-2 text-xs text-zen-stone-500 mb-1">
+                              <span>{progress.currentValue}/{progress.targetValue}</span>
+                              <div className="flex-1 h-1 bg-zen-stone-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-zen-moss-400 transition-all duration-300"
+                                  style={{ width: `${progress.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleUnlockClick(item.feature)
+                                closeMobileMenu()
+                              }}
+                              className="flex items-center gap-1 text-xs text-zen-moss-600 hover:text-zen-moss-700 font-medium"
+                            >
+                              <Sparkles className="w-3 h-3" />
+                              <span>Unlock now</span>
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {/* Divider */}
+                    <div className="border-t border-zen-stone-100 my-1" />
+
+                    {/* Always-available links */}
+                    {secondaryLinks.map((link) => {
                       const IconComponent = link.icon
                       return (
                         <Link
