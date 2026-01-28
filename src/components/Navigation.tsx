@@ -216,17 +216,17 @@ export default function Navigation() {
                             <Lock className="w-3 h-3 absolute -bottom-1 -right-1 text-zen-stone-400" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-zen-stone-400">
+                            <div className="text-sm font-medium text-zen-stone-500">
                               {item.label}
                             </div>
-                            <div className="text-xs text-zen-stone-400 mt-0.5">
+                            <div className="text-xs text-zen-stone-500 mt-0.5">
                               {item.description}
                             </div>
                             {/* Progress bar */}
                             <div className="mt-2">
                               <div className="flex items-center justify-between text-xs mb-1">
                                 <span className="text-zen-stone-500">{progress.unlockCondition}</span>
-                                <span className="text-zen-stone-400">{progress.currentValue}/{progress.targetValue}</span>
+                                <span className="text-zen-stone-500">{progress.currentValue}/{progress.targetValue}</span>
                               </div>
                               <div className="h-1 bg-zen-stone-100 rounded-full overflow-hidden">
                                 <div
@@ -370,7 +370,7 @@ export default function Navigation() {
                               <IconComponent className="w-4 h-4 text-zen-stone-300" />
                               <Lock className="w-2.5 h-2.5 absolute -bottom-0.5 -right-0.5 text-zen-stone-400" />
                             </div>
-                            <span className="text-sm text-zen-stone-400">{item.label}</span>
+                            <span className="text-sm text-zen-stone-500">{item.label}</span>
                           </div>
                           <div className="mt-1 ml-6">
                             <div className="flex items-center gap-2 text-xs text-zen-stone-500 mb-1">
