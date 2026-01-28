@@ -162,8 +162,8 @@ As you use the app, you'll unlock additional features based on your engagement:
 
 | Feature | Unlock Condition |
 |---------|------------------|
-| **Ask Aitor** | Add your first planting |
-| **Compost** | Record a harvest |
+| **Ask Aitor** | Visit 3 times OR add your first planting |
+| **Compost** | Visit 5 times OR record your first harvest |
 | **Allotment Layout** | Add 5 plantings |
 
 ### Checking Progress
