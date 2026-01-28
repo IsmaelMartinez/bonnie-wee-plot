@@ -36,7 +36,43 @@ import {
   RemovePlantingArgs,
   ListAreasArgs,
 } from '@/lib/ai-tools-schema'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { getVegetableById, searchVegetables } from '@/lib/vegetable-database'
+
+// ============ ERROR HELPERS ============
+
+/**
+ * Build an error message with recovery suggestions
+ */
+function buildErrorWithSuggestion(
+  baseError: string,
+  suggestion: string
+): string {
+  return `${baseError}\n\n💡 Suggestion: ${suggestion}`
+}
+
+/**
+ * Suggest similar plant names when a plant is not found
+ */
+function suggestSimilarPlants(plantId: string): string[] {
+  // Try to find similar plants by searching (strip trailing 's' for plurals)
+  const searchTerm = plantId.replace(/s$/, '').toLowerCase()
+  const results = searchVegetables(searchTerm).slice(0, 5)
+  return results.map(v => v.id)
+}
+
+/**
+ * Normalize plant ID to handle common variations
+ * - "tomatoes" -> "tomato"
+ * - "Carrots" -> "carrot"
+ * - "runner-beans" -> "runner-bean"
+ */
+function normalizePlantId(plantId: string): string {
+  return plantId
+    .toLowerCase()
+    .trim()
+    .replace(/s$/, '')  // Remove trailing 's' (plurals)
+    .replace(/ies$/, 'y')  // "berries" -> "berry" (but keep 'es' handling separate)
+}
 
 /**
  * Result of executing a tool call
@@ -169,44 +205,69 @@ function executeAddPlanting(
   // Validate area exists
   const area = getAreaById(data, args.areaId)
   if (!area) {
+    const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
+    const areaList = availableAreas.slice(0, 5).map(a => `${a.id} (${a.name})`).join(', ')
+    const moreText = availableAreas.length > 5 ? ` and ${availableAreas.length - 5} more` : ''
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `Area '${args.areaId}' not found. Available areas: ${getAllAreas(data).map(a => a.id).join(', ')}`,
+        error: buildErrorWithSuggestion(
+          `Area '${args.areaId}' not found.`,
+          `Available beds: ${areaList}${moreText}. Try asking "which beds do I have?" to see all options.`
+        ),
       },
     }
   }
 
   // Check if area can have plantings
   if (!area.canHavePlantings) {
+    const plantableBeds = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
+    const bedSuggestions = plantableBeds.slice(0, 3).map(a => a.id).join(', ')
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `Area '${args.areaId}' (${area.name}) cannot have plantings. Try a different bed.`,
+        error: buildErrorWithSuggestion(
+          `Area '${args.areaId}' (${area.name}) is marked as infrastructure and cannot have plantings.`,
+          `Try adding to a bed instead: ${bedSuggestions}`
+        ),
       },
     }
   }
 
-  // Validate plant exists in database
-  const plant = getVegetableById(args.plantId)
+  // Try to find the plant, handling common variations
+  let plant = getVegetableById(args.plantId)
+
+  // Try normalizing the plant ID if not found (handle plurals, case)
   if (!plant) {
+    const normalized = normalizePlantId(args.plantId)
+    plant = getVegetableById(normalized)
+  }
+
+  if (!plant) {
+    const suggestions = suggestSimilarPlants(args.plantId)
+    const suggestionText = suggestions.length > 0
+      ? `Did you mean: ${suggestions.join(', ')}?`
+      : 'Check the spelling or try a more common name.'
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `Plant '${args.plantId}' not found in the vegetable database. Please check the plant name.`,
+        error: buildErrorWithSuggestion(
+          `Plant '${args.plantId}' not found in the database.`,
+          suggestionText
+        ),
       },
     }
   }
 
-  // Create the new planting
+  // Create the new planting (use the actual plant ID from database, not user input)
   const newPlanting: NewPlanting = {
-    plantId: args.plantId,
+    plantId: plant.id,
     varietyName: args.varietyName,
     sowDate: args.sowDate,
     sowMethod: args.sowMethod,
@@ -230,7 +291,7 @@ function executeAddPlanting(
         message: `Added ${displayName} to ${area.name}${args.sowDate ? ` with sowing date ${args.sowDate}` : ''}`,
         areaId: args.areaId,
         areaName: area.name,
-        plantId: args.plantId,
+        plantId: plant.id, // Use the actual ID from database, not the user input
         plantName: plant.name,
         varietyName: args.varietyName,
         sowDate: args.sowDate,
@@ -248,12 +309,17 @@ function executeUpdatePlanting(
   // Validate area exists
   const area = getAreaById(data, args.areaId)
   if (!area) {
+    const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
+    const areaList = availableAreas.slice(0, 5).map(a => a.id).join(', ')
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `Area '${args.areaId}' not found`,
+        error: buildErrorWithSuggestion(
+          `Area '${args.areaId}' not found.`,
+          `Available beds: ${areaList}. Try asking "what's planted in bed A?" to see your plantings.`
+        ),
       },
     }
   }
@@ -263,13 +329,24 @@ function executeUpdatePlanting(
   const planting = findPlantingByPlantId(plantings, args.plantId)
 
   if (!planting) {
-    const availablePlants = plantings.map(p => p.plantId).join(', ')
+    const availablePlants = plantings.map(p => {
+      const veg = getVegetableById(p.plantId)
+      return veg?.name || p.plantId
+    })
+    const plantList = availablePlants.length > 0
+      ? availablePlants.join(', ')
+      : null
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `No planting of '${args.plantId}' found in ${area.name} for ${year}.${availablePlants ? ` Available: ${availablePlants}` : ' The bed is empty.'}`,
+        error: buildErrorWithSuggestion(
+          `No '${args.plantId}' found in ${area.name} for ${year}.`,
+          plantList
+            ? `Plants in this bed: ${plantList}. Did you mean one of these?`
+            : `This bed is empty for ${year}. Try adding a plant first, or check a different year.`
+        ),
       },
     }
   }
@@ -323,12 +400,17 @@ function executeRemovePlanting(
   // Validate area exists
   const area = getAreaById(data, args.areaId)
   if (!area) {
+    const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
+    const areaList = availableAreas.slice(0, 5).map(a => a.id).join(', ')
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `Area '${args.areaId}' not found`,
+        error: buildErrorWithSuggestion(
+          `Area '${args.areaId}' not found.`,
+          `Available beds: ${areaList}. Try asking "what's in my beds?" to see your current plantings.`
+        ),
       },
     }
   }
@@ -338,13 +420,24 @@ function executeRemovePlanting(
   const planting = findPlantingByPlantId(plantings, args.plantId)
 
   if (!planting) {
-    const availablePlants = plantings.map(p => p.plantId).join(', ')
+    const availablePlants = plantings.map(p => {
+      const veg = getVegetableById(p.plantId)
+      return veg?.name || p.plantId
+    })
+    const plantList = availablePlants.length > 0
+      ? availablePlants.join(', ')
+      : null
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
-        error: `No planting of '${args.plantId}' found in ${area.name} for ${year}.${availablePlants ? ` Available: ${availablePlants}` : ' The bed is empty.'}`,
+        error: buildErrorWithSuggestion(
+          `No '${args.plantId}' found in ${area.name} for ${year}.`,
+          plantList
+            ? `Plants in this bed: ${plantList}. Did you mean one of these?`
+            : `This bed is empty for ${year}. Nothing to remove.`
+        ),
       },
     }
   }
@@ -417,6 +510,7 @@ function executeListAreas(
 /**
  * Find a planting by plant ID (not planting ID)
  * The AI uses plant type (e.g., "tomato") not the internal UUID
+ * Handles common variations like plurals, case differences, etc.
  */
 function findPlantingByPlantId(
   plantings: Planting[],
@@ -426,17 +520,18 @@ function findPlantingByPlantId(
   let planting = plantings.find(p => p.plantId === plantId)
   if (planting) return planting
 
-  // Try case-insensitive match
-  const lowerPlantId = plantId.toLowerCase()
-  planting = plantings.find(p => p.plantId.toLowerCase() === lowerPlantId)
+  // Try normalized match (handles plurals, case, etc.)
+  const normalizedInput = normalizePlantId(plantId)
+  planting = plantings.find(p => normalizePlantId(p.plantId) === normalizedInput)
   if (planting) return planting
 
-  // Try partial match (e.g., "tomatoes" -> "tomato")
-  const singularPlantId = plantId.replace(/s$/, '').toLowerCase()
-  planting = plantings.find(
-    p => p.plantId.toLowerCase() === singularPlantId ||
-         p.plantId.toLowerCase().replace(/s$/, '') === singularPlantId
-  )
+  // Try fuzzy matching for common variations
+  // e.g., "broad-bean" vs "broadbean", "runner bean" vs "runner-bean"
+  const fuzzyInput = normalizedInput.replace(/[-\s]/g, '')
+  planting = plantings.find(p => {
+    const fuzzyPlantId = normalizePlantId(p.plantId).replace(/[-\s]/g, '')
+    return fuzzyPlantId === fuzzyInput
+  })
 
   return planting
 }
