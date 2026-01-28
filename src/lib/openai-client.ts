@@ -178,7 +178,8 @@ export async function callOpenAI(options: OpenAIClientOptions): Promise<OpenAIRe
         message: options.message,
         messages: options.messages,
         image: options.image,
-        allotmentContext: options.allotmentContext
+        allotmentContext: options.allotmentContext,
+        enableTools: options.enableTools
       })
     })
 
