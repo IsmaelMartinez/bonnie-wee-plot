@@ -60,6 +60,39 @@ WebRTC enables direct browser-to-browser connections with encrypted data channel
 - No central discovery needed
 - Higher complexity
 
+## Key Insight: Mobile as Always-On Server (January 2026)
+
+The original research assumed "both peers must be online simultaneously" was a limitation requiring a relay server. However, modern smartphones are essentially always connected, which changes the architecture:
+
+**Observation:** Your phone is your server. It's always online, always with you, and can serve as the authoritative sync endpoint for your other devices (tablet, laptop, desktop).
+
+**Implications for Phase 2:**
+- Single-user multi-device sync becomes much simpler
+- No relay server needed for the primary use case
+- Phone initiates/accepts connections from your other devices
+- Other devices sync opportunistically when phone is reachable (which is almost always)
+
+**Architecture Simplification:**
+```
+Phone (Primary)              Laptop/Tablet (Secondary)
+     |                              |
+     | Always online                | Connect when available
+     |                              |
+     |<---- WebRTC connection ----->|
+     |                              |
+     | Yjs CRDT sync               |
+     |<===========================>|
+```
+
+**Future Expansion Path:**
+1. Start with single-user multi-device (phone as server)
+2. Add friend sharing (phone-to-phone sync when both available)
+3. Add community sync (mesh of phones)
+
+Each phase builds on the same CRDT foundation - the difference is just peer discovery and connection patterns.
+
+---
+
 ## Recommended Approach
 
 ### Phase 1: CRDT Foundation
@@ -222,6 +255,70 @@ Note: PeerJS omitted for Phase 2 as it requires their signaling server. Phase 4 
 7. Design message queue schema and TTL policies
 8. Implement relay server with WebSocket endpoints
 9. Add optional signaling for easier peer discovery
+
+## Security Model (January 2026)
+
+### Threat Model
+
+Primary asset is allotment data in localStorage. While not highly sensitive, users experience data loss or unwanted modification as significant impact. Threat actors include network-adjacent attackers (same WiFi), opportunistic physical access, and lost/stolen device scenarios.
+
+### QR Code Pairing Protocol
+
+The QR code encodes a pairing request bundle:
+```json
+{
+  "v": 1,
+  "pk": "<base64 Ed25519 public key>",
+  "cc": "847291",  // 6-digit confirmation code (displayed separately)
+  "ts": 1706454000,
+  "dn": "iPhone 15"
+}
+```
+
+**Pairing Flow:**
+1. Phone displays QR + shows 6-digit code separately on screen
+2. Laptop scans QR, displays the confirmation code
+3. User verbally verifies codes match (out-of-band verification)
+4. Laptop generates keypair, sends public key encrypted with phone's key + confirmation code
+5. Phone verifies code match before accepting pairing
+
+This prevents attackers who photograph the QR from completing pairing.
+
+### Encryption Stack
+
+- **Device Identity:** Ed25519 signing keypair per device (generated once, stored in localStorage)
+- **Key Exchange:** X25519 key agreement via tweetnacl.box
+- **Session Encryption:** XSalsa20-Poly1305 via tweetnacl.secretbox
+- **Nonces:** 24-byte, monotonically incrementing (never reuse)
+- **Rekeying:** New session key every 24 hours or 1000 messages
+
+### Connection Authentication
+
+After pairing, reconnection uses challenge-response:
+1. Phone sends random 32-byte challenge
+2. Laptop signs challenge with stored Ed25519 private key
+3. Phone verifies signature against stored public key
+4. Only after verification does encrypted data exchange begin
+
+### Device Loss Mitigation
+
+- "Report Phone Lost" from any paired device broadcasts signed revocation
+- All paired devices remove phone from trusted list, regenerate session keys
+- Future connection attempts from compromised device rejected
+- Periodic encrypted backup export recommended (passphrase-protected)
+
+### iOS Background Limitation
+
+iOS restricts background execution for PWAs. Sync happens when app is foregrounded. This is acceptable for the "mobile as server" model - sync occurs whenever the app is opened, which for active gardeners is frequently.
+
+### Implementation Dependencies
+
+```
+tweetnacl: ~1.0.x (encryption, audited, 4KB, no dependencies)
+tweetnacl-util: ~0.15.x (base64 encoding)
+```
+
+---
 
 ## References
 
