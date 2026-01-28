@@ -2064,10 +2064,9 @@ export function removeGardenEvent(
 // ============ AREA HELPER FUNCTIONS (v10) ============
 
 /**
- * Get an area by ID or name from the unified areas array.
- * Matches by exact ID first, then by case-insensitive name.
- * This allows AI tools to use human-readable names like "Bed A" instead of
- * complex timestamp-based IDs like "1738099234567-abc123def".
+ * Get an area by ID, shortId, or name from the unified areas array.
+ * Matches in order: exact ID, shortId (case-insensitive), name (case-insensitive).
+ * This allows AI tools to use human-readable identifiers like "A" or "Bed A".
  */
 export function getAreaById(data: AllotmentData, idOrName: string): Area | undefined {
   const areas = data.layout.areas?.filter(a => !a.isArchived) || []
@@ -2076,9 +2075,13 @@ export function getAreaById(data: AllotmentData, idOrName: string): Area | undef
   const byId = areas.find(a => a.id === idOrName)
   if (byId) return byId
 
-  // Try case-insensitive name match
-  const lowerName = idOrName.toLowerCase().trim()
-  return areas.find(a => a.name.toLowerCase().trim() === lowerName)
+  // Try shortId match (case-insensitive)
+  const lowerInput = idOrName.toLowerCase().trim()
+  const byShortId = areas.find(a => a.shortId?.toLowerCase().trim() === lowerInput)
+  if (byShortId) return byShortId
+
+  // Try name match (case-insensitive)
+  return areas.find(a => a.name.toLowerCase().trim() === lowerInput)
 }
 
 /**

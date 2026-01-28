@@ -89,6 +89,7 @@ export interface PrimaryPlant {
  */
 export interface Area {
   id: string                        // Dynamic string ID (e.g., 'bed-a', 'apple-north')
+  shortId?: string                  // User-defined short ID for AI tools (e.g., 'A', 'B1')
   name: string                      // Display name
   kind: AreaKind
   description?: string

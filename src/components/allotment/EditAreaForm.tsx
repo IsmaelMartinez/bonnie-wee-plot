@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
+import { useAllotment } from '@/hooks/useAllotment'
 
 interface EditAreaFormProps {
   area: Area
@@ -28,7 +29,11 @@ export default function EditAreaForm({
   onSubmit,
   onCancel
 }: EditAreaFormProps) {
+  const { data } = useAllotment()
+  const existingAreas = data?.layout?.areas || []
+
   const [name, setName] = useState(area.name)
+  const [shortId, setShortId] = useState(area.shortId || '')
   const [description, setDescription] = useState(area.description || '')
   const [createdYear, setCreatedYear] = useState(area.createdYear?.toString() || '')
   const [retiredYear, setRetiredYear] = useState(area.retiredYear?.toString() || '')
@@ -36,6 +41,11 @@ export default function EditAreaForm({
     area.kind === 'infrastructure' ? (area.infrastructureSubtype || 'other') : 'other'
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Check for duplicate shortId (excluding current area)
+  const isDuplicateShortId = shortId.trim() && existingAreas.some(
+    a => a.id !== area.id && a.shortId?.toLowerCase() === shortId.trim().toLowerCase()
+  )
 
   const validateYears = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -75,6 +85,11 @@ export default function EditAreaForm({
       return
     }
 
+    if (isDuplicateShortId) {
+      setErrors({ shortId: 'This short ID is already in use' })
+      return
+    }
+
     if (!validateYears()) {
       return
     }
@@ -106,6 +121,7 @@ export default function EditAreaForm({
 
     const updates: Partial<Area> = {
       name: name.trim(),
+      shortId: shortId.trim() || undefined,
       description: description.trim() || undefined,
       createdYear: newCreatedYear,
       retiredYear: newRetiredYear,
@@ -141,6 +157,31 @@ export default function EditAreaForm({
         {errors.name && (
           <p className="text-xs text-red-500 mt-1">{errors.name}</p>
         )}
+      </div>
+
+      {/* Short ID */}
+      <div>
+        <label htmlFor="edit-area-short-id" className="block text-sm font-medium text-zen-ink-700 mb-1">
+          Short ID
+        </label>
+        <input
+          id="edit-area-short-id"
+          type="text"
+          value={shortId}
+          onChange={(e) => {
+            setShortId(e.target.value)
+            if (errors.shortId) setErrors({ ...errors, shortId: '' })
+          }}
+          placeholder="e.g., A, B1, C"
+          className="zen-input"
+          maxLength={10}
+        />
+        {(isDuplicateShortId || errors.shortId) && (
+          <p className="text-xs text-red-500 mt-1">{errors.shortId || 'This short ID is already in use'}</p>
+        )}
+        <p className="text-xs text-zen-stone-500 mt-1">
+          Optional short identifier for the AI advisor (e.g., &quot;A&quot;, &quot;B1&quot;)
+        </p>
       </div>
 
       {/* Description */}
