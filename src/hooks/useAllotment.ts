@@ -79,7 +79,6 @@ import {
   archiveVariety as storageArchiveVariety,
   unarchiveVariety as storageUnarchiveVariety,
   getActiveVarieties as storageGetActiveVarieties,
-  togglePlannedYear as storageTogglePlannedYear,
   toggleHaveSeedsForYear as storageToggleHaveSeedsForYear,
   hasSeedsForYear as storageHasSeedsForYear,
   getSuppliers as storageGetSuppliers,
@@ -200,7 +199,6 @@ export interface UseAllotmentActions {
   archiveVariety: (id: string) => void
   unarchiveVariety: (id: string) => void
   getActiveVarieties: (includeArchived?: boolean) => StoredVariety[]
-  togglePlannedYear: (varietyId: string, year: number) => void
   toggleHaveSeedsForYear: (varietyId: string, year: number) => void
   hasSeedsForYear: (varietyId: string, year: number) => boolean
   getSuppliers: () => string[]
@@ -378,7 +376,7 @@ export function useAllotment(): UseAllotmentReturn {
       )
 
       if (!variety) {
-        // Auto-create variety
+        // Auto-create variety with seed status for this year
         updatedData = {
           ...updatedData,
           varieties: [
@@ -388,19 +386,18 @@ export function useAllotment(): UseAllotmentReturn {
               plantId: planting.plantId,
               name: planting.varietyName,
               notes: '(Auto-created from planting)',
-              plannedYears: [selectedYear],
-              seedsByYear: {},
+              seedsByYear: { [selectedYear]: 'none' },
               isArchived: false
             }
           ]
         }
-      } else if (!variety.plannedYears.includes(selectedYear)) {
-        // Add year to existing variety
+      } else if (!(selectedYear in (variety.seedsByYear || {}))) {
+        // Add year to existing variety's seedsByYear if not already tracked
         updatedData = {
           ...updatedData,
           varieties: updatedData.varieties.map(v =>
             v.id === variety.id
-              ? { ...v, plannedYears: [...v.plannedYears, selectedYear].sort() }
+              ? { ...v, seedsByYear: { ...v.seedsByYear, [selectedYear]: 'none' } }
               : v
           )
         }
@@ -427,7 +424,7 @@ export function useAllotment(): UseAllotmentReturn {
         )
 
         if (!variety) {
-          // Auto-create variety
+          // Auto-create variety with seed status for this year
           updatedData = {
             ...updatedData,
             varieties: [
@@ -437,19 +434,18 @@ export function useAllotment(): UseAllotmentReturn {
                 plantId: planting.plantId,
                 name: planting.varietyName,
                 notes: '(Auto-created from planting)',
-                plannedYears: [selectedYear],
-                seedsByYear: {},
+                seedsByYear: { [selectedYear]: 'none' },
                 isArchived: false
               }
             ]
           }
-        } else if (!variety.plannedYears.includes(selectedYear)) {
-          // Add year to existing variety
+        } else if (!(selectedYear in (variety.seedsByYear || {}))) {
+          // Add year to existing variety's seedsByYear if not already tracked
           updatedData = {
             ...updatedData,
             varieties: updatedData.varieties.map(v =>
               v.id === variety.id
-                ? { ...v, plannedYears: [...v.plannedYears, selectedYear].sort() }
+                ? { ...v, seedsByYear: { ...v.seedsByYear, [selectedYear]: 'none' } }
                 : v
             )
           }
@@ -668,11 +664,6 @@ export function useAllotment(): UseAllotmentReturn {
     if (!data) return []
     return storageGetActiveVarieties(data, includeArchived)
   }, [data])
-
-  const togglePlannedYearData = useCallback((varietyId: string, year: number) => {
-    if (!data) return
-    setData(storageTogglePlannedYear(data, varietyId, year))
-  }, [data, setData])
 
   const toggleHaveSeedsForYearData = useCallback((varietyId: string, year: number) => {
     if (!data) return
@@ -903,7 +894,6 @@ export function useAllotment(): UseAllotmentReturn {
     archiveVariety: archiveVarietyData,
     unarchiveVariety: unarchiveVarietyData,
     getActiveVarieties: getActiveVarietiesData,
-    togglePlannedYear: togglePlannedYearData,
     toggleHaveSeedsForYear: toggleHaveSeedsForYearData,
     hasSeedsForYear: hasSeedsForYearData,
     getSuppliers: getSuppliersData,

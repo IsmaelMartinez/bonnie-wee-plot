@@ -467,7 +467,7 @@ describe('v11 to v12 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(15)  // Now migrates all the way to v15
+    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
     const planting = result.data?.seasons[0].areas[0].plantings[0]
     expect(planting?.actualHarvestStart).toBe('2025-07-15')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -585,7 +585,6 @@ describe('v12 to v13 migration', () => {
           plantId: 'peas',
           name: 'Kelvedon Wonder',
           yearsUsed: [2023, 2024],
-          plannedYears: [2025],
           seedsByYear: {},
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
@@ -596,7 +595,7 @@ describe('v12 to v13 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(15)  // Now migrates all the way to v15
+    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
     const variety = result.data?.varieties[0]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((variety as any)?.yearsUsed).toBeUndefined()
@@ -614,7 +613,6 @@ describe('v12 to v13 migration', () => {
           price: 2.99,
           notes: 'Test notes',
           yearsUsed: [2024],
-          plannedYears: [2025],
           seedsByYear: { 2026: 'have' },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
@@ -632,7 +630,6 @@ describe('v12 to v13 migration', () => {
     expect(variety?.supplier).toBe('Test Supplier')
     expect(variety?.price).toBe(2.99)
     expect(variety?.notes).toBe('Test notes')
-    expect(variety?.plannedYears).toEqual([2025])
     expect(variety?.seedsByYear).toEqual({ 2026: 'have' })
   })
 
@@ -646,7 +643,7 @@ describe('v12 to v13 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(15)  // Now migrates all the way to v15
+    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
     expect(result.data?.varieties).toEqual([])
   })
 
@@ -659,7 +656,6 @@ describe('v12 to v13 migration', () => {
           plantId: 'peas',
           name: 'Kelvedon Wonder',
           yearsUsed: [2023, 2024],
-          plannedYears: [],
           seedsByYear: {},
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
@@ -668,7 +664,6 @@ describe('v12 to v13 migration', () => {
           plantId: 'tomato',
           name: 'San Marzano',
           yearsUsed: [2024],
-          plannedYears: [2025],
           seedsByYear: {},
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
@@ -695,7 +690,6 @@ describe('v12 to v13 migration', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Alderman',
-          plannedYears: [2024],
           seedsByYear: {},
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
@@ -710,6 +704,110 @@ describe('v12 to v13 migration', () => {
   })
 })
 
+describe('v15 to v16 migration', () => {
+  beforeEach(() => {
+    vi.mocked(localStorage.getItem).mockClear()
+    vi.mocked(localStorage.setItem).mockClear()
+  })
+
+  it('should remove plannedYears from varieties', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.version).toBe(16)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((result.data?.varieties[0] as any)?.plannedYears).toBeUndefined()
+  })
+
+  it('should migrate plannedYears to seedsByYear with none status', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties[0].seedsByYear).toEqual({
+      2024: 'none',
+      2025: 'none'
+    })
+  })
+
+  it('should preserve existing seedsByYear values during migration', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025, 2026],
+          seedsByYear: { 2024: 'have', 2025: 'ordered' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    // Existing values preserved, only 2026 added as 'none'
+    expect(result.data?.varieties[0].seedsByYear).toEqual({
+      2024: 'have',
+      2025: 'ordered',
+      2026: 'none'
+    })
+  })
+
+  it('should handle varieties with no plannedYears', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          seedsByYear: { 2024: 'have' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties[0].seedsByYear).toEqual({ 2024: 'have' })
+  })
+})
+
 describe('Archive Functionality', () => {
   it('archives a variety', () => {
     const data = createValidAllotmentData({
@@ -718,7 +816,6 @@ describe('Archive Functionality', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Alderman',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: false,
         }
@@ -737,7 +834,6 @@ describe('Archive Functionality', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Alderman',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: true,
         }
@@ -759,7 +855,6 @@ describe('Archive Functionality', () => {
           supplier: 'Test Supplier',
           price: 2.99,
           notes: 'Good variety',
-          plannedYears: [2024, 2025],
           seedsByYear: { 2024: 'have' },
           isArchived: false,
         }
@@ -774,7 +869,6 @@ describe('Archive Functionality', () => {
     expect(variety.supplier).toBe('Test Supplier')
     expect(variety.price).toBe(2.99)
     expect(variety.notes).toBe('Good variety')
-    expect(variety.plannedYears).toEqual([2024, 2025])
     expect(variety.seedsByYear).toEqual({ 2024: 'have' })
   })
 
@@ -785,7 +879,6 @@ describe('Archive Functionality', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Alderman',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: false,
         }
@@ -804,7 +897,6 @@ describe('Archive Functionality', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Alderman',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: false,
         }
@@ -827,7 +919,6 @@ describe('Query Filtering with Archive Status', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Active Pea',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: false,
         },
@@ -835,7 +926,6 @@ describe('Query Filtering with Archive Status', () => {
           id: 'var-2',
           plantId: 'beans',
           name: 'Archived Bean',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: true,
         },
@@ -843,7 +933,6 @@ describe('Query Filtering with Archive Status', () => {
           id: 'var-3',
           plantId: 'carrots',
           name: 'Carrot (no flag)',
-          plannedYears: [],
           seedsByYear: {},
         }
       ]
@@ -862,7 +951,6 @@ describe('Query Filtering with Archive Status', () => {
           id: 'var-1',
           plantId: 'peas',
           name: 'Active Pea',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: false,
         },
@@ -870,7 +958,6 @@ describe('Query Filtering with Archive Status', () => {
           id: 'var-2',
           plantId: 'beans',
           name: 'Archived Bean',
-          plannedYears: [],
           seedsByYear: {},
           isArchived: true,
         }

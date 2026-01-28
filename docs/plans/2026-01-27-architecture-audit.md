@@ -300,10 +300,11 @@ After codebase audit, systematically review each section per the roadmap:
 - [x] **Today dashboard simplification** (PR #80) - Removed BedAlerts component (redundant with task list), added status filtering to task generator, made TaskList full-width
 - [x] **Security scanning + Vercel migration** (PR #12) - Added CodeQL and Snyk scanning, migrated primary deployment to Vercel
 - [x] **Documentation sync** (PR #82) - Updated Next.js version to 16, Vercel deployment links, seed status docs, fixed ADR numbering
+- [x] **Seeds page plannedYears removal** - Removed deprecated plannedYears field from StoredVariety, simplified to use seedsByYear as single source of truth for year tracking. Schema v16 migration added. Removed "Plan" button from UI, simplified stats display.
 
 ### Pending UX Reviews (Part 3)
 - [x] **Today** - Daily dashboard review (completed in PR #80)
-- [ ] **Seeds** - Seed inventory & catalog review
+- [x] **Seeds** - Seed inventory & catalog review (removed plannedYears complexity)
 - [ ] **Allotment** - Layout & plantings (recently improved with PlantingDialog)
 - [ ] **AI Advisor** - Decide: keep read-only OR extend with function calling for data modification
 

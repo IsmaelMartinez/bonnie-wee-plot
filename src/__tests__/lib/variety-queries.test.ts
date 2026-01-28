@@ -10,7 +10,7 @@ import {
   getVarietyUsedYears,
   getVarietiesForYear,
 } from '@/lib/variety-queries'
-import type { AllotmentData, Planting, SeasonRecord } from '@/types/unified-allotment'
+import type { AllotmentData, Planting, SeasonRecord, SeedStatus } from '@/types/unified-allotment'
 
 function createMinimalAllotmentData(overrides: Partial<AllotmentData> = {}): AllotmentData {
   return {
@@ -77,7 +77,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -102,7 +101,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -133,7 +131,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -164,7 +161,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -189,7 +185,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -214,7 +209,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -239,7 +233,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -296,7 +289,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -327,7 +319,6 @@ describe('getVarietiesForYear', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -343,21 +334,18 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
     const v2 = {
       id: 'v2',
       plantId: 'tomato',
       name: 'San Marzano',
-      plannedYears: [],
       seedsByYear: {},
     }
     const v3 = {
       id: 'v3',
       plantId: 'carrot',
       name: 'Nantes 2',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -394,7 +382,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -419,7 +406,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -444,7 +430,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -464,6 +449,69 @@ describe('getVarietiesForYear', () => {
       ],
     })
 
+    const varieties = getVarietiesForYear(2024, data)
+    expect(varieties).toEqual([v1])
+  })
+
+  it('returns varieties with seedsByYear entry even without plantings', () => {
+    const v1 = {
+      id: 'v1',
+      plantId: 'pea',
+      name: 'Kelvedon Wonder',
+      seedsByYear: { 2024: 'ordered' as SeedStatus },
+    }
+    const v2 = {
+      id: 'v2',
+      plantId: 'tomato',
+      name: 'San Marzano',
+      seedsByYear: { 2025: 'have' as SeedStatus }, // Different year
+    }
+    const v3 = {
+      id: 'v3',
+      plantId: 'carrot',
+      name: 'Nantes 2',
+      seedsByYear: {} as Record<number, SeedStatus>, // No seedsByYear entries
+    }
+
+    const data = createMinimalAllotmentData({
+      varieties: [v1, v2, v3],
+      seasons: [], // No plantings at all
+    })
+
+    // Only v1 should be returned for 2024 (has seedsByYear entry for that year)
+    const varieties2024 = getVarietiesForYear(2024, data)
+    expect(varieties2024.map(v => v.id)).toEqual(['v1'])
+
+    // Only v2 should be returned for 2025
+    const varieties2025 = getVarietiesForYear(2025, data)
+    expect(varieties2025.map(v => v.id)).toEqual(['v2'])
+
+    // No varieties for 2026
+    const varieties2026 = getVarietiesForYear(2026, data)
+    expect(varieties2026).toEqual([])
+  })
+
+  it('returns varieties from both seedsByYear and plantings without duplicates', () => {
+    const v1 = {
+      id: 'v1',
+      plantId: 'pea',
+      name: 'Kelvedon Wonder',
+      seedsByYear: { 2024: 'have' as SeedStatus }, // Has seedsByYear entry
+    }
+
+    const data = createMinimalAllotmentData({
+      varieties: [v1],
+      seasons: [
+        createSeasonRecord(2024, [
+          {
+            areaId: 'bed-a',
+            plantings: [createPlanting('pea', 'Kelvedon Wonder', 'p1')], // Also has planting
+          },
+        ]),
+      ],
+    })
+
+    // Should return v1 only once, not duplicated
     const varieties = getVarietiesForYear(2024, data)
     expect(varieties).toEqual([v1])
   })

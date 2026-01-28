@@ -66,7 +66,6 @@ describe('Migration Utils - Dry Run Accuracy', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -86,7 +85,6 @@ describe('Migration Utils - Dry Run Accuracy', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -97,14 +95,12 @@ describe('Migration Utils - Dry Run Accuracy', () => {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Nantes 2',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
       {
         id: 'variety-3',
         plantId: 'lettuce',
         name: 'Little Gem',
-        plannedYears: [2024, 2025],
         seedsByYear: { 2024: 'have', 2025: 'none' },
       },
     ])
@@ -126,7 +122,6 @@ describe('Migration Utils - Dry Run Accuracy', () => {
         name: 'San Marzano',
         supplier: 'Seeds of Italy',
         price: 3.50,
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
         notes: 'Allotment version',
       },
@@ -140,7 +135,6 @@ describe('Migration Utils - Dry Run Accuracy', () => {
         name: 'san marzano', // Different case
         supplier: 'Another Supplier',
         price: 4.00,
-        plannedYears: [2024, 2025],
         seedsByYear: { 2024: 'have', 2025: 'ordered' },
         notes: 'Variety storage version',
       },
@@ -183,7 +177,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -194,7 +187,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Nantes 2',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
     ])
@@ -225,7 +217,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         name: 'San Marzano',
         supplier: 'Seeds of Italy',
         price: 3.50,
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
         notes: 'Keep this one',
       },
@@ -238,7 +229,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         plantId: 'tomato',
         name: 'san marzano', // Same but different case
         supplier: 'Different Supplier',
-        plannedYears: [2024],
         seedsByYear: { 2024: 'have' },
         notes: 'Skip this one',
       },
@@ -264,14 +254,12 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
       {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Amsterdam Forcing',
-        plannedYears: [2025],
         seedsByYear: {},
       },
     ])
@@ -282,21 +270,18 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-3',
         plantId: 'tomato',
         name: 'SAN MARZANO', // Duplicate (case insensitive)
-        plannedYears: [2024],
         seedsByYear: { 2024: 'have' },
       },
       {
         id: 'variety-4',
         plantId: 'carrot',
         name: 'Nantes 2', // New variety
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
       {
         id: 'variety-5',
         plantId: 'lettuce',
         name: 'Little Gem', // New variety
-        plannedYears: [2025],
         seedsByYear: {},
       },
     ])
@@ -324,7 +309,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: '  San   Marzano  ', // Extra whitespace
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -335,7 +319,6 @@ describe('Migration Utils - Merge Logic with Duplicates', () => {
         id: 'variety-2',
         plantId: 'tomato',
         name: 'San Marzano', // Same but normalized
-        plannedYears: [2024],
         seedsByYear: { 2024: 'have' },
       },
     ])
@@ -369,7 +352,6 @@ describe('Migration Utils - Rollback Verification', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
         notes: 'Original note',
       },
@@ -381,7 +363,6 @@ describe('Migration Utils - Rollback Verification', () => {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Nantes 2',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
     ])
@@ -445,7 +426,6 @@ describe('Migration Utils - Failure Scenarios', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -456,7 +436,6 @@ describe('Migration Utils - Failure Scenarios', () => {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Nantes 2',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
     ])
@@ -493,7 +472,6 @@ describe('Migration Utils - Failure Scenarios', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -516,7 +494,6 @@ describe('Migration Utils - Failure Scenarios', () => {
         id: 'variety-1',
         plantId: 'tomato',
         name: 'San Marzano',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'have' },
       },
     ])
@@ -527,7 +504,6 @@ describe('Migration Utils - Failure Scenarios', () => {
         id: 'variety-2',
         plantId: 'carrot',
         name: 'Nantes 2',
-        plannedYears: [2025],
         seedsByYear: { 2025: 'ordered' },
       },
     ])
@@ -574,7 +550,6 @@ describe('Migration Utils - Large Dataset', () => {
       id: `allotment-variety-${i}`,
       plantId: `plant-${i % 20}`, // 20 different plant types
       name: `Allotment Variety ${i}`,
-      plannedYears: [2024, 2025],
       seedsByYear: { 2024: 'have', 2025: 'ordered' },
     }))
 
@@ -588,7 +563,6 @@ describe('Migration Utils - Large Dataset', () => {
         id: `duplicate-variety-${i}`,
         plantId: `plant-${i}`,
         name: `allotment variety ${i}`, // Will match allotment-variety-${i}
-        plannedYears: [2023],
         seedsByYear: { 2023: 'have' as SeedStatus },
       })),
       // 90 new varieties
@@ -596,7 +570,6 @@ describe('Migration Utils - Large Dataset', () => {
         id: `new-variety-${i}`,
         plantId: `plant-${(i + 10) % 20}`,
         name: `New Variety ${i}`,
-        plannedYears: [2025],
         seedsByYear: {},
       })),
     ]
