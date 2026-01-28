@@ -22,6 +22,10 @@ async function unlockAllFeatures(page: import('@playwright/test').Page) {
       lastVisit: new Date().toISOString(),
       manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
     }));
+    // Mark all celebrations as already shown to prevent modals
+    localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
+      'ai-advisor', 'compost', 'allotment-layout'
+    ]));
   });
 }
 
@@ -170,8 +174,8 @@ test.describe('More Dropdown Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
 
-    // Wait for and click on About
-    const aboutLink = page.getByRole('menuitem', { name: /About/i });
+    // Wait for and click on About - use href selector with trailing slash flexibility
+    const aboutLink = page.locator('a[href^="/about"]');
     await expect(aboutLink).toBeVisible();
     await aboutLink.click();
 
