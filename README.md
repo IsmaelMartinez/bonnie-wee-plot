@@ -17,8 +17,7 @@ This serves as an example of what's possible when AI agents have access to devel
 ### 📅 Today Dashboard
 Your personal growing command center that answers "what should I do today?" (weather permitting, obviously):
 - **Seasonal Insights**: Current seasonal phase with actionable suggestions for Scottish growing conditions
-- **Daily Tasks**: Maintenance tasks and care reminders for your perennial plants
-- **Bed Alerts**: Problem beds and harvest-ready crops at a glance
+- **Smart Task List**: Auto-generated tasks based on your plantings, including harvest reminders, sowing windows, and maintenance schedules
 - **Quick Actions**: Fast access to your plot, seeds, and AI advisor
 
 ### 🗺️ Plot Planner
@@ -132,7 +131,7 @@ We've got colors! We've got components! We've got enough CSS classes to make you
 ## 🏠 What Lives Where (Page Guide)
 
 ### Today Dashboard (`/`)
-Your homepage command center showing seasonal phase (adjusted for Scottish latitudes), daily tasks, bed alerts, and quick actions to get you started.
+Your homepage command center showing seasonal phase (adjusted for Scottish latitudes), smart task list with harvest and sowing reminders filtered by planting status, and quick actions to get you started.
 
 ### Plot Planner (`/allotment`)
 The heart of the app - manage your growing space with physical bed layouts, yearly planting plans, rotation tracking, and bed notes.

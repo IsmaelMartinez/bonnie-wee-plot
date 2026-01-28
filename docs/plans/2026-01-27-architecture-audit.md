@@ -295,12 +295,15 @@ After codebase audit, systematically review each section per the roadmap:
 - [x] **This Month page hierarchy** (PR #73) - Collapsible Expert Tips and Tree Care sections, removed AI CTA
 - [x] **Dead code: plan-history folder** (PR #72) - Removed unused RotationTimeline, SeasonView, Year2026Planning components
 - [x] **check-temp type removal** (PR #73) - Removed unused event type from CompostEvent
+- [x] **Bed conversion removal** (PR #78) - Removed non-working AreaTypeConverter component and all related code
+- [x] **Seed status 'had' addition** (PR #79) - Added 'had' status for seeds, removed unused 'available' checkbox
+- [x] **Today dashboard simplification** (PR #80) - Removed BedAlerts component (redundant with task list), added status filtering to task generator, made TaskList full-width
 
 ### In Progress / Blocking
 - [ ] **PR #12: Security scanning + Vercel migration** - Needs Snyk token setup after merge
 
 ### Pending UX Reviews (Part 3)
-- [ ] **Today** - Daily dashboard review
+- [x] **Today** - Daily dashboard review (completed in PR #80)
 - [ ] **Seeds** - Seed inventory & catalog review
 - [ ] **Allotment** - Layout & plantings (recently improved with PlantingDialog)
 - [ ] **AI Advisor** - Decide: keep read-only OR extend with function calling for data modification
