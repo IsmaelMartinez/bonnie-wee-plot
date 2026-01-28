@@ -91,7 +91,7 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
 /**
  * Simple analytics viewer component
  */
-function AnalyticsViewer() {
+function AnalyticsViewer({ onClearClick }: { onClearClick: () => void }) {
   const summary = getAnalyticsSummary()
 
   const handleExportAnalytics = () => {
@@ -105,13 +105,6 @@ function AnalyticsViewer() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }
-
-  const handleClearAnalytics = () => {
-    if (window.confirm('Clear all analytics data? This cannot be undone.')) {
-      clearAnalytics()
-      window.location.reload()
-    }
   }
 
   const formatTimestamp = (timestamp: string) => {
@@ -186,7 +179,7 @@ function AnalyticsViewer() {
           Export JSON
         </button>
         <button
-          onClick={handleClearAnalytics}
+          onClick={onClearClick}
           disabled={summary.totalEvents === 0}
           className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -217,6 +210,8 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
   // Analytics state
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showClearAnalyticsConfirm, setShowClearAnalyticsConfirm] = useState(false)
+  const [analyticsKey, setAnalyticsKey] = useState(0) // Force re-render after clear
 
   // Get storage statistics
   const stats = getStorageStats()
@@ -473,6 +468,13 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       onDataImported()
     }
   }, [onDataImported])
+
+  // Clear analytics data
+  const handleClearAnalytics = useCallback(() => {
+    clearAnalytics()
+    setAnalyticsKey(k => k + 1) // Force re-render of analytics viewer
+    setShowClearAnalyticsConfirm(false)
+  }, [])
 
   // Migration handlers
   const handleCheckMigration = useCallback(() => {
@@ -843,7 +845,10 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             </button>
 
             {showAnalytics && (
-              <AnalyticsViewer />
+              <AnalyticsViewer
+                key={analyticsKey}
+                onClearClick={() => setShowClearAnalyticsConfirm(true)}
+              />
             )}
           </div>
 
@@ -883,6 +888,18 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         message="This will permanently delete all your allotment data including all seasons, plantings, and settings. This action cannot be undone. Consider exporting a backup first."
         confirmText="Delete Everything"
         cancelText="Keep Data"
+        variant="danger"
+      />
+
+      {/* Clear Analytics Confirmation */}
+      <ConfirmDialog
+        isOpen={showClearAnalyticsConfirm}
+        onClose={() => setShowClearAnalyticsConfirm(false)}
+        onConfirm={handleClearAnalytics}
+        title="Clear Analytics Data?"
+        message="This will delete all analytics data. This cannot be undone."
+        confirmText="Clear Analytics"
+        cancelText="Cancel"
         variant="danger"
       />
     </>
