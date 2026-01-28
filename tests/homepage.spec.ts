@@ -1,6 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
 
+// Helper to unlock all features for navigation tests
+async function unlockAllFeatures(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('allotment-engagement', JSON.stringify({
+      visitCount: 10,
+      lastVisit: new Date().toISOString(),
+      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
+    }));
+  });
+}
+
 test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
     await page.goto('/');
@@ -12,6 +23,10 @@ test.describe('Homepage and Navigation', () => {
   test('should navigate to AI advisor page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
+
+    // Unlock all features for navigation testing
+    await unlockAllFeatures(page);
+    await page.reload();
 
     // AI advisor is now in "More" dropdown - click More button first
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
@@ -99,6 +114,10 @@ test.describe('More Dropdown Navigation', () => {
   test('should navigate to Compost from dropdown', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
+
+    // Unlock all features for navigation testing
+    await unlockAllFeatures(page);
+    await page.reload();
 
     // Open dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
