@@ -70,3 +70,4 @@ pids
 # Serwist generated service worker files
 public/sw*
 public/swe-worker*
+.env*.local

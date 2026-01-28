@@ -66,6 +66,7 @@ export default function AddAreaForm({
   const currentYear = data?.currentYear ?? new Date().getFullYear()
 
   const [name, setName] = useState('')
+  const [shortId, setShortId] = useState('')
   const [kind, setKind] = useState<AreaKind>('rotation-bed')
   const [description, setDescription] = useState('')
   const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
@@ -76,6 +77,11 @@ export default function AddAreaForm({
   // Check for duplicate names
   const isDuplicateName = existingAreas.some(
     a => a.name.toLowerCase() === name.trim().toLowerCase()
+  )
+
+  // Check for duplicate shortId (only if provided)
+  const isDuplicateShortId = shortId.trim() && existingAreas.some(
+    a => a.shortId?.toLowerCase() === shortId.trim().toLowerCase()
   )
 
   // Validate createdYear (optional - undefined is valid)
@@ -117,7 +123,7 @@ export default function AddAreaForm({
       finalName = infraOption?.label || 'Infrastructure'
     }
 
-    if (!finalName || isDuplicateName || !isValidCreatedYear) return
+    if (!finalName || isDuplicateName || isDuplicateShortId || !isValidCreatedYear) return
 
     // Find next available grid position (simple: place at end)
     const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
@@ -127,6 +133,7 @@ export default function AddAreaForm({
 
     const newArea: Omit<Area, 'id'> = {
       name: finalName,
+      shortId: shortId.trim() || undefined,
       kind,
       description: description.trim() || undefined,
       icon: defaults.icon,
@@ -208,6 +215,28 @@ export default function AddAreaForm({
         {isDuplicateName && (
           <p className="text-xs text-red-500 mt-1">An area with this name already exists</p>
         )}
+      </div>
+
+      {/* Short ID */}
+      <div>
+        <label htmlFor="area-short-id" className="block text-sm font-medium text-zen-ink-700 mb-1">
+          Short ID
+        </label>
+        <input
+          id="area-short-id"
+          type="text"
+          value={shortId}
+          onChange={(e) => setShortId(e.target.value)}
+          placeholder="e.g., A, B1, C"
+          className="zen-input"
+          maxLength={10}
+        />
+        {isDuplicateShortId && (
+          <p className="text-xs text-red-500 mt-1">This short ID is already in use</p>
+        )}
+        <p className="text-xs text-zen-stone-500 mt-1">
+          Optional short identifier for the AI advisor (e.g., &quot;A&quot;, &quot;B1&quot;)
+        </p>
       </div>
 
       {/* Rotation Group (for rotation beds) */}

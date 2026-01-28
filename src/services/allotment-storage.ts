@@ -44,7 +44,7 @@ import {
   PermanentSeason,
 } from '@/types/unified-allotment'
 import { RotationGroup, PermanentPlanting, InfrastructureItem, PhysicalBedId } from '@/types/garden-planner'
-import { generateId } from '@/lib/utils'
+import { generateId, generateSlugId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
 import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/storage-detection'
@@ -2064,10 +2064,24 @@ export function removeGardenEvent(
 // ============ AREA HELPER FUNCTIONS (v10) ============
 
 /**
- * Get an area by ID from the unified areas array
+ * Get an area by ID, shortId, or name from the unified areas array.
+ * Matches in order: exact ID, shortId (case-insensitive), name (case-insensitive).
+ * This allows AI tools to use human-readable identifiers like "A" or "Bed A".
  */
-export function getAreaById(data: AllotmentData, id: string): Area | undefined {
-  return data.layout.areas?.find(a => a.id === id && !a.isArchived)
+export function getAreaById(data: AllotmentData, idOrName: string): Area | undefined {
+  const areas = data.layout.areas?.filter(a => !a.isArchived) || []
+
+  // Try exact ID match first (backward compatible)
+  const byId = areas.find(a => a.id === idOrName)
+  if (byId) return byId
+
+  // Try shortId match (case-insensitive)
+  const lowerInput = idOrName.toLowerCase().trim()
+  const byShortId = areas.find(a => a.shortId?.toLowerCase().trim() === lowerInput)
+  if (byShortId) return byShortId
+
+  // Try name match (case-insensitive)
+  return areas.find(a => a.name.toLowerCase().trim() === lowerInput)
 }
 
 /**
@@ -2792,7 +2806,9 @@ export function addArea(
   data: AllotmentData,
   area: Omit<Area, 'id'>
 ): { data: AllotmentData; areaId: string } {
-  const id = generateId()
+  // Generate ID from the area name (e.g., "Bed A" -> "bed-a")
+  const existingIds = new Set(data.layout.areas?.map(a => a.id) || [])
+  const id = generateSlugId(area.name, existingIds)
   const newArea: Area = {
     ...area,
     id,
