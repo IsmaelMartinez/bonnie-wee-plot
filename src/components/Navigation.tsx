@@ -7,6 +7,7 @@ import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, 
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
+import UnlockCelebration, { FEATURE_INFO } from '@/components/ui/UnlockCelebration'
 import type { UnlockableFeature } from '@/lib/feature-flags'
 
 // Primary navigation - always visible (3 items for simplicity)
@@ -22,8 +23,8 @@ interface LockedFeatureConfig {
   label: string
   icon: React.ComponentType<{ className?: string }>
   description: string
+  teaser: string // Longer description for locked state
   feature: UnlockableFeature
-  unlockHint: string
 }
 
 const lockedFeatures: LockedFeatureConfig[] = [
@@ -32,26 +33,51 @@ const lockedFeatures: LockedFeatureConfig[] = [
     label: 'Ask Aitor',
     icon: Leaf,
     description: 'AI garden advice',
+    teaser: 'Get personalized advice from your AI garden assistant. Ask about planting, pests, and more.',
     feature: 'ai-advisor',
-    unlockHint: 'Add a planting to unlock',
   },
   {
     href: '/compost',
     label: 'Compost',
     icon: Recycle,
     description: 'Track your piles',
+    teaser: 'Track your compost piles and know when they\'re ready to use in your garden.',
     feature: 'compost',
-    unlockHint: 'Record a harvest to unlock',
   },
   {
     href: '/allotment',
     label: 'Allotment',
     icon: Map,
     description: 'Plan your layout',
+    teaser: 'Visualize your entire allotment. Arrange beds, paths, and permanent features.',
     feature: 'allotment-layout',
-    unlockHint: 'Add 5 plantings to unlock',
   },
 ]
+
+/**
+ * Format progress hint text based on progress data
+ */
+function getProgressHint(currentValue: number, targetValue: number, unlockCondition: string): string {
+  const remaining = targetValue - currentValue
+
+  if (unlockCondition.includes('planting')) {
+    if (remaining === 1) return 'Add 1 more planting to unlock'
+    if (remaining > 1) return `Add ${remaining} more plantings to unlock`
+    return 'Add a planting to unlock'
+  }
+
+  if (unlockCondition.includes('harvest')) {
+    return 'Record a harvest to unlock'
+  }
+
+  if (unlockCondition.includes('Visit')) {
+    if (remaining === 1) return 'Visit 1 more time to unlock'
+    if (remaining > 1) return `Visit ${remaining} more times to unlock`
+    return 'Keep visiting to unlock'
+  }
+
+  return `${currentValue}/${targetValue} ${unlockCondition}`
+}
 
 // Always-available secondary links
 const secondaryLinks = [
@@ -65,7 +91,7 @@ export default function Navigation() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const { data } = useAllotment()
-  const { isUnlocked, unlock, getProgress } = useFeatureFlags(data)
+  const { isUnlocked, unlock, getProgress, newlyUnlockedFeature, dismissCelebration } = useFeatureFlags(data)
 
   const theme = getSeasonalTheme(getCurrentSeason())
 
@@ -203,7 +229,9 @@ export default function Navigation() {
                       )
                     }
 
-                    // Locked - show with progress and unlock CTA
+                    // Locked - show with teaser, progress, and unlock CTA
+                    const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
+
                     return (
                       <div
                         key={item.href}
@@ -219,16 +247,17 @@ export default function Navigation() {
                             <div className="text-sm font-medium text-zen-stone-500">
                               {item.label}
                             </div>
+                            {/* Feature teaser */}
                             <div className="text-xs text-zen-stone-500 mt-0.5">
-                              {item.description}
+                              {item.teaser}
                             </div>
-                            {/* Progress bar */}
+                            {/* Progress bar with hint */}
                             <div className="mt-2">
                               <div className="flex items-center justify-between text-xs mb-1">
-                                <span className="text-zen-stone-500">{progress.unlockCondition}</span>
-                                <span className="text-zen-stone-500">{progress.currentValue}/{progress.targetValue}</span>
+                                <span className="text-zen-stone-500">{progressHint}</span>
+                                <span className="text-zen-moss-600 font-medium">{progress.currentValue}/{progress.targetValue}</span>
                               </div>
-                              <div className="h-1 bg-zen-stone-100 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-zen-stone-100 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-zen-moss-400 transition-all duration-300"
                                   style={{ width: `${progress.progress}%` }}
@@ -362,7 +391,9 @@ export default function Navigation() {
                         )
                       }
 
-                      // Locked - show with unlock option
+                      // Locked - show with teaser, progress hint, and unlock option
+                      const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
+
                       return (
                         <div key={item.href} className="py-2">
                           <div className="flex items-center gap-2">
@@ -373,15 +404,19 @@ export default function Navigation() {
                             <span className="text-sm text-zen-stone-500">{item.label}</span>
                           </div>
                           <div className="mt-1 ml-6">
-                            <div className="flex items-center gap-2 text-xs text-zen-stone-500 mb-1">
-                              <span>{progress.currentValue}/{progress.targetValue}</span>
-                              <div className="flex-1 h-1 bg-zen-stone-100 rounded-full overflow-hidden">
+                            {/* Feature teaser */}
+                            <p className="text-xs text-zen-stone-500 mb-2">{item.teaser}</p>
+                            {/* Progress bar with hint */}
+                            <div className="flex items-center gap-2 text-xs mb-1">
+                              <span className="text-zen-moss-600 font-medium">{progress.currentValue}/{progress.targetValue}</span>
+                              <div className="flex-1 h-1.5 bg-zen-stone-100 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-zen-moss-400 transition-all duration-300"
                                   style={{ width: `${progress.progress}%` }}
                                 />
                               </div>
                             </div>
+                            <p className="text-xs text-zen-stone-500 mb-2">{progressHint}</p>
                             <button
                               type="button"
                               onClick={() => {
@@ -427,6 +462,29 @@ export default function Navigation() {
           </div>
         )}
       </div>
+
+      {/* Unlock Celebration Modal */}
+      <UnlockCelebration
+        isOpen={newlyUnlockedFeature !== null}
+        onClose={dismissCelebration}
+        feature={
+          newlyUnlockedFeature
+            ? {
+                name: FEATURE_INFO[newlyUnlockedFeature].name,
+                description: FEATURE_INFO[newlyUnlockedFeature].description,
+                tips: FEATURE_INFO[newlyUnlockedFeature].tips,
+                icon: (() => {
+                  const featureConfig = lockedFeatures.find(f => f.feature === newlyUnlockedFeature)
+                  const IconComponent = featureConfig?.icon
+                  if (!IconComponent) {
+                    return <Sparkles className="w-8 h-8" />
+                  }
+                  return <IconComponent className="w-8 h-8" />
+                })(),
+              }
+            : null
+        }
+      />
     </header>
   )
 }
