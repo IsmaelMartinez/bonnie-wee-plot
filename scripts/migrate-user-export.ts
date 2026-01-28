@@ -183,15 +183,8 @@ function migrateExport(inputPath: string): { data: CompleteExport; report: Migra
       if (!existing) {
         // New variety not in allotment.varieties
         varietyMap.set(variety.id, { ...variety })
-      } else {
-        // Merge additional fields (like plannedYears) from varieties.varieties
-        if (variety.plannedYears && variety.plannedYears.length > 0) {
-          existing.plannedYears = [...new Set([
-            ...(existing.plannedYears || []),
-            ...variety.plannedYears
-          ])].sort()
-        }
       }
+      // Note: We no longer merge plannedYears - seedsByYear is the source of truth
     }
   }
 
@@ -239,9 +232,12 @@ function migrateExport(inputPath: string): { data: CompleteExport; report: Migra
       variety.isArchived = false
     }
 
-    // Keep plannedYears for backward compatibility (will be empty/ignored in new system)
-    if (!variety.plannedYears) {
-      variety.plannedYears = []
+    // Remove plannedYears if present (no longer part of StoredVariety - use seedsByYear instead)
+    delete variety.plannedYears
+
+    // Ensure seedsByYear exists
+    if (!variety.seedsByYear) {
+      variety.seedsByYear = {}
     }
 
     processedVarieties.push(variety)

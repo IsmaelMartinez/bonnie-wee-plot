@@ -77,7 +77,6 @@ function SeedsPageContent() {
     updateVariety,
     archiveVariety,
     unarchiveVariety,
-    togglePlannedYear,
     toggleHaveSeedsForYear,
     getYears,
     getActiveVarieties,
@@ -129,11 +128,10 @@ function SeedsPageContent() {
     if (selectedYear === 'all') {
       return activeVarieties
     }
-    // Filter varieties for the selected year
+    // Filter varieties for the selected year (tracked via seedsByYear or actually planted)
     return activeVarieties.filter(v => {
       const yearsUsed = getVarietyUsedYears(v.id, data)
       return (
-        v.plannedYears.includes(selectedYear) ||
         (v.seedsByYear && selectedYear in v.seedsByYear) ||
         yearsUsed.includes(selectedYear)
       )
@@ -193,11 +191,6 @@ function SeedsPageContent() {
 
     return { have, need }
   }, [data, displayVarieties, selectedYear])
-
-  const plannedCount = useMemo(() => {
-    if (selectedYear === 'all' || !data) return 0
-    return (data.varieties || []).filter(v => v.plannedYears.includes(selectedYear)).length
-  }, [data, selectedYear])
 
   const toggleGroup = (name: string) => {
     const next = new Set(expandedGroups)
@@ -320,27 +313,20 @@ function SeedsPageContent() {
               {selectedYear !== 'all' ? `Need for ${selectedYear}` : 'Need to Order'}
             </div>
           </button>
-          {selectedYear !== 'all' ? (
-            <div className="zen-card p-4 text-center">
-              <div className="text-2xl font-bold text-zen-water-600">{plannedCount}</div>
-              <div className="text-sm text-zen-stone-500">Planned {selectedYear}</div>
+          <div className="zen-card p-4 text-center">
+            <div className="text-2xl font-bold text-zen-kitsune-600">
+              £{(() => {
+                const total = (data.varieties || [])
+                  .filter(v => {
+                    const yearsUsed = getVarietyUsedYears(v.id, data)
+                    return yearsUsed.includes(CURRENT_YEAR - 1)
+                  })
+                  .reduce((sum, v) => sum + (v.price || 0), 0)
+                return total.toFixed(2)
+              })()}
             </div>
-          ) : (
-            <div className="zen-card p-4 text-center">
-              <div className="text-2xl font-bold text-zen-kitsune-600">
-                £{(() => {
-                  const total = (data.varieties || [])
-                    .filter(v => {
-                      const yearsUsed = getVarietyUsedYears(v.id, data)
-                      return yearsUsed.includes(CURRENT_YEAR - 1)
-                    })
-                    .reduce((sum, v) => sum + (v.price || 0), 0)
-                  return total.toFixed(2)
-                })()}
-              </div>
-              <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR - 1}</div>
-            </div>
-          )}
+            <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR - 1}</div>
+          </div>
           <div className="zen-card p-4 text-center">
             <div className="text-2xl font-bold text-zen-kitsune-600">
               £{(() => {
@@ -466,7 +452,6 @@ function SeedsPageContent() {
                         const status = selectedYear !== 'all' ? (v.seedsByYear?.[selectedYear] || 'none') : 'none'
                         const config = statusConfig[status]
                         const Icon = config.icon
-                        const isPlannedForSelectedYear = selectedYear !== 'all' && v.plannedYears.includes(selectedYear)
                         const isArchived = v.isArchived === true
                         return (
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${isArchived ? 'opacity-50' : selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
@@ -520,18 +505,9 @@ function SeedsPageContent() {
                               <div className="text-sm text-zen-stone-500 flex flex-wrap gap-x-3">
                                 {(() => {
                                   const yearsUsed = getVarietyUsedYears(v.id, data)
-                                  return yearsUsed.length > 0 && (
-                                    <span>Used: {yearsUsed.join(', ')}</span>
-                                  )
-                                })()}
-                                {v.plannedYears.length > 0 && (
-                                  <span className="text-zen-water-600">Planned: {v.plannedYears.join(', ')}</span>
-                                )}
-                                {(() => {
-                                  const yearsUsed = getVarietyUsedYears(v.id, data)
-                                  return yearsUsed.length === 0 && v.plannedYears.length === 0 && (
-                                    <span className="text-zen-ume-600">Not used yet</span>
-                                  )
+                                  return yearsUsed.length > 0
+                                    ? <span>Used: {yearsUsed.join(', ')}</span>
+                                    : <span className="text-zen-ume-600">Not used yet</span>
                                 })()}
                               </div>
                               {v.notes && (() => {
@@ -548,19 +524,6 @@ function SeedsPageContent() {
                             </div>
                             {/* Actions */}
                             <div className="flex items-center gap-1 flex-shrink-0">
-                              {selectedYear !== 'all' && (
-                                <button
-                                  onClick={() => togglePlannedYear(v.id, selectedYear)}
-                                  className={`p-1.5 rounded-zen transition ${
-                                    isPlannedForSelectedYear
-                                      ? 'bg-zen-water-100 text-zen-water-600 hover:bg-zen-water-200'
-                                      : 'bg-zen-stone-100 text-zen-stone-400 hover:bg-zen-stone-200'
-                                  }`}
-                                  title={isPlannedForSelectedYear ? `Remove from ${selectedYear}` : `Plan for ${selectedYear}`}
-                                >
-                                  <Calendar className="w-4 h-4" />
-                                </button>
-                              )}
                               <button
                                 onClick={() => handleOpenEditDialog(v)}
                                 className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-stone-200 transition"

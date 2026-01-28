@@ -726,9 +726,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 14 -> 15: Add PlantingStatus for lifecycle tracking
   if (migrated.version < 15) {
     const v15Data = migrateToV15(migrated)
-    v15Data.version = CURRENT_SCHEMA_VERSION
+    v15Data.version = 15
     console.log('Migrated to schema v15: added PlantingStatus for lifecycle tracking')
-    return v15Data
+    // Continue to v16 migration
+    return migrateSchema(v15Data)
+  }
+
+  // Version 15 -> 16: Remove plannedYears from StoredVariety (use seedsByYear instead)
+  if (migrated.version < 16) {
+    const v16Data = migrateToV16(migrated)
+    v16Data.version = CURRENT_SCHEMA_VERSION
+    console.log('Migrated to schema v16: removed plannedYears from StoredVariety')
+    return v16Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -1248,6 +1257,35 @@ function migrateToV15(data: AllotmentData): AllotmentData {
   }))
 
   logger.info('v15 migration: added PlantingStatus to all plantings')
+  return migrated
+}
+
+/**
+ * Migrate from v15 to v16: Remove plannedYears from StoredVariety
+ * - plannedYears is replaced by seedsByYear - a variety is "planned" when it has a seedsByYear entry
+ * - If a variety had plannedYears but no seedsByYear for those years, add 'none' status for them
+ */
+function migrateToV16(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  migrated.varieties = (migrated.varieties || []).map((v: any) => {
+    const { plannedYears, ...rest } = v
+
+    // If variety had plannedYears, ensure those years exist in seedsByYear
+    const seedsByYear = { ...(rest.seedsByYear || {}) }
+    if (Array.isArray(plannedYears)) {
+      for (const year of plannedYears) {
+        if (!(year in seedsByYear)) {
+          seedsByYear[year] = 'none'
+        }
+      }
+    }
+
+    return { ...rest, seedsByYear }
+  })
+
+  logger.info('v16 migration: removed plannedYears from StoredVariety, migrated to seedsByYear')
   return migrated
 }
 
@@ -2544,7 +2582,6 @@ export function addVariety(data: AllotmentData, variety: NewVariety): AllotmentD
     supplier: variety.supplier,
     price: variety.price,
     notes: variety.notes,
-    plannedYears: variety.plannedYears || [],
     seedsByYear: variety.seedsByYear || {},
   }
 
@@ -2626,31 +2663,6 @@ export function getActiveVarieties(
 }
 
 /**
- * Toggle whether a variety is planned for a specific year
- */
-export function togglePlannedYear(
-  data: AllotmentData,
-  varietyId: string,
-  year: number
-): AllotmentData {
-  return {
-    ...data,
-    varieties: (data.varieties || []).map(v => {
-      if (v.id !== varietyId) return v
-
-      const hasYear = v.plannedYears.includes(year)
-      return {
-        ...v,
-        plannedYears: hasYear
-          ? v.plannedYears.filter(y => y !== year)
-          : [...v.plannedYears, year].sort((a, b) => a - b),
-      }
-    }),
-    meta: { ...data.meta, updatedAt: new Date().toISOString() },
-  }
-}
-
-/**
  * Cycle seed status for a variety in a specific year
  * Cycles: none → ordered → have → had → none
  */
@@ -2725,7 +2737,7 @@ export function getTotalSpendForYear(data: AllotmentData, year: number): number 
 }
 
 /**
- * Get all years that have variety data (used or planned)
+ * Get all years that have variety data (used or tracked via seedsByYear)
  */
 export function getAvailableVarietyYears(data: AllotmentData): number[] {
   const years = new Set<number>()
@@ -2736,11 +2748,7 @@ export function getAvailableVarietyYears(data: AllotmentData): number[] {
     const usedYears = getVarietyUsedYears(variety.id, data)
     usedYears.forEach(y => years.add(y))
 
-    // Years where the variety is planned but may not yet have plantings
-    const plannedYears = variety.plannedYears || []
-    plannedYears.forEach(y => years.add(y))
-
-    // Years that appear in seed status data
+    // Years that appear in seed status data (indicates planning/tracking)
     const seedsByYear = variety.seedsByYear || {}
     for (const yearKey of Object.keys(seedsByYear)) {
       const yearNum = Number(yearKey)

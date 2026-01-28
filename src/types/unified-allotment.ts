@@ -413,8 +413,7 @@ export interface StoredVariety {
   supplier?: string
   price?: number
   notes?: string
-  plannedYears: number[]             // @deprecated - inferred from plantings in allotment
-  seedsByYear: Record<number, SeedStatus>  // Per-year inventory status
+  seedsByYear: Record<number, SeedStatus>  // Per-year inventory status (also indicates planned years)
   isArchived?: boolean               // Soft delete - hides from UI without breaking planting references
   perenualId?: string                // Future: external API integration
   gbifId?: string                    // Future: taxonomic validation
@@ -429,7 +428,6 @@ export interface NewVariety {
   supplier?: string
   price?: number
   notes?: string
-  plannedYears?: number[]            // @deprecated - kept for backward compatibility
   seedsByYear?: Record<number, SeedStatus>
 }
 
@@ -441,7 +439,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export const STORAGE_KEY = 'allotment-unified-data'
-export const CURRENT_SCHEMA_VERSION = 15 // Added PlantingStatus for lifecycle tracking
+export const CURRENT_SCHEMA_VERSION = 16 // Removed plannedYears from StoredVariety (use seedsByYear instead)
 
 // ============ HELPER TYPES ============
 

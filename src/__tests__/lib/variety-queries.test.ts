@@ -77,7 +77,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -102,7 +101,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -133,7 +131,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -164,7 +161,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -189,7 +185,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -214,7 +209,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -239,7 +233,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -296,7 +289,6 @@ describe('getVarietyUsedYears', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -327,7 +319,6 @@ describe('getVarietiesForYear', () => {
           id: 'v1',
           plantId: 'pea',
           name: 'Kelvedon Wonder',
-          plannedYears: [],
           seedsByYear: {},
         },
       ],
@@ -343,21 +334,18 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
     const v2 = {
       id: 'v2',
       plantId: 'tomato',
       name: 'San Marzano',
-      plannedYears: [],
       seedsByYear: {},
     }
     const v3 = {
       id: 'v3',
       plantId: 'carrot',
       name: 'Nantes 2',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -394,7 +382,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -419,7 +406,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 
@@ -444,7 +430,6 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      plannedYears: [],
       seedsByYear: {},
     }
 

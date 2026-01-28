@@ -59,11 +59,11 @@ Seed varieties are stored exclusively in `AllotmentData.varieties` with computed
 - **Single Source of Truth**: All variety data lives in `AllotmentData.varieties`
 - **Computed Queries**: Year usage computed dynamically from plantings via `getVarietyUsedYears()`
 - **Soft Delete**: Varieties use `isArchived` flag to preserve references to historical plantings
-- **Inventory Tracking**: Per-year seed status (`none`/`ordered`/`have`/`had`) via `seedsByYear`
+- **Inventory Tracking**: Per-year seed status (`none`/`ordered`/`have`/`had`) via `seedsByYear`. Setting any status for a year also marks the variety as "planned" for that year.
 
 Query functions in `src/lib/variety-queries.ts`:
 - `getVarietyUsedYears(varietyId, data)` - Returns all years a variety was planted
-- `getVarietiesForYear(year, data)` - Returns all varieties used in a specific year
+- `getVarietiesForYear(year, data)` - Returns varieties with seedsByYear entry OR actual plantings for a year
 
 ### State Management
 
@@ -76,7 +76,7 @@ Query functions in `src/lib/variety-queries.ts`:
 ### Storage Service
 
 `src/services/allotment-storage.ts` handles all localStorage operations:
-- Schema validation and migration (current version: 14)
+- Schema validation and migration (current version: 16)
 - Legacy data migration from hardcoded historical plans
 - Immutable update functions (return new data, don't mutate)
 - Promise-based `flushSave()` for reliable import/export coordination
@@ -135,10 +135,12 @@ Split into index and full data for performance:
 
 ## Migration and Backward Compatibility
 
-The app supports automatic schema migration for users on older data versions. Current schema is v14. Users on older schemas (v1-v13) automatically migrate on next app load with automatic backup creation.
+The app supports automatic schema migration for users on older data versions. Current schema is v16. Users on older schemas (v1-v15) automatically migrate on next app load with automatic backup creation.
 
 ### Key Schema Milestones
 
+- **v16** (2026-01-28): Removed `plannedYears` from `StoredVariety`, simplified to use `seedsByYear` as single source of truth for year tracking
+- **v15**: Added `PlantingStatus` for lifecycle tracking
 - **v14** (2026-01-23): Moved grid positions to `AreaSeason.gridPosition` for per-year layouts
 - **v13** (2026-01-22): Consolidated variety storage from dual localStorage into `AllotmentData.varieties`
 - **v12**: Added `SowMethod` tracking and harvest date fields

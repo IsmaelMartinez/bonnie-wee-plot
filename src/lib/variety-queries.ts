@@ -59,11 +59,11 @@ export function getVarietyUsedYears(
 }
 
 /**
- * Get all varieties used or planned for a specific year
+ * Get all varieties used or tracked for a specific year
  *
  * Includes varieties that:
  * - Have plantings in the given year
- * - Have the year in their plannedYears array
+ * - Have a seedsByYear entry for the year (any status)
  *
  * @param year - Year to filter by
  * @param allotmentData - Complete allotment data
@@ -92,10 +92,10 @@ export function getVarietiesForYear(
     }
   }
 
-  // Match varieties by plantings OR by plannedYears
+  // Match varieties by plantings OR by seedsByYear entry
   for (const variety of allotmentData.varieties) {
-    // Check if planned for this year
-    if (variety.plannedYears?.includes(year)) {
+    // Check if tracking seeds for this year (any status indicates planning)
+    if (variety.seedsByYear && year in variety.seedsByYear) {
       matchingVarietyIds.add(variety.id)
       continue
     }
