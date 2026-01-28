@@ -151,7 +151,7 @@ export const PLANTING_TOOLS: OpenAITool[] = [
               },
               success: {
                 type: 'string',
-                enum: ['excellent', 'good', 'fair', 'poor', 'failed'],
+                enum: ['excellent', 'good', 'fair', 'poor'],
                 description: 'How well the planting performed',
               },
               notes: {
@@ -273,7 +273,7 @@ export const updatePlantingArgsSchema = z.object({
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'actualHarvestEnd must be in YYYY-MM-DD format')
       .optional(),
-    success: z.enum(['excellent', 'good', 'fair', 'poor', 'failed']).optional(),
+    success: z.enum(['excellent', 'good', 'fair', 'poor']).optional(),
     notes: z.string().optional(),
     quantity: z.number().positive().optional(),
     status: z.enum(['planned', 'active', 'harvested', 'removed']).optional(),

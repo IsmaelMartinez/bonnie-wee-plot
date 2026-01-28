@@ -16,7 +16,11 @@ import { aiRateLimiter, formatCooldown } from '@/lib/rate-limiter'
 import { getVegetableById } from '@/lib/vegetable-database'
 
 // OpenAI client (works in both dev and production)
-import { callOpenAI } from '@/lib/openai-client'
+import { callOpenAI, OpenAIToolCall } from '@/lib/openai-client'
+
+// AI Tools
+import { PLANTING_TOOLS, ToolCall, formatToolCallForUser } from '@/lib/ai-tools-schema'
+import { executeToolCalls, formatResultsForAI } from '@/services/ai-tool-executor'
 
 // Extracted components
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
@@ -25,6 +29,7 @@ import QuickTopics from '@/components/ai-advisor/QuickTopics'
 import ChatMessage, { LoadingMessage } from '@/components/ai-advisor/ChatMessage'
 import ChatInput from '@/components/ai-advisor/ChatInput'
 import ApiFallbackWarning from '@/components/ai-advisor/ApiFallbackWarning'
+import { ToolCallConfirmation } from '@/components/ai-advisor/ToolCallConfirmation'
 
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
@@ -50,13 +55,18 @@ export default function AIAdvisorPage() {
   const [tempToken, setTempToken] = useState('')
   const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
   const [fallbackReason, setFallbackReason] = useState<string | null>(null)
-  
+
+  // Tool calling state
+  const [pendingToolCalls, setPendingToolCalls] = useState<ToolCall[] | null>(null)
+  const [isExecutingTools, setIsExecutingTools] = useState(false)
+
   // Use extracted hooks
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
   const { token, saveToken, clearToken } = useApiToken()
-  
-  // Load allotment data for context
-  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind } = useAllotment()
+
+  // Load allotment data for context - need reload for after tool execution
+  const allotment = useAllotment()
+  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind, reload: reloadAllotment } = allotment
 
   // Build allotment context string for AI
   const allotmentContext = useMemo(() => {
@@ -211,21 +221,52 @@ export default function AIAdvisorPage() {
       }
 
       // Call OpenAI (tries API route first, falls back to direct call)
+      // Enable tools when allotment data is available
       const data = await callOpenAI({
         apiToken: token,
         message: enhancedQuery,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         image: imageData,
         allotmentContext: allotmentContext || undefined,
-        onFallbackToDirectAPI: (reason) => setFallbackReason(reason)
+        onFallbackToDirectAPI: (reason) => setFallbackReason(reason),
+        enableTools: !!allotmentData,
+        tools: allotmentData ? PLANTING_TOOLS : undefined
       })
-      
+
+      // Check if AI wants to call tools
+      if (data.type === 'tool_calls' && data.tool_calls && data.tool_calls.length > 0) {
+        // Convert to our ToolCall type
+        const toolCalls: ToolCall[] = data.tool_calls.map((tc: OpenAIToolCall) => ({
+          id: tc.id,
+          type: tc.type as 'function',
+          function: tc.function
+        }))
+
+        // Store pending tool calls
+        setPendingToolCalls(toolCalls)
+
+        // Format explanation for user
+        const explanationLines = toolCalls.map(tc => `- ${formatToolCallForUser(tc)}`)
+        const explanation = `I'd like to make the following changes to your garden:\n\n${explanationLines.join('\n')}\n\nPlease confirm below if you'd like me to proceed.`
+
+        // Add AI message explaining the proposed changes
+        const explanationMessage: ExtendedChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response || explanation
+        }
+        setMessages(prev => [...prev, explanationMessage])
+        setIsLoading(false)
+        return // Wait for user confirmation
+      }
+
+      // Regular text response
       const aiResponse: ExtendedChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.response
       }
-      
+
       setMessages(prev => [...prev, aiResponse])
     } catch (error) {
       console.error('Error getting AI response:', error)
@@ -257,6 +298,80 @@ export default function AIAdvisorPage() {
     setTempToken('')
     setShowSettings(false)
   }
+
+  // Handle tool call confirmation
+  const handleToolConfirmation = useCallback(async (approved: boolean) => {
+    if (!pendingToolCalls || !allotmentData) {
+      setPendingToolCalls(null)
+      return
+    }
+
+    if (!approved) {
+      // User declined - add message and clear pending
+      const declineMessage: ExtendedChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "No problem! I won't make those changes. Let me know if there's anything else I can help with."
+      }
+      setMessages(prev => [...prev, declineMessage])
+      setPendingToolCalls(null)
+      return
+    }
+
+    // User approved - execute the tools
+    setIsExecutingTools(true)
+
+    try {
+      const { updatedData, results } = executeToolCalls(
+        pendingToolCalls,
+        allotmentData,
+        selectedYear
+      )
+
+      // Check if any operations succeeded
+      const successCount = results.filter(r => r.success).length
+      const failCount = results.filter(r => !r.success).length
+
+      if (successCount > 0) {
+        // Save the updated data by triggering a storage update
+        // The useAllotment hook will sync this via localStorage
+        localStorage.setItem('allotment-unified-data', JSON.stringify(updatedData))
+
+        // Reload to get fresh data
+        reloadAllotment()
+      }
+
+      // Format result message
+      const resultSummary = formatResultsForAI(results)
+      let responseContent: string
+
+      if (failCount === 0) {
+        responseContent = `Done! ${resultSummary}\n\nYour garden records have been updated. Is there anything else you'd like to do?`
+      } else if (successCount === 0) {
+        responseContent = `I wasn't able to complete the changes:\n\n${resultSummary}\n\nWould you like me to try a different approach?`
+      } else {
+        responseContent = `I completed some of the changes:\n\n${resultSummary}\n\nWould you like me to try the failed operations again?`
+      }
+
+      const resultMessage: ExtendedChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: responseContent
+      }
+      setMessages(prev => [...prev, resultMessage])
+    } catch (error) {
+      console.error('Error executing tool calls:', error)
+      const errorMessage: ExtendedChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `I encountered an error while updating your garden records: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setPendingToolCalls(null)
+      setIsExecutingTools(false)
+    }
+  }, [pendingToolCalls, allotmentData, selectedYear, reloadAllotment])
 
   return (
     <div className="min-h-screen bg-zen-stone-50 zen-texture">
@@ -350,6 +465,14 @@ export default function AIAdvisorPage() {
                 {messages.map((message) => (
                   <ChatMessage key={message.id} message={message} />
                 ))}
+                {/* Tool call confirmation dialog */}
+                {pendingToolCalls && (
+                  <ToolCallConfirmation
+                    toolCalls={pendingToolCalls}
+                    onConfirm={handleToolConfirmation}
+                    isExecuting={isExecutingTools}
+                  />
+                )}
                 {isLoading && <LoadingMessage />}
               </>
             )}
