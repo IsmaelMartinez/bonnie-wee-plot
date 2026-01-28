@@ -10,7 +10,7 @@ import {
   getVarietyUsedYears,
   getVarietiesForYear,
 } from '@/lib/variety-queries'
-import type { AllotmentData, Planting, SeasonRecord } from '@/types/unified-allotment'
+import type { AllotmentData, Planting, SeasonRecord, SeedStatus } from '@/types/unified-allotment'
 
 function createMinimalAllotmentData(overrides: Partial<AllotmentData> = {}): AllotmentData {
   return {
@@ -458,19 +458,19 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      seedsByYear: { 2024: 'ordered' },
+      seedsByYear: { 2024: 'ordered' as SeedStatus },
     }
     const v2 = {
       id: 'v2',
       plantId: 'tomato',
       name: 'San Marzano',
-      seedsByYear: { 2025: 'have' }, // Different year
+      seedsByYear: { 2025: 'have' as SeedStatus }, // Different year
     }
     const v3 = {
       id: 'v3',
       plantId: 'carrot',
       name: 'Nantes 2',
-      seedsByYear: {}, // No seedsByYear entries
+      seedsByYear: {} as Record<number, SeedStatus>, // No seedsByYear entries
     }
 
     const data = createMinimalAllotmentData({
@@ -496,7 +496,7 @@ describe('getVarietiesForYear', () => {
       id: 'v1',
       plantId: 'pea',
       name: 'Kelvedon Wonder',
-      seedsByYear: { 2024: 'have' }, // Has seedsByYear entry
+      seedsByYear: { 2024: 'have' as SeedStatus }, // Has seedsByYear entry
     }
 
     const data = createMinimalAllotmentData({
