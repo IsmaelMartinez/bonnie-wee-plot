@@ -112,10 +112,11 @@ test.describe('Progressive Disclosure - Navigation', () => {
     await skipOnboarding(page)
     await page.goto('/')
 
-    // Primary nav should show exactly 3 items
-    const todayLink = page.getByRole('link', { name: 'Today' })
-    const thisMonthLink = page.getByRole('link', { name: 'This Month' })
-    const seedsLink = page.getByRole('link', { name: 'Seeds' })
+    // Primary nav should show exactly 3 items (use exact match for nav links)
+    const nav = page.getByRole('navigation')
+    const todayLink = nav.getByRole('link', { name: 'Today', exact: true })
+    const thisMonthLink = nav.getByRole('link', { name: 'This Month', exact: true })
+    const seedsLink = nav.getByRole('link', { name: 'Seeds', exact: true })
 
     await expect(todayLink).toBeVisible()
     await expect(thisMonthLink).toBeVisible()
@@ -134,12 +135,12 @@ test.describe('Progressive Disclosure - Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
     await moreButton.click()
 
-    // Check for lock icons (locked features show Lock icon overlay)
-    const lockIcons = page.locator('[role="menu"]').locator('svg').filter({ has: page.locator('path[d*="M16"]') })
-    await expect(lockIcons.first()).toBeVisible()
+    // Check for "Unlock now" buttons which indicate locked features
+    const unlockButtons = page.locator('[role="menu"]').getByText('Unlock now')
+    await expect(unlockButtons.first()).toBeVisible()
 
-    // Check that progress bars are visible for locked features
-    const progressBars = page.locator('[role="menu"]').locator('.bg-zen-stone-100.rounded-full')
+    // Check that progress bars are visible for locked features (the progress track container)
+    const progressBars = page.locator('[role="menu"]').locator('.bg-zen-stone-100.rounded-full.overflow-hidden')
     await expect(progressBars.first()).toBeVisible()
   })
 
@@ -176,6 +177,8 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebration as shown to prevent modal from blocking
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     })
     await page.goto('/')
 
@@ -202,6 +205,8 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebration as shown to prevent modal from blocking
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     }, allotmentData)
     await page.goto('/')
 
@@ -252,6 +257,8 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebration as shown to prevent modal from blocking
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
     })
     await page.goto('/')
 
@@ -275,6 +282,8 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebration as shown to prevent modal from blocking
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
     }, allotmentData)
     await page.goto('/')
 
@@ -333,6 +342,8 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebration as shown to prevent modal from blocking
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
     }, allotmentData)
     await page.goto('/')
 
@@ -484,8 +495,8 @@ test.describe('Progressive Disclosure - Mobile', () => {
     const menuButton = page.getByLabel('Open menu')
     await menuButton.click()
 
-    // Expand More section
-    const moreButton = page.locator('button').filter({ hasText: 'More' })
+    // Expand More section - use the mobile menu's More button (has w-full class)
+    const moreButton = page.getByRole('button', { name: 'More' })
     await moreButton.click()
 
     // Should show locked features with unlock buttons
@@ -494,14 +505,20 @@ test.describe('Progressive Disclosure - Mobile', () => {
 
   test('manual unlock works on mobile', async ({ page }) => {
     await skipOnboarding(page)
+    // Pre-mark celebrations as shown to prevent modals from blocking
+    await page.addInitScript(() => {
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
+        'ai-advisor', 'compost', 'allotment-layout'
+      ]))
+    })
     await page.goto('/')
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')
     await menuButton.click()
 
-    // Expand More section
-    const moreButton = page.locator('button').filter({ hasText: 'More' })
+    // Expand More section - use getByRole for the mobile More button
+    const moreButton = page.getByRole('button', { name: 'More' })
     await moreButton.click()
 
     // Find and click the first "Unlock now" button (Ask Aitor)
@@ -510,10 +527,10 @@ test.describe('Progressive Disclosure - Mobile', () => {
 
     // After unlock, menu closes. Re-open it
     await page.getByLabel('Open menu').click()
-    await page.locator('button').filter({ hasText: 'More' }).click()
+    await page.getByRole('button', { name: 'More' }).click()
 
-    // Now Ask Aitor should be a clickable link
-    const aiAdvisorLink = page.locator('a').filter({ hasText: 'Ask Aitor' })
+    // Now Ask Aitor should be a clickable link in the mobile menu
+    const aiAdvisorLink = page.getByRole('banner').getByRole('link', { name: 'Ask Aitor' })
     await aiAdvisorLink.click()
     await expect(page).toHaveURL(/ai-advisor/)
   })

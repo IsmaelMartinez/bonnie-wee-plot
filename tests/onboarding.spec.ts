@@ -183,6 +183,8 @@ test.describe('Onboarding Wizard - Plan Path', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: ['allotment-layout']
       }))
+      // Mark celebrations as shown to prevent modals
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
     }, newUserData)
     await page.goto('/')
 
@@ -238,6 +240,8 @@ test.describe('Onboarding Wizard - Ask Path', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: ['ai-advisor']
       }))
+      // Mark celebrations as shown to prevent modals
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     }, newUserData)
     await page.goto('/')
 
@@ -247,9 +251,9 @@ test.describe('Onboarding Wizard - Ask Path', () => {
     // Click "I just want to ask" path
     await page.getByText('I just want to ask').click()
 
-    // Should show Screen 2
+    // Should show Screen 2 (within the dialog)
     await expect(page.getByText('Getting Started')).toBeVisible()
-    await expect(page.getByText('Ask Aitor')).toBeVisible()
+    await expect(page.getByLabel('Getting Started').getByRole('heading', { name: 'Ask Aitor' })).toBeVisible()
 
     // Click "Got it, let's go"
     await page.getByText("Got it, let's go").click()
@@ -306,8 +310,11 @@ test.describe('Onboarding Wizard - Skip', () => {
   test('wizard does NOT appear again after skip', async ({ page }) => {
     const newUserData = createNewUserData()
 
+    // Only set initial data if not already present (to avoid resetting on reload)
     await page.addInitScript((data) => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      if (!localStorage.getItem('allotment-unified-data')) {
+        localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      }
     }, newUserData)
     await page.goto('/')
 
@@ -315,6 +322,9 @@ test.describe('Onboarding Wizard - Skip', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByText('Skip for now').click()
     await expect(page.getByRole('dialog')).not.toBeVisible()
+
+    // Wait for debounced save to complete (500ms debounce + buffer)
+    await page.waitForTimeout(700)
 
     // Reload the page
     await page.reload()
@@ -372,8 +382,8 @@ test.describe('Onboarding Wizard - Back Navigation', () => {
     // Select a different path
     await page.getByText('I just want to ask').click()
 
-    // Should see ask path content
-    await expect(page.getByText('Ask Aitor')).toBeVisible()
+    // Should see ask path content (within the dialog)
+    await expect(page.getByLabel('Getting Started').getByRole('heading', { name: 'Ask Aitor' })).toBeVisible()
   })
 })
 
@@ -411,8 +421,11 @@ test.describe('Onboarding Wizard - Completion State', () => {
   test('wizard does NOT appear after completing the flow', async ({ page }) => {
     const newUserData = createNewUserData()
 
+    // Only set initial data if not already present (to avoid resetting on navigation)
     await page.addInitScript((data) => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      if (!localStorage.getItem('allotment-unified-data')) {
+        localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      }
     }, newUserData)
     await page.goto('/')
 
