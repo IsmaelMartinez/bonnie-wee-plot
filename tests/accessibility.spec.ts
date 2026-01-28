@@ -118,6 +118,13 @@ test.describe('Accessibility - Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/')
 
+    // Dismiss onboarding wizard if it appears
+    const skipButton = page.getByRole('button', { name: 'Skip' })
+    if (await skipButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await skipButton.click()
+      await page.waitForTimeout(300)
+    }
+
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
     if (await moreButton.isVisible()) {
@@ -130,6 +137,13 @@ test.describe('Accessibility - Navigation', () => {
   test('mobile navigation should be accessible', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
+
+    // Dismiss onboarding wizard if it appears
+    const skipButton = page.getByRole('button', { name: 'Skip' })
+    if (await skipButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await skipButton.click()
+      await page.waitForTimeout(300)
+    }
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')
