@@ -298,9 +298,8 @@ After codebase audit, systematically review each section per the roadmap:
 - [x] **Bed conversion removal** (PR #78) - Removed non-working AreaTypeConverter component and all related code
 - [x] **Seed status 'had' addition** (PR #79) - Added 'had' status for seeds, removed unused 'available' checkbox
 - [x] **Today dashboard simplification** (PR #80) - Removed BedAlerts component (redundant with task list), added status filtering to task generator, made TaskList full-width
-
-### In Progress / Blocking
-- [ ] **PR #12: Security scanning + Vercel migration** - Needs Snyk token setup after merge
+- [x] **Security scanning + Vercel migration** (PR #12) - Added CodeQL and Snyk scanning, migrated primary deployment to Vercel
+- [x] **Documentation sync** (PR #82) - Updated Next.js version to 16, Vercel deployment links, seed status docs, fixed ADR numbering
 
 ### Pending UX Reviews (Part 3)
 - [x] **Today** - Daily dashboard review (completed in PR #80)
