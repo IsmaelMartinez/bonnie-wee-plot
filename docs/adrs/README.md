@@ -26,3 +26,4 @@ This directory contains Architecture Decision Records documenting significant te
 | [018](018-variety-refactor.md) | Variety Management Refactor | Accepted |
 | [019](019-per-year-grid-positions.md) | Per-Year Grid Positions | Accepted |
 | [020](020-vercel-deployment-security.md) | Vercel Deployment with Security Scanning | Accepted |
+| [021](021-planting-detail-dialog.md) | Planting Detail Dialog | Accepted |

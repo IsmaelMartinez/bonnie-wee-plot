@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Bonnie Wee Plot is a Next.js 15 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an AI gardening assistant powered by OpenAI (BYO API key).
+Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an AI gardening assistant powered by OpenAI (BYO API key).
 
 ## Commands
 
@@ -59,7 +59,7 @@ Seed varieties are stored exclusively in `AllotmentData.varieties` with computed
 - **Single Source of Truth**: All variety data lives in `AllotmentData.varieties`
 - **Computed Queries**: Year usage computed dynamically from plantings via `getVarietyUsedYears()`
 - **Soft Delete**: Varieties use `isArchived` flag to preserve references to historical plantings
-- **Inventory Tracking**: Per-year seed status (`none`/`ordered`/`have`) via `seedsByYear`
+- **Inventory Tracking**: Per-year seed status (`none`/`ordered`/`have`/`had`) via `seedsByYear`
 
 Query functions in `src/lib/variety-queries.ts`:
 - `getVarietyUsedYears(varietyId, data)` - Returns all years a variety was planted

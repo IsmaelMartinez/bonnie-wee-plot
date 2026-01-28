@@ -4,7 +4,7 @@
 
 Welcome to your personal digital garden assistant, specifically tuned for those brave souls who garden where horizontal rain is a lifestyle choice. Plan your plot, get AI-powered advice, and learn proven techniques for growing in Scotland's "interesting" climate—all in one place.
 
-**Try it now:** [Bonnie Wee Plot on GitHub Pages](https://ismaelmartinez.github.io/bonnie-wee-plot)
+**Try it now:** [Bonnie Wee Plot](https://bonnie-wee-plot.vercel.app) (primary) | [GitHub Pages mirror](https://ismaelmartinez.github.io/bonnie-wee-plot) (static fallback)
 
 ## 🤖 AI-Generated Code Disclaimer
 
@@ -30,6 +30,7 @@ Design and track your growing space with year-by-year planning:
 ### 🌱 Seeds & Tracking
 Comprehensive seed and plant management for our shorter growing season:
 - **Seed Catalog**: Browse and search vegetables by category, focusing on what actually grows here
+- **Seed Inventory**: Track seed status per year (need/ordered/have/had) to manage your collection
 - **Planting Calendar**: View detailed planting windows adjusted for Scottish conditions
 - **Crop Rotation**: Smart rotation suggestions based on plant families
 
@@ -48,7 +49,7 @@ Turn garden waste into black gold:
 
 ## 🛠️ Built With Love (And Probably Too Much Coffee)
 
-- **Next.js 15**: The latest and greatest from the Next.js team
+- **Next.js 16**: The latest and greatest from the Next.js team
 - **React 19**: Cutting-edge React with all the new features
 - **TypeScript**: For when JavaScript just isn't confusing enough
 - **Tailwind CSS**: Making things pretty without the existential CSS crisis
@@ -69,7 +70,7 @@ Turn garden waste into black gold:
 2. **Feed it dependencies** (like fertilizer, but for code):
 
    ```bash
-   npm install --legacy-peer-deps
+   npm install
    ```
 
 3. **Wake up the development server** (it's not a morning person):
@@ -137,7 +138,7 @@ Your homepage command center showing seasonal phase (adjusted for Scottish latit
 The heart of the app - manage your growing space with physical bed layouts, yearly planting plans, rotation tracking, and bed notes.
 
 ### Seeds Catalog (`/seeds`)
-Browse vegetables by category, view detailed planting calendars, and learn about crop rotation families.
+Browse vegetables by category, track your seed inventory with per-year status (need/ordered/have/had), view detailed planting calendars, and learn about crop rotation families.
 
 ### Compost Tracker (`/compost`)
 Track multiple compost piles with material logging, C:N ratio tracking, event history, and status management.
