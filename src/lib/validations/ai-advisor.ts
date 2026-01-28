@@ -51,7 +51,10 @@ export const aiAdvisorRequestSchema = z.object({
     .max(MAX_CONTEXT_LENGTH, {
       message: `Allotment context must not exceed ${MAX_CONTEXT_LENGTH} characters`
     })
-    .optional()
+    .optional(),
+  // Enable AI tools (function calling) for inventory management
+  // Only takes effect if AI_TOOLS_ENABLED env var is true
+  enableTools: z.boolean().optional().default(false)
 })
 
 // Type inference for validated request
@@ -59,7 +62,30 @@ export type AiAdvisorRequest = z.infer<typeof aiAdvisorRequestSchema>
 
 // Response type (for documentation, not runtime validation)
 export interface AiAdvisorResponse {
+  type: 'text'
   response: string
+  usage?: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+// Tool call from OpenAI response
+export interface AiAdvisorToolCall {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string // JSON string
+  }
+}
+
+// Response type when AI wants to call tools
+export interface AiAdvisorToolCallResponse {
+  type: 'tool_calls'
+  tool_calls: AiAdvisorToolCall[]
+  requires_confirmation: boolean
   usage?: {
     prompt_tokens: number
     completion_tokens: number
