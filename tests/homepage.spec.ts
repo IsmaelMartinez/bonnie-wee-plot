@@ -1,8 +1,22 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
 
+// Helper to skip onboarding by marking setup as complete
+async function skipOnboarding(page: import('@playwright/test').Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem('allotment-unified-data', JSON.stringify({
+      meta: { setupCompleted: true },
+      layout: { areas: [] },
+      seasons: [],
+      currentYear: new Date().getFullYear(),
+      varieties: []
+    }))
+  })
+}
+
 test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
+    await skipOnboarding(page)
     await page.goto('/');
 
     await expect(page).toHaveTitle(/Bonnie Wee Plot/);
@@ -11,6 +25,7 @@ test.describe('Homepage and Navigation', () => {
 
   test('should navigate to AI advisor page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
+    await skipOnboarding(page)
     await page.goto('/');
 
     // AI advisor is now in "More" dropdown - click More button first
@@ -74,6 +89,10 @@ test.describe('Homepage and Navigation', () => {
 });
 
 test.describe('More Dropdown Navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await skipOnboarding(page)
+  })
+
   test('should display More dropdown button on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
