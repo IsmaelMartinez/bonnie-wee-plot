@@ -704,6 +704,110 @@ describe('v12 to v13 migration', () => {
   })
 })
 
+describe('v15 to v16 migration', () => {
+  beforeEach(() => {
+    vi.mocked(localStorage.getItem).mockClear()
+    vi.mocked(localStorage.setItem).mockClear()
+  })
+
+  it('should remove plannedYears from varieties', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.version).toBe(16)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((result.data?.varieties[0] as any)?.plannedYears).toBeUndefined()
+  })
+
+  it('should migrate plannedYears to seedsByYear with none status', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025],
+          seedsByYear: {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties[0].seedsByYear).toEqual({
+      2024: 'none',
+      2025: 'none'
+    })
+  })
+
+  it('should preserve existing seedsByYear values during migration', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          plannedYears: [2024, 2025, 2026],
+          seedsByYear: { 2024: 'have', 2025: 'ordered' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    // Existing values preserved, only 2026 added as 'none'
+    expect(result.data?.varieties[0].seedsByYear).toEqual({
+      2024: 'have',
+      2025: 'ordered',
+      2026: 'none'
+    })
+  })
+
+  it('should handle varieties with no plannedYears', () => {
+    const v15Data = createValidAllotmentData({
+      version: 15,
+      varieties: [
+        {
+          id: 'v1',
+          plantId: 'peas',
+          name: 'Kelvedon Wonder',
+          seedsByYear: { 2024: 'have' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
+      ]
+    })
+
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    expect(result.data?.varieties[0].seedsByYear).toEqual({ 2024: 'have' })
+  })
+})
+
 describe('Archive Functionality', () => {
   it('archives a variety', () => {
     const data = createValidAllotmentData({
