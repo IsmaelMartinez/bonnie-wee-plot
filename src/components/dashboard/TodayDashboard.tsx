@@ -48,7 +48,7 @@ export default function TodayDashboard() {
   const seasonName = SEASON_NAMES[season]
 
   // Check if onboarding should be shown (only on first visit)
-  const showOnboarding = !allotmentLoading && data && !data.meta.setupCompleted
+  const showOnboarding = !allotmentLoading && !!data && !data.meta.setupCompleted
 
   const handleOnboardingComplete = () => {
     updateMeta({ setupCompleted: true })
