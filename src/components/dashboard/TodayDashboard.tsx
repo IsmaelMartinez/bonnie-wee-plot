@@ -1,12 +1,14 @@
 'use client'
 
 import { useTodayData } from '@/hooks/useTodayData'
+import { useAllotment } from '@/hooks/useAllotment'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
 import AIInsight from './AIInsight'
 import CompostAlerts from './CompostAlerts'
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 
 function LoadingSkeleton() {
   return (
@@ -39,9 +41,18 @@ export default function TodayDashboard() {
     isLoading,
   } = useTodayData()
 
+  const { data, updateMeta, isLoading: allotmentLoading } = useAllotment()
+
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
   const seasonName = SEASON_NAMES[season]
+
+  // Check if onboarding should be shown (only on first visit)
+  const showOnboarding = !allotmentLoading && data && !data.meta.setupCompleted
+
+  const handleOnboardingComplete = () => {
+    updateMeta({ setupCompleted: true })
+  }
 
   if (isLoading) {
     return (
@@ -104,6 +115,12 @@ export default function TodayDashboard() {
           </p>
         </footer>
       </div>
+
+      {/* Onboarding Wizard - shown only on first visit */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+      />
     </div>
   )
 }
