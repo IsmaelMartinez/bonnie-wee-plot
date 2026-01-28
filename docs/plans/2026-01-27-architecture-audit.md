@@ -305,11 +305,45 @@ After codebase audit, systematically review each section per the roadmap:
 ### Pending UX Reviews (Part 3)
 - [x] **Today** - Daily dashboard review (completed in PR #80)
 - [x] **Seeds** - Seed inventory & catalog review (removed plannedYears complexity)
-- [ ] **Allotment** - Layout & plantings (recently improved with PlantingDialog)
-- [ ] **AI Advisor** - Decide: keep read-only OR extend with function calling for data modification
+- [x] **Allotment** - Layout & plantings (AddPlantingForm with companion suggestions, variety integration, sow method recommendations, timeline preview)
+- [x] **AI Advisor** - Decision: extend with function calling for data modification (ADR 022)
 
 ### Pending Architecture Checks (Part 4)
-- [ ] Dead code search (beyond what's been removed)
+- [x] Dead code search (beyond what's been removed) - Findings documented below
 - [ ] Duplication check
 - [ ] Technical debt assessment
-- [ ] Dependencies check (`npm audit`, unused packages)
+- [x] Dependencies check - `npm audit` passed (0 vulnerabilities), depcheck shows no unused production deps
+
+### Dead Code Findings (2026-01-28)
+
+**Debug Statement:**
+- `src/lib/openai-client.ts:166` - console.log(fallbackReason) should be removed
+
+**Unused Garden-Planner Components (legacy grid system):**
+- `src/components/garden-planner/BedEditor.tsx` - Never imported
+- `src/components/garden-planner/BedOverview.tsx` - Never imported
+- `src/components/garden-planner/BedTabs.tsx` - Never imported
+- `src/components/garden-planner/GapSuggestions.tsx` - Never imported
+- `src/components/garden-planner/GardenGrid.tsx` - Never imported
+- `src/components/garden-planner/GridSizeControls.tsx` - Never imported
+- `src/components/garden-planner/LoadPlanDialog.tsx` - Never imported
+
+**Unused Exports in rotation.ts:**
+- `generate2026Plan`, `getBedRotationHistory`, `getBedStatusDisplay`, `getBedATransitionPlan`
+
+**Unused Exports in allotment-layout.ts:**
+- `getBedsByStatus`, `getProblemBeds`, `getPermanentsByType`, `ROTATION_BED_IDS`, `getGridItemById`
+
+**Unused Exports in historical-plans.ts:**
+- `getBedPlanForYear`, `getPlantingsForBed`, `getAvailableYears`, `getProblemBedsSummary`
+
+**Unused Exports in companion-utils.ts:**
+- `getGoodCompanionsForBed`, `sortByCompanionCompatibility`
+
+**Unused Exports in companion-normalization.ts:**
+- `PLURAL_TO_SINGULAR`, `SEMANTIC_MAPPINGS`, `CATEGORY_EXPANSIONS`, `VAGUE_REFERENCES`, `normalizeCompanionArray`
+
+**Unused Functions in companion-validation.ts:**
+- `getAdjacentCells`, `getPlantedAdjacentCells`
+
+**Recommendation:** Remove legacy garden-planner components and unused exports in a cleanup PR
