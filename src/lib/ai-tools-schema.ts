@@ -66,7 +66,7 @@ export const PLANTING_TOOLS: OpenAITool[] = [
           areaId: {
             type: 'string',
             description:
-              "The bed or area ID where plant will be added (e.g., 'A', 'B1', 'B2', 'C'). Use exact IDs as shown in the garden context. Must be a valid existing area.",
+              "The bed or area name where plant will be added (e.g., 'Bed A', 'Raised Bed 1', 'Apple Tree'). Use the human-readable name shown in the garden context. Case-insensitive.",
           },
           plantId: {
             type: 'string',
@@ -114,7 +114,7 @@ export const PLANTING_TOOLS: OpenAITool[] = [
         properties: {
           areaId: {
             type: 'string',
-            description: "The bed/area ID containing the planting (e.g., 'A', 'B1', 'B2', 'C'). Use exact IDs as shown in the garden context.",
+            description: "The bed or area name containing the planting (e.g., 'Bed A', 'Raised Bed 1'). Use the human-readable name shown in the garden context. Case-insensitive.",
           },
           plantId: {
             type: 'string',
@@ -187,7 +187,7 @@ export const PLANTING_TOOLS: OpenAITool[] = [
         properties: {
           areaId: {
             type: 'string',
-            description: "The bed/area ID (e.g., 'A', 'B1', 'B2', 'C'). Use exact IDs as shown in the garden context.",
+            description: "The bed or area name (e.g., 'Bed A', 'Raised Bed 1'). Use the human-readable name shown in the garden context. Case-insensitive.",
           },
           plantId: {
             type: 'string',

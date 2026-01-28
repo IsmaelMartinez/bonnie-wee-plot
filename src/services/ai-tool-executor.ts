@@ -206,7 +206,7 @@ function executeAddPlanting(
   const area = getAreaById(data, args.areaId)
   if (!area) {
     const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
-    const areaList = availableAreas.slice(0, 5).map(a => `${a.id} (${a.name})`).join(', ')
+    const areaList = availableAreas.slice(0, 5).map(a => a.name).join(', ')
     const moreText = availableAreas.length > 5 ? ` and ${availableAreas.length - 5} more` : ''
     return {
       updatedData: data,
@@ -224,14 +224,14 @@ function executeAddPlanting(
   // Check if area can have plantings
   if (!area.canHavePlantings) {
     const plantableBeds = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
-    const bedSuggestions = plantableBeds.slice(0, 3).map(a => a.id).join(', ')
+    const bedSuggestions = plantableBeds.slice(0, 3).map(a => a.name).join(', ')
     return {
       updatedData: data,
       result: {
         tool_call_id: toolCallId,
         success: false,
         error: buildErrorWithSuggestion(
-          `Area '${args.areaId}' (${area.name}) is marked as infrastructure and cannot have plantings.`,
+          `Area '${area.name}' is marked as infrastructure and cannot have plantings.`,
           `Try adding to a bed instead: ${bedSuggestions}`
         ),
       },
@@ -276,7 +276,8 @@ function executeAddPlanting(
     status: args.sowDate ? 'active' : 'planned',
   }
 
-  const updatedData = storageAddPlanting(data, year, args.areaId, newPlanting)
+  // Use area.id (not args.areaId) since args.areaId might be a name
+  const updatedData = storageAddPlanting(data, year, area.id, newPlanting)
 
   const displayName = args.varietyName
     ? `${args.varietyName} (${plant.name})`
@@ -289,7 +290,7 @@ function executeAddPlanting(
       success: true,
       result: {
         message: `Added ${displayName} to ${area.name}${args.sowDate ? ` with sowing date ${args.sowDate}` : ''}`,
-        areaId: args.areaId,
+        areaId: area.id, // Use resolved ID, not input
         areaName: area.name,
         plantId: plant.id, // Use the actual ID from database, not the user input
         plantName: plant.name,
@@ -310,7 +311,7 @@ function executeUpdatePlanting(
   const area = getAreaById(data, args.areaId)
   if (!area) {
     const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
-    const areaList = availableAreas.slice(0, 5).map(a => a.id).join(', ')
+    const areaList = availableAreas.slice(0, 5).map(a => a.name).join(', ')
     return {
       updatedData: data,
       result: {
@@ -318,14 +319,14 @@ function executeUpdatePlanting(
         success: false,
         error: buildErrorWithSuggestion(
           `Area '${args.areaId}' not found.`,
-          `Available beds: ${areaList}. Try asking "what's planted in bed A?" to see your plantings.`
+          `Available beds: ${areaList}. Try asking "what's planted in Bed A?" to see your plantings.`
         ),
       },
     }
   }
 
-  // Find the planting to update
-  const plantings = getPlantingsForArea(data, year, args.areaId)
+  // Find the planting to update (use area.id since args.areaId might be a name)
+  const plantings = getPlantingsForArea(data, year, area.id)
   const planting = findPlantingByPlantId(plantings, args.plantId)
 
   if (!planting) {
@@ -364,10 +365,11 @@ function executeUpdatePlanting(
   if (args.updates.quantity !== undefined) updates.quantity = args.updates.quantity
   if (args.updates.status !== undefined) updates.status = args.updates.status
 
+  // Use area.id (not args.areaId) since args.areaId might be a name
   const updatedData = storageUpdatePlanting(
     data,
     year,
-    args.areaId,
+    area.id,
     planting.id,
     updates
   )
@@ -382,7 +384,7 @@ function executeUpdatePlanting(
       success: true,
       result: {
         message: `Updated ${plantName} in ${area.name}`,
-        areaId: args.areaId,
+        areaId: area.id, // Use resolved ID, not input
         areaName: area.name,
         plantingId: planting.id,
         updates: args.updates,
@@ -401,7 +403,7 @@ function executeRemovePlanting(
   const area = getAreaById(data, args.areaId)
   if (!area) {
     const availableAreas = getAllAreas(data).filter(a => a.canHavePlantings && !a.isArchived)
-    const areaList = availableAreas.slice(0, 5).map(a => a.id).join(', ')
+    const areaList = availableAreas.slice(0, 5).map(a => a.name).join(', ')
     return {
       updatedData: data,
       result: {
@@ -415,8 +417,8 @@ function executeRemovePlanting(
     }
   }
 
-  // Find the planting to remove
-  const plantings = getPlantingsForArea(data, year, args.areaId)
+  // Find the planting to remove (use area.id since args.areaId might be a name)
+  const plantings = getPlantingsForArea(data, year, area.id)
   const planting = findPlantingByPlantId(plantings, args.plantId)
 
   if (!planting) {
@@ -442,10 +444,11 @@ function executeRemovePlanting(
     }
   }
 
+  // Use area.id (not args.areaId) since args.areaId might be a name
   const updatedData = storageRemovePlanting(
     data,
     year,
-    args.areaId,
+    area.id,
     planting.id
   )
 
@@ -459,7 +462,7 @@ function executeRemovePlanting(
       success: true,
       result: {
         message: `Removed ${plantName} from ${area.name}`,
-        areaId: args.areaId,
+        areaId: area.id, // Use resolved ID, not input
         areaName: area.name,
         plantingId: planting.id,
       },

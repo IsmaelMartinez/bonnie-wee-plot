@@ -181,6 +181,34 @@ describe('executeToolCall', () => {
       const bedB = updatedData.seasons[0].areas.find(a => a.areaId === 'bed-b')
       expect(bedB?.plantings[0].status).toBe('planned')
     })
+
+    it('should accept area name instead of ID (case-insensitive)', () => {
+      const toolCall = createToolCall('add_planting', {
+        areaId: 'Bed B', // Using name instead of 'bed-b' ID
+        plantId: 'carrot',
+      })
+
+      const { updatedData, result } = executeToolCall(toolCall, mockData, 2026)
+
+      expect(result.success).toBe(true)
+      const bedB = updatedData.seasons[0].areas.find(a => a.areaId === 'bed-b')
+      expect(bedB?.plantings).toHaveLength(1)
+      expect(bedB?.plantings[0].plantId).toBe('carrot')
+    })
+
+    it('should accept area name in different case', () => {
+      const toolCall = createToolCall('add_planting', {
+        areaId: 'bed a', // lowercase name
+        plantId: 'lettuce',
+      })
+
+      const { updatedData, result } = executeToolCall(toolCall, mockData, 2026)
+
+      expect(result.success).toBe(true)
+      const bedA = updatedData.seasons[0].areas.find(a => a.areaId === 'bed-a')
+      // bed-a already has tomato, so should now have 2 plantings
+      expect(bedA?.plantings).toHaveLength(2)
+    })
   })
 
   describe('update_planting', () => {
@@ -559,7 +587,7 @@ describe('error messages with recovery suggestions', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toContain('Suggestion')
-    expect(result.error).toContain('bed-a') // Should suggest available beds
+    expect(result.error).toContain('Bed A') // Should suggest available beds by name
   })
 
   it('should include suggestions for invalid plant', () => {
@@ -612,7 +640,7 @@ describe('error messages with recovery suggestions', () => {
     expect(result.success).toBe(false)
     expect(result.error).toContain('infrastructure')
     expect(result.error).toContain('Suggestion')
-    expect(result.error).toContain('bed-a') // Should suggest a plantable bed
+    expect(result.error).toContain('Bed A') // Should suggest a plantable bed by name
   })
 })
 
