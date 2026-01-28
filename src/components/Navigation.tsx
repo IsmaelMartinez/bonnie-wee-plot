@@ -476,7 +476,10 @@ export default function Navigation() {
                 icon: (() => {
                   const featureConfig = lockedFeatures.find(f => f.feature === newlyUnlockedFeature)
                   const IconComponent = featureConfig?.icon
-                  return IconComponent ? <IconComponent className="w-8 h-8" /> : null
+                  if (!IconComponent) {
+                    return <Sparkles className="w-8 h-8" />
+                  }
+                  return <IconComponent className="w-8 h-8" />
                 })(),
               }
             : null

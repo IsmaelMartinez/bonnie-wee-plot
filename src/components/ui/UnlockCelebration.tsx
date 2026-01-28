@@ -10,6 +10,7 @@
 
 import { ReactNode } from 'react'
 import Dialog from './Dialog'
+import type { UnlockableFeature } from '@/lib/feature-flags'
 
 export interface FeatureInfo {
   name: string
@@ -89,7 +90,7 @@ export default function UnlockCelebration({
 /**
  * Feature information for each unlockable feature
  */
-export const FEATURE_INFO: Record<string, Omit<FeatureInfo, 'icon'>> = {
+export const FEATURE_INFO: Record<UnlockableFeature, Omit<FeatureInfo, 'icon'>> = {
   'ai-advisor': {
     name: 'Ask Aitor',
     description: 'Get personalized gardening advice from Aitor, your AI garden assistant. Ask questions about planting, pest control, companion planting, and more.',
