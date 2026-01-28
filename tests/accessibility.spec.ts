@@ -114,16 +114,32 @@ test.describe('Accessibility - About Page', () => {
 })
 
 test.describe('Accessibility - Navigation', () => {
+  // Helper to skip onboarding by marking setup as complete
+  async function skipOnboarding(page: import('@playwright/test').Page) {
+    await page.addInitScript(() => {
+      // Mark setup as completed to prevent onboarding wizard
+      const data = localStorage.getItem('allotment-unified-data')
+      if (data) {
+        const parsed = JSON.parse(data)
+        parsed.meta = { ...parsed.meta, setupCompleted: true }
+        localStorage.setItem('allotment-unified-data', JSON.stringify(parsed))
+      } else {
+        // Create minimal data with setupCompleted
+        localStorage.setItem('allotment-unified-data', JSON.stringify({
+          meta: { setupCompleted: true },
+          layout: { areas: [] },
+          seasons: [],
+          currentYear: new Date().getFullYear(),
+          varieties: []
+        }))
+      }
+    })
+  }
+
   test('navigation menu should be accessible on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
+    await skipOnboarding(page)
     await page.goto('/')
-
-    // Dismiss onboarding wizard if it appears
-    const skipButton = page.getByRole('button', { name: 'Skip' })
-    if (await skipButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await skipButton.click()
-      await page.waitForTimeout(300)
-    }
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -136,14 +152,8 @@ test.describe('Accessibility - Navigation', () => {
 
   test('mobile navigation should be accessible', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
+    await skipOnboarding(page)
     await page.goto('/')
-
-    // Dismiss onboarding wizard if it appears
-    const skipButton = page.getByRole('button', { name: 'Skip' })
-    if (await skipButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await skipButton.click()
-      await page.waitForTimeout(300)
-    }
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')
