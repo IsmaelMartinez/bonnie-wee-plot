@@ -4,30 +4,51 @@ Welcome to Bonnie Wee Plot - your digital companion for planning and tracking yo
 
 ## What You'll Learn
 
-1. [Your First Visit](#your-first-visit) - Understanding the dashboard
-2. [Adding Your First Planting](#adding-your-first-planting) - Recording what you're growing
-3. [Tracking Seeds](#tracking-seeds) - Managing your seed inventory
-4. [Using the Calendar](#using-the-calendar) - What to do this month
-5. [Asking Aitor](#asking-aitor) - Getting AI gardening advice
+1. [Your First Visit](#your-first-visit) - The onboarding experience
+2. [The Main Sections](#the-main-sections) - Navigating the app
+3. [Adding Your First Planting](#adding-your-first-planting) - Recording what you're growing
+4. [Tracking Seeds](#tracking-seeds) - Managing your seed inventory
+5. [Using the Calendar](#using-the-calendar) - What to do this month
+6. [Asking Aitor](#asking-aitor) - Getting AI gardening advice
+7. [Unlocking More Features](#unlocking-more-features) - Progressive feature access
 
 ---
 
 ## Your First Visit
 
-When you open Bonnie Wee Plot, you'll see the **Today** dashboard showing:
-- What needs attention in your garden today
-- Upcoming tasks based on your plantings
-- Quick actions to add new plants
+When you first open Bonnie Wee Plot, you'll see a welcome wizard with three paths:
+
+| Path | Best For |
+|------|----------|
+| **Show me what to grow** | See what's in season for Scotland right now |
+| **I have a plot to plan** | Set up your allotment beds and start planning |
+| **I just want to ask** | Chat with Aitor, your AI gardening advisor |
+
+Choose the path that matches your immediate need. You can always access everything later.
 
 > **Tip:** Bonnie Wee Plot saves everything in your browser. No account needed - your data stays on your device.
 
-### The Main Sections
+---
+
+## The Main Sections
+
+The navigation shows three primary sections to keep things simple:
 
 | Section | Purpose |
 |---------|---------|
 | **Today** | Your daily dashboard - what needs doing now |
 | **This Month** | Seasonal calendar - what to sow, transplant, harvest |
 | **Seeds** | Seed inventory - track what you have and order |
+
+### More Features
+
+Click **More** in the navigation to access additional features:
+- **Ask Aitor** - AI gardening advice
+- **Compost** - Track your compost piles
+- **Allotment** - Visual bed layout and planning
+- **About** - Learn more about the app
+
+Some features unlock as you use the app - see [Unlocking More Features](#unlocking-more-features).
 
 ---
 
@@ -94,11 +115,11 @@ For each variety, track whether you:
 
 ## Asking Aitor
 
-Aitor is your AI gardening advisor, powered by OpenAI.
+Aitor is your AI gardening advisor, powered by OpenAI. You can find Aitor under **More > Ask Aitor**.
 
 ### Getting Started with Aitor
 
-1. Go to **AI Advisor**
+1. Go to **Ask Aitor** (via the More menu)
 2. Enter your OpenAI API key (you only need to do this once per session)
 3. Ask anything about gardening!
 
@@ -112,11 +133,48 @@ Aitor is your AI gardening advisor, powered by OpenAI.
 
 > "What should I plant in a shady corner?"
 
+### Aitor Can Help Manage Your Plot
+
+Aitor isn't just for advice - they can also help you manage your allotment data:
+
+- **Add plantings**: "Add tomatoes to Bed A"
+- **Update plantings**: "Mark the courgettes as transplanted"
+- **Remove plantings**: "Remove the failed lettuce from Bed B"
+
+When Aitor suggests a change to your data, you'll see a confirmation dialog before anything is modified.
+
 ### Tips for Better Answers
 
 - Mention your location (Aitor knows Scottish conditions)
 - Share what you've already planted
 - Include photos of problems for diagnosis
+- Aitor has access to your allotment data for contextual advice
+
+---
+
+## Unlocking More Features
+
+Bonnie Wee Plot uses progressive feature disclosure - you start with the essentials and unlock more as you go.
+
+### How It Works
+
+As you use the app, you'll unlock additional features based on your engagement:
+
+| Feature | Unlock Condition |
+|---------|------------------|
+| **Ask Aitor** | Add your first planting |
+| **Compost** | Record a harvest |
+| **Allotment Layout** | Add 5 plantings |
+
+### Checking Progress
+
+1. Click **More** in the navigation
+2. Locked features show a progress bar
+3. See how close you are to unlocking
+
+### Skip the Wait
+
+If you prefer immediate access, each locked feature has an "Unlock now" button. This reveals the feature right away without meeting the threshold.
 
 ---
 
@@ -157,7 +215,3 @@ Once you're comfortable with the basics:
 - Ask Aitor - your AI advisor can answer most gardening questions
 - Check the [FAQ](./faq.md) for common questions
 - Report issues on [GitHub](https://github.com/IsmaelMartinez/bonnie-wee-plot/issues)
-
----
-
-*Happy growing! 🌱*
