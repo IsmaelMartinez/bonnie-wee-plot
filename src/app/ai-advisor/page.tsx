@@ -30,6 +30,7 @@ import ChatMessage, { LoadingMessage } from '@/components/ai-advisor/ChatMessage
 import ChatInput from '@/components/ai-advisor/ChatInput'
 import ApiFallbackWarning from '@/components/ai-advisor/ApiFallbackWarning'
 import { ToolCallConfirmation } from '@/components/ai-advisor/ToolCallConfirmation'
+import { Toast, ToastType } from '@/components/ui/Toast'
 
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
@@ -59,6 +60,9 @@ export default function AIAdvisorPage() {
   // Tool calling state
   const [pendingToolCalls, setPendingToolCalls] = useState<ToolCall[] | null>(null)
   const [isExecutingTools, setIsExecutingTools] = useState(false)
+
+  // Toast notification state
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
 
   // Use extracted hooks
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
@@ -339,6 +343,17 @@ export default function AIAdvisorPage() {
 
         // Reload to get fresh data
         reloadAllotment()
+
+        // Show success toast
+        const toastMessage = successCount === 1
+          ? 'Garden updated successfully!'
+          : `${successCount} changes applied successfully!`
+        setToast({ message: toastMessage, type: 'success' })
+      }
+
+      // Show error toast if all operations failed
+      if (successCount === 0 && failCount > 0) {
+        setToast({ message: 'Could not apply changes. See details below.', type: 'error' })
       }
 
       // Format result message
@@ -498,6 +513,15 @@ export default function AIAdvisorPage() {
           </ul>
         </div>
       </div>
+
+      {/* Toast notification for tool execution feedback */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onDismiss={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }
