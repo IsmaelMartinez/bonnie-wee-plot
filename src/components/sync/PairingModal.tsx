@@ -64,7 +64,7 @@ export function PairingModal({ open, onClose, onPaired }: PairingModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onClose={handleClose}>
         <DialogHeader>
           <DialogTitle>
             {step === 'choose' && 'Add Device'}
