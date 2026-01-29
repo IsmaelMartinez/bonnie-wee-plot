@@ -3,21 +3,54 @@
  *
  * Displays pending AI tool calls and allows the user to approve or decline them.
  * Shows a preview of what changes the AI wants to make to the garden data.
+ * Handles plant disambiguation when AI uses a generic plant name like "tomatoes".
  */
 
 'use client'
 
-import { AlertCircle, Check, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { AlertCircle, Check, X, Loader2, HelpCircle } from 'lucide-react'
 import { ToolCall, formatToolCallForUser, requiresConfirmation } from '@/lib/ai-tools-schema'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { checkPlantDisambiguation, PlantSuggestion } from '@/services/ai-tool-executor'
 
 interface ToolCallConfirmationProps {
   /** The tool calls pending confirmation */
   toolCalls: ToolCall[]
   /** Called when user approves or declines */
   onConfirm: (approved: boolean) => void
+  /** Called when user selects a plant from disambiguation options */
+  onPlantSelected?: (toolCallId: string, selectedPlantId: string) => void
   /** Whether the tool calls are currently being executed */
   isExecuting?: boolean
+}
+
+interface DisambiguationInfo {
+  toolCallId: string
+  originalInput: string
+  suggestions: PlantSuggestion[]
+}
+
+/**
+ * Check if a tool call needs plant disambiguation
+ */
+function getDisambiguationNeeded(toolCall: ToolCall): DisambiguationInfo | null {
+  try {
+    const args = JSON.parse(toolCall.function.arguments)
+    if (!args.plantId) return null
+
+    const result = checkPlantDisambiguation(args.plantId)
+    if (result.needsDisambiguation && result.suggestions && result.suggestions.length > 0) {
+      return {
+        toolCallId: toolCall.id,
+        originalInput: result.originalInput,
+        suggestions: result.suggestions,
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -26,8 +59,21 @@ interface ToolCallConfirmationProps {
 export function ToolCallConfirmation({
   toolCalls,
   onConfirm,
+  onPlantSelected,
   isExecuting = false,
 }: ToolCallConfirmationProps) {
+  const [disambiguations, setDisambiguations] = useState<DisambiguationInfo[]>([])
+
+  // Check for disambiguation needs when tool calls change
+  useEffect(() => {
+    const needed: DisambiguationInfo[] = []
+    for (const tc of toolCalls) {
+      const info = getDisambiguationNeeded(tc)
+      if (info) needed.push(info)
+    }
+    setDisambiguations(needed)
+  }, [toolCalls])
+
   // Filter to only tool calls that require confirmation
   const confirmableCalls = toolCalls.filter(tc =>
     requiresConfirmation(tc.function.name)
@@ -35,6 +81,19 @@ export function ToolCallConfirmation({
 
   if (confirmableCalls.length === 0) {
     return null
+  }
+
+  // If disambiguation needed, show that UI first
+  if (disambiguations.length > 0 && onPlantSelected) {
+    const firstDisambig = disambiguations[0]
+    return (
+      <PlantDisambiguation
+        originalInput={firstDisambig.originalInput}
+        suggestions={firstDisambig.suggestions}
+        onSelect={(plantId) => onPlantSelected(firstDisambig.toolCallId, plantId)}
+        onCancel={() => onConfirm(false)}
+      />
+    )
   }
 
   const isBatchOperation = confirmableCalls.length > 1
@@ -216,6 +275,62 @@ function getToolCallDetails(toolCall: ToolCall): ToolCallDetails {
       action: formatToolCallForUser(toolCall),
     }
   }
+}
+
+/**
+ * Plant disambiguation UI - shown when AI uses a generic plant name
+ */
+function PlantDisambiguation({
+  originalInput,
+  suggestions,
+  onSelect,
+  onCancel,
+}: {
+  originalInput: string
+  suggestions: PlantSuggestion[]
+  onSelect: (plantId: string) => void
+  onCancel: () => void
+}) {
+  return (
+    <div
+      className="bg-blue-50 border border-blue-200 rounded-lg p-4 my-3"
+      role="dialog"
+      aria-labelledby="disambig-title"
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <HelpCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="flex-1">
+          <h3 id="disambig-title" className="font-medium text-gray-800 mb-2">
+            Which plant did you mean?
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            &ldquo;{originalInput}&rdquo; matches several plants. Please select one:
+          </p>
+          <div className="space-y-2" role="group" aria-label="Plant options">
+            {suggestions.map((plant) => (
+              <button
+                key={plant.id}
+                onClick={() => onSelect(plant.id)}
+                className="w-full text-left px-3 py-2 bg-white border border-blue-100 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              >
+                <span className="font-medium text-gray-800">{plant.name}</span>
+                <span className="text-gray-500 text-sm ml-2">({plant.id})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-end mt-4">
+        <button
+          onClick={onCancel}
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+        >
+          <X className="w-4 h-4" aria-hidden="true" />
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
 }
 
 /**
