@@ -91,10 +91,10 @@ Three independent tracks run simultaneously:
 - [x] E2E testing of unlock flows - PR #99
 
 ### Quality & Launch (2 days)
-- [x] Full test suite pass (unit + E2E) - All 150 tests passing
-- [ ] Accessibility regression check
+- [x] Full test suite pass (unit + E2E) - All 149 tests passing
+- [x] Accessibility regression check - All 14 a11y tests passed, no WCAG violations
 - [x] Analytics integration (simple event tracking) - PR #96
-- [ ] Bug fixes and refinement
+- [x] Bug fixes and refinement - Fixed celebration modal race condition (PR #100)
 - [x] Publish documentation - PR #98
 
 ---
@@ -109,9 +109,9 @@ Three independent tracks run simultaneously:
 - [x] Documentation: Getting started guide published (PR #98)
 
 ### Remaining Items
-- [ ] Accessibility regression check
-- [ ] Write launch blog post
-- [ ] Final bug fixes and refinement
+- [x] Accessibility regression check - All 14 a11y tests passed
+- [x] Write launch blog post - docs/blog/2026-01-launch.md
+- [x] Final bug fixes and refinement - Celebration modal race condition fixed
 
 ---
 
@@ -227,7 +227,7 @@ Each worktree has own CURRENT.md. Feature decisions go in committed `docs/sessio
 
 ---
 
-**Status:** 🎉 Nearly Complete - Core sprint goals achieved
+**Status:** 🎉 Complete - All sprint goals achieved
 **Owner:** Ismael + Claude
 **Review:** End of each week
 
