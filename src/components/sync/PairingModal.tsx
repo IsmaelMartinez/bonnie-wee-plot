@@ -88,9 +88,32 @@ export function PairingModal({ open, onClose, onPaired }: PairingModalProps) {
           </div>
         )}
 
-        {step === 'show-qr' && payload && <QRCodeDisplay payload={payload} />}
+        {step === 'show-qr' && payload && (
+          <div className="flex flex-col gap-4">
+            <QRCodeDisplay payload={payload} />
+            <p className="text-xs text-gray-500 text-center">
+              Open Settings → Add Device → Scan QR Code on your other device
+            </p>
+            <button
+              onClick={() => setStep('choose')}
+              className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
+              Back
+            </button>
+          </div>
+        )}
 
-        {step === 'scan-qr' && <QRCodeScanner onScan={handleScan} onError={setError} />}
+        {step === 'scan-qr' && (
+          <div className="flex flex-col gap-4">
+            <QRCodeScanner onScan={handleScan} onError={setError} />
+            <button
+              onClick={() => setStep('choose')}
+              className="px-4 py-2 border rounded hover:bg-gray-50"
+            >
+              Back
+            </button>
+          </div>
+        )}
 
         {step === 'confirm' && scannedPayload && (
           <div className="text-center">
