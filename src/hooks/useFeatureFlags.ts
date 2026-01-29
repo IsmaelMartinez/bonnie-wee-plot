@@ -156,6 +156,10 @@ export function useFeatureFlags(allotmentData: AllotmentData | null): UseFeature
 
   // Manually unlock a feature
   const unlock = useCallback((feature: UnlockableFeature): void => {
+    // Mark celebration as shown before updating state
+    // This prevents the useEffect from triggering a celebration for manual unlocks
+    // (manual unlocks are explicit user choices, not achievements to celebrate)
+    markCelebrationShown(feature)
     const updated = manuallyUnlockFeature(feature)
     setEngagement(updated)
   }, [])

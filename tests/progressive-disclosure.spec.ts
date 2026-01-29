@@ -261,8 +261,11 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
-      // Mark celebration as shown to prevent modal from blocking
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
+      // Mark celebrations as shown to prevent modals from blocking
+      // With 5 visits, AI Advisor (3 visits) and Compost (5 visits) both unlock
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
+        'ai-advisor', 'compost'
+      ]))
     })
     await page.goto('/')
 
@@ -286,8 +289,11 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
-      // Mark celebration as shown to prevent modal from blocking
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
+      // Mark celebrations as shown to prevent modals from blocking
+      // Data has 1 planting with harvest, so AI Advisor (1 planting) and Compost (1 harvest) both unlock
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
+        'ai-advisor', 'compost'
+      ]))
     }, allotmentData)
     await page.goto('/')
 
@@ -315,6 +321,9 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebrations as shown to prevent modals from blocking
+      // With 4 visits, AI Advisor (3 visits) unlocks
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     })
     await page.goto('/')
 
@@ -346,8 +355,11 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
-      // Mark celebration as shown to prevent modal from blocking
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
+      // Mark celebrations as shown to prevent modals from blocking
+      // With 5 plantings, AI Advisor (1 planting) and Allotment Layout (5 plantings) both unlock
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
+        'ai-advisor', 'allotment-layout'
+      ]))
     }, allotmentData)
     await page.goto('/')
 
@@ -371,6 +383,9 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: []
       }))
+      // Mark celebrations as shown to prevent modals from blocking
+      // With 4 plantings, AI Advisor (1 planting) unlocks
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     }, allotmentData)
     await page.goto('/')
 
