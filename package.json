@@ -50,6 +50,8 @@
     "react-grid-layout": "^2.1.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "web-vitals": "^5.1.0",
     "y-indexeddb": "^9.0.12",
     "yjs": "^13.6.29",
