@@ -439,7 +439,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 
 // ============ STORAGE CONSTANTS ============
 
-export const STORAGE_KEY = 'allotment-unified-data'
+export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
 export const CURRENT_SCHEMA_VERSION = 16 // Removed plannedYears from StoredVariety (use seedsByYear instead)
 
 // ============ HELPER TYPES ============

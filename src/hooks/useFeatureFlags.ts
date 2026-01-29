@@ -25,10 +25,11 @@ import {
   getAllotmentLayoutProgress,
 } from '@/lib/feature-flags'
 import { AllotmentData } from '@/types/unified-allotment'
+import { STORAGE_KEY_CELEBRATIONS } from '@/lib/storage-keys'
 
 // ============ CELEBRATION TRACKING ============
 
-const CELEBRATION_STORAGE_KEY = 'allotment-celebrations-shown'
+const CELEBRATION_STORAGE_KEY = STORAGE_KEY_CELEBRATIONS
 
 /**
  * Load which celebrations have already been shown
