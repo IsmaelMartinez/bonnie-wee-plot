@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Scanner } from '@yudiel/react-qr-scanner'
 import type { PairingPayload } from '@/types/sync'
 
@@ -11,26 +11,54 @@ interface QRCodeScannerProps {
 
 export function QRCodeScanner({ onScan, onError }: QRCodeScannerProps) {
   const [hasPermission, setHasPermission] = useState(true)
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanStatus, setScanStatus] = useState<string>('Initializing camera...')
+
+  useEffect(() => {
+    // Check if BarcodeDetector API is available
+    if (!('BarcodeDetector' in window)) {
+      setScanStatus('QR scanning may not work in this browser. Try Chrome or Safari.')
+    } else {
+      setScanStatus('Point camera at QR code')
+    }
+  }, [])
 
   const handleScan = (result: { rawValue: string }[]) => {
     if (result.length === 0) return
+    if (isScanning) return // Prevent double scans
+
+    setIsScanning(true)
+    setScanStatus('QR code detected!')
+
     try {
-      const payload = JSON.parse(result[0].rawValue) as PairingPayload
+      const rawValue = result[0].rawValue
+      console.log('QR Scanned:', rawValue) // Debug log
+
+      const payload = JSON.parse(rawValue) as PairingPayload
       if (payload.v !== 1 || !payload.pk || !payload.code || !payload.name) {
-        onError('Invalid QR code format')
+        onError('Invalid QR code - not a Bonnie Wee Plot pairing code')
+        setIsScanning(false)
+        setScanStatus('Point camera at QR code')
         return
       }
       onScan(payload)
     } catch {
-      onError('Could not read QR code')
+      onError('Could not read QR code - invalid format')
+      setIsScanning(false)
+      setScanStatus('Point camera at QR code')
     }
   }
 
   const handleError = (error: unknown) => {
-    if (error instanceof Error && error.name === 'NotAllowedError') {
-      setHasPermission(false)
+    console.error('Scanner error:', error) // Debug log
+    if (error instanceof Error) {
+      if (error.name === 'NotAllowedError') {
+        setHasPermission(false)
+        return
+      }
+      setScanStatus(`Error: ${error.message}`)
     }
-    onError('Camera error')
+    onError('Camera error - please try again')
   }
 
   if (!hasPermission) {
@@ -51,9 +79,13 @@ export function QRCodeScanner({ onScan, onError }: QRCodeScannerProps) {
         onError={handleError}
         constraints={{ facingMode: 'environment' }}
         styles={{ container: { borderRadius: '8px', overflow: 'hidden' } }}
+        formats={['qr_code']}
       />
       <p className="text-sm text-gray-500 text-center mt-4">
-        Point your camera at the QR code on the other device
+        {scanStatus}
+      </p>
+      <p className="text-xs text-gray-400 text-center mt-2">
+        Make sure the QR code is well-lit and fully visible
       </p>
     </div>
   )
