@@ -9,6 +9,7 @@ import {
   getPairedDevices,
   removePairedDevice
 } from '@/services/device-identity'
+import { useSyncConnection } from '@/hooks/useSyncConnection'
 import type { DeviceIdentity, PairedDevice } from '@/types/sync'
 
 export function DeviceSettings() {
@@ -19,6 +20,8 @@ export function DeviceSettings() {
   const [showPairing, setShowPairing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const { status: syncStatus, peerStatuses, connect, refreshPeers } = useSyncConnection()
 
   useEffect(() => {
     try {
@@ -32,6 +35,15 @@ export function DeviceSettings() {
     } finally {
       setIsLoading(false)
     }
+  }, [])
+
+  // Listen for peer authentication events to refresh the list
+  useEffect(() => {
+    const handlePeerAuth = () => {
+      setDevices(getPairedDevices())
+    }
+    window.addEventListener('sync-peer-authenticated', handlePeerAuth)
+    return () => window.removeEventListener('sync-peer-authenticated', handlePeerAuth)
   }, [])
 
   const handleSaveName = () => {
@@ -50,6 +62,12 @@ export function DeviceSettings() {
   const handlePaired = () => {
     setDevices(getPairedDevices())
     setShowPairing(false)
+    // Connect to the new peer
+    if (syncStatus === 'connected') {
+      refreshPeers()
+    } else {
+      connect()
+    }
   }
 
   if (isLoading) {
@@ -80,6 +98,21 @@ export function DeviceSettings() {
     )
   }
 
+  const getSyncStatusDisplay = () => {
+    switch (syncStatus) {
+      case 'connected':
+        return { text: 'Online', color: 'text-green-600', dot: 'bg-green-500' }
+      case 'connecting':
+        return { text: 'Connecting...', color: 'text-yellow-600', dot: 'bg-yellow-500' }
+      case 'error':
+        return { text: 'Error', color: 'text-red-600', dot: 'bg-red-500' }
+      default:
+        return { text: 'Offline', color: 'text-gray-500', dot: 'bg-gray-400' }
+    }
+  }
+
+  const statusDisplay = getSyncStatusDisplay()
+
   return (
     <div className="space-y-6">
       <section>
@@ -103,7 +136,13 @@ export function DeviceSettings() {
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <span className="font-medium">{identity.deviceName}</span>
+              <div>
+                <span className="font-medium">{identity.deviceName}</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className={`w-2 h-2 rounded-full ${statusDisplay.dot}`} />
+                  <span className={`text-xs ${statusDisplay.color}`}>{statusDisplay.text}</span>
+                </div>
+              </div>
               <button
                 onClick={() => { setNewName(identity.deviceName); setEditingName(true) }}
                 className="text-blue-600 text-sm hover:underline"
@@ -125,7 +164,7 @@ export function DeviceSettings() {
             Add Device
           </button>
         </div>
-        <PairedDevicesList devices={devices} onRemove={handleRemoveDevice} />
+        <PairedDevicesList devices={devices} onRemove={handleRemoveDevice} peerStatuses={peerStatuses} />
       </section>
 
       <PairingModal
