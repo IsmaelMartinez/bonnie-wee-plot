@@ -17,10 +17,21 @@ export function DeviceSettings() {
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [showPairing, setShowPairing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setIdentity(getOrCreateIdentity())
-    setDevices(getPairedDevices())
+    try {
+      const id = getOrCreateIdentity()
+      setIdentity(id)
+      setDevices(getPairedDevices())
+      setError(null)
+    } catch (err) {
+      console.error('Failed to initialize device identity:', err)
+      setError(err instanceof Error ? err.message : 'Failed to initialize device identity')
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   const handleSaveName = () => {
@@ -41,7 +52,33 @@ export function DeviceSettings() {
     setShowPairing(false)
   }
 
-  if (!identity) return null
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Loading device settings...
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700 font-medium">Unable to initialize device sync</p>
+        <p className="text-red-600 text-sm mt-1">{error}</p>
+        <p className="text-gray-600 text-sm mt-2">
+          This may be a browser compatibility issue. Try using Chrome or Safari.
+        </p>
+      </div>
+    )
+  }
+
+  if (!identity) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Unable to create device identity
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
