@@ -70,7 +70,7 @@ export function trackChanges(
 ): () => void {
   let changeCount = 0
 
-  const handler = (update: Uint8Array, origin: unknown) => {
+  const handler = (_update: Uint8Array, origin: unknown) => {
     if (origin !== 'sync') {
       changeCount++
       onChangeCount(changeCount)

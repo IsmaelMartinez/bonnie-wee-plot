@@ -56,7 +56,7 @@ export function allotmentToYDoc(data: AllotmentData, ydoc: Y.Doc): void {
     root.set('currentYear', data.currentYear)
 
     const meta = new Y.Map()
-    objectToYMap(data.meta as Record<string, unknown>, meta)
+    objectToYMap(data.meta as unknown as Record<string, unknown>, meta)
     root.set('meta', meta)
 
     const layout = new Y.Map()
@@ -120,20 +120,20 @@ export function yDocToAllotment(ydoc: Y.Doc): AllotmentData {
   const result: AllotmentData = {
     version: root.get('version') as number,
     currentYear: root.get('currentYear') as number,
-    meta: yMapToObject(meta) as AllotmentData['meta'],
+    meta: yMapToObject(meta) as unknown as AllotmentData['meta'],
     layout: {
       areas: yArrayToArray(layout.get('areas') as Y.Array<unknown>) as Area[]
     },
-    seasons: yArrayToArray(seasons) as SeasonRecord[],
-    varieties: yArrayToArray(varieties) as StoredVariety[]
+    seasons: yArrayToArray(seasons as Y.Array<unknown>) as SeasonRecord[],
+    varieties: yArrayToArray(varieties as Y.Array<unknown>) as StoredVariety[]
   }
 
   if (maintenanceTasks) {
-    result.maintenanceTasks = yArrayToArray(maintenanceTasks) as AllotmentData['maintenanceTasks']
+    result.maintenanceTasks = yArrayToArray(maintenanceTasks as Y.Array<unknown>) as AllotmentData['maintenanceTasks']
   }
 
   if (gardenEvents) {
-    result.gardenEvents = yArrayToArray(gardenEvents) as AllotmentData['gardenEvents']
+    result.gardenEvents = yArrayToArray(gardenEvents as Y.Array<unknown>) as AllotmentData['gardenEvents']
   }
 
   return result

@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react'
 
 vi.mock('y-indexeddb', () => ({
   IndexeddbPersistence: vi.fn().mockImplementation(() => ({
-    once: vi.fn((event, cb) => setTimeout(cb, 0)),
+    once: vi.fn((_event, cb) => setTimeout(cb, 0)),
     destroy: vi.fn()
   }))
 }))
@@ -28,7 +28,7 @@ vi.mock('@/services/ydoc-manager', () => ({
   })),
   initializeYDoc: vi.fn(),
   createPersistence: vi.fn(() => ({
-    once: vi.fn((event, cb) => setTimeout(cb, 0)),
+    once: vi.fn((_event, cb) => setTimeout(cb, 0)),
     destroy: vi.fn()
   })),
   waitForSync: vi.fn(() => Promise.resolve())

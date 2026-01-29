@@ -9,7 +9,6 @@ export interface DiscoveredPeer {
 }
 
 export class LocalDiscovery extends EventEmitter {
-  private publicKey: string
   private deviceName: string
   private truncatedKey: string
   private announcing = false
@@ -23,7 +22,6 @@ export class LocalDiscovery extends EventEmitter {
 
   constructor(publicKey: string, deviceName: string) {
     super()
-    this.publicKey = publicKey
     this.deviceName = deviceName
     this.truncatedKey = getTruncatedPublicKey(publicKey)
   }
