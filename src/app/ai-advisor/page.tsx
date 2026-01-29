@@ -303,6 +303,33 @@ export default function AIAdvisorPage() {
     setShowSettings(false)
   }
 
+  // Handle plant selection from disambiguation
+  const handlePlantSelected = useCallback((toolCallId: string, selectedPlantId: string) => {
+    if (!pendingToolCalls) return
+
+    // Update the tool call with the selected plant ID
+    const updatedCalls = pendingToolCalls.map(tc => {
+      if (tc.id === toolCallId) {
+        try {
+          const args = JSON.parse(tc.function.arguments)
+          args.plantId = selectedPlantId
+          return {
+            ...tc,
+            function: {
+              ...tc.function,
+              arguments: JSON.stringify(args)
+            }
+          }
+        } catch {
+          return tc
+        }
+      }
+      return tc
+    })
+
+    setPendingToolCalls(updatedCalls)
+  }, [pendingToolCalls])
+
   // Handle tool call confirmation
   const handleToolConfirmation = useCallback(async (approved: boolean) => {
     if (!pendingToolCalls || !allotmentData) {
@@ -485,6 +512,7 @@ export default function AIAdvisorPage() {
                   <ToolCallConfirmation
                     toolCalls={pendingToolCalls}
                     onConfirm={handleToolConfirmation}
+                    onPlantSelected={handlePlantSelected}
                     isExecuting={isExecutingTools}
                   />
                 )}

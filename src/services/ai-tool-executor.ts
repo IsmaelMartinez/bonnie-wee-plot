@@ -60,6 +60,65 @@ function suggestSimilarPlants(plantId: string): string[] {
   return results.map(v => v.id)
 }
 
+// ============ PLANT DISAMBIGUATION ============
+
+export interface PlantSuggestion {
+  id: string
+  name: string
+}
+
+export interface PlantDisambiguationResult {
+  needsDisambiguation: boolean
+  originalInput: string
+  resolvedPlant?: { id: string; name: string }
+  suggestions?: PlantSuggestion[]
+}
+
+/**
+ * Check if a plant ID needs disambiguation
+ * Returns resolved plant if exact/normalized match found, or suggestions if ambiguous
+ */
+export function checkPlantDisambiguation(plantId: string): PlantDisambiguationResult {
+  // Try exact match
+  let plant = getVegetableById(plantId)
+  if (plant) {
+    return {
+      needsDisambiguation: false,
+      originalInput: plantId,
+      resolvedPlant: { id: plant.id, name: plant.name },
+    }
+  }
+
+  // Try normalized match
+  const normalized = normalizePlantId(plantId)
+  plant = getVegetableById(normalized)
+  if (plant) {
+    return {
+      needsDisambiguation: false,
+      originalInput: plantId,
+      resolvedPlant: { id: plant.id, name: plant.name },
+    }
+  }
+
+  // No match - get suggestions
+  const searchTerm = normalizePlantId(plantId)
+  const results = searchVegetables(searchTerm).slice(0, 6)
+
+  if (results.length === 0) {
+    return {
+      needsDisambiguation: true,
+      originalInput: plantId,
+      suggestions: [],
+    }
+  }
+
+  return {
+    needsDisambiguation: true,
+    originalInput: plantId,
+    suggestions: results.map(v => ({ id: v.id, name: v.name })),
+  }
+}
+
 /**
  * Normalize plant ID to handle common variations
  * - "tomatoes" -> "tomato"
