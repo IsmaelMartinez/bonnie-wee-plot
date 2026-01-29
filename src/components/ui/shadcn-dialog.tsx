@@ -47,6 +47,8 @@ interface DialogContentProps {
 export function DialogContent({ children, className = '' }: DialogContentProps) {
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className={`relative z-[102] bg-white rounded-xl shadow-xl w-full max-w-md p-6 ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
