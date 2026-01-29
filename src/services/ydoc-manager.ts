@@ -59,3 +59,39 @@ export function waitForSync(persistence: IndexeddbPersistence): Promise<void> {
     persistence.once('synced', () => resolve())
   })
 }
+
+/**
+ * Track changes to Y.Doc for sync notifications
+ * Returns unsubscribe function
+ */
+export function trackChanges(
+  ydoc: Y.Doc,
+  onChangeCount: (count: number) => void
+): () => void {
+  let changeCount = 0
+
+  const handler = (update: Uint8Array, origin: unknown) => {
+    if (origin !== 'sync') {
+      changeCount++
+      onChangeCount(changeCount)
+    }
+  }
+
+  ydoc.on('update', handler)
+
+  return () => {
+    ydoc.off('update', handler)
+  }
+}
+
+/**
+ * Reset change counter (call after sync completes)
+ */
+export function createChangeCounter() {
+  let count = 0
+  return {
+    increment: () => ++count,
+    reset: () => { count = 0 },
+    getCount: () => count
+  }
+}

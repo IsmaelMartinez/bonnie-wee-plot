@@ -33,4 +33,19 @@ describe('YDocManager', () => {
     expect(root.get('seasons')).toBeDefined()
     expect(root.get('varieties')).toBeDefined()
   })
+
+  it('tracks changes for sync notifications', async () => {
+    const { createYDoc, initializeYDoc, trackChanges } = await import('@/services/ydoc-manager')
+    const ydoc = createYDoc()
+    initializeYDoc(ydoc)
+
+    const changes: number[] = []
+    const unsubscribe = trackChanges(ydoc, (count) => changes.push(count))
+
+    const root = ydoc.getMap('allotment')
+    root.set('currentYear', 2027)
+
+    expect(changes.length).toBeGreaterThan(0)
+    unsubscribe()
+  })
 })
