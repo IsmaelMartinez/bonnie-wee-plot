@@ -106,7 +106,7 @@ export class SignalingCoordinator extends EventEmitter {
     }
   }
 
-  private authenticatePeer(peer: PairedDevice, manager: WebRTCManager): void {
+  private authenticatePeer(_peer: PairedDevice, manager: WebRTCManager): void {
     const challenge = crypto.randomUUID()
     manager.send(JSON.stringify({ type: 'auth-challenge', challenge }))
   }

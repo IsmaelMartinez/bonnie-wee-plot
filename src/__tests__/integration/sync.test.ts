@@ -34,8 +34,8 @@ describe('Sync Integration', () => {
       }
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const provider2 = new YjsSyncProvider(doc2, {
+    // Provider2 establishes bidirectional sync - the constructor registers handlers
+    new YjsSyncProvider(doc2, {
       send: (data) => {
         if (handler1) {
           handler1(data)
@@ -57,7 +57,7 @@ describe('Sync Integration', () => {
       version: 16,
       currentYear: 2026,
       meta: { name: 'Test', createdAt: '2026-01-01', updatedAt: '2026-01-29' },
-      layout: { areas: [{ id: 'a', name: 'Area A', kind: 'rotation-bed', canHavePlantings: true }] },
+      layout: { areas: [{ id: 'a', name: 'Area A', kind: 'rotation-bed' as const, canHavePlantings: true }] },
       seasons: [],
       varieties: []
     }
