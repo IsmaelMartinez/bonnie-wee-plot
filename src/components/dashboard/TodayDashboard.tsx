@@ -9,6 +9,7 @@ import QuickActions from './QuickActions'
 import AIInsight from './AIInsight'
 import CompostAlerts from './CompostAlerts'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
+import { trackEvent } from '@/lib/analytics'
 
 function LoadingSkeleton() {
   return (
@@ -52,6 +53,7 @@ export default function TodayDashboard() {
 
   const handleOnboardingComplete = () => {
     updateMeta({ setupCompleted: true })
+    trackEvent('onboarding', 'completed', 'wizard')
   }
 
   if (isLoading) {

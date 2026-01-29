@@ -11,6 +11,7 @@
  */
 
 import { AllotmentData } from '@/types/unified-allotment'
+import { trackEvent } from '@/lib/analytics'
 
 // ============ TYPES ============
 
@@ -150,6 +151,7 @@ export function manuallyUnlockFeature(feature: UnlockableFeature): EngagementDat
   if (!data.manuallyUnlocked.includes(feature)) {
     data.manuallyUnlocked.push(feature)
     saveEngagementData(data)
+    trackEvent('feature', 'unlock', feature)
   }
 
   return data
