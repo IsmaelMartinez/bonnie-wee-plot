@@ -49,6 +49,8 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "web-vitals": "^5.1.0",
+    "y-indexeddb": "^9.0.12",
+    "yjs": "^13.6.29",
     "zod": "^4.2.1"
   },
   "devDependencies": {
