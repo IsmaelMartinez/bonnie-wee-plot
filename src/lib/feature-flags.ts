@@ -52,7 +52,10 @@ export interface UnlockProgress {
 
 // ============ CONSTANTS ============
 
-export const ENGAGEMENT_STORAGE_KEY = 'allotment-engagement'
+import { STORAGE_KEY_ENGAGEMENT } from './storage-keys'
+
+/** @deprecated Use STORAGE_KEY_ENGAGEMENT from storage-keys.ts */
+export const ENGAGEMENT_STORAGE_KEY = STORAGE_KEY_ENGAGEMENT
 
 /** Unlock thresholds */
 export const UNLOCK_THRESHOLDS = {

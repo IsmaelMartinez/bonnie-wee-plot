@@ -22,7 +22,10 @@ export interface AnalyticsData {
 
 // ============ CONSTANTS ============
 
-export const ANALYTICS_STORAGE_KEY = 'allotment-analytics'
+import { STORAGE_KEY_ANALYTICS } from './storage-keys'
+
+/** @deprecated Use STORAGE_KEY_ANALYTICS from storage-keys.ts */
+export const ANALYTICS_STORAGE_KEY = STORAGE_KEY_ANALYTICS
 const MAX_EVENTS = 100
 
 // ============ CORE FUNCTIONS ============
