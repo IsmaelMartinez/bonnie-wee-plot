@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles } from 'lucide-react'
+import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles, Settings } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
@@ -81,6 +81,7 @@ function getProgressHint(currentValue: number, targetValue: number, unlockCondit
 
 // Always-available secondary links
 const secondaryLinks = [
+  { href: '/settings', label: 'Settings', icon: Settings, description: 'Sync & preferences' },
   { href: '/about', label: 'About', icon: BookOpen, description: 'Learn more' },
 ]
 
