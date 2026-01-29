@@ -53,3 +53,34 @@ export interface SyncEvent {
   error?: string
   timestamp: string
 }
+
+/**
+ * Device identity stored locally
+ */
+export interface DeviceIdentity {
+  publicKey: string
+  privateKey: string
+  deviceName: string
+  createdAt: string
+}
+
+/**
+ * Paired device info
+ */
+export interface PairedDevice {
+  publicKey: string
+  deviceName: string
+  pairedAt: string
+  lastSeen?: string
+}
+
+/**
+ * QR code pairing payload
+ */
+export interface PairingPayload {
+  v: 1
+  pk: string
+  code: string
+  name: string
+  ts: number
+}
