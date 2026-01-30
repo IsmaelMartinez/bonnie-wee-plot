@@ -52,7 +52,15 @@ export class PeerJSSignaling extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       this.peer = new Peer(peerId, {
-        debug: 0, // Minimal logging
+        debug: 1, // Show warnings and errors
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' },
+          ]
+        }
       })
 
       this.peer.on('open', (id) => {
@@ -188,8 +196,19 @@ export class PeerJSSignaling extends EventEmitter {
   }
 
   private setupConnection(conn: DataConnection, publicKey: string): void {
+    const truncatedKey = getTruncatedPublicKey(publicKey)
+    logger.info('Setting up connection', { peer: truncatedKey, connectionId: conn.connectionId })
+
+    // Connection timeout - if not open within 30 seconds, log a warning
+    const connectionTimeout = setTimeout(() => {
+      if (!conn.open) {
+        logger.warn('Connection timeout - peer may be offline', { peer: truncatedKey })
+      }
+    }, 30000)
+
     conn.on('open', () => {
-      logger.info('Connection opened', { peer: getTruncatedPublicKey(publicKey) })
+      clearTimeout(connectionTimeout)
+      logger.info('Connection opened', { peer: truncatedKey })
       this.connections.set(publicKey, conn)
       this.emit('peer-connected', publicKey)
 
@@ -202,33 +221,48 @@ export class PeerJSSignaling extends EventEmitter {
     })
 
     conn.on('close', () => {
-      logger.info('Connection closed', { peer: getTruncatedPublicKey(publicKey) })
+      clearTimeout(connectionTimeout)
+      logger.info('Connection closed', { peer: truncatedKey })
       this.connections.delete(publicKey)
       this.authenticatedPeers.delete(publicKey)
       this.emit('peer-disconnected', publicKey)
     })
 
     conn.on('error', (err) => {
-      logger.error('Connection error', { peer: getTruncatedPublicKey(publicKey), error: err })
+      clearTimeout(connectionTimeout)
+      logger.error('Connection error', { peer: truncatedKey, error: err, errorType: (err as Error).name })
+    })
+
+    // Track ICE connection state for debugging
+    conn.on('iceStateChanged', (state: string) => {
+      logger.info('ICE state changed', { peer: truncatedKey, state })
     })
   }
 
   private sendAuthChallenge(publicKey: string): void {
     const challenge = crypto.randomUUID()
     this.pendingChallenges.set(publicKey, challenge)
+    logger.info('Sending auth challenge', { peer: getTruncatedPublicKey(publicKey) })
 
-    this.sendToPeer(publicKey, {
+    const sent = this.sendToPeer(publicKey, {
       type: 'auth-challenge',
       challenge
     })
+    if (!sent) {
+      logger.warn('Failed to send auth challenge', { peer: getTruncatedPublicKey(publicKey) })
+    }
   }
 
   private async handleMessage(publicKey: string, message: PeerMessage): Promise<void> {
+    logger.debug('Received message', { peer: getTruncatedPublicKey(publicKey), type: message.type })
+
     switch (message.type) {
       case 'auth-challenge':
+        logger.info('Received auth challenge', { peer: getTruncatedPublicKey(publicKey) })
         await this.handleAuthChallenge(publicKey, message.challenge!)
         break
       case 'auth-response':
+        logger.info('Received auth response', { peer: getTruncatedPublicKey(publicKey) })
         this.handleAuthResponse(publicKey, message)
         break
       case 'sync':
@@ -258,13 +292,17 @@ export class PeerJSSignaling extends EventEmitter {
     // Sign the challenge with our private key
     const { signChallenge } = await import('./device-identity')
     const signature = signChallenge(challenge, this.config.privateKey)
+    logger.info('Sending auth response', { peer: getTruncatedPublicKey(publicKey) })
 
-    this.sendToPeer(publicKey, {
+    const sent = this.sendToPeer(publicKey, {
       type: 'auth-response',
       challenge,
       signature,
       publicKey: this.config.publicKey
     })
+    if (!sent) {
+      logger.warn('Failed to send auth response', { peer: getTruncatedPublicKey(publicKey) })
+    }
   }
 
   private handleAuthResponse(peerPublicKey: string, message: AuthMessage): void {
