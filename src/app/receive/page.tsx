@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Home, QrCode, Keyboard } from 'lucide-react'
-import { Scanner } from '@yudiel/react-qr-scanner'
+import { Html5Qrcode } from 'html5-qrcode'
 
 type InputMode = 'choose' | 'scan' | 'manual'
 
@@ -13,6 +13,10 @@ export default function ReceiveIndexPage() {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [scannerError, setScannerError] = useState<string | null>(null)
+  const [scanStatus, setScanStatus] = useState('Initializing camera...')
+  const [isScanning, setIsScanning] = useState(false)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const hasProcessedRef = useRef(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +33,7 @@ export default function ReceiveIndexPage() {
     router.push(`/receive/${normalizedCode}`)
   }
 
-  const handleScan = (result: string) => {
+  const handleScan = useCallback((result: string) => {
     // Try to extract code from URL
     const urlMatch = result.match(/\/receive\/([A-Z0-9]{6})/i)
     if (urlMatch) {
@@ -45,7 +49,72 @@ export default function ReceiveIndexPage() {
     }
 
     setScannerError('Invalid QR code. Please scan the share QR code.')
-  }
+    hasProcessedRef.current = false
+    setScanStatus('Point camera at QR code')
+  }, [router])
+
+  // Start/stop scanner based on mode
+  useEffect(() => {
+    if (mode !== 'scan') {
+      // Stop scanner when leaving scan mode
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(console.error)
+      }
+      return
+    }
+
+    const scannerId = 'qr-scanner-container'
+    hasProcessedRef.current = false
+
+    const startScanner = async () => {
+      try {
+        const scanner = new Html5Qrcode(scannerId)
+        scannerRef.current = scanner
+
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            if (hasProcessedRef.current) return
+            hasProcessedRef.current = true
+
+            setScanStatus('QR code detected!')
+
+            // Stop scanner before navigating
+            scanner.stop().catch(console.error)
+            handleScan(decodedText)
+          },
+          () => {
+            // Ignore scan failures (no QR found in frame)
+          }
+        )
+
+        setIsScanning(true)
+        setScanStatus('Point camera at QR code')
+      } catch (err) {
+        console.error('Scanner error:', err)
+        if (err instanceof Error) {
+          if (err.message.includes('NotAllowedError') || err.message.includes('Permission')) {
+            setScannerError('Camera access denied. Please enable camera access in your browser settings.')
+            return
+          }
+          setScanStatus(`Error: ${err.message}`)
+        }
+        setScannerError('Failed to start camera')
+      }
+    }
+
+    startScanner()
+
+    return () => {
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(console.error)
+      }
+    }
+  }, [mode, handleScan])
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -103,34 +172,30 @@ export default function ReceiveIndexPage() {
         {/* QR Scanner */}
         {mode === 'scan' && (
           <div className="space-y-4">
-            <div className="aspect-square bg-black rounded-lg overflow-hidden">
-              <Scanner
-                onScan={(results) => {
-                  if (results.length > 0) {
-                    handleScan(results[0].rawValue)
-                  }
-                }}
-                onError={(error: unknown) => {
-                  console.error('QR Scanner error:', error)
-                  setScannerError('Camera access denied or not available')
-                }}
-                constraints={{ facingMode: 'environment' }}
-              />
-            </div>
+            <div
+              id="qr-scanner-container"
+              className="rounded-lg overflow-hidden bg-black"
+              style={{ minHeight: '300px' }}
+            />
+
+            <p className="text-sm text-gray-500 text-center">
+              {scanStatus}
+            </p>
+            <p className="text-xs text-gray-400 text-center">
+              {isScanning ? 'Position the QR code within the frame' : 'Starting camera...'}
+            </p>
 
             {scannerError && (
               <p className="text-sm text-red-600 text-center">{scannerError}</p>
             )}
-
-            <p className="text-sm text-gray-500 text-center">
-              Point your camera at the QR code on the sharing device
-            </p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setMode('choose')
                   setScannerError(null)
+                  setScanStatus('Initializing camera...')
+                  setIsScanning(false)
                 }}
                 className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
@@ -140,6 +205,8 @@ export default function ReceiveIndexPage() {
                 onClick={() => {
                   setMode('manual')
                   setScannerError(null)
+                  setScanStatus('Initializing camera...')
+                  setIsScanning(false)
                 }}
                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
               >
