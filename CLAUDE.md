@@ -135,7 +135,7 @@ The app supports sharing allotment data between devices via a simple share/recei
 
 **UI Components:**
 - `src/components/share/ShareDialog.tsx` - QR and code display dialog
-- `src/app/receive/page.tsx` - Code entry and QR scanner
+- `src/app/receive/page.tsx` - Code entry and QR scanner (uses `html5-qrcode` for cross-browser compatibility)
 - `src/app/receive/[code]/page.tsx` - Preview and import confirmation
 
 **Settings Page:** `/settings` route provides access to share functionality.

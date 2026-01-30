@@ -1,8 +1,10 @@
 # ADR 024: Data Sharing Architecture
 
 Date: 2026-01-29
-Status: Superseded
+Status: Accepted
 Updated: 2026-01-30
+
+Note: This ADR originally documented a P2P sync approach that was implemented and then abandoned. The current decision (Simple Share/Receive) is the active architecture.
 
 ## Original Context
 
@@ -54,6 +56,8 @@ Replace P2P sync with a simple share flow:
 - `src/components/share/ShareDialog.tsx` - QR display and code
 - `src/app/receive/page.tsx` - Code entry / QR scanner
 - `src/app/receive/[code]/page.tsx` - Preview and import
+
+**QR Scanning:** Uses `html5-qrcode` library for cross-browser compatibility. The native BarcodeDetector API (used by other QR libraries) has inconsistent support, particularly on iOS Safari. `html5-qrcode` provides JavaScript-based decoding that works reliably across all browsers.
 
 **Storage:** Upstash Redis with 5-minute TTL for temporary storage.
 
