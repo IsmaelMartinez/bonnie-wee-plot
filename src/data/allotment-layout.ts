@@ -59,26 +59,6 @@ export function getBedById(bedId: PhysicalBedId): PhysicalBed | undefined {
   return physicalBeds.find(b => b.id === bedId)
 }
 
-// Get beds by status
-export function getBedsByStatus(status: 'rotation' | 'problem' | 'perennial'): PhysicalBed[] {
-  return physicalBeds.filter(b => b.status === status)
-}
-
-// Get all rotation beds (excludes problem and perennial)
-export function getRotationBeds(): PhysicalBed[] {
-  return getBedsByStatus('rotation')
-}
-
-// Get problem beds that need attention
-export function getProblemBeds(): PhysicalBed[] {
-  return getBedsByStatus('problem')
-}
-
-// Helper to get all permanent plantings by type
-export function getPermanentsByType(type: PermanentPlanting['type']): PermanentPlanting[] {
-  return permanentPlantings.filter(p => p.type === type)
-}
-
 // Get bed color for display
 export const BED_COLORS: Record<PhysicalBedId, string> = {
   'A': '#22c55e',        // green - legumes/strawberries
@@ -108,11 +88,6 @@ export const ALL_BED_IDS: PhysicalBedId[] = [
   'A', 'B1', 'B1-prime', 'B2', 'B2-prime', 'C', 'D', 'E', 'raspberries'
 ]
 
-// Rotation bed IDs only (for planning)
-export const ROTATION_BED_IDS: PhysicalBedId[] = [
-  'A', 'B1', 'B1-prime', 'B2', 'B2-prime', 'D'
-]
-
 // ============================================================================
 // GRID LAYOUT CONFIGURATION (for react-grid-layout)
 // ============================================================================
@@ -137,10 +112,3 @@ export interface GridItemConfig {
 // Default grid layout - Start empty for fresh installs
 // Areas added through UI will auto-position or be manually positioned
 export const DEFAULT_GRID_LAYOUT: GridItemConfig[] = []
-
-// Get grid item by ID
-export function getGridItemById(id: string): GridItemConfig | undefined {
-  return DEFAULT_GRID_LAYOUT.find(item => item.i === id)
-}
-
-// Note: LAYOUT_STORAGE_KEY removed in v14 - grid positions now stored in AreaSeason.gridPosition

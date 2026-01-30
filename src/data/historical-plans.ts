@@ -508,43 +508,17 @@ export const allotmentHistoryData: AllotmentHistoryData = {
   currentYear: 2025
 }
 
-// Helper functions
-export function getSeasonByYear(year: number): SeasonPlan | undefined {
+// Helper functions (internal)
+function getSeasonByYear(year: number): SeasonPlan | undefined {
   return allotmentHistoryData.seasons.find(s => s.year === year)
 }
 
-export function getBedPlanForYear(year: number, bedId: PhysicalBedId): BedPlan | undefined {
+function getBedPlanForYear(year: number, bedId: PhysicalBedId): BedPlan | undefined {
   const season = getSeasonByYear(year)
   return season?.beds.find(b => b.bedId === bedId)
-}
-
-export function getPlantingsForBed(year: number, bedId: PhysicalBedId): PlantedVariety[] {
-  const bedPlan = getBedPlanForYear(year, bedId)
-  return bedPlan?.plantings || []
 }
 
 export function getRotationGroupForBed(year: number, bedId: PhysicalBedId): string | undefined {
   const bedPlan = getBedPlanForYear(year, bedId)
   return bedPlan?.rotationGroup
-}
-
-// Get all years with data
-export function getAvailableYears(): number[] {
-  return allotmentHistoryData.seasons.map(s => s.year).sort((a, b) => b - a)
-}
-
-// Get problem beds summary
-export function getProblemBedsSummary(): { bedId: PhysicalBedId; issue: string; suggestion: string }[] {
-  return [
-    {
-      bedId: 'C',
-      issue: 'Shaded by apple tree - crops struggle',
-      suggestion: 'Consider shade-tolerant perennials: asparagus, rhubarb expansion, or strawberry rotation'
-    },
-    {
-      bedId: 'E',
-      issue: 'First year area - competition issues with sunflowers',
-      suggestion: 'Retry with just beans (no sunflowers) or try perennials like artichokes'
-    }
-  ]
 }

@@ -4,7 +4,7 @@
  */
 
 // Plural to singular (8 items)
-export const PLURAL_TO_SINGULAR: Record<string, string> = {
+const PLURAL_TO_SINGULAR: Record<string, string> = {
   'Daffodils': 'Daffodil',
   'Jerusalem Artichokes': 'Jerusalem Artichoke',
   'Marigolds': 'Marigold',
@@ -15,7 +15,7 @@ export const PLURAL_TO_SINGULAR: Record<string, string> = {
 }
 
 // Semantic mappings - alternate names to canonical forms (null = remove)
-export const SEMANTIC_MAPPINGS: Record<string, string | null> = {
+const SEMANTIC_MAPPINGS: Record<string, string | null> = {
   'Artichokes': 'Globe Artichoke',
   'Beets': 'Beetroot',
   'Bush beans': 'French Beans',
@@ -29,7 +29,7 @@ export const SEMANTIC_MAPPINGS: Record<string, string | null> = {
 }
 
 // Category expansions - generic category names to specific plants
-export const CATEGORY_EXPANSIONS: Record<string, string[]> = {
+const CATEGORY_EXPANSIONS: Record<string, string[]> = {
   'Beans': ['Broad Beans', 'French Beans', 'Runner Beans'],
   'Brassicas': ['Broccoli', 'Brussels Sprouts', 'Cabbage', 'Cauliflower', 'Kale'],
   'Alliums': ['Onion', 'Garlic', 'Leek', 'Chives'],
@@ -37,7 +37,7 @@ export const CATEGORY_EXPANSIONS: Record<string, string[]> = {
 }
 
 // Vague references to remove (16 items from analysis)
-export const VAGUE_REFERENCES = [
+const VAGUE_REFERENCES = [
   'All vegetables',
   'Alliums',
   'Climbing vegetables',
@@ -85,29 +85,4 @@ export function normalizeCompanionName(name: string): string | string[] | null {
 
   // Return as-is (already canonical)
   return name
-}
-
-/**
- * Normalize an array of companion plant names
- * Removes vague references, expands categories, normalizes names
- */
-export function normalizeCompanionArray(companions: string[]): string[] {
-  const normalized: string[] = []
-
-  for (const name of companions) {
-    const result = normalizeCompanionName(name)
-    if (result === null) {
-      // Skip vague references
-      continue
-    }
-    if (Array.isArray(result)) {
-      // Expand categories
-      normalized.push(...result)
-    } else {
-      normalized.push(result)
-    }
-  }
-
-  // Remove duplicates and sort
-  return [...new Set(normalized)].sort()
 }

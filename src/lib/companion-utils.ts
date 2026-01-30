@@ -56,43 +56,6 @@ export function getCompanionStatusForPlanting(
 }
 
 /**
- * Get list of vegetables that are good companions for existing plantings
- * Useful for sorting/filtering vegetable selection dropdowns
- */
-export function getGoodCompanionsForBed(
-  existingPlantings: Planting[],
-  allVegetableIds: string[]
-): string[] {
-  if (existingPlantings.length === 0) return []
-
-  return allVegetableIds.filter(vegId => {
-    const status = getCompanionStatusForVegetable(vegId, existingPlantings)
-    return status.goods.length > 0 && status.bads.length === 0
-  })
-}
-
-/**
- * Sort vegetables by companion compatibility (good companions first, bad last)
- */
-export function sortByCompanionCompatibility(
-  plantIds: string[],
-  existingPlantings: Planting[]
-): string[] {
-  if (existingPlantings.length === 0) return plantIds
-
-  return [...plantIds].sort((a, b) => {
-    const statusA = getCompanionStatusForVegetable(a, existingPlantings)
-    const statusB = getCompanionStatusForVegetable(b, existingPlantings)
-
-    // Score: positive for good companions, negative for bad
-    const scoreA = statusA.goods.length - statusA.bads.length * 2
-    const scoreB = statusB.goods.length - statusB.bads.length * 2
-
-    return scoreB - scoreA // Higher score first
-  })
-}
-
-/**
  * Calculate companion status using just vegetable IDs (simpler than Planting[])
  * Returns status with 'good' | 'neutral' | 'bad' classification
  */
