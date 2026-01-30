@@ -1,7 +1,8 @@
 # P2P Sync Design
 
 Date: 2026-01-29
-Status: Draft
+Updated: 2026-01-30
+Status: Implemented
 
 ## Overview
 
@@ -35,26 +36,27 @@ This document describes the design for peer-to-peer synchronization between devi
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    useSync hook (new)                    │
-│         - Manages Yjs doc & peer connections            │
-│         - Exposes sync status, paired devices           │
+│              useSyncConnection hook (new)                │
+│         - Manages peer connections via PeerJS           │
+│         - Exposes sync status, peer statuses            │
 └─────────────────────────────────────────────────────────┘
                             │
               ┌─────────────┼─────────────┐
               ▼             ▼             ▼
         ┌──────────┐  ┌──────────┐  ┌──────────┐
-        │   Yjs    │  │  mDNS    │  │ WebRTC   │
-        │ Y.Doc    │  │ Discovery│  │ DataChan │
+        │   Yjs    │  │ PeerJS   │  │ WebRTC   │
+        │ Y.Doc    │  │ Signaling│  │ DataChan │
         └──────────┘  └──────────┘  └──────────┘
-              │
-              ▼
-        ┌──────────┐
-        │IndexedDB │
-        │(persistence)│
-        └──────────┘
+              │             │
+              ▼             ▼
+        ┌──────────┐  ┌──────────┐
+        │IndexedDB │  │ PeerJS   │
+        │(persist) │  │ Server   │
+        └──────────┘  └──────────┘
+                      (free/public)
 ```
 
-The existing `useAllotment` API remains unchanged. Components don't need to know about sync. The new `useSync` hook manages Yjs documents, peer discovery via mDNS, and WebRTC connections.
+The existing `useAllotment` API remains unchanged. Components don't need to know about sync. The `useSyncConnection` hook manages peer discovery via PeerJS and WebRTC connections. PeerJS server only handles signaling (connection establishment); actual data flows P2P.
 
 ## Data Layer
 
@@ -124,29 +126,23 @@ Either device can remove a paired device from settings. This is local-only - the
 
 ## Connection & Discovery
 
-### mDNS Discovery
+### PeerJS Signaling
 
-Devices announce presence on local network:
+Browsers cannot discover devices on a local network (no mDNS API available). We use PeerJS's free public signaling server for WebRTC connection establishment. The signaling server only facilitates the initial handshake; actual data flows directly P2P.
 
-```
-Service Type: _bonnieplot._tcp.local
-TXT Record: { pk: "<first 16 chars of public key>" }
-```
+Each device's peer ID is derived from its public key: `bwp_` + first 32 alphanumeric characters. This provides consistent addressing without exposing the full key.
 
-The truncated public key lets devices filter to paired peers without exposing full identity.
+### WebRTC Connection Flow
 
-### WebRTC Connection
+When a device comes online:
 
-When a paired device is discovered:
+1. Device connects to PeerJS server with its derived peer ID
+2. Device attempts to connect to all paired devices' peer IDs
+3. When connection opens, both sides run Ed25519 challenge-response authentication
+4. Only after auth succeeds does sync begin
+5. Incoming connections from unknown peers are rejected
 
-1. mDNS announces device presence with truncated public key
-2. Listening device checks if truncated key matches any paired device
-3. If matched, initiator creates WebRTC offer with full public key in metadata
-4. Responder verifies full public key against paired list
-5. Both sides sign a challenge-nonce to prove key ownership
-6. WebRTC DataChannel established, Yjs sync begins
-
-Configuration uses public STUN servers (Google, Cloudflare). No TURN server needed for local-network-only sync.
+The PeerJS server sees peer IDs and IP addresses but NOT the sync data or device names.
 
 ### Connection Lifecycle
 
@@ -239,11 +235,11 @@ Small icon in header/footer:
 yjs: ^13.6.0           # CRDT core
 y-indexeddb: ^9.0.0    # Persistence provider
 tweetnacl: ^1.0.3      # Ed25519 keypairs
-qrcode.react: ^3.1.0   # QR code display
-@aspect-dev/mdns: ^x   # mDNS discovery (or alternative)
+tweetnacl-util: ^0.15  # Base64 encoding for keys
+qrcode.react: ^4.2.0   # QR code display
+html5-qrcode: ^2.3.8   # QR code scanning (cross-browser)
+peerjs: ^1.5.4         # WebRTC signaling
 ```
-
-Note: mDNS library selection requires research - browser support varies. May need to evaluate `multicast-dns`, `bonjour-service`, or custom WebRTC-based discovery fallback.
 
 ## Testing Strategy
 
@@ -310,17 +306,24 @@ Note: mDNS library selection requires research - browser support varies. May nee
 4. Manual testing on physical devices
 5. Documentation and ADR
 
+## Resolved Questions
+
+1. **mDNS browser support**: RESOLVED - Browsers don't have mDNS APIs. We use PeerJS signaling server instead, which works across all browsers and networks.
+
+2. **QR scanning on iOS Safari**: RESOLVED - Switched from @yudiel/react-qr-scanner (uses BarcodeDetector API, not supported on iOS) to html5-qrcode (JavaScript-based decoding, works everywhere).
+
 ## Open Questions
 
-1. **mDNS browser support**: Need to validate mDNS works reliably in Safari/Chrome PWA contexts. May need fallback discovery mechanism.
+1. **PWA background limits**: iOS aggressively suspends PWA WebRTC. Acceptable for MVP but document the limitation.
 
-2. **PWA background limits**: iOS aggressively suspends PWA WebRTC. Acceptable for MVP but document the limitation.
+2. **IndexedDB quotas**: Large allotment histories could hit storage limits. May need pruning strategy for old Yjs updates.
 
-3. **IndexedDB quotas**: Large allotment histories could hit storage limits. May need pruning strategy for old Yjs updates.
+3. **PeerJS server availability**: Currently using free public server. May want to self-host peerjs-server for reliability.
 
 ## Future Enhancements
 
-- libp2p DHT for cross-network discovery
+- Self-hosted peerjs-server for independence
+- libp2p DHT for fully decentralized discovery
 - Relay server for offline message queuing
 - Friend sharing with separate Yjs documents
 - Selective sync (share only specific beds/seasons)
