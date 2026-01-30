@@ -53,7 +53,7 @@ export class PeerJSSignaling extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       this.peer = new Peer(peerId, {
-        debug: 1, // Show warnings and errors
+        debug: 2, // Show all logs including connection info
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -63,6 +63,8 @@ export class PeerJSSignaling extends EventEmitter {
           ]
         }
       })
+
+      logger.info('PeerJS instance created', { peerId, peerIdFull: peerId })
 
       this.peer.on('open', (id) => {
         logger.info('Connected to PeerJS server', { peerId: id.substring(0, 16) })
@@ -150,6 +152,14 @@ export class PeerJSSignaling extends EventEmitter {
 
   private connectToPairedDevices(): void {
     const pairedDevices = getPairedDevices()
+    logger.info('Connecting to paired devices', {
+      count: pairedDevices.length,
+      devices: pairedDevices.map(d => ({
+        name: d.name,
+        peerId: this.getPeerIdForPublicKey(d.publicKey),
+        publicKeyPrefix: d.publicKey.substring(0, 20)
+      }))
+    })
     for (const device of pairedDevices) {
       this.connectToPeer(device.publicKey)
     }
@@ -169,18 +179,36 @@ export class PeerJSSignaling extends EventEmitter {
       return
     }
 
-    logger.info('Connecting to peer', { peerId: peerId.substring(0, 16) })
+    logger.info('Connecting to peer', { peerId, myPeerId: this.getPeerId() })
     this.pendingConnections.add(publicKey)
-    const conn = this.peer.connect(peerId, { reliable: true })
+    const conn = this.peer.connect(peerId, { reliable: true, serialization: 'json' })
+    logger.info('Connection object created', {
+      connectionId: conn.connectionId,
+      peer: conn.peer,
+      type: conn.type,
+      open: conn.open,
+      metadata: conn.metadata
+    })
     this.setupConnection(conn, publicKey)
   }
 
   private handleIncomingConnection(conn: DataConnection): void {
+    logger.info('Incoming connection received', {
+      incomingPeerId: conn.peer,
+      myPeerId: this.getPeerId(),
+      connectionId: conn.connectionId,
+      open: conn.open
+    })
+
     // Extract public key from peer ID
     const peerPublicKey = this.findPublicKeyForPeerId(conn.peer)
 
     if (!peerPublicKey || !isPairedDevice(peerPublicKey)) {
-      logger.warn('Rejecting connection from unpaired peer', { peerId: conn.peer.substring(0, 16) })
+      logger.warn('Rejecting connection from unpaired peer', {
+        peerId: conn.peer,
+        foundPublicKey: !!peerPublicKey,
+        isPaired: peerPublicKey ? isPairedDevice(peerPublicKey) : false
+      })
       conn.close()
       return
     }
@@ -210,12 +238,116 @@ export class PeerJSSignaling extends EventEmitter {
 
   private setupConnection(conn: DataConnection, publicKey: string): void {
     const truncatedKey = getTruncatedPublicKey(publicKey)
-    logger.info('Setting up connection', { peer: truncatedKey, connectionId: conn.connectionId, alreadyOpen: conn.open })
+    const targetPeerId = this.getPeerIdForPublicKey(publicKey)
+    logger.info('Setting up connection', {
+      peer: truncatedKey,
+      connectionId: conn.connectionId,
+      alreadyOpen: conn.open,
+      targetPeerId,
+      connPeer: conn.peer,
+      connType: conn.type,
+      connReliable: conn.reliable,
+      connSerialiation: conn.serialization
+    })
 
-    // Connection timeout - if not open within 30 seconds, log a warning
+    // Access the underlying RTCPeerConnection for detailed ICE logging
+    // @ts-expect-error - accessing internal peerjs property for debugging
+    const peerConnection = conn.peerConnection as RTCPeerConnection | undefined
+    if (peerConnection) {
+      logger.info('RTCPeerConnection found', {
+        iceConnectionState: peerConnection.iceConnectionState,
+        iceGatheringState: peerConnection.iceGatheringState,
+        signalingState: peerConnection.signalingState,
+        connectionState: peerConnection.connectionState
+      })
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          logger.info('ICE candidate gathered', {
+            peer: truncatedKey,
+            candidateType: event.candidate.type,
+            protocol: event.candidate.protocol,
+            address: event.candidate.address,
+            port: event.candidate.port,
+            candidateFull: event.candidate.candidate.substring(0, 100)
+          })
+        } else {
+          logger.info('ICE gathering complete', { peer: truncatedKey })
+        }
+      }
+
+      peerConnection.oniceconnectionstatechange = () => {
+        logger.info('ICE connection state changed', {
+          peer: truncatedKey,
+          state: peerConnection.iceConnectionState
+        })
+      }
+
+      peerConnection.onicegatheringstatechange = () => {
+        logger.info('ICE gathering state changed', {
+          peer: truncatedKey,
+          state: peerConnection.iceGatheringState
+        })
+      }
+
+      peerConnection.onconnectionstatechange = () => {
+        logger.info('Connection state changed', {
+          peer: truncatedKey,
+          state: peerConnection.connectionState
+        })
+      }
+
+      peerConnection.onsignalingstatechange = () => {
+        logger.info('Signaling state changed', {
+          peer: truncatedKey,
+          state: peerConnection.signalingState
+        })
+      }
+    } else {
+      logger.warn('RTCPeerConnection not available yet, will retry', { peer: truncatedKey })
+      // PeerJS creates peerConnection lazily, check again after short delay
+      setTimeout(() => {
+        // @ts-expect-error - accessing internal peerjs property for debugging
+        const delayedPc = conn.peerConnection as RTCPeerConnection | undefined
+        if (delayedPc) {
+          logger.info('RTCPeerConnection now available (delayed)', {
+            peer: truncatedKey,
+            iceConnectionState: delayedPc.iceConnectionState,
+            iceGatheringState: delayedPc.iceGatheringState,
+            signalingState: delayedPc.signalingState,
+            connectionState: delayedPc.connectionState
+          })
+          // Set up the event handlers we missed
+          delayedPc.oniceconnectionstatechange = () => {
+            logger.info('ICE connection state changed (delayed handler)', {
+              peer: truncatedKey,
+              state: delayedPc.iceConnectionState
+            })
+          }
+          delayedPc.onconnectionstatechange = () => {
+            logger.info('Connection state changed (delayed handler)', {
+              peer: truncatedKey,
+              state: delayedPc.connectionState
+            })
+          }
+        } else {
+          logger.warn('RTCPeerConnection still not available after delay', { peer: truncatedKey })
+        }
+      }, 500)
+    }
+
+    // Connection timeout - if not open within 30 seconds, log detailed state
     const connectionTimeout = setTimeout(() => {
       if (!conn.open) {
-        logger.warn('Connection timeout - peer may be offline', { peer: truncatedKey })
+        // @ts-expect-error - accessing internal peerjs property for debugging
+        const pc = conn.peerConnection as RTCPeerConnection | undefined
+        logger.warn('Connection timeout - peer may be offline', {
+          peer: truncatedKey,
+          iceConnectionState: pc?.iceConnectionState,
+          iceGatheringState: pc?.iceGatheringState,
+          signalingState: pc?.signalingState,
+          connectionState: pc?.connectionState
+        })
       }
     }, 30000)
 
@@ -259,9 +391,14 @@ export class PeerJSSignaling extends EventEmitter {
       logger.error('Connection error', { peer: truncatedKey, error: err, errorType: (err as Error).name })
     })
 
-    // Track ICE connection state for debugging
+    // Track ICE connection state for debugging (PeerJS event)
     conn.on('iceStateChanged', (state: string) => {
-      logger.info('ICE state changed', { peer: truncatedKey, state })
+      logger.info('PeerJS ICE state changed', { peer: truncatedKey, state })
+    })
+
+    // Log any other events on the connection
+    conn.on('willCloseOnRemote', () => {
+      logger.info('Connection will close on remote', { peer: truncatedKey })
     })
   }
 
