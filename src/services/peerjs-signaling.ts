@@ -170,7 +170,7 @@ export class PeerJSSignaling extends EventEmitter {
     logger.info('Connecting to paired devices', {
       count: pairedDevices.length,
       devices: pairedDevices.map(d => ({
-        name: d.name,
+        name: d.deviceName,
         peerId: this.getPeerIdForPublicKey(d.publicKey),
         publicKeyPrefix: d.publicKey.substring(0, 20)
       }))
@@ -279,7 +279,6 @@ export class PeerJSSignaling extends EventEmitter {
     })
 
     // Access the underlying RTCPeerConnection for detailed ICE logging
-    // @ts-expect-error - accessing internal peerjs property for debugging
     const peerConnection = conn.peerConnection as RTCPeerConnection | undefined
     if (peerConnection) {
       logger.info('RTCPeerConnection found', {
@@ -335,7 +334,6 @@ export class PeerJSSignaling extends EventEmitter {
       logger.warn('RTCPeerConnection not available yet, will retry', { peer: truncatedKey })
       // PeerJS creates peerConnection lazily, check again after short delay
       setTimeout(() => {
-        // @ts-expect-error - accessing internal peerjs property for debugging
         const delayedPc = conn.peerConnection as RTCPeerConnection | undefined
         if (delayedPc) {
           logger.info('RTCPeerConnection now available (delayed)', {
@@ -367,7 +365,6 @@ export class PeerJSSignaling extends EventEmitter {
     // Connection timeout - if not open within 30 seconds, log detailed state
     const connectionTimeout = setTimeout(() => {
       if (!conn.open) {
-        // @ts-expect-error - accessing internal peerjs property for debugging
         const pc = conn.peerConnection as RTCPeerConnection | undefined
         logger.warn('Connection timeout - peer may be offline', {
           peer: truncatedKey,
@@ -422,11 +419,6 @@ export class PeerJSSignaling extends EventEmitter {
     // Track ICE connection state for debugging (PeerJS event)
     conn.on('iceStateChanged', (state: string) => {
       logger.info('PeerJS ICE state changed', { peer: truncatedKey, state })
-    })
-
-    // Log any other events on the connection
-    conn.on('willCloseOnRemote', () => {
-      logger.info('Connection will close on remote', { peer: truncatedKey })
     })
   }
 
