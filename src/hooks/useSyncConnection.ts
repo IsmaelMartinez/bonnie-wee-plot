@@ -3,7 +3,60 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PeerJSSignaling } from '@/services/peerjs-signaling'
 import { getOrCreateIdentity, getPairedDevices } from '@/services/device-identity'
+import { STORAGE_KEY } from '@/types/unified-allotment'
+import type { AllotmentData } from '@/types/unified-allotment'
 import { logger } from '@/lib/logger'
+
+// Get the current allotment data from localStorage
+function getCurrentData(): { data: string; timestamp: number } | null {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (!stored) return null
+  try {
+    const parsed = JSON.parse(stored) as AllotmentData
+    // Use updatedAt timestamp if available, otherwise use current time
+    const timestamp = parsed.meta?.updatedAt
+      ? new Date(parsed.meta.updatedAt).getTime()
+      : Date.now()
+    return { data: stored, timestamp }
+  } catch {
+    return null
+  }
+}
+
+// Merge received data with local data
+function mergeData(localData: string | null, remoteData: string, remoteTimestamp: number): string | null {
+  if (!localData) {
+    // No local data, use remote
+    logger.info('No local data, applying remote data')
+    return remoteData
+  }
+
+  try {
+    const local = JSON.parse(localData) as AllotmentData
+
+    const localTimestamp = local.meta?.updatedAt
+      ? new Date(local.meta.updatedAt).getTime()
+      : 0
+
+    // Simple last-write-wins: use the newer data
+    if (remoteTimestamp > localTimestamp) {
+      logger.info('Remote data is newer, applying remote data', {
+        localTimestamp: new Date(localTimestamp).toISOString(),
+        remoteTimestamp: new Date(remoteTimestamp).toISOString()
+      })
+      return remoteData
+    } else {
+      logger.info('Local data is newer or same, keeping local data', {
+        localTimestamp: new Date(localTimestamp).toISOString(),
+        remoteTimestamp: new Date(remoteTimestamp).toISOString()
+      })
+      return null // null means no change needed
+    }
+  } catch (err) {
+    logger.error('Failed to parse data for merging', { error: err })
+    return null
+  }
+}
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -80,11 +133,36 @@ export function useSyncConnection(): UseSyncConnectionReturn {
         updatePeerStatus(publicKey, { authenticated: true })
         // Force a re-render of the paired devices list
         window.dispatchEvent(new CustomEvent('sync-peer-authenticated', { detail: { publicKey } }))
+
+        // Send our current data to the newly authenticated peer
+        const current = getCurrentData()
+        if (current) {
+          logger.info('Sending full state to authenticated peer', { peer: publicKey.substring(0, 16) })
+          signaling.sendFullStateSync(publicKey, current.data, current.timestamp)
+        }
+      })
+
+      signaling.on('full-state-sync', ({ publicKey, data, timestamp }: { publicKey: string, data: string, timestamp: number }) => {
+        logger.info('Received full state sync', { from: publicKey.substring(0, 16), dataLength: data.length })
+
+        const localData = localStorage.getItem(STORAGE_KEY)
+        const mergedData = mergeData(localData, data, timestamp)
+
+        if (mergedData) {
+          // Apply the merged data
+          localStorage.setItem(STORAGE_KEY, mergedData)
+          logger.info('Applied synced data to localStorage')
+
+          // Trigger a refresh of the app
+          window.dispatchEvent(new CustomEvent('sync-data-updated'))
+          // Also trigger storage event for multi-tab sync
+          window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
+        }
       })
 
       signaling.on('sync-message', ({ publicKey, data }: { publicKey: string, data: Uint8Array }) => {
         logger.info('Received sync message', { from: publicKey.substring(0, 16), bytes: data.length })
-        // TODO: Handle sync message with Yjs
+        // Reserved for Yjs CRDT sync
       })
 
       signalingRef.current = signaling
