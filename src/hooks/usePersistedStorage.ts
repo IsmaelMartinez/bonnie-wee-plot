@@ -134,7 +134,23 @@ export function usePersistedStorage<T>(
     }
 
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+
+    // Also listen for custom sync events (P2P sync)
+    const handleSyncUpdate = () => {
+      const result = load()
+      if (result.success && result.data) {
+        setDataState(result.data)
+        onSync?.(result.data)
+        setIsSyncedFromOtherTab(true)
+        setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
+      }
+    }
+    window.addEventListener('sync-data-updated', handleSyncUpdate)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('sync-data-updated', handleSyncUpdate)
+    }
   }, [storageKey, load, validate, onSync])
 
   // Debounced save function

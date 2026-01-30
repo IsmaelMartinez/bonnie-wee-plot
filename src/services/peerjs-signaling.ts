@@ -21,7 +21,13 @@ interface SyncMessage {
   data: number[]
 }
 
-type PeerMessage = AuthMessage | SyncMessage | { type: 'ping' } | { type: 'pong' }
+interface FullStateSyncMessage {
+  type: 'full-state-sync'
+  data: string  // JSON stringified AllotmentData
+  timestamp: number
+}
+
+type PeerMessage = AuthMessage | SyncMessage | FullStateSyncMessage | { type: 'ping' } | { type: 'pong' }
 
 export class PeerJSSignaling extends EventEmitter {
   private peer: Peer | null = null
@@ -232,6 +238,13 @@ export class PeerJSSignaling extends EventEmitter {
           logger.warn('Ignoring sync from unauthenticated peer')
         }
         break
+      case 'full-state-sync':
+        if (this.authenticatedPeers.has(publicKey)) {
+          this.emit('full-state-sync', { publicKey, data: message.data, timestamp: message.timestamp })
+        } else {
+          logger.warn('Ignoring full-state-sync from unauthenticated peer')
+        }
+        break
       case 'ping':
         this.sendToPeer(publicKey, { type: 'pong' })
         break
@@ -300,6 +313,21 @@ export class PeerJSSignaling extends EventEmitter {
   broadcastSyncMessage(data: Uint8Array): void {
     for (const publicKey of this.authenticatedPeers) {
       this.sendSyncMessage(publicKey, data)
+    }
+  }
+
+  sendFullStateSync(publicKey: string, data: string, timestamp: number): boolean {
+    if (!this.authenticatedPeers.has(publicKey)) {
+      logger.warn('Cannot send full-state-sync - peer not authenticated')
+      return false
+    }
+    logger.info('Sending full state sync', { peer: getTruncatedPublicKey(publicKey), dataLength: data.length })
+    return this.sendToPeer(publicKey, { type: 'full-state-sync', data, timestamp })
+  }
+
+  broadcastFullStateSync(data: string, timestamp: number): void {
+    for (const publicKey of this.authenticatedPeers) {
+      this.sendFullStateSync(publicKey, data, timestamp)
     }
   }
 
