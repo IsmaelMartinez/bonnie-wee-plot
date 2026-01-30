@@ -33,6 +33,7 @@ export class PeerJSSignaling extends EventEmitter {
   private peer: Peer | null = null
   private config: PeerJSConfig
   private connections = new Map<string, DataConnection>()
+  private pendingConnections = new Set<string>() // Track connections being established
   private authenticatedPeers = new Set<string>()
   private pendingChallenges = new Map<string, string>()
   private reconnectTimeout: NodeJS.Timeout | null = null
@@ -113,6 +114,7 @@ export class PeerJSSignaling extends EventEmitter {
     }
     this.connections.forEach(conn => conn.close())
     this.connections.clear()
+    this.pendingConnections.clear()
     this.authenticatedPeers.clear()
     this.peer?.destroy()
     this.peer = null
@@ -161,12 +163,14 @@ export class PeerJSSignaling extends EventEmitter {
 
     const peerId = this.getPeerIdForPublicKey(publicKey)
 
-    if (this.connections.has(publicKey)) {
-      logger.debug('Already connected to peer', { peerId: peerId.substring(0, 16) })
+    // Check if we already have an established or pending connection
+    if (this.connections.has(publicKey) || this.pendingConnections.has(publicKey)) {
+      logger.debug('Already connected or connecting to peer', { peerId: peerId.substring(0, 16) })
       return
     }
 
     logger.info('Connecting to peer', { peerId: peerId.substring(0, 16) })
+    this.pendingConnections.add(publicKey)
     const conn = this.peer.connect(peerId, { reliable: true })
     this.setupConnection(conn, publicKey)
   }
@@ -181,7 +185,16 @@ export class PeerJSSignaling extends EventEmitter {
       return
     }
 
+    // If we already have or are establishing a connection, close this incoming one
+    // to avoid duplicate connections (both peers try to connect simultaneously)
+    if (this.connections.has(peerPublicKey) || this.pendingConnections.has(peerPublicKey)) {
+      logger.info('Already have connection to peer, closing duplicate incoming', { peerId: conn.peer.substring(0, 16) })
+      conn.close()
+      return
+    }
+
     logger.info('Incoming connection from paired peer', { peerId: conn.peer.substring(0, 16) })
+    this.pendingConnections.add(peerPublicKey)
     this.setupConnection(conn, peerPublicKey)
   }
 
@@ -209,6 +222,7 @@ export class PeerJSSignaling extends EventEmitter {
     // Handler for when connection opens
     const handleOpen = () => {
       clearTimeout(connectionTimeout)
+      this.pendingConnections.delete(publicKey)
       logger.info('Connection opened', { peer: truncatedKey })
       this.connections.set(publicKey, conn)
       this.emit('peer-connected', publicKey)
@@ -232,6 +246,7 @@ export class PeerJSSignaling extends EventEmitter {
 
     conn.on('close', () => {
       clearTimeout(connectionTimeout)
+      this.pendingConnections.delete(publicKey)
       logger.info('Connection closed', { peer: truncatedKey })
       this.connections.delete(publicKey)
       this.authenticatedPeers.delete(publicKey)
@@ -240,6 +255,7 @@ export class PeerJSSignaling extends EventEmitter {
 
     conn.on('error', (err) => {
       clearTimeout(connectionTimeout)
+      this.pendingConnections.delete(publicKey)
       logger.error('Connection error', { peer: truncatedKey, error: err, errorType: (err as Error).name })
     })
 
