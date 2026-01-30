@@ -288,7 +288,8 @@ export class PeerJSSignaling extends EventEmitter {
         connectionState: peerConnection.connectionState
       })
 
-      peerConnection.onicecandidate = (event) => {
+      // Use addEventListener to avoid overwriting PeerJS's handlers
+      peerConnection.addEventListener('icecandidate', (event) => {
         if (event.candidate) {
           logger.info('ICE candidate gathered', {
             peer: truncatedKey,
@@ -301,35 +302,35 @@ export class PeerJSSignaling extends EventEmitter {
         } else {
           logger.info('ICE gathering complete', { peer: truncatedKey })
         }
-      }
+      })
 
-      peerConnection.oniceconnectionstatechange = () => {
+      peerConnection.addEventListener('iceconnectionstatechange', () => {
         logger.info('ICE connection state changed', {
           peer: truncatedKey,
           state: peerConnection.iceConnectionState
         })
-      }
+      })
 
-      peerConnection.onicegatheringstatechange = () => {
+      peerConnection.addEventListener('icegatheringstatechange', () => {
         logger.info('ICE gathering state changed', {
           peer: truncatedKey,
           state: peerConnection.iceGatheringState
         })
-      }
+      })
 
-      peerConnection.onconnectionstatechange = () => {
+      peerConnection.addEventListener('connectionstatechange', () => {
         logger.info('Connection state changed', {
           peer: truncatedKey,
           state: peerConnection.connectionState
         })
-      }
+      })
 
-      peerConnection.onsignalingstatechange = () => {
+      peerConnection.addEventListener('signalingstatechange', () => {
         logger.info('Signaling state changed', {
           peer: truncatedKey,
           state: peerConnection.signalingState
         })
-      }
+      })
     } else {
       logger.warn('RTCPeerConnection not available yet, will retry', { peer: truncatedKey })
       // PeerJS creates peerConnection lazily, check again after short delay
@@ -343,19 +344,19 @@ export class PeerJSSignaling extends EventEmitter {
             signalingState: delayedPc.signalingState,
             connectionState: delayedPc.connectionState
           })
-          // Set up the event handlers we missed
-          delayedPc.oniceconnectionstatechange = () => {
+          // Set up the event handlers we missed (use addEventListener to not overwrite PeerJS handlers)
+          delayedPc.addEventListener('iceconnectionstatechange', () => {
             logger.info('ICE connection state changed (delayed handler)', {
               peer: truncatedKey,
               state: delayedPc.iceConnectionState
             })
-          }
-          delayedPc.onconnectionstatechange = () => {
+          })
+          delayedPc.addEventListener('connectionstatechange', () => {
             logger.info('Connection state changed (delayed handler)', {
               peer: truncatedKey,
               state: delayedPc.connectionState
             })
-          }
+          })
         } else {
           logger.warn('RTCPeerConnection still not available after delay', { peer: truncatedKey })
         }
