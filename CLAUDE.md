@@ -114,34 +114,35 @@ Split into index and full data for performance:
 - `StoredVariety` - seed variety with per-year inventory status
 - `AreaSeason.gridPosition` - per-year grid layout positions (schema v14)
 
-### P2P Sync
+### Data Sharing
 
-The app supports peer-to-peer synchronization between devices on the same local network using Yjs CRDTs:
+The app supports sharing allotment data between devices via a simple share/receive flow using temporary cloud storage:
 
-**Data Layer:**
-- `src/services/ydoc-manager.ts` - Y.Doc lifecycle with IndexedDB persistence via y-indexeddb
-- `src/services/ydoc-converter.ts` - Bidirectional conversion between AllotmentData and Y.Doc
-- `src/services/ydoc-migration.ts` - One-time migration from localStorage to Y.Doc with 30-day backup
+**Share Flow (Sender):**
+1. Go to Settings > Share My Allotment
+2. Data uploads to Upstash Redis (expires in 5 minutes)
+3. QR code and 6-character code displayed
+4. Share with receiving device
 
-**Device Identity:**
-- `src/services/device-identity.ts` - Ed25519 keypairs via tweetnacl for device identity
-- `src/types/sync.ts` - Sync types (DeviceIdentity, PairedDevice, PairingPayload, SyncStatus)
+**Receive Flow (Receiver):**
+1. Scan QR or enter code at `/receive`
+2. Preview shared data (name, planting count, etc.)
+3. Confirm import - replaces local data with automatic backup
 
-**P2P Connection:**
-- `src/services/local-discovery.ts` - BroadcastChannel-based peer discovery (same-origin)
-- `src/services/webrtc-manager.ts` - WebRTC DataChannel for encrypted P2P transport
-- `src/services/signaling-coordinator.ts` - Orchestrates discovery, connection, and authentication
-- `src/services/yjs-sync-provider.ts` - Implements Yjs sync protocol over WebRTC
+**API Routes:**
+- `src/app/api/share/route.ts` - POST: Upload data, returns 6-char code
+- `src/app/api/share/[code]/route.ts` - GET: Retrieve data by code
 
 **UI Components:**
-- `src/components/sync/DeviceSettings.tsx` - Device name editing and paired devices management
-- `src/components/sync/PairingModal.tsx` - QR code pairing flow with 6-digit confirmation
-- `src/components/sync/SyncStatusIndicator.tsx` - Connection status display
-- `src/components/sync/SyncToast.tsx` - Sync event notifications
+- `src/components/share/ShareDialog.tsx` - QR and code display dialog
+- `src/app/receive/page.tsx` - Code entry and QR scanner
+- `src/app/receive/[code]/page.tsx` - Preview and import confirmation
 
-**Settings Page:** `/settings` route provides access to device sync configuration.
+**Settings Page:** `/settings` route provides access to share functionality.
 
-See `docs/adrs/024-p2p-sync-architecture.md` for architectural decisions.
+**Environment:** Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for the share feature.
+
+See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
 ### AI Advisor
 
@@ -182,7 +183,7 @@ Unlockable features: `ai-advisor`, `compost`, `allotment-layout`
 - `src/components/garden-planner/` - garden grid (GardenGrid, GridSizeControls, PlantSelectionDialog), bed editor, calendar
 - `src/components/allotment/` - allotment grid, bed items
 - `src/components/ai-advisor/` - chat interface components
-- `src/components/sync/` - P2P sync UI (DeviceSettings, PairingModal, QRCodeDisplay, QRCodeScanner, SyncStatusIndicator, SyncToast)
+- `src/components/share/` - Data sharing UI (ShareDialog)
 - `src/components/ui/` - shared UI components (Dialog, SaveIndicator)
 
 ### Path Aliases
