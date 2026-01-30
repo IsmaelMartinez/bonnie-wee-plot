@@ -83,6 +83,21 @@ export class PeerJSSignaling extends EventEmitter {
         if (err.type === 'unavailable-id') {
           // Our peer ID is taken - this shouldn't happen with public keys
           reject(err)
+        } else if (err.type === 'peer-unavailable') {
+          // The peer we tried to connect to isn't online yet
+          // Extract peer ID from error message and clean up pendingConnections
+          const match = err.message.match(/peer (\S+)/)
+          if (match) {
+            const failedPeerId = match[1]
+            // Find and clean up the pending connection for this peer
+            for (const publicKey of this.pendingConnections) {
+              if (this.getPeerIdForPublicKey(publicKey) === failedPeerId) {
+                logger.info('Cleaning up failed connection attempt', { peerId: failedPeerId })
+                this.pendingConnections.delete(publicKey)
+                break
+              }
+            }
+          }
         } else if (err.type === 'network' || err.type === 'server-error') {
           this.scheduleReconnect()
         }
@@ -213,12 +228,25 @@ export class PeerJSSignaling extends EventEmitter {
       return
     }
 
-    // If we already have or are establishing a connection, close this incoming one
-    // to avoid duplicate connections (both peers try to connect simultaneously)
-    if (this.connections.has(peerPublicKey) || this.pendingConnections.has(peerPublicKey)) {
-      logger.info('Already have connection to peer, closing duplicate incoming', { peerId: conn.peer.substring(0, 16) })
+    // Check for existing connections
+    const existingConn = this.connections.get(peerPublicKey)
+    if (existingConn?.open) {
+      // We have an active, open connection - reject the duplicate
+      logger.info('Already have open connection to peer, closing duplicate incoming', { peerId: conn.peer })
       conn.close()
       return
+    }
+
+    // If we have a pending or failed outgoing connection, prefer the incoming one
+    // This handles the race condition where both peers try to connect simultaneously
+    if (this.pendingConnections.has(peerPublicKey)) {
+      logger.info('Had pending outgoing connection, accepting incoming instead', { peerId: conn.peer })
+      this.pendingConnections.delete(peerPublicKey)
+      // Clean up any stale connection object
+      if (existingConn) {
+        existingConn.close()
+        this.connections.delete(peerPublicKey)
+      }
     }
 
     logger.info('Incoming connection from paired peer', { peerId: conn.peer.substring(0, 16) })
