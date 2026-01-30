@@ -21,6 +21,7 @@ import { callOpenAI, OpenAIToolCall } from '@/lib/openai-client'
 // AI Tools
 import { PLANTING_TOOLS, ToolCall, formatToolCallForUser } from '@/lib/ai-tools-schema'
 import { executeToolCalls, formatResultsForAI } from '@/services/ai-tool-executor'
+import { saveAllotmentData } from '@/services/allotment-storage'
 
 // Extracted components
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
@@ -364,9 +365,12 @@ export default function AIAdvisorPage() {
       const failCount = results.filter(r => !r.success).length
 
       if (successCount > 0) {
-        // Save the updated data by triggering a storage update
-        // The useAllotment hook will sync this via localStorage
-        localStorage.setItem('allotment-unified-data', JSON.stringify(updatedData))
+        // Save through storage service (handles validation, timestamps, quota)
+        const saveResult = saveAllotmentData(updatedData)
+        if (!saveResult.success) {
+          setToast({ message: saveResult.error || 'Failed to save changes', type: 'error' })
+          return
+        }
 
         // Reload to get fresh data
         reloadAllotment()
