@@ -197,7 +197,7 @@ export class PeerJSSignaling extends EventEmitter {
 
   private setupConnection(conn: DataConnection, publicKey: string): void {
     const truncatedKey = getTruncatedPublicKey(publicKey)
-    logger.info('Setting up connection', { peer: truncatedKey, connectionId: conn.connectionId })
+    logger.info('Setting up connection', { peer: truncatedKey, connectionId: conn.connectionId, alreadyOpen: conn.open })
 
     // Connection timeout - if not open within 30 seconds, log a warning
     const connectionTimeout = setTimeout(() => {
@@ -206,7 +206,8 @@ export class PeerJSSignaling extends EventEmitter {
       }
     }, 30000)
 
-    conn.on('open', () => {
+    // Handler for when connection opens
+    const handleOpen = () => {
       clearTimeout(connectionTimeout)
       logger.info('Connection opened', { peer: truncatedKey })
       this.connections.set(publicKey, conn)
@@ -214,9 +215,18 @@ export class PeerJSSignaling extends EventEmitter {
 
       // Initiate authentication
       this.sendAuthChallenge(publicKey)
-    })
+    }
+
+    conn.on('open', handleOpen)
+
+    // Check if already open (for incoming connections, might have missed the event)
+    if (conn.open) {
+      logger.info('Connection already open, handling immediately', { peer: truncatedKey })
+      handleOpen()
+    }
 
     conn.on('data', (data) => {
+      logger.info('Data received on connection', { peer: truncatedKey, dataType: typeof data, messageType: (data as PeerMessage)?.type })
       this.handleMessage(publicKey, data as PeerMessage)
     })
 
