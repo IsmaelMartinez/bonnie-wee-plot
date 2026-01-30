@@ -1,111 +1,93 @@
-# ADR 024: P2P Sync Architecture
+# ADR 024: Data Sharing Architecture
 
 Date: 2026-01-29
-Status: Accepted
+Status: Superseded
 Updated: 2026-01-30
 
-## Context
+## Original Context
 
-Users want to access their allotment data across multiple devices (phone while in the garden, laptop for planning). Currently all data lives in localStorage on a single device with manual export/import as the only sync mechanism.
+Users wanted to access their allotment data across multiple devices. We initially implemented peer-to-peer synchronization using PeerJS/WebRTC with Yjs CRDTs for conflict-free merging.
 
-We evaluated several approaches: cloud sync (requires server infrastructure and accounts), manual export/import (current state, poor UX), and peer-to-peer sync (minimal server, automatic merging).
+## Original Decision (Now Superseded)
 
-## Decision
+We implemented P2P sync with:
+- Yjs CRDTs for data merging
+- PeerJS for WebRTC signaling
+- Ed25519 keypairs for device identity
+- QR code pairing with 6-digit verification
 
-We implement peer-to-peer synchronization using PeerJS for signaling with WebRTC DataChannels for the actual data transport. Key architectural choices:
+## Why P2P Was Abandoned
 
-### Data Layer: Yjs CRDT
+The P2P approach added significant complexity without delivering proportional user value:
 
-Replace direct localStorage writes with Yjs Y.Doc operations. Yjs provides conflict-free replicated data types that automatically merge concurrent edits without data loss. The Y.Doc persists to IndexedDB via y-indexeddb provider.
+1. **Complexity vs. Use Case**: P2P sync solves continuous multi-device editing, but our users primarily need one-time data transfer to a new device. The P2P machinery (CRDT merging, keypairs, WebRTC negotiation) was overkill.
 
-Rationale: Yjs is the most mature CRDT implementation (900k+ weekly npm downloads), used by Figma and other production apps. The Y.Map/Y.Array types map naturally to our AllotmentData schema.
+2. **Unreliable Connections**: WebRTC P2P connections proved fragile - STUN/TURN negotiation often failed, especially on mobile networks and behind corporate firewalls.
 
-### Discovery & Signaling: PeerJS
+3. **Maintenance Burden**: The P2P codebase added ~2000 lines of sync infrastructure, multiple new dependencies (yjs, y-indexeddb, y-protocols, peerjs, tweetnacl), and complex test scenarios.
 
-We use PeerJS's free public signaling server for WebRTC connection establishment. Browsers cannot discover other devices on a local network (no mDNS API), so a signaling server is required to exchange WebRTC connection info.
+4. **User Confusion**: The pairing flow (generate keypair, scan QR, confirm 6-digit code, wait for connection) was too complex for what users actually wanted: "get my data on this other phone."
 
-PeerJS only handles the initial "find each other" phase. It sees peer IDs (derived from public keys) and IP addresses, but NOT the actual sync data. After connection establishment, all data flows directly between devices via encrypted WebRTC DataChannels.
+## New Decision: Simple Share/Receive
 
-Rationale: PeerJS is a well-maintained, lightweight solution. The free public server eliminates infrastructure costs. If needed, peerjs-server can be self-hosted. The security impact is minimal since we authenticate peers with Ed25519 signatures after connection.
+Replace P2P sync with a simple share flow:
 
-### Transport: WebRTC DataChannel
+### Share (Sender)
+1. Go to Settings > Share My Allotment
+2. Data uploads to Upstash Redis (expires in 5 minutes)
+3. Receive a 6-character code and QR code
+4. Share code or scan QR on receiving device
 
-Peer connections use WebRTC with DTLS encryption. Data flows directly between devices after PeerJS facilitates the initial handshake.
+### Receive (Receiver)
+1. Scan QR or enter code at `/receive`
+2. Preview the shared data (allotment name, planting count)
+3. Confirm import - data replaces local storage
+4. Automatic backup created before import
 
-Rationale: WebRTC is battle-tested for browser P2P, provides built-in encryption, and works in all modern browsers including mobile Safari.
+### Implementation
 
-### Device Identity: Ed25519 Keypairs
+**API Routes:**
+- `POST /api/share` - Upload data, receive 6-char code
+- `GET /api/share/[code]` - Retrieve data by code
 
-Each device generates a persistent Ed25519 keypair. Public key serves as device identity. Pairing uses QR codes with 6-digit out-of-band verification.
+**UI Components:**
+- `src/components/share/ShareDialog.tsx` - QR display and code
+- `src/app/receive/page.tsx` - Code entry / QR scanner
+- `src/app/receive/[code]/page.tsx` - Preview and import
 
-Rationale: Cryptographic identity prevents impersonation. QR + confirmation code prevents attacks from photographed QR codes. Ed25519 is fast and well-supported via tweetnacl.
-
-### Peer Model: Equal Peers
-
-All devices are equal peers with full local copies. Any device can initiate sync. No primary/secondary distinction.
-
-Rationale: More resilient than primary-server model. Matches CRDT semantics where all replicas are equally valid. Either device can work offline indefinitely.
+**Storage:** Upstash Redis with 5-minute TTL for temporary storage.
 
 ## Consequences
 
 ### Positive
-
-- Minimal server dependency (PeerJS signaling only, no data storage)
-- Data flows directly P2P after connection - signaling server never sees user data
-- Works across any network (not limited to same WiFi)
-- Conflict-free merging means no manual conflict resolution
-- Multi-tab sync comes free with IndexedDB persistence
-- Future-proof: same CRDT foundation supports friend sharing
-- Can self-host peerjs-server if needed for independence
+- Drastically simpler codebase (~500 lines vs ~2500 lines for P2P)
+- No complex dependencies (removed yjs, peerjs, tweetnacl, etc.)
+- Works reliably across all network conditions
+- Intuitive user experience matching mental model ("send my data")
+- 5-minute expiry provides security without persistent server storage
 
 ### Negative
+- Requires server-side component (Upstash Redis)
+- One-way transfer only (no continuous sync)
+- Data temporarily passes through server (encrypted, short-lived)
+- Cannot work without internet connection
 
-- Depends on PeerJS public server availability (can self-host as fallback)
-- PWA background execution limits mean sync only happens when app is foregrounded
-- IndexedDB storage limits may require pruning strategy for large histories
-- PeerJS server sees connection metadata (peer IDs, IPs, when devices connect)
+### Trade-off Rationale
 
-### Migration
+The trade-off is acceptable because:
+- Most users only share data occasionally (new device, family member)
+- Export/import remains available for offline scenarios
+- Server sees encrypted blob, not parsed data
+- 5-minute window limits exposure
 
-Existing localStorage data migrates to Y.Doc on first load. Old localStorage kept as backup for 30 days. No user action required.
+## Removed Files
 
-## Alternatives Considered
+Services: `peerjs-signaling.ts`, `device-identity.ts`, `webrtc-manager.ts`, `signaling-coordinator.ts`, `local-discovery.ts`, `ydoc-*.ts`, `yjs-sync-provider.ts`
 
-### Cloud Sync (Firebase, Supabase)
+Hooks: `useSync.ts`, `useSyncConnection.ts`
 
-Rejected: Requires server infrastructure, user accounts, ongoing costs. Conflicts with local-first philosophy.
+Components: `src/components/sync/` directory
 
-### mDNS Discovery (Local Network Only)
+Types: `sync.ts`
 
-Rejected: Browsers don't have mDNS/Bonjour APIs. BroadcastChannel only works between tabs in the same browser, not across physical devices. Would require a native app wrapper.
-
-### Gun.js
-
-Rejected: Higher complexity, less mature than Yjs, harder to reason about consistency guarantees.
-
-### Automerge
-
-Considered: Excellent CRDT with audit trail capabilities. Rejected for MVP due to larger bundle size and less mature browser ecosystem. Could revisit if compliance/audit requirements emerge.
-
-### libp2p for Discovery
-
-Deferred: Adds ~200KB bundle size and DHT complexity. PeerJS is simpler for initial implementation. Can migrate to libp2p later if decentralization becomes priority.
-
-## Security Analysis
-
-PeerJS signaling server exposure:
-- Sees: Peer IDs (derived from public keys), IP addresses, connection timing
-- Does NOT see: Device names, user data, sync content
-
-Mitigations:
-- Ed25519 challenge-response authentication after WebRTC connects
-- Only paired devices (verified via QR code) are trusted
-- All data encrypted in transit via WebRTC DTLS
-- Peer IDs are hashes, not raw public keys
-
-## References
-
-- [P2P Sync Design](../plans/2026-01-29-p2p-sync-design.md)
-- [Yjs Documentation](https://docs.yjs.dev/)
-- [PeerJS Documentation](https://peerjs.com/docs/)
-- [Local-First Software](https://www.inkandswitch.com/essay/local-first/)
+Dependencies: peerjs, yjs, y-indexeddb, y-protocols, tweetnacl, tweetnacl-util
