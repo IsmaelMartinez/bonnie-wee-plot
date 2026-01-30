@@ -203,7 +203,6 @@ export async function callOpenAI(options: OpenAIClientOptions): Promise<OpenAIRe
     }
 
     const fallbackReason = 'API route not available (static deployment)'
-    console.log(fallbackReason)
     options.onFallbackToDirectAPI?.(fallbackReason)
   } catch (error) {
     // If error is from response handling above, re-throw it

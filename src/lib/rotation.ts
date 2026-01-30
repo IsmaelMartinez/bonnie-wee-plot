@@ -18,7 +18,7 @@ import {
   SeasonPlan
 } from '@/types/garden-planner'
 import { getVegetableById, vegetables } from '@/lib/vegetable-database'
-import { getSeasonByYear, getRotationGroupForBed } from '@/data/historical-plans'
+import { getRotationGroupForBed } from '@/data/historical-plans'
 import {
   physicalBeds,
   getBedById,
@@ -669,71 +669,3 @@ export function generateRotationPlanFromData(
     warnings
   }
 }
-
-/**
- * Generate 2026 plan based on 2024/2025 history
- */
-export function generate2026Plan(): RotationPlan {
-  const season2024 = getSeasonByYear(2024)
-  const season2025 = getSeasonByYear(2025)
-  
-  const historicalSeasons: SeasonPlan[] = []
-  if (season2024) historicalSeasons.push(season2024)
-  if (season2025) historicalSeasons.push(season2025)
-
-  return generateRotationPlan(2026, historicalSeasons)
-}
-
-// ============ HISTORY FUNCTIONS ============
-
-/**
- * Get rotation history summary for a bed
- */
-export function getBedRotationHistory(
-  bedId: PhysicalBedId,
-  years: number[]
-): { year: number; group: RotationGroup | undefined }[] {
-  return years.map(year => ({
-    year,
-    group: getRotationGroupForBed(year, bedId) as RotationGroup | undefined
-  }))
-}
-
-// ============ DISPLAY HELPERS ============
-
-/**
- * Get bed status display
- */
-export function getBedStatusDisplay(bedId: PhysicalBedId): { status: string; color: string } {
-  const bed = getBedById(bedId)
-  switch (bed?.status) {
-    case 'rotation':
-      return { status: 'In Rotation', color: 'green' }
-    case 'perennial':
-      return { status: 'Perennial', color: 'blue' }
-    default:
-      return { status: 'Unknown', color: 'gray' }
-  }
-}
-
-/**
- * Special suggestion for Bed A transitioning to strawberries
- */
-export function getBedATransitionPlan(): {
-  currentUse: string
-  proposedUse: string
-  timeline: string[]
-} {
-  return {
-    currentUse: 'Peas (legumes) in 2025',
-    proposedUse: 'Strawberry bed (joining rotation with B1\' strawberries)',
-    timeline: [
-      '2026 Spring: Final legume harvest',
-      '2026 Summer: Prepare bed, add compost',
-      '2026 Autumn: Plant strawberry runners from B1\'',
-      '2027: First strawberry harvest from Bed A'
-    ]
-  }
-}
-
-
