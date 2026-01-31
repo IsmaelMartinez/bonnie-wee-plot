@@ -1461,6 +1461,7 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
 /**
  * Remove a season by year
  * Cannot remove if it's the only season
+ * Also cleans up seedsByYear entries from varieties for that year
  */
 export function removeSeason(data: AllotmentData, year: number): AllotmentData {
   // Don't allow removing the last season
@@ -1477,10 +1478,21 @@ export function removeSeason(data: AllotmentData, year: number): AllotmentData {
     newCurrentYear = years[0]
   }
 
+  // Clean up seedsByYear entries from varieties for the deleted year
+  const cleanedVarieties = (data.varieties || []).map(v => {
+    if (!v.seedsByYear || !(year in v.seedsByYear)) {
+      return v
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [year]: _, ...restSeedsByYear } = v.seedsByYear
+    return { ...v, seedsByYear: restSeedsByYear }
+  })
+
   return {
     ...data,
     seasons: filteredSeasons,
     currentYear: newCurrentYear,
+    varieties: cleanedVarieties,
   }
 }
 
