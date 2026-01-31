@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { GridItemConfig } from '@/data/allotment-layout'
 import { Planting, Area } from '@/types/unified-allotment'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { getVegetableCategory } from '@/lib/vegetable-loader'
 import { getPlantEmoji } from '@/lib/plant-emoji'
 import { getColorValue } from '@/lib/colors'
 import PerennialStatusBadge from './PerennialStatusBadge'
@@ -22,11 +22,11 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [], a
   const getPlantingIcon = (): string | undefined => {
     if (plantings.length === 0) return item.icon
 
-    // Get first planting's vegetable and show its emoji
+    // Get first planting's category and show its emoji
     const firstPlanting = plantings[0]
-    const veg = getVegetableById(firstPlanting.plantId)
-    if (veg) {
-      return getPlantEmoji(veg.category)
+    const category = getVegetableCategory(firstPlanting.plantId)
+    if (category) {
+      return getPlantEmoji(category)
     }
     return item.icon
   }

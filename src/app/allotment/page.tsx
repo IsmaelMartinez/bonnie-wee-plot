@@ -13,7 +13,7 @@ import {
   TreeDeciduous,
   Users
 } from 'lucide-react'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
 import { NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
@@ -546,7 +546,7 @@ export default function AllotmentPage() {
         const suggestedDisplay = ROTATION_GROUP_DISPLAY[autoRotateInfo.suggestedGroup]
         const suggestedVegNames = autoRotateInfo.suggestedVegetables
           .slice(0, 3)
-          .map(id => getVegetableById(id)?.name)
+          .map(id => getVegetableName(id))
           .filter(Boolean)
 
         return (

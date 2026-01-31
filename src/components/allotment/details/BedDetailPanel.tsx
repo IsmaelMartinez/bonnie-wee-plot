@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Sprout, Plus, ArrowRight, Leaf, Pencil, Trash2 } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
-import { getVegetableById } from '@/lib/vegetable-database'
+import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
 import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
@@ -81,7 +81,7 @@ export default function BedDetailPanel({
     const suggestedVegIds = getVegetablesForRotationGroup(suggested)
     const suggestedVegNames = suggestedVegIds
       .slice(0, 4)
-      .map(id => getVegetableById(id)?.name)
+      .map(id => getVegetableName(id))
       .filter(Boolean)
 
     return { lastYear: previousYearRotation, suggested, lastDisplay, nextDisplay, suggestedVegNames }
