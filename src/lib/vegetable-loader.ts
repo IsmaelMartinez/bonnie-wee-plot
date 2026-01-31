@@ -129,13 +129,18 @@ export function getVegetableCategory(id: string): VegetableCategory | undefined 
   return entry?.category
 }
 
-// Re-export the synchronous API from the original database for backward compatibility
-// This ensures existing code continues to work while we migrate
-export { 
-  vegetables, 
-  getVegetableById, 
-  getVegetablesByCategory 
-} from './vegetable-database'
+/**
+ * Get vegetable by ID from cache (synchronous)
+ * Returns undefined if database not yet loaded - use getVegetableByIdAsync for guaranteed results
+ * This is useful for components that render after database is loaded
+ */
+export function getVegetableByIdCached(id: string): Vegetable | undefined {
+  return vegetableCache.get(id)
+}
+
+// NOTE: Full database exports removed to enable proper lazy loading
+// Files needing full iteration should import directly from './vegetable-database'
+// Files needing single lookups should use getVegetableByIdAsync() or getVegetableName()
 
 
 
