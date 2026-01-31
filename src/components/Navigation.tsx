@@ -89,10 +89,33 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMoreOpen, setIsMoreOpen] = useState(false)
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
-  const { data } = useAllotment()
+  const { data, updateMeta } = useAllotment()
   const { isUnlocked, unlock, getProgress, newlyUnlockedFeature, dismissCelebration } = useFeatureFlags(data)
+
+  const handleStartEditName = () => {
+    setNameInput(data?.meta.name || 'My Allotment')
+    setIsEditingName(true)
+  }
+
+  const handleSaveName = () => {
+    const trimmedName = nameInput.trim()
+    if (trimmedName && trimmedName !== data?.meta.name) {
+      updateMeta({ name: trimmedName })
+    }
+    setIsEditingName(false)
+  }
+
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveName()
+    } else if (e.key === 'Escape') {
+      setIsEditingName(false)
+    }
+  }
 
   const theme = getSeasonalTheme(getCurrentSeason())
 
@@ -135,21 +158,40 @@ export default function Navigation() {
     <header className="bg-white border-b border-zen-stone-200">
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16" role="navigation">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
-          >
-            <span className="text-2xl" aria-hidden="true">
-              {theme.season === 'winter' && '❄️'}
-              {theme.season === 'spring' && '🌸'}
-              {theme.season === 'summer' && '🌿'}
-              {theme.season === 'autumn' && '🍂'}
-            </span>
-            <span className="font-display text-xl tracking-tight">
-              {data?.meta.name || 'My Allotment'}
-            </span>
-          </Link>
+          {/* Logo and Allotment Name */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex items-center text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
+            >
+              <span className="text-2xl" aria-hidden="true">
+                {theme.season === 'winter' && '❄️'}
+                {theme.season === 'spring' && '🌸'}
+                {theme.season === 'summer' && '🌿'}
+                {theme.season === 'autumn' && '🍂'}
+              </span>
+            </Link>
+            {isEditingName ? (
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onBlur={handleSaveName}
+                onKeyDown={handleNameKeyDown}
+                className="font-display text-xl tracking-tight text-zen-ink-800 border-b-2 border-zen-moss-500 bg-transparent outline-none px-1 max-w-[200px]"
+                autoFocus
+                aria-label="Allotment name"
+              />
+            ) : (
+              <button
+                onClick={handleStartEditName}
+                className="font-display text-xl tracking-tight text-zen-ink-800 hover:text-zen-moss-600 transition-colors cursor-pointer"
+                title="Click to edit allotment name"
+              >
+                {data?.meta.name || 'My Allotment'}
+              </button>
+            )}
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">

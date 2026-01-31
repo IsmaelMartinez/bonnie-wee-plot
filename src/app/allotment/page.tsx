@@ -72,7 +72,6 @@ export default function AllotmentPage() {
     updateAreaNote,
     removeAreaNote,
     updateRotationGroup,
-    updateMeta,
     // v10 Area getters
     getArea,
     getAreasByKind,
@@ -90,8 +89,6 @@ export default function AllotmentPage() {
   const [showAddAreaDialog, setShowAddAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState('')
   const [isGridEditing, setIsGridEditing] = useState(false)
 
   // Get available years and add next/previous year options
@@ -194,27 +191,6 @@ export default function AllotmentPage() {
     setShowAutoRotateDialog(false)
   }
 
-  const handleStartEditName = () => {
-    setNameInput(data?.meta.name || 'My Allotment')
-    setIsEditingName(true)
-  }
-
-  const handleSaveName = () => {
-    const trimmedName = nameInput.trim()
-    if (trimmedName && trimmedName !== data?.meta.name) {
-      updateMeta({ name: trimmedName })
-    }
-    setIsEditingName(false)
-  }
-
-  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSaveName()
-    } else if (e.key === 'Escape') {
-      setIsEditingName(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-zen-stone-50 zen-texture">
       {/* Header */}
@@ -225,25 +201,9 @@ export default function AllotmentPage() {
               <Map className="w-7 h-7 text-zen-moss-600 flex-shrink-0" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isEditingName ? (
-                    <input
-                      type="text"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      onBlur={handleSaveName}
-                      onKeyDown={handleNameKeyDown}
-                      className="text-base sm:text-lg font-display text-zen-ink-800 border-b-2 border-zen-moss-500 bg-transparent outline-none px-1"
-                      autoFocus
-                    />
-                  ) : (
-                    <h1
-                      className="text-base sm:text-lg font-display text-zen-ink-800 truncate cursor-pointer hover:text-zen-moss-600 transition"
-                      onClick={handleStartEditName}
-                      title="Click to edit"
-                    >
-                      {data?.meta.name || 'My Allotment'}
-                    </h1>
-                  )}
+                  <h1 className="text-base sm:text-lg font-display text-zen-ink-800 truncate">
+                    Plot Layout
+                  </h1>
                   <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
                 </div>
                 <p className="text-xs text-zen-stone-500 truncate">{data?.meta.location || 'Edinburgh, Scotland'}</p>

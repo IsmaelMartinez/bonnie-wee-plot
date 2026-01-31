@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { Shield, Eye, EyeOff } from 'lucide-react'
+import { Shield } from 'lucide-react'
 
 interface TokenSettingsProps {
   token: string
@@ -18,7 +17,27 @@ export default function TokenSettings({
   onClear,
   onClose
 }: TokenSettingsProps) {
-  const [showToken, setShowToken] = useState(false)
+  // Handle paste - this is the primary way to enter the API key
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedText = e.clipboardData.getData('text')
+    onTokenChange(pastedText.trim())
+  }
+
+  // Block direct typing - only allow paste, delete, and navigation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow: backspace, delete, tab, escape, enter
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X (and Cmd on Mac)
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End']
+    const isModifierKey = e.ctrlKey || e.metaKey
+
+    if (allowedKeys.includes(e.key) || isModifierKey) {
+      return
+    }
+
+    // Block all other typing
+    e.preventDefault()
+  }
 
   return (
     <section
@@ -38,26 +57,16 @@ export default function TokenSettings({
           <div className="relative">
             <input
               id="openai-token"
-              type={showToken ? 'text' : 'password'}
+              type="password"
               value={token}
               onChange={(e) => onTokenChange(e.target.value)}
-              placeholder="sk-xxxxxxxxxxxxxxxxxx or your API key"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+              onPaste={handlePaste}
+              onKeyDown={handleKeyDown}
+              placeholder="Paste your API key here"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent select-none"
               aria-describedby="token-help-text token-privacy-notice"
+              autoComplete="off"
             />
-            <button
-              type="button"
-              onClick={() => setShowToken(!showToken)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center min-w-[44px] min-h-[44px]"
-              aria-label={showToken ? 'Hide API key' : 'Show API key'}
-              aria-pressed={showToken}
-            >
-              {showToken ? (
-                <EyeOff className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              ) : (
-                <Eye className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              )}
-            </button>
           </div>
 
           <div id="token-help-text" className="mt-2 text-xs text-gray-500">

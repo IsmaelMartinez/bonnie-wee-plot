@@ -271,6 +271,16 @@ Review each section's components individually, then how they integrate within th
 - Which items should be primary vs secondary?
 - Mobile nav: hamburger vs bottom tabs vs current approach?
 
+#### 2.10 About
+**Components:** AboutPage (static content page with feature overview)
+**Key Questions:**
+- Does it effectively communicate the app's value proposition?
+- Is the "BYO API Key" concept clear to new users?
+- Should this content move to Settings or be accessible from onboarding?
+- Is the philosophy section ("Growing with Intention") compelling?
+- Do the quick action links help users discover features?
+**Intra-section integration:** Feature descriptions vs navigation links vs philosophy messaging
+
 ### Step 3: Cross-Section Integration Review
 
 After reviewing sections individually, map how they connect:
