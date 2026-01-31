@@ -14,6 +14,7 @@ import {
   archiveVariety,
   unarchiveVariety,
   getActiveVarieties,
+  removeSeason,
 } from '@/services/allotment-storage'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, Area } from '@/types/unified-allotment'
 
@@ -979,5 +980,71 @@ describe('Query Filtering with Archive Status', () => {
     const active = getActiveVarieties(data)
 
     expect(active).toEqual([])
+  })
+})
+
+describe('removeSeason', () => {
+  it('removes a season from data', () => {
+    const data = createValidAllotmentData({
+      currentYear: TEST_CURRENT_YEAR,
+      seasons: [
+        { year: TEST_CURRENT_YEAR, status: 'current', areas: [], createdAt: '', updatedAt: '' },
+        { year: TEST_CURRENT_YEAR - 1, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+      ]
+    })
+
+    const result = removeSeason(data, TEST_CURRENT_YEAR - 1)
+
+    expect(result.seasons.length).toBe(1)
+    expect(result.seasons[0].year).toBe(TEST_CURRENT_YEAR)
+  })
+
+  it('does not remove the last season', () => {
+    const data = createValidAllotmentData({
+      currentYear: TEST_CURRENT_YEAR,
+      seasons: [
+        { year: TEST_CURRENT_YEAR, status: 'current', areas: [], createdAt: '', updatedAt: '' },
+      ]
+    })
+
+    const result = removeSeason(data, TEST_CURRENT_YEAR)
+
+    expect(result.seasons.length).toBe(1)
+    expect(result.seasons[0].year).toBe(TEST_CURRENT_YEAR)
+  })
+
+  it('updates currentYear when removing the current year', () => {
+    const data = createValidAllotmentData({
+      currentYear: TEST_CURRENT_YEAR,
+      seasons: [
+        { year: TEST_CURRENT_YEAR, status: 'current', areas: [], createdAt: '', updatedAt: '' },
+        { year: TEST_CURRENT_YEAR - 1, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+      ]
+    })
+
+    const result = removeSeason(data, TEST_CURRENT_YEAR)
+
+    expect(result.currentYear).toBe(TEST_CURRENT_YEAR - 1)
+    expect(result.seasons.length).toBe(1)
+  })
+
+  it('handles string/number type mismatch from JSON import', () => {
+    // Simulate data where years are strings (can happen with JSON import)
+    const data = createValidAllotmentData({
+      currentYear: TEST_CURRENT_YEAR,
+      seasons: [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { year: String(TEST_CURRENT_YEAR) as any, status: 'current', areas: [], createdAt: '', updatedAt: '' },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { year: String(TEST_CURRENT_YEAR - 1) as any, status: 'historical', areas: [], createdAt: '', updatedAt: '' },
+      ]
+    })
+
+    // Pass year as number (as the UI would)
+    const result = removeSeason(data, TEST_CURRENT_YEAR - 1)
+
+    expect(result.seasons.length).toBe(1)
+    // The remaining season should have year equal to TEST_CURRENT_YEAR (as string or number)
+    expect(Number(result.seasons[0].year)).toBe(TEST_CURRENT_YEAR)
   })
 })
