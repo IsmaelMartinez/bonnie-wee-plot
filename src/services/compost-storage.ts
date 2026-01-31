@@ -18,17 +18,11 @@ import {
 } from '@/types/compost'
 import { generateId } from '@/lib/utils/id'
 import { StorageResult } from '@/types/storage'
+import { isQuotaExceededError } from '@/lib/storage-ops'
 
 export type { StorageResult } from '@/types/storage'
 
 // ============ VALIDATION ============
-
-function isQuotaExceededError(error: unknown): boolean {
-  return (
-    error instanceof DOMException &&
-    (error.name === 'QuotaExceededError' || error.code === 22)
-  )
-}
 
 function validateCompostData(data: unknown): boolean {
   if (!data || typeof data !== 'object') return false

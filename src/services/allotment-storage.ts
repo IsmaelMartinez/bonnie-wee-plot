@@ -48,6 +48,7 @@ import { generateId, generateSlugId } from '@/lib/utils'
 import { getNextRotationGroup } from '@/lib/rotation'
 import { DEFAULT_GRID_LAYOUT } from '@/data/allotment-layout'
 import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/storage-detection'
+import { isQuotaExceededError } from '@/lib/storage-ops'
 import { logger } from '@/lib/logger'
 import {
   getVarietyUsedYears,
@@ -331,22 +332,6 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
   }
 }
 
-/**
- * Check if an error is a quota exceeded error
- */
-function isQuotaExceededError(error: unknown): boolean {
-  if (error instanceof DOMException) {
-    // Most browsers
-    if (error.code === 22 || error.name === 'QuotaExceededError') {
-      return true
-    }
-    // Firefox
-    if (error.code === 1014 || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-      return true
-    }
-  }
-  return false
-}
 
 /**
  * Calculate approximate size of data in bytes
