@@ -198,6 +198,7 @@ Review each app section in isolation to identify issues and improvements:
 | **Allotment** | Garden layout & plantings | Can users easily add/edit plants? How does grid interact with bed details? |
 | **Compost** | Pile tracking | Is the C:N ratio tracking useful? Event logging UX? |
 | **AI Advisor** | Chat with Aitor | Should it be able to modify data (see AI inventory research)? |
+| **Settings** | Data management & sharing | Is export/import discoverable? Is share flow intuitive? What else belongs here? |
 
 ### Step 3: Holistic UX Review
 
