@@ -188,25 +188,106 @@ Before implementing progressive disclosure, complete these UX improvements:
 
 ### Step 2: Section-by-Section UX Review
 
-Review each app section in isolation to identify issues and improvements:
+Review each section's components individually, then how they integrate within the section.
 
-| Section | Purpose | Key Questions |
-|---------|---------|---------------|
-| **Today** | Daily dashboard | What actions do users take most? Is the information hierarchy correct? |
-| **This Month** | Seasonal calendar | Does it answer "what should I do now?" effectively? |
-| **Seeds** | Seed inventory & catalog | Is variety tracking intuitive? How does it connect to plantings? |
-| **Allotment** | Garden layout & plantings | Can users easily add/edit plants? How does grid interact with bed details? |
-| **Compost** | Pile tracking | Is the C:N ratio tracking useful? Event logging UX? |
-| **AI Advisor** | Chat with Aitor | Should it be able to modify data (see AI inventory research)? |
-| **Settings** | Data management & sharing | Is export/import discoverable? Is share flow intuitive? What else belongs here? |
+#### 2.1 Today (Dashboard)
+**Components:** TodayDashboard, SeasonCard, TaskList, QuickActions, AIInsight, CompostAlerts
+**Key Questions:**
+- Is information hierarchy correct (what do users need first)?
+- Do QuickActions lead to the right places?
+- Is TaskList actionable or just informational?
+- Does AIInsight provide value or feel like noise?
+**Intra-section integration:** How do SeasonCard, TaskList, and QuickActions work together to guide daily activity?
 
-### Step 3: Holistic UX Review
+#### 2.2 This Month (Calendar)
+**Components:** Monthly calendar view, seasonal task suggestions
+**Key Questions:**
+- Does it answer "what should I do now?" effectively?
+- Is the monthly vs seasonal information balance right?
+- How does it connect to actual plantings?
+**Intra-section integration:** Calendar events vs task recommendations vs planting timelines
 
-After reviewing sections individually, map the user journey across sections:
-- Identify friction points in cross-section workflows
-- Ensure consistent patterns and terminology
-- Validate navigation and information architecture
-- Test complete user scenarios (e.g., "plan a new bed" → "track harvest")
+#### 2.3 Seeds (Inventory)
+**Components:** VarietyEditDialog, seed list, filtering, year selection
+**Key Questions:**
+- Is variety tracking intuitive?
+- Is the "have seeds" / "ordered" / "none" status clear?
+- How do users discover they can track seeds for future years?
+**Intra-section integration:** List view vs detail editing vs year filtering
+
+#### 2.4 Allotment (Layout & Plantings)
+**Components:**
+- Grid: AllotmentGrid, AllotmentMobileView, BedItem
+- Forms: AddAreaForm, EditAreaForm, AddPlantingForm, PlantCombobox
+- Details: BedDetailPanel, PermanentDetailPanel, InfrastructureDetailPanel, ItemDetailSwitcher
+- Plantings: PlantingCard, PlantingDetailDialog, PlantingTimeline, PerennialStatusBadge
+- Notes: BedNotes, CareLogSection, HarvestTracker, UnderplantingsList
+- Status: SeasonStatusWidget
+**Key Questions:**
+- Can users easily add/edit/remove plantings?
+- Is the grid vs detail panel relationship clear?
+- Is mobile view (AllotmentMobileView) as capable as desktop?
+- Are the different area types (beds, trees, infrastructure) handled consistently?
+**Intra-section integration:** Grid selection → Detail panel → Planting cards → Detail dialog flow
+
+#### 2.5 Compost
+**Components:** Pile tracking, event logging, C:N ratio display
+**Key Questions:**
+- Is C:N ratio tracking useful or too technical?
+- Is event logging (add greens/browns) intuitive?
+- Does it provide actionable guidance?
+**Intra-section integration:** Pile status vs event history vs recommendations
+
+#### 2.6 AI Advisor
+**Components:** ChatMessage, ChatInput, QuickTopics, TokenSettings, ToolCallConfirmation, LocationStatus, ApiFallbackWarning, InlineAIPrompt
+**Key Questions:**
+- Is the BYOK (bring your own key) flow clear?
+- Are tool calls (modifying plantings) trustworthy and confirmable?
+- Do QuickTopics help users get started?
+- Is the inline prompt (contextual AI) useful?
+**Intra-section integration:** Token setup → Chat flow → Tool confirmations → Data modifications
+
+#### 2.7 Settings
+**Components:** DataManagement (export/import/clear), ShareDialog, storage stats
+**Key Questions:**
+- Is export/import discoverable?
+- Is the share flow (QR code, 6-digit code) intuitive?
+- What else belongs here (preferences, about, help)?
+- Should "About" page content move here?
+**Intra-section integration:** Data management vs sharing vs app info
+
+#### 2.8 Shared UI Components
+**Components:** Dialog, SaveIndicator, Toast, StorageWarningBanner, InstallPrompt, OfflineIndicator, UnlockCelebration
+**Key Questions:**
+- Are dialogs consistent (bottom-sheet on mobile)?
+- Is save status clear and non-intrusive?
+- Are error states helpful?
+**Cross-cutting:** These affect all sections - review for consistency
+
+#### 2.9 Navigation
+**Components:** Navigation (main nav bar)
+**Key Questions:**
+- Is the current 6-item nav overwhelming?
+- Which items should be primary vs secondary?
+- Mobile nav: hamburger vs bottom tabs vs current approach?
+
+### Step 3: Cross-Section Integration Review
+
+After reviewing sections individually, map how they connect:
+
+#### User Journeys to Test
+- "Plan a new bed" → Allotment → Add area → Add plantings → See in Today
+- "Track a harvest" → Allotment → Select planting → Log harvest → See totals
+- "Check what to do" → Today → See tasks → Navigate to relevant section
+- "Add seeds I bought" → Seeds → Add variety → Mark as "have" → See in Allotment when planting
+- "Share with family" → Settings → Share → Receive on other device → Verify data
+- "Ask for help" → AI Advisor → Ask question → Confirm tool call → See change in Allotment
+
+#### Integration Questions
+- Is terminology consistent across sections (variety vs seed, area vs bed)?
+- Do navigation patterns match expectations (back buttons, breadcrumbs)?
+- Is data shown consistently (same planting looks same everywhere)?
+- Are empty states helpful and guide to next action?
 
 **Goal:** Ship a polished, coherent experience before adding progressive disclosure complexity.
 
