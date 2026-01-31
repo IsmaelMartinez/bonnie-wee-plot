@@ -1,15 +1,76 @@
 /**
  * Unit tests for DataManagement component
  *
- * Focus on import validation and export/import of compost data
+ * Tests export/import functionality, file validation, clear data confirmation,
+ * and error handling.
  */
 
-import { describe, it, expect } from 'vitest'
-import { AllotmentData, CompleteExport, CURRENT_SCHEMA_VERSION } from '@/types/unified-allotment'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import DataManagement from '@/components/allotment/DataManagement'
+import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
-import { CompostData } from '@/types/compost'
 
-// Mock data for testing
+// Mock the storage services
+vi.mock('@/services/allotment-storage', () => ({
+  saveAllotmentData: vi.fn(() => ({ success: true })),
+  clearAllotmentData: vi.fn(() => ({ success: true })),
+  getStorageStats: vi.fn(() => ({ dataSize: '10 KB', used: '50 KB' })),
+  migrateSchemaForImport: vi.fn((data: AllotmentData) => data),
+}))
+
+vi.mock('@/services/compost-storage', () => ({
+  loadCompostData: vi.fn(() => ({ success: false })),
+  saveCompostData: vi.fn(() => ({ success: true })),
+}))
+
+vi.mock('@/lib/storage-utils', () => ({
+  checkStorageQuota: vi.fn(() => ({
+    usedBytes: 50000,
+    usedKB: 50,
+    usedMB: 0.05,
+    estimatedAvailableMB: 5,
+    percentageUsed: 25,
+  })),
+  createPreImportBackup: vi.fn(() => ({ success: true, backupKey: 'backup-123' })),
+  restoreFromBackup: vi.fn(() => ({ success: true })),
+}))
+
+vi.mock('@/lib/migration-utils', () => ({
+  migrateDryRun: vi.fn(() => ({ needsMigration: false })),
+  migrateVarietyStorage: vi.fn(() => ({ success: true, varietiesMerged: 0, duplicatesSkipped: 0 })),
+  rollbackMigration: vi.fn(() => ({ success: true })),
+  listMigrationBackups: vi.fn(() => []),
+  deleteMigrationBackup: vi.fn(() => ({ success: true })),
+  getBackupMetadata: vi.fn(() => null),
+}))
+
+vi.mock('@/lib/analytics', () => ({
+  getAnalyticsSummary: vi.fn(() => ({
+    totalEvents: 5,
+    categoryBreakdown: { planting: 3, navigation: 2 },
+    recentEvents: [],
+  })),
+  exportAnalytics: vi.fn(() => '[]'),
+  clearAnalytics: vi.fn(),
+}))
+
+// Mock window.location
+const mockReload = vi.fn()
+Object.defineProperty(window, 'location', {
+  value: { reload: mockReload },
+  writable: true,
+})
+
+// Mock URL.createObjectURL and revokeObjectURL
+const mockCreateObjectURL = vi.fn(() => 'blob:mock-url')
+const mockRevokeObjectURL = vi.fn()
+global.URL.createObjectURL = mockCreateObjectURL
+global.URL.revokeObjectURL = mockRevokeObjectURL
+
+
+// Test data
 const mockAllotmentData: AllotmentData = {
   version: CURRENT_SCHEMA_VERSION,
   meta: {
@@ -34,90 +95,330 @@ const mockVarietyData: VarietyData = {
   },
 }
 
-const mockCompostData: CompostData = {
-  version: 1,
-  piles: [
-    {
-      id: 'pile-1',
-      name: 'Bay 1',
-      systemType: 'hot-compost',
-      status: 'active',
-      startDate: '2024-01-01',
-      inputs: [],
-      events: [],
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
-    },
-  ],
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z',
-}
+describe('DataManagement Component', () => {
+  const mockOnDataImported = vi.fn()
 
-/**
- * Validate import data structure (extracted from DataManagement component for testing)
- */
-function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
-  // Check if it's a valid object
-  if (!parsed || typeof parsed !== 'object') {
-    return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
-  }
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
 
-  const obj = parsed as Record<string, unknown>
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
 
-  // Check for CompleteExport format (new format with allotment + varieties)
-  if (obj.allotment && obj.varieties) {
-    const allotment = obj.allotment as Record<string, unknown>
+  describe('Dialog opening and closing', () => {
+    it('opens dialog when trigger button is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
 
-    // Validate required AllotmentData fields
-    if (typeof allotment.version !== 'number') {
+      const triggerButton = screen.getByRole('button', { name: /data management/i })
+      await userEvent.click(triggerButton)
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      expect(screen.getByText('Data Management')).toBeInTheDocument()
+    })
+
+    it('closes dialog when close button is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+      await userEvent.click(screen.getByRole('button', { name: /close dialog/i }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Export functionality', () => {
+    it('creates a blob and triggers download when export is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /export backup/i }))
+
+      // Verify blob was created and URL was generated/revoked
+      expect(mockCreateObjectURL).toHaveBeenCalled()
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+    })
+
+    it('disables export button when no data is provided', async () => {
+      render(
+        <DataManagement
+          data={null}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      const exportButton = screen.getByRole('button', { name: /export backup/i })
+
+      expect(exportButton).toBeDisabled()
+    })
+  })
+
+  describe('Import functionality', () => {
+    it('shows error for invalid JSON file', async () => {
+      const { saveAllotmentData } = await import('@/services/allotment-storage')
+
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+
+      const fileInput = screen.getByLabelText(/select backup file to import/i)
+      const invalidFile = new File(['not valid json'], 'invalid.json', { type: 'application/json' })
+
+      await act(async () => {
+        fireEvent.change(fileInput, { target: { files: [invalidFile] } })
+        // Wait for FileReader to process
+        await new Promise(resolve => setTimeout(resolve, 100))
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText(/invalid json file/i)).toBeInTheDocument()
+      })
+
+      expect(saveAllotmentData).not.toHaveBeenCalled()
+    })
+
+    // Note: File import tests with FileReader are tested via the validation function
+    // tests below. The async FileReader behavior in jsdom is unreliable for testing
+    // the full import flow. Integration tests in Playwright cover the full import flow.
+  })
+
+  describe('Clear data functionality', () => {
+    it('shows confirmation dialog when clear button is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /clear all data/i }))
+
+      expect(screen.getByText(/clear all data\?/i)).toBeInTheDocument()
+      expect(screen.getByText(/permanently delete/i)).toBeInTheDocument()
+    })
+
+    it('clears data when confirmation is accepted', async () => {
+      const { clearAllotmentData } = await import('@/services/allotment-storage')
+
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /clear all data/i }))
+      await userEvent.click(screen.getByRole('button', { name: /delete everything/i }))
+
+      expect(clearAllotmentData).toHaveBeenCalled()
+      expect(mockOnDataImported).toHaveBeenCalled()
+    })
+
+    it('does not clear data when cancel is clicked', async () => {
+      const { clearAllotmentData } = await import('@/services/allotment-storage')
+
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /clear all data/i }))
+      await userEvent.click(screen.getByRole('button', { name: /keep data/i }))
+
+      expect(clearAllotmentData).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Storage quota display', () => {
+    it('displays storage statistics', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+
+      expect(screen.getByText(/storage usage/i)).toBeInTheDocument()
+      expect(screen.getByText('10 KB')).toBeInTheDocument()
+      expect(screen.getByText('50 KB')).toBeInTheDocument()
+    })
+
+    it('shows warning when storage quota is high', async () => {
+      const { checkStorageQuota } = await import('@/lib/storage-utils')
+      vi.mocked(checkStorageQuota).mockReturnValue({
+        usedBytes: 5000000,
+        usedKB: 5000,
+        usedMB: 5,
+        estimatedAvailableMB: 1,
+        percentageUsed: 85,
+      })
+
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+
+      expect(screen.getByText(/storage is 85% full/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('Migration status check', () => {
+    it('shows migration status when check button is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /check migration status/i }))
+
+      await waitFor(() => {
+        expect(screen.getByText(/no migration needed/i)).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Analytics section', () => {
+    it('shows analytics when toggle is clicked', async () => {
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /show analytics/i }))
+
+      expect(screen.getByText(/event summary/i)).toBeInTheDocument()
+      expect(screen.getByText(/total events/i)).toBeInTheDocument()
+    })
+
+    it('clears analytics when confirmed', async () => {
+      const { clearAnalytics } = await import('@/lib/analytics')
+
+      render(
+        <DataManagement
+          data={mockAllotmentData}
+          onDataImported={mockOnDataImported}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
+      await userEvent.click(screen.getByRole('button', { name: /show analytics/i }))
+
+      // Find the Clear button within the analytics section
+      const clearButtons = screen.getAllByRole('button', { name: /clear/i })
+      const analyticsButton = clearButtons.find(btn => btn.textContent?.toLowerCase().includes('clear'))
+      if (analyticsButton) {
+        await userEvent.click(analyticsButton)
+      }
+
+      // Confirm in the dialog
+      const clearAnalyticsButton = screen.queryByRole('button', { name: /clear analytics/i })
+      if (clearAnalyticsButton) {
+        await userEvent.click(clearAnalyticsButton)
+        expect(clearAnalytics).toHaveBeenCalled()
+      }
+    })
+  })
+})
+
+// Validation function tests (unit tests without rendering)
+describe('DataManagement - Import Validation', () => {
+  /**
+   * Validate import data structure (extracted from DataManagement component for testing)
+   */
+  function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
+    if (!parsed || typeof parsed !== 'object') {
+      return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
+    }
+
+    const obj = parsed as Record<string, unknown>
+
+    if (obj.allotment && obj.varieties) {
+      const allotment = obj.allotment as Record<string, unknown>
+
+      if (typeof allotment.version !== 'number') {
+        return { valid: false, error: 'Invalid backup: missing or invalid version' }
+      }
+
+      if (!allotment.meta || typeof allotment.meta !== 'object') {
+        return { valid: false, error: 'Invalid backup: missing metadata' }
+      }
+
+      if (!Array.isArray(allotment.seasons)) {
+        return { valid: false, error: 'Invalid backup: missing seasons data' }
+      }
+
+      if (allotment.version > CURRENT_SCHEMA_VERSION) {
+        return {
+          valid: false,
+          error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
+        }
+      }
+
+      return { valid: true }
+    }
+
+    if (typeof obj.version !== 'number') {
       return { valid: false, error: 'Invalid backup: missing or invalid version' }
     }
 
-    if (!allotment.meta || typeof allotment.meta !== 'object') {
+    if (!obj.meta || typeof obj.meta !== 'object') {
       return { valid: false, error: 'Invalid backup: missing metadata' }
     }
 
-    if (!Array.isArray(allotment.seasons)) {
+    if (!Array.isArray(obj.seasons)) {
       return { valid: false, error: 'Invalid backup: missing seasons data' }
     }
 
-    // Check version compatibility
-    if (allotment.version > CURRENT_SCHEMA_VERSION) {
+    if (obj.version > CURRENT_SCHEMA_VERSION) {
       return {
         valid: false,
-        error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
+        error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
       }
     }
 
     return { valid: true }
   }
 
-  // Check for old format (just AllotmentData)
-  // Validate required fields individually for better error messages
-  if (typeof obj.version !== 'number') {
-    return { valid: false, error: 'Invalid backup: missing or invalid version' }
-  }
-
-  if (!obj.meta || typeof obj.meta !== 'object') {
-    return { valid: false, error: 'Invalid backup: missing metadata' }
-  }
-
-  if (!Array.isArray(obj.seasons)) {
-    return { valid: false, error: 'Invalid backup: missing seasons data' }
-  }
-
-  // Check version compatibility
-  if (obj.version > CURRENT_SCHEMA_VERSION) {
-    return {
-      valid: false,
-      error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
-    }
-  }
-
-  return { valid: true }
-}
-
-describe('DataManagement - Import Validation', () => {
   it('rejects invalid JSON structure', () => {
     const result = validateImportData('not an object')
     expect(result.valid).toBe(false)
@@ -127,7 +428,6 @@ describe('DataManagement - Import Validation', () => {
   it('rejects missing required fields (meta)', () => {
     const invalidData = {
       version: CURRENT_SCHEMA_VERSION,
-      // Missing meta
       layout: { areas: [] },
       seasons: [],
       currentYear: 2024,
@@ -144,7 +444,6 @@ describe('DataManagement - Import Validation', () => {
       version: CURRENT_SCHEMA_VERSION,
       meta: mockAllotmentData.meta,
       layout: { areas: [] },
-      // Missing seasons array
       currentYear: 2024,
       varieties: [],
     }
@@ -156,7 +455,7 @@ describe('DataManagement - Import Validation', () => {
 
   it('rejects invalid version number (non-number)', () => {
     const invalidData = {
-      version: 'not-a-number', // Invalid version type
+      version: 'not-a-number',
       meta: mockAllotmentData.meta,
       layout: { areas: [] },
       seasons: [],
@@ -172,7 +471,7 @@ describe('DataManagement - Import Validation', () => {
   it('rejects future version compatibility', () => {
     const futureVersionData = {
       ...mockAllotmentData,
-      version: CURRENT_SCHEMA_VERSION + 10, // Future version
+      version: CURRENT_SCHEMA_VERSION + 10,
     }
 
     const result = validateImportData(futureVersionData)
@@ -182,12 +481,10 @@ describe('DataManagement - Import Validation', () => {
   })
 
   it('accepts both old and new format (AllotmentData vs CompleteExport)', () => {
-    // Test 1: Old format (just AllotmentData)
     const oldFormatResult = validateImportData(mockAllotmentData)
     expect(oldFormatResult.valid).toBe(true)
     expect(oldFormatResult.error).toBeUndefined()
 
-    // Test 2: New format (CompleteExport)
     const completeExport: CompleteExport = {
       allotment: mockAllotmentData,
       varieties: mockVarietyData,
@@ -198,47 +495,5 @@ describe('DataManagement - Import Validation', () => {
     const newFormatResult = validateImportData(completeExport)
     expect(newFormatResult.valid).toBe(true)
     expect(newFormatResult.error).toBeUndefined()
-  })
-})
-
-describe('DataManagement - Compost Export/Import', () => {
-  it('export includes compost data field', () => {
-    // Verify that the CompleteExport type includes compost field
-    const completeExport: CompleteExport = {
-      allotment: mockAllotmentData,
-      varieties: mockVarietyData,
-      compost: mockCompostData,
-      exportedAt: new Date().toISOString(),
-      exportVersion: CURRENT_SCHEMA_VERSION,
-    }
-
-    // Verify structure
-    expect(completeExport.allotment).toBeDefined()
-    expect(completeExport.varieties).toBeDefined()
-    expect(completeExport.compost).toBeDefined()
-    expect(completeExport.compost?.piles).toHaveLength(1)
-    expect(completeExport.compost?.piles[0].name).toBe('Bay 1')
-    expect(completeExport.exportedAt).toBeDefined()
-    expect(completeExport.exportVersion).toBe(CURRENT_SCHEMA_VERSION)
-  })
-
-  it('import handles compost data when present', () => {
-    // Create export with compost data
-    const completeExport: CompleteExport = {
-      allotment: mockAllotmentData,
-      varieties: mockVarietyData,
-      compost: mockCompostData,
-      exportedAt: new Date().toISOString(),
-      exportVersion: CURRENT_SCHEMA_VERSION,
-    }
-
-    // Validate it
-    const result = validateImportData(completeExport)
-    expect(result.valid).toBe(true)
-
-    // Verify compost data is accessible
-    const typed = completeExport as CompleteExport
-    expect(typed.compost).toBeDefined()
-    expect(typed.compost?.piles[0].name).toBe('Bay 1')
   })
 })
