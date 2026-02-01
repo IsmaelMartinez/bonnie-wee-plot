@@ -55,7 +55,7 @@ export default function AitorChatModal() {
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   // Tool calling state
   const [pendingToolCalls, setPendingToolCalls] = useState<ToolCall[] | null>(null)
@@ -74,7 +74,9 @@ export default function AitorChatModal() {
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
   }, [messages, isLoading])
 
   // Build allotment context string for AI
@@ -429,6 +431,7 @@ export default function AitorChatModal() {
 
           {/* Messages */}
           <div
+            ref={messagesContainerRef}
             className="flex-1 overflow-y-auto p-4 space-y-4 bg-zen-stone-50/50"
             role="log"
             aria-label="Chat messages with Aitor"
@@ -464,7 +467,6 @@ export default function AitorChatModal() {
                   />
                 )}
                 {isLoading && <LoadingMessage />}
-                <div ref={messagesEndRef} />
               </>
             )}
           </div>
