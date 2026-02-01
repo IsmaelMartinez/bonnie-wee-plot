@@ -25,11 +25,14 @@ import {
   getActiveVarieties as storageGetActiveVarieties,
   toggleHaveSeedsForYear as storageToggleHaveSeedsForYear,
   hasSeedsForYear as storageHasSeedsForYear,
+  removeVarietyFromYear as storageRemoveVarietyFromYear,
+  addVarietyToYear as storageAddVarietyToYear,
   getSuppliers as storageGetSuppliers,
   getTotalSpendForYear as storageGetTotalSpendForYear,
   getAvailableVarietyYears as storageGetAvailableVarietyYears,
   getSeedsStatsForYear as storageGetSeedsStatsForYear,
 } from '@/services/allotment-storage'
+import { SeedStatus } from '@/types/unified-allotment'
 
 // ============ HOOK TYPES ============
 
@@ -52,6 +55,8 @@ export interface UseAllotmentVarietiesReturn {
   // Seed status
   toggleHaveSeedsForYear: (varietyId: string, year: number) => void
   hasSeedsForYear: (varietyId: string, year: number) => boolean
+  removeVarietyFromYear: (varietyId: string, year: number) => void
+  addVarietyToYear: (varietyId: string, year: number, status?: SeedStatus) => void
 
   // Supplier and stats
   getSuppliers: () => string[]
@@ -122,6 +127,16 @@ export function useAllotmentVarieties({
     return variety ? storageHasSeedsForYear(variety, year) : false
   }, [data])
 
+  const removeVarietyFromYearData = useCallback((varietyId: string, year: number) => {
+    if (!data) return
+    setData(storageRemoveVarietyFromYear(data, varietyId, year))
+  }, [data, setData])
+
+  const addVarietyToYearData = useCallback((varietyId: string, year: number, status: SeedStatus = 'none') => {
+    if (!data) return
+    setData(storageAddVarietyToYear(data, varietyId, year, status))
+  }, [data, setData])
+
   // ============ SUPPLIER AND STATS ============
 
   const getSuppliersData = useCallback((): string[] => {
@@ -167,6 +182,8 @@ export function useAllotmentVarieties({
     // Seed status
     toggleHaveSeedsForYear: toggleHaveSeedsForYearData,
     hasSeedsForYear: hasSeedsForYearData,
+    removeVarietyFromYear: removeVarietyFromYearData,
+    addVarietyToYear: addVarietyToYearData,
 
     // Supplier and stats
     getSuppliers: getSuppliersData,
