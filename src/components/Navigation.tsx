@@ -163,6 +163,7 @@ export default function Navigation() {
             <Link
               href="/"
               className="flex items-center text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
+              aria-label="Home"
             >
               <span className="text-2xl" aria-hidden="true">
                 {theme.season === 'winter' && '❄️'}
