@@ -7,6 +7,7 @@ import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, 
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
+import { useAitorChat } from '@/contexts/AitorChatContext'
 import UnlockCelebration, { FEATURE_INFO } from '@/components/ui/UnlockCelebration'
 import type { UnlockableFeature } from '@/lib/feature-flags'
 
@@ -19,22 +20,23 @@ const primaryNavLinks = [
 
 // Features with progressive disclosure
 interface LockedFeatureConfig {
-  href: string
+  href?: string // Optional - some features may open modals instead
   label: string
   icon: React.ComponentType<{ className?: string }>
   description: string
   teaser: string // Longer description for locked state
   feature: UnlockableFeature
+  isModal?: boolean // If true, opens modal instead of navigating
 }
 
 const lockedFeatures: LockedFeatureConfig[] = [
   {
-    href: '/ai-advisor',
     label: 'Ask Aitor',
     icon: Leaf,
     description: 'AI garden advice',
     teaser: 'Get personalized advice from your AI garden assistant. Ask about planting, pests, and more.',
     feature: 'ai-advisor',
+    isModal: true, // Opens chat modal instead of navigating
   },
   {
     href: '/compost',
@@ -95,6 +97,7 @@ export default function Navigation() {
   const pathname = usePathname()
   const { data, updateMeta } = useAllotment()
   const { isUnlocked, unlock, getProgress, newlyUnlockedFeature, dismissCelebration } = useFeatureFlags(data)
+  const { openChat } = useAitorChat()
 
   const handleStartEditName = () => {
     setNameInput(data?.meta.name || 'My Allotment')
@@ -240,14 +243,38 @@ export default function Navigation() {
                     const progress = getProgress(item.feature)
 
                     if (unlocked) {
-                      // Unlocked - show as regular link
+                      // Unlocked - show as link or button depending on isModal
+                      if (item.isModal) {
+                        return (
+                          <button
+                            key={item.feature}
+                            type="button"
+                            role="menuitem"
+                            className="w-full flex items-start gap-3 px-4 py-3 transition-colors hover:bg-zen-stone-50 text-left"
+                            onClick={() => {
+                              setIsMoreOpen(false)
+                              openChat()
+                            }}
+                          >
+                            <IconComponent className="w-5 h-5 mt-0.5 flex-shrink-0 text-zen-stone-400" />
+                            <div>
+                              <div className="text-sm font-medium text-zen-ink-700">
+                                {item.label}
+                              </div>
+                              <div className="text-xs text-zen-stone-500 mt-0.5">
+                                {item.description}
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      }
                       return (
                         <Link
                           key={item.href}
-                          href={item.href}
+                          href={item.href!}
                           role="menuitem"
                           className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                            isActive(item.href)
+                            isActive(item.href!)
                               ? 'bg-zen-moss-50'
                               : 'hover:bg-zen-stone-50'
                           }`}
@@ -255,12 +282,12 @@ export default function Navigation() {
                         >
                           <IconComponent
                             className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                              isActive(item.href) ? 'text-zen-moss-600' : 'text-zen-stone-400'
+                              isActive(item.href!) ? 'text-zen-moss-600' : 'text-zen-stone-400'
                             }`}
                           />
                           <div>
                             <div className={`text-sm font-medium ${
-                              isActive(item.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
+                              isActive(item.href!) ? 'text-zen-moss-700' : 'text-zen-ink-700'
                             }`}>
                               {item.label}
                             </div>
@@ -277,7 +304,7 @@ export default function Navigation() {
 
                     return (
                       <div
-                        key={item.href}
+                        key={item.feature}
                         role="menuitem"
                         className="px-4 py-3 hover:bg-zen-stone-50 transition-colors"
                       >
@@ -417,12 +444,28 @@ export default function Navigation() {
                       const progress = getProgress(item.feature)
 
                       if (unlocked) {
+                        if (item.isModal) {
+                          return (
+                            <button
+                              key={item.feature}
+                              type="button"
+                              className="flex items-center gap-2 py-2 text-sm transition-colors text-zen-ink-600 hover:text-zen-ink-800 w-full text-left"
+                              onClick={() => {
+                                closeMobileMenu()
+                                openChat()
+                              }}
+                            >
+                              <IconComponent className="w-4 h-4" />
+                              <span>{item.label}</span>
+                            </button>
+                          )
+                        }
                         return (
                           <Link
                             key={item.href}
-                            href={item.href}
+                            href={item.href!}
                             className={`flex items-center gap-2 py-2 text-sm transition-colors ${
-                              isActive(item.href)
+                              isActive(item.href!)
                                 ? 'text-zen-moss-700'
                                 : 'text-zen-ink-600 hover:text-zen-ink-800'
                             }`}
@@ -438,7 +481,7 @@ export default function Navigation() {
                       const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
 
                       return (
-                        <div key={item.href} className="py-2">
+                        <div key={item.feature} className="py-2">
                           <div className="flex items-center gap-2">
                             <div className="relative">
                               <IconComponent className="w-4 h-4 text-zen-stone-300" />
