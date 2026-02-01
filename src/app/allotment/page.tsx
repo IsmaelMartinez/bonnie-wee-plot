@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Map,
@@ -26,7 +26,10 @@ import SaveIndicator from '@/components/ui/SaveIndicator'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
+import EditAreaForm from '@/components/allotment/EditAreaForm'
 import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
+import MobileAreaBottomSheet from '@/components/allotment/MobileAreaBottomSheet'
+import MobileFloatingActions from '@/components/allotment/MobileFloatingActions'
 
 // Helper to get previous year's rotation group for an area
 function getPreviousYearRotationGroup(
@@ -87,9 +90,22 @@ export default function AllotmentPage() {
 
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showAddAreaDialog, setShowAddAreaDialog] = useState(false)
+  const [showEditAreaDialog, setShowEditAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
   const [isGridEditing, setIsGridEditing] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [showMobileSheet, setShowMobileSheet] = useState(false)
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Get available years and add next/previous year options
   // Sort years in ascending order (oldest to newest) for left-to-right timeline
@@ -118,6 +134,19 @@ export default function AllotmentPage() {
   const handlePositionChange = useCallback((areaId: string, position: GridPosition) => {
     updateAreaSeasonPosition(areaId, position)
   }, [updateAreaSeasonPosition])
+
+  // Handle item selection - on mobile, also open the bottom sheet
+  const handleItemSelect = useCallback((ref: { type: 'area' | 'bed' | 'permanent' | 'infrastructure'; id: string } | null) => {
+    selectItem(ref)
+    if (ref && isMobile) {
+      setShowMobileSheet(true)
+    }
+  }, [selectItem, isMobile])
+
+  // Close mobile sheet and clear selection
+  const handleCloseMobileSheet = useCallback(() => {
+    setShowMobileSheet(false)
+  }, [])
 
   // Memoize auto-rotate info to avoid duplicate calculations (must be before early returns)
   const autoRotateInfo = useMemo(() => {
@@ -278,83 +307,96 @@ export default function AllotmentPage() {
 
       {/* Year Selector */}
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="zen-card p-3 flex items-center justify-center gap-2 flex-wrap">
-          <button
-            onClick={() => {
-              const idx = availableYears.indexOf(selectedYear)
-              if (idx > 0) {
-                selectYear(availableYears[idx - 1])
-              }
-            }}
-            disabled={availableYears.indexOf(selectedYear) <= 0}
-            className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
-            aria-label="Previous year"
-          >
-            <ChevronLeft className="w-5 h-5" aria-hidden="true" />
-          </button>
-
-          {canCreatePreviousYear && (
+        <div className="zen-card p-2 sm:p-3">
+          {/* Mobile: Horizontal scroll with compact buttons */}
+          <div className="flex items-center gap-2">
+            {/* Previous button */}
             <button
-              onClick={() => createSeason(previousYear, `Historical records from ${previousYear}`)}
-              className="px-4 py-2 rounded-zen font-medium bg-zen-stone-100 text-zen-stone-600 hover:bg-zen-stone-200 transition flex items-center gap-1"
-              title={`Add ${previousYear} historical data`}
+              onClick={() => {
+                const idx = availableYears.indexOf(selectedYear)
+                if (idx > 0) {
+                  selectYear(availableYears[idx - 1])
+                }
+              }}
+              disabled={availableYears.indexOf(selectedYear) <= 0}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500 shrink-0"
+              aria-label="Previous year"
             >
-              <Plus className="w-4 h-4" />
-              {previousYear}
+              <ChevronLeft className="w-5 h-5" aria-hidden="true" />
             </button>
-          )}
 
-          {availableYears.map(year => (
-            <div key={year} className="relative group">
-              <button
-                onClick={() => selectYear(year)}
-                className={`px-4 py-2 rounded-zen font-medium transition ${
-                  selectedYear === year
-                    ? 'bg-zen-moss-600 text-white'
-                    : 'bg-zen-stone-100 text-zen-ink-600 hover:bg-zen-stone-200'
-                }`}
-              >
-                {year}
-              </button>
-              {availableYears.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setYearToDelete(year)
-                  }}
-                  className="absolute -top-3 -right-3 min-w-[44px] min-h-[44px] w-11 h-11 bg-zen-ume-600 text-white rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center text-base hover:bg-zen-ume-700 focus:outline-none focus:ring-2 focus:ring-zen-ume-400"
-                  title={`Delete ${year}`}
-                  aria-label={`Delete year ${year}`}
-                >
-                  ×
-                </button>
-              )}
+            {/* Scrollable year list */}
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center gap-2 justify-start sm:justify-center min-w-min px-1">
+                {canCreatePreviousYear && (
+                  <button
+                    onClick={() => createSeason(previousYear, `Historical records from ${previousYear}`)}
+                    className="px-3 py-2 min-h-[44px] rounded-zen font-medium bg-zen-stone-100 text-zen-stone-600 hover:bg-zen-stone-200 transition flex items-center gap-1 shrink-0 text-sm"
+                    title={`Add ${previousYear} historical data`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">{previousYear}</span>
+                    <span className="sm:hidden">{String(previousYear).slice(-2)}</span>
+                  </button>
+                )}
+
+                {availableYears.map(year => (
+                  <div key={year} className="relative group shrink-0">
+                    <button
+                      onClick={() => selectYear(year)}
+                      className={`px-3 sm:px-4 py-2 min-h-[44px] rounded-zen font-medium transition text-sm sm:text-base ${
+                        selectedYear === year
+                          ? 'bg-zen-moss-600 text-white'
+                          : 'bg-zen-stone-100 text-zen-ink-600 hover:bg-zen-stone-200'
+                      }`}
+                    >
+                      {year}
+                    </button>
+                    {/* Delete button - desktop only hover */}
+                    {availableYears.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setYearToDelete(year)
+                        }}
+                        className="absolute -top-3 -right-3 min-w-[44px] min-h-[44px] w-11 h-11 bg-zen-ume-600 text-white rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center text-base hover:bg-zen-ume-700 focus:outline-none focus:ring-2 focus:ring-zen-ume-400 hidden sm:flex"
+                        title={`Delete ${year}`}
+                        aria-label={`Delete year ${year}`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {canCreateNextYear && (
+                  <button
+                    onClick={handleCreateNextYear}
+                    className="px-3 py-2 min-h-[44px] rounded-zen font-medium bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 transition flex items-center gap-1 shrink-0 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">{nextYear}</span>
+                    <span className="sm:hidden">{String(nextYear).slice(-2)}</span>
+                  </button>
+                )}
+              </div>
             </div>
-          ))}
 
-          {canCreateNextYear && (
+            {/* Next button */}
             <button
-              onClick={handleCreateNextYear}
-              className="px-4 py-2 rounded-zen font-medium bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 transition flex items-center gap-1"
+              onClick={() => {
+                const idx = availableYears.indexOf(selectedYear)
+                if (idx < availableYears.length - 1) {
+                  selectYear(availableYears[idx + 1])
+                }
+              }}
+              disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500 shrink-0"
+              aria-label="Next year"
             >
-              <Plus className="w-4 h-4" />
-              {nextYear}
+              <ChevronRight className="w-5 h-5" aria-hidden="true" />
             </button>
-          )}
-
-          <button
-            onClick={() => {
-              const idx = availableYears.indexOf(selectedYear)
-              if (idx < availableYears.length - 1) {
-                selectYear(availableYears[idx + 1])
-              }
-            }}
-            disabled={availableYears.indexOf(selectedYear) >= availableYears.length - 1}
-            className="p-2 rounded-zen hover:bg-zen-stone-100 disabled:opacity-30 disabled:cursor-not-allowed text-zen-stone-500"
-            aria-label="Next year"
-          >
-            <ChevronRight className="w-5 h-5" aria-hidden="true" />
-          </button>
+          </div>
         </div>
 
         {currentSeason?.notes && (
@@ -383,8 +425,8 @@ export default function AllotmentPage() {
                 </h2>
                 <button
                   onClick={() => setShowAddAreaDialog(true)}
-                  disabled={!isGridEditing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isMobile && !isGridEditing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
                   title={!isGridEditing ? "Enable edit mode to add areas" : "Add a new area to your allotment"}
                 >
                   <Plus className="w-4 h-4" />
@@ -396,7 +438,7 @@ export default function AllotmentPage() {
               <div className="overflow-x-auto -mx-3 sm:mx-0">
                 <div className="min-w-[500px] px-3 sm:px-0 sm:min-w-0">
                   <AllotmentGrid
-                    onItemSelect={selectItem}
+                    onItemSelect={handleItemSelect}
                     selectedItemRef={selectedItemRef}
                     getPlantingsForBed={getPlantings}
                     areas={getAllAreas()}
@@ -410,8 +452,8 @@ export default function AllotmentPage() {
             </div>
           </div>
 
-          {/* Sidebar - Item Details */}
-          <div className="lg:col-span-1 w-full">
+          {/* Sidebar - Item Details (hidden on mobile) */}
+          <div className="hidden lg:block lg:col-span-1 w-full">
             <ItemDetailSwitcher
               selectedItemRef={selectedItemRef}
               getArea={getArea}
@@ -432,7 +474,6 @@ export default function AllotmentPage() {
               onUpdateArea={updateArea}
               quickStats={quickStats}
             />
-
           </div>
         </div>
       </div>
@@ -496,6 +537,63 @@ export default function AllotmentPage() {
         cancelText="Cancel"
         variant="danger"
       />
+
+      {/* Mobile Floating Actions */}
+      {isMobile && (
+        <MobileFloatingActions
+          onAddArea={() => setShowAddAreaDialog(true)}
+          onAddPlanting={selectedBedId ? () => setShowAddDialog(true) : undefined}
+          hasSelectedArea={!!selectedBedId}
+        />
+      )}
+
+      {/* Mobile Area Bottom Sheet */}
+      {isMobile && showMobileSheet && selectedItemRef && (
+        <MobileAreaBottomSheet
+          selectedItemRef={selectedItemRef}
+          getArea={getArea}
+          getAreaSeason={getAreaSeason}
+          getPlantings={getPlantings}
+          getAreaNotes={getAreaNotes}
+          getPreviousYearRotation={getPreviousRotation}
+          selectedYear={selectedYear}
+          onAddPlanting={() => setShowAddDialog(true)}
+          onDeletePlanting={handleDeletePlanting}
+          onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
+          onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
+          onUpdateNote={(noteId, updates) => selectedBedId && updateAreaNote(selectedBedId, noteId, updates)}
+          onRemoveNote={(noteId) => selectedBedId && removeAreaNote(selectedBedId, noteId)}
+          onUpdateRotation={(group) => selectedBedId && updateRotationGroup(selectedBedId, group)}
+          onAutoRotate={() => setShowAutoRotateDialog(true)}
+          onEditArea={() => setShowEditAreaDialog(true)}
+          onArchiveArea={handleArchiveArea}
+          onClose={handleCloseMobileSheet}
+        />
+      )}
+
+      {/* Edit Area Dialog (for mobile) */}
+      {selectedBedId && (() => {
+        const areaToEdit = getArea(selectedBedId)
+        if (!areaToEdit) return null
+        return (
+          <Dialog
+            isOpen={showEditAreaDialog}
+            onClose={() => setShowEditAreaDialog(false)}
+            title="Edit Area"
+            description="Update the details for this area."
+            maxWidth="lg"
+          >
+            <EditAreaForm
+              area={areaToEdit}
+              onSubmit={(areaId, updates) => {
+                updateArea(areaId, updates)
+                setShowEditAreaDialog(false)
+              }}
+              onCancel={() => setShowEditAreaDialog(false)}
+            />
+          </Dialog>
+        )
+      })()}
 
       {/* Auto-rotate Dialog */}
       {autoRotateInfo && selectedBedId && (() => {

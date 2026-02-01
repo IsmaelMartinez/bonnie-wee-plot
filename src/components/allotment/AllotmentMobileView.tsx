@@ -124,26 +124,33 @@ export default function AllotmentMobileView({
     )
   }
 
+  // Check if there are any areas at all
+  const hasAnyAreas = areas.length > 0
+
   return (
-    <div className="space-y-6" role="region" aria-label={`Mobile view of allotment areas for ${selectedYear}`}>
-      <div className="text-sm text-zen-stone-600 bg-zen-water-50 border border-zen-water-200 rounded-lg p-3" role="note">
-        <p className="font-medium text-zen-water-800 mb-1">Mobile View</p>
-        <p className="text-xs">Tap any area to view and manage its details. Grid editing is only available on larger screens.</p>
-      </div>
-
-      <div className="space-y-6">
-        {renderAreaGroup('Rotation Beds', rotationBeds, '🌱', 'rotation')}
-        {renderAreaGroup('Perennial Beds', perennialBeds, '🌿', 'perennial')}
-        {renderAreaGroup('Trees', trees, '🌳', 'trees')}
-        {renderAreaGroup('Berries', berries, '🫐', 'berries')}
-        {renderAreaGroup('Herbs', herbs, '🌿', 'herbs')}
-        {renderAreaGroup('Infrastructure', infrastructure, '🏗️', 'infra')}
-        {renderAreaGroup('Other', other, '📦', 'other')}
-      </div>
-
-      {areas.length === 0 && (
-        <div className="text-center text-zen-stone-500 py-8" role="status">
-          <p>No areas to display for {selectedYear}</p>
+    <div className="space-y-4" role="region" aria-label={`Allotment areas for ${selectedYear}`}>
+      {hasAnyAreas ? (
+        <div className="space-y-5">
+          {renderAreaGroup('Rotation Beds', rotationBeds, '🌱', 'rotation')}
+          {renderAreaGroup('Perennial Beds', perennialBeds, '🌿', 'perennial')}
+          {renderAreaGroup('Trees', trees, '🌳', 'trees')}
+          {renderAreaGroup('Berries', berries, '🫐', 'berries')}
+          {renderAreaGroup('Herbs', herbs, '🌿', 'herbs')}
+          {renderAreaGroup('Infrastructure', infrastructure, '🏗️', 'infra')}
+          {renderAreaGroup('Other', other, '📦', 'other')}
+        </div>
+      ) : (
+        <div className="text-center py-12" role="status">
+          <div className="w-16 h-16 bg-zen-moss-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🌱</span>
+          </div>
+          <h3 className="font-medium text-zen-ink-700 mb-2">No areas yet</h3>
+          <p className="text-sm text-zen-stone-500 mb-4 max-w-xs mx-auto">
+            Start by adding your first bed, tree, or other area to your allotment.
+          </p>
+          <p className="text-xs text-zen-stone-400">
+            Tap the + button below to get started
+          </p>
         </div>
       )}
     </div>
