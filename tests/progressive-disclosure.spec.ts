@@ -186,17 +186,13 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
     })
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
+    // AI Advisor should be unlocked - floating button should be visible
+    const aitorButton = page.locator('button[aria-label*="Aitor"]')
+    await expect(aitorButton).toBeVisible()
 
-    // AI Advisor should be unlocked (clickable link, not locked)
-    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i })
-    await expect(aiAdvisorLink).toBeVisible()
-
-    // Click should navigate to AI Advisor
-    await aiAdvisorLink.click()
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Click should open modal
+    await aitorButton.click()
+    await expect(page.locator('h2').filter({ hasText: /Ask Aitor/i })).toBeVisible()
   })
 
   test('AI Advisor unlocks after 1 planting', async ({ page }) => {
@@ -214,31 +210,22 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
     }, allotmentData)
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
+    // AI Advisor should be unlocked - floating button should be visible
+    const aitorButton = page.locator('button[aria-label*="Aitor"]')
+    await expect(aitorButton).toBeVisible()
 
-    // AI Advisor should be unlocked
-    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i })
-    await aiAdvisorLink.click()
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Click should open modal
+    await aitorButton.click()
+    await expect(page.locator('h2').filter({ hasText: /Ask Aitor/i })).toBeVisible()
   })
 
   test('AI Advisor stays locked with 0 visits and 0 plantings', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
-
-    // Should see "Unlock now" button for AI Advisor (indicates locked)
-    const askAitorSection = page.locator('[role="menuitem"]').filter({ hasText: 'Ask Aitor' })
-    await expect(askAitorSection).toBeVisible()
-
-    // Look for unlock button within that section
-    const unlockButton = askAitorSection.getByText('Unlock now')
-    await expect(unlockButton).toBeVisible()
+    // AI Advisor should be locked - floating button should NOT be visible
+    const aitorButton = page.locator('button[aria-label*="Aitor"]')
+    await expect(aitorButton).not.toBeVisible()
   })
 })
 
@@ -410,28 +397,6 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     await page.setViewportSize({ width: 1280, height: 720 })
   })
 
-  test('clicking "Unlock now" manually unlocks AI Advisor', async ({ page }) => {
-    await skipOnboarding(page)
-    await page.goto('/')
-
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
-
-    // Find the Ask Aitor section and click Unlock now
-    const askAitorSection = page.locator('[role="menuitem"]').filter({ hasText: 'Ask Aitor' })
-    const unlockButton = askAitorSection.getByText('Unlock now')
-    await unlockButton.click()
-
-    // Re-open More dropdown (it closes after unlock)
-    await moreButton.click()
-
-    // AI Advisor should now be unlocked (clickable link without unlock button)
-    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i })
-    await aiAdvisorLink.click()
-    await expect(page).toHaveURL(/ai-advisor/)
-  })
-
   test('clicking "Unlock now" manually unlocks Compost', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
@@ -480,12 +445,12 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     await skipOnboarding(page)
     await page.goto('/')
 
-    // Open More dropdown and manually unlock AI Advisor
+    // Open More dropdown and manually unlock Compost
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
     await moreButton.click()
 
-    const askAitorSection = page.locator('[role="menuitem"]').filter({ hasText: 'Ask Aitor' })
-    const unlockButton = askAitorSection.getByText('Unlock now')
+    const compostSection = page.locator('[role="menuitem"]').filter({ hasText: 'Compost' })
+    const unlockButton = compostSection.getByText('Unlock now')
     await unlockButton.click()
 
     // Reload the page
@@ -494,10 +459,10 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     // Open More dropdown
     await moreButton.click()
 
-    // AI Advisor should still be unlocked (no Unlock now button)
-    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i })
-    await aiAdvisorLink.click()
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Compost should still be unlocked (no Unlock now button)
+    const compostLink = page.getByRole('menuitem', { name: /Compost/i })
+    await compostLink.click()
+    await expect(page).toHaveURL(/compost/)
   })
 })
 
@@ -540,7 +505,7 @@ test.describe('Progressive Disclosure - Mobile', () => {
     const moreButton = page.getByRole('button', { name: 'More' })
     await moreButton.click()
 
-    // Find and click the first "Unlock now" button (Ask Aitor)
+    // Find and click the first "Unlock now" button (Compost, since AI Advisor is not in menu)
     const unlockButtons = page.getByText('Unlock now')
     await unlockButtons.first().click()
 
@@ -548,9 +513,9 @@ test.describe('Progressive Disclosure - Mobile', () => {
     await page.getByLabel('Open menu').click()
     await page.getByRole('button', { name: 'More' }).click()
 
-    // Now Ask Aitor should be a clickable link in the mobile menu
-    const aiAdvisorLink = page.getByRole('banner').getByRole('link', { name: 'Ask Aitor' })
-    await aiAdvisorLink.click()
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Now Compost should be a clickable link in the mobile menu
+    const compostLink = page.getByRole('banner').getByRole('link', { name: 'Compost' })
+    await compostLink.click()
+    await expect(page).toHaveURL(/compost/)
   })
 })
