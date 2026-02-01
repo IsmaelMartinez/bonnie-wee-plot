@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
-  ENGAGEMENT_STORAGE_KEY,
   UNLOCK_THRESHOLDS,
   loadEngagementData,
   saveEngagementData,
@@ -24,6 +23,7 @@ import {
   EngagementData,
 } from '@/lib/feature-flags'
 import { AllotmentData } from '@/types/unified-allotment'
+import { STORAGE_KEY_ENGAGEMENT } from '@/lib/storage-keys'
 
 // Mock localStorage
 const mockLocalStorage = (() => {
@@ -119,7 +119,7 @@ describe('Feature Flags', () => {
         lastVisit: '2026-01-01T00:00:00.000Z',
         manuallyUnlocked: ['ai-advisor'],
       }
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify(stored))
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(stored))
 
       const data = loadEngagementData()
       expect(data.visitCount).toBe(5)
@@ -127,7 +127,7 @@ describe('Feature Flags', () => {
     })
 
     it('handles corrupted localStorage gracefully', () => {
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, 'not valid json')
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, 'not valid json')
 
       const data = loadEngagementData()
       expect(data.visitCount).toBe(0)
@@ -135,7 +135,7 @@ describe('Feature Flags', () => {
     })
 
     it('merges with defaults for partial data', () => {
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify({ visitCount: 3 }))
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify({ visitCount: 3 }))
 
       const data = loadEngagementData()
       expect(data.visitCount).toBe(3)
@@ -152,7 +152,7 @@ describe('Feature Flags', () => {
       saveEngagementData(data)
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
-        ENGAGEMENT_STORAGE_KEY,
+        STORAGE_KEY_ENGAGEMENT,
         JSON.stringify(data)
       )
     })
@@ -168,7 +168,7 @@ describe('Feature Flags', () => {
         lastVisit: yesterday.toISOString(),
         manuallyUnlocked: [],
       }
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify(stored))
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(stored))
 
       const data = recordVisit()
       expect(data.visitCount).toBe(3)
@@ -181,7 +181,7 @@ describe('Feature Flags', () => {
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: [],
       }
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify(stored))
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(stored))
 
       const data = recordVisit()
       expect(data.visitCount).toBe(2)
@@ -196,7 +196,7 @@ describe('Feature Flags', () => {
         lastVisit: yesterday.toISOString(),
         manuallyUnlocked: [],
       }
-      mockLocalStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify(stored))
+      mockLocalStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(stored))
 
       const data = recordVisit()
       expect(data.visitCount).toBe(1)

@@ -54,9 +54,6 @@ export interface UnlockProgress {
 
 import { STORAGE_KEY_ENGAGEMENT } from './storage-keys'
 
-/** @deprecated Use STORAGE_KEY_ENGAGEMENT from storage-keys.ts */
-export const ENGAGEMENT_STORAGE_KEY = STORAGE_KEY_ENGAGEMENT
-
 /** Unlock thresholds */
 export const UNLOCK_THRESHOLDS = {
   'ai-advisor': {
@@ -94,7 +91,7 @@ export function loadEngagementData(): EngagementData {
   }
 
   try {
-    const stored = localStorage.getItem(ENGAGEMENT_STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY_ENGAGEMENT)
     if (!stored) {
       return getDefaultEngagementData()
     }
@@ -119,7 +116,7 @@ export function saveEngagementData(data: EngagementData): void {
   if (typeof window === 'undefined') return
 
   try {
-    localStorage.setItem(ENGAGEMENT_STORAGE_KEY, JSON.stringify(data))
+    localStorage.setItem(STORAGE_KEY_ENGAGEMENT, JSON.stringify(data))
   } catch {
     // Silently fail - engagement tracking is non-critical
   }

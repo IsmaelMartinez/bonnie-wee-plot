@@ -2,16 +2,16 @@
 
 import { useState } from 'react'
 import { AlertTriangle, AlertCircle, CheckCircle, Info, Plus, Pencil, Trash2 } from 'lucide-react'
-import { BedNote, BedNoteType, NewBedNote, BedNoteUpdate } from '@/types/unified-allotment'
+import { AreaNote, AreaNoteType, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 
-interface BedNotesProps {
-  notes: BedNote[]
-  onAdd: (note: NewBedNote) => void
-  onUpdate: (noteId: string, updates: BedNoteUpdate) => void
+interface AreaNotesProps {
+  notes: AreaNote[]
+  onAdd: (note: NewAreaNote) => void
+  onUpdate: (noteId: string, updates: AreaNoteUpdate) => void
   onRemove: (noteId: string) => void
 }
 
-const NOTE_TYPE_CONFIG: Record<BedNoteType, {
+const NOTE_TYPE_CONFIG: Record<AreaNoteType, {
   bg: string
   border: string
   text: string
@@ -48,15 +48,15 @@ const NOTE_TYPE_CONFIG: Record<BedNoteType, {
   },
 }
 
-const NOTE_TYPES: BedNoteType[] = ['info', 'success', 'warning', 'error']
+const NOTE_TYPES: AreaNoteType[] = ['info', 'success', 'warning', 'error']
 
-export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesProps) {
+export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNotesProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newContent, setNewContent] = useState('')
-  const [newType, setNewType] = useState<BedNoteType>('info')
+  const [newType, setNewType] = useState<AreaNoteType>('info')
   const [editContent, setEditContent] = useState('')
-  const [editType, setEditType] = useState<BedNoteType>('info')
+  const [editType, setEditType] = useState<AreaNoteType>('info')
 
   const handleAdd = () => {
     if (newContent.trim()) {
@@ -67,7 +67,7 @@ export default function BedNotes({ notes, onAdd, onUpdate, onRemove }: BedNotesP
     }
   }
 
-  const handleStartEdit = (note: BedNote) => {
+  const handleStartEdit = (note: AreaNote) => {
     setEditingId(note.id)
     setEditContent(note.content)
     setEditType(note.type)

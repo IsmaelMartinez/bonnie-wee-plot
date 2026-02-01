@@ -5,18 +5,16 @@
  *
  * 1. CORE TYPES (actively used across the codebase):
  *    - VegetableCategory, Vegetable, PlantingInfo, CareRequirements
- *    - RotationGroup, PhysicalBedId, PhysicalBed
- *    - Month, SunRequirement, WaterRequirement, DifficultyLevel
- *    - PermanentPlanting, InfrastructureItem
+ *    - RotationGroup, Month, SunRequirement, WaterRequirement, DifficultyLevel
  *
  * 2. GRID PLANNER TYPES (used by garden-planner components):
  *    - GridPlot, PlotCell, GardenPlot (for the drag-drop grid interface)
  *    - RotationHistory (for grid-based rotation tracking)
  *
  * 3. LEGACY TYPES (superseded by unified-allotment.ts):
- *    - SeasonPlan, BedPlan, PlantedVariety → Use SeasonRecord, BedSeason, Planting
- *    - GardenPlan, GardenPlannerData → Use AllotmentData
- *    - AllotmentLayout, AllotmentHistoryData → Use AllotmentData
+ *    - SeasonPlan, BedPlan, PlantedVariety → Use SeasonRecord, AreaSeason, Planting
+ *    - PhysicalBedId, PhysicalBed, AllotmentLayout, AllotmentHistoryData
+ *    - PermanentPlanting, InfrastructureItem
  *    These are kept for backwards compatibility and historical-plans.ts migration.
  */
 
@@ -114,7 +112,6 @@ export interface Vegetable {
   care: CareRequirements
   companionPlants: string[]
   avoidPlants: string[]
-  isCustom?: boolean
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
   perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
@@ -146,33 +143,6 @@ export interface PerennialInfo {
   /** Whether plant keeps leaves year-round */
   isEvergreen?: boolean
 }
-
-/**
- * A vegetable added to a garden plan
- * @deprecated Use Planting from unified-allotment.ts instead
- */
-export interface PlannedVegetable {
-  id: string                     // Unique ID for this planned instance
-  plantId: string            // Reference to Vegetable.id
-  quantity: number               // Number of plants planned
-  plotId?: string                // Optional reference to GardenPlot.id
-  plannedSowDate?: string        // ISO date string for planned sowing
-  plannedTransplantDate?: string // ISO date string for transplanting
-  expectedHarvestDate?: string   // ISO date string for expected harvest
-  notes?: string                 // User notes for this vegetable
-  status: PlannedVegetableStatus
-}
-
-/**
- * @deprecated Use unified-allotment.ts types instead
- */
-export type PlannedVegetableStatus =
-  | 'planned'        // Just added to plan
-  | 'sown'           // Seeds have been sown
-  | 'transplanted'   // Seedlings transplanted
-  | 'growing'        // Plants are growing
-  | 'harvesting'     // Currently harvesting
-  | 'complete'       // Harvest complete
 
 // Garden plot/section
 export interface GardenPlot {
@@ -253,33 +223,6 @@ export interface GapSuggestion {
   canPlantNow: boolean    // Based on current month
 }
 
-/**
- * Complete garden plan
- * @deprecated Use AllotmentData from unified-allotment.ts instead
- */
-export interface GardenPlan {
-  id: string
-  name: string
-  description?: string
-  year: number                   // Year this plan is for
-  createdAt: string              // ISO date string
-  updatedAt: string              // ISO date string
-  vegetables: PlannedVegetable[]
-  plots: GardenPlot[]
-  customVegetables: Vegetable[]  // User-created vegetables
-}
-
-/**
- * Storage format for all plans
- * @deprecated Use AllotmentData from unified-allotment.ts instead
- */
-export interface GardenPlannerData {
-  version: number                // Schema version for migrations
-  currentPlanId: string | null   // Currently selected plan
-  plans: GardenPlan[]
-  rotationHistory: RotationHistory[]  // Crop rotation tracking
-}
-
 // View modes for the planner
 export type PlannerViewMode = 'list' | 'plot' | 'calendar' | 'grid'
 
@@ -298,13 +241,6 @@ export interface PlanProgress {
   withDates: number
   withPlots: number
   completionPercentage: number
-}
-
-// Export/Import format
-export interface ExportedPlan {
-  version: number
-  exportedAt: string
-  plan: GardenPlan
 }
 
 // Category display info
