@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles, Settings } from 'lucide-react'
+import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles, Settings, Pencil } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
@@ -159,37 +159,51 @@ export default function Navigation() {
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16" role="navigation">
           {/* Logo and Allotment Name */}
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="flex items-center text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
-            >
-              <span className="text-2xl" aria-hidden="true">
-                {theme.season === 'winter' && '❄️'}
-                {theme.season === 'spring' && '🌸'}
-                {theme.season === 'summer' && '🌿'}
-                {theme.season === 'autumn' && '🍂'}
-              </span>
-            </Link>
+          <div className="flex items-center gap-1">
             {isEditingName ? (
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={handleSaveName}
-                onKeyDown={handleNameKeyDown}
-                className="font-display text-xl tracking-tight text-zen-ink-800 border-b-2 border-zen-moss-500 bg-transparent outline-none px-1 max-w-[200px]"
-                autoFocus
-                aria-label="Allotment name"
-              />
+              <>
+                <span className="text-2xl" aria-hidden="true">
+                  {theme.season === 'winter' && '❄️'}
+                  {theme.season === 'spring' && '🌸'}
+                  {theme.season === 'summer' && '🌿'}
+                  {theme.season === 'autumn' && '🍂'}
+                </span>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  onBlur={handleSaveName}
+                  onKeyDown={handleNameKeyDown}
+                  className="font-display text-xl tracking-tight text-zen-ink-800 border-b-2 border-zen-moss-500 bg-transparent outline-none px-1 max-w-[200px] ml-1"
+                  autoFocus
+                  aria-label="Allotment name"
+                />
+              </>
             ) : (
-              <button
-                onClick={handleStartEditName}
-                className="font-display text-xl tracking-tight text-zen-ink-800 hover:text-zen-moss-600 transition-colors cursor-pointer"
-                title="Click to edit allotment name"
-              >
-                {data?.meta.name || 'My Allotment'}
-              </button>
+              <>
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
+                >
+                  <span className="text-2xl" aria-hidden="true">
+                    {theme.season === 'winter' && '❄️'}
+                    {theme.season === 'spring' && '🌸'}
+                    {theme.season === 'summer' && '🌿'}
+                    {theme.season === 'autumn' && '🍂'}
+                  </span>
+                  <span className="font-display text-xl tracking-tight">
+                    {data?.meta.name || 'My Allotment'}
+                  </span>
+                </Link>
+                <button
+                  onClick={handleStartEditName}
+                  className="p-1.5 text-zen-stone-400 hover:text-zen-moss-600 transition-colors rounded-zen hover:bg-zen-stone-50"
+                  title="Edit allotment name"
+                  aria-label="Edit allotment name"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </>
             )}
           </div>
 
