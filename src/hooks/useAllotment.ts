@@ -28,6 +28,7 @@ import {
   StoredVariety,
   NewVariety,
   VarietyUpdate,
+  SeedStatus,
   // v10 unified Area type
   Area,
   AreaKind,
@@ -138,6 +139,8 @@ export interface UseAllotmentActions {
   getActiveVarieties: (includeArchived?: boolean) => StoredVariety[]
   toggleHaveSeedsForYear: (varietyId: string, year: number) => void
   hasSeedsForYear: (varietyId: string, year: number) => boolean
+  removeVarietyFromYear: (varietyId: string, year: number) => void
+  addVarietyToYear: (varietyId: string, year: number, status?: SeedStatus) => void
   getSuppliers: () => string[]
   getTotalSpendForYear: (year: number) => number
   getAvailableVarietyYears: () => number[]
@@ -235,6 +238,8 @@ export function useAllotment(): UseAllotmentReturn {
     getActiveVarieties,
     toggleHaveSeedsForYear,
     hasSeedsForYear,
+    removeVarietyFromYear,
+    addVarietyToYear,
     getSuppliers,
     getTotalSpendForYear,
     getAvailableVarietyYears,
@@ -384,6 +389,8 @@ export function useAllotment(): UseAllotmentReturn {
     getActiveVarieties,
     toggleHaveSeedsForYear,
     hasSeedsForYear,
+    removeVarietyFromYear,
+    addVarietyToYear,
     getSuppliers,
     getTotalSpendForYear,
     getAvailableVarietyYears,

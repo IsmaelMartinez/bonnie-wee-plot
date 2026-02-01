@@ -335,8 +335,8 @@ test.describe('Data Management - Export/Import', () => {
     // Verify the data was imported
     await page.waitForLoadState('networkidle')
 
-    // The allotment name should match
-    await expect(page.locator('h1').filter({ hasText: 'Old Format Garden' })).toBeVisible()
+    // The allotment name should appear in the navigation
+    await expect(page.locator('a[href="/"]').getByText('Old Format Garden')).toBeVisible()
 
     // Clean up
     fs.unlinkSync(tempFilePath)
