@@ -117,10 +117,9 @@ export function useAllotmentData(): UseAllotmentDataReturn {
 
   const selectYear = useCallback((year: number) => {
     setSelectedYear(year)
-    if (data) {
-      setData(setCurrentYear(data, year))
-    }
-  }, [data, setData])
+    // Use functional update to avoid stale data when called after createSeason
+    setData(prevData => prevData ? setCurrentYear(prevData, year) : prevData)
+  }, [setData])
 
   const getYears = useCallback(() => {
     if (!data) return []
