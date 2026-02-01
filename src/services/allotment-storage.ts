@@ -2666,6 +2666,7 @@ export function getActiveVarieties(
 /**
  * Cycle seed status for a variety in a specific year
  * Cycles: none → ordered → have → had → none
+ * Note: 'none' status is kept in seedsByYear to maintain year tracking
  */
 export function toggleHaveSeedsForYear(
   data: AllotmentData,
@@ -2686,16 +2687,53 @@ export function toggleHaveSeedsForYear(
       }
       const nextState = next[current]
 
-      // Remove entry when cycling back to 'none'
-      if (nextState === 'none') {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [year]: _, ...rest } = v.seedsByYear
-        return { ...v, seedsByYear: rest }
-      }
-
       return {
         ...v,
         seedsByYear: { ...v.seedsByYear, [year]: nextState }
+      }
+    }),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Remove a variety from a specific year's tracking
+ */
+export function removeVarietyFromYear(
+  data: AllotmentData,
+  varietyId: string,
+  year: number
+): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v => {
+      if (v.id !== varietyId) return v
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [year]: _, ...rest } = v.seedsByYear
+      return { ...v, seedsByYear: rest }
+    }),
+    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+  }
+}
+
+/**
+ * Add a variety to a specific year with initial status
+ */
+export function addVarietyToYear(
+  data: AllotmentData,
+  varietyId: string,
+  year: number,
+  status: SeedStatus = 'none'
+): AllotmentData {
+  return {
+    ...data,
+    varieties: (data.varieties || []).map(v => {
+      if (v.id !== varietyId) return v
+
+      return {
+        ...v,
+        seedsByYear: { ...v.seedsByYear, [year]: status }
       }
     }),
     meta: { ...data.meta, updatedAt: new Date().toISOString() },

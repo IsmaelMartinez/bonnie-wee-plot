@@ -15,7 +15,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Calendar,
+  CalendarPlus,
+  X,
   Loader2,
   type LucideIcon,
 } from 'lucide-react'
@@ -77,7 +78,10 @@ function SeedsPageContent() {
     updateVariety,
     archiveVariety,
     unarchiveVariety,
+    removeVariety,
     toggleHaveSeedsForYear,
+    addVarietyToYear,
+    removeVarietyFromYear,
     getYears,
     getActiveVarieties,
   } = useAllotment()
@@ -94,6 +98,7 @@ function SeedsPageContent() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingVariety, setEditingVariety] = useState<StoredVariety | undefined>()
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [yearMenuOpen, setYearMenuOpen] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'have' | 'need'>('all')
   const [showArchived, setShowArchived] = useState(false)
 
@@ -456,22 +461,71 @@ function SeedsPageContent() {
                         return (
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${isArchived ? 'opacity-50' : selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
                             {selectedYear === 'all' ? (
-                              <div
-                                className="mt-0.5 px-2 py-1 rounded-zen bg-zen-stone-100 text-zen-stone-500 text-xs font-medium cursor-not-allowed flex items-center gap-1"
-                                title="Select a year to track seeds"
-                              >
-                                <Calendar className="w-3 h-3" />
-                                <span>Select year</span>
-                              </div>
+                              <>
+                                <button
+                                  onClick={() => setYearMenuOpen(yearMenuOpen === v.id ? null : v.id)}
+                                  className="mt-0.5 px-2 py-1 rounded-zen bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 text-xs font-medium flex items-center gap-1 transition"
+                                  title="Add to a year"
+                                >
+                                  <CalendarPlus className="w-3 h-3" />
+                                  <span>Add to Year</span>
+                                </button>
+                                {yearMenuOpen === v.id && (
+                                  <>
+                                    {/* Backdrop to close on outside click */}
+                                    <div
+                                      className="fixed inset-0 z-40"
+                                      onClick={() => setYearMenuOpen(null)}
+                                    />
+                                    <div className="fixed z-50 bg-white rounded-zen shadow-xl border border-zen-stone-200 py-2 min-w-[140px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:translate-x-0 sm:translate-y-1 sm:mt-0">
+                                      <div className="px-3 py-1.5 text-xs font-medium text-zen-stone-500 border-b border-zen-stone-100 mb-1">
+                                        Add to year
+                                      </div>
+                                      {availableYears.map(year => {
+                                        const alreadyTracked = v.seedsByYear && year in v.seedsByYear
+                                        return (
+                                          <button
+                                            key={year}
+                                            onClick={() => {
+                                              if (!alreadyTracked) {
+                                                addVarietyToYear(v.id, year, 'none')
+                                              }
+                                              setYearMenuOpen(null)
+                                            }}
+                                            disabled={alreadyTracked}
+                                            className={`w-full px-3 py-2 text-left text-sm min-h-[44px] flex items-center justify-between ${
+                                              alreadyTracked
+                                                ? 'text-zen-stone-400 cursor-not-allowed bg-zen-stone-50'
+                                                : 'text-zen-ink-700 hover:bg-zen-moss-50 active:bg-zen-moss-100'
+                                            }`}
+                                          >
+                                            <span>{year}</span>
+                                            {alreadyTracked && <Check className="w-4 h-4 text-zen-moss-500" />}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  </>
+                                )}
+                              </>
                             ) : (
-                              <button
-                                onClick={() => toggleHaveSeedsForYear(v.id, selectedYear)}
-                                className={`mt-0.5 px-2 py-1 rounded-zen transition flex items-center gap-1 text-xs font-medium ${config.className}`}
-                                title={`Click to cycle: ${status} → ${getNextStatus(status)}`}
-                              >
-                                <Icon className="w-3 h-3" />
-                                <span>{config.label}</span>
-                              </button>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => toggleHaveSeedsForYear(v.id, selectedYear)}
+                                  className={`mt-0.5 px-2 py-1 rounded-zen transition flex items-center gap-1 text-xs font-medium ${config.className}`}
+                                  title={`Click to cycle: ${status} → ${getNextStatus(status)}`}
+                                >
+                                  <Icon className="w-3 h-3" />
+                                  <span>{config.label}</span>
+                                </button>
+                                <button
+                                  onClick={() => removeVarietyFromYear(v.id, selectedYear)}
+                                  className="mt-0.5 p-1 rounded-zen text-zen-stone-400 hover:text-zen-ume-600 hover:bg-zen-ume-50 transition"
+                                  title={`Remove from ${selectedYear}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
                             )}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-baseline gap-2">
@@ -532,20 +586,40 @@ function SeedsPageContent() {
                                 <Pencil className="w-4 h-4" />
                               </button>
                               {isArchived ? (
-                                <button
-                                  onClick={() => unarchiveVariety(v.id)}
-                                  className="px-2 py-1 text-xs bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200"
-                                  title="Restore variety"
-                                >
-                                  Restore
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => unarchiveVariety(v.id)}
+                                    className="px-2 py-1 text-xs bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200"
+                                    title="Restore variety"
+                                  >
+                                    Restore
+                                  </button>
+                                  <button
+                                    onClick={() => removeVariety(v.id)}
+                                    className="px-2 py-1 text-xs bg-zen-ume-100 text-zen-ume-700 rounded-zen hover:bg-zen-ume-200"
+                                    title="Permanently delete"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               ) : confirmDelete === v.id ? (
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleDeleteVariety(v.id)}
-                                    className="px-2 py-1 text-xs bg-zen-ume-600 text-white rounded-zen hover:bg-zen-ume-700"
+                                    className="px-2 py-1 text-xs bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200"
+                                    title="Hide from list (can restore later)"
                                   >
                                     Archive
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      removeVariety(v.id)
+                                      setConfirmDelete(null)
+                                    }}
+                                    className="px-2 py-1 text-xs bg-zen-ume-600 text-white rounded-zen hover:bg-zen-ume-700"
+                                    title="Permanently delete"
+                                  >
+                                    Delete
                                   </button>
                                   <button
                                     onClick={() => setConfirmDelete(null)}
@@ -558,7 +632,7 @@ function SeedsPageContent() {
                                 <button
                                   onClick={() => setConfirmDelete(v.id)}
                                   className="p-1.5 rounded-zen bg-zen-stone-100 text-zen-stone-500 hover:bg-zen-ume-100 hover:text-zen-ume-600 transition"
-                                  title="Archive variety"
+                                  title="Archive or delete variety"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

@@ -53,6 +53,10 @@ export default function VarietyEditDialog({
       }
     } else if (isOpen && mode === 'add') {
       resetForm()
+      // Default to 'none' (Need) status when a specific year is selected
+      if (yearToTrack) {
+        setSeedStatusForYear('none')
+      }
     }
   }, [isOpen, mode, variety, yearToTrack])
 
