@@ -443,7 +443,7 @@ export default function AitorChatModal() {
                 <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
                   <Leaf className="w-12 h-12 text-zen-moss-200 mb-4" aria-hidden="true" />
                   <p className="text-zen-ink-600 text-lg mb-2">What can I help you grow today?</p>
-                  <p className="text-zen-stone-400 text-sm mb-6">
+                  <p className="text-zen-stone-500 text-sm mb-6">
                     Ask about planting, pests, harvesting, or select a topic below
                   </p>
                 </div>

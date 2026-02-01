@@ -53,14 +53,21 @@ test.describe('Accessibility - Allotment Page', () => {
 
 test.describe('Accessibility - AI Advisor Modal', () => {
   test('ai-advisor modal should have no critical accessibility violations', async ({ page }) => {
-    // Unlock AI advisor
+    // Unlock AI advisor and mark all celebrations as shown
     await page.addInitScript(() => {
+      localStorage.setItem('allotment-unified-data', JSON.stringify({
+        meta: { setupCompleted: true },
+        layout: { areas: [] },
+        seasons: [],
+        currentYear: new Date().getFullYear(),
+        varieties: []
+      }))
       localStorage.setItem('allotment-engagement', JSON.stringify({
         visitCount: 3,
         lastVisit: new Date().toISOString(),
         manuallyUnlocked: ['ai-advisor']
       }))
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
     })
     await page.goto('/')
 

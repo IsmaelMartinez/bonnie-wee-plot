@@ -91,10 +91,12 @@ test.describe('Homepage and Navigation', () => {
     await page.waitForLoadState('networkidle');
 
     // Check that there are no critical JavaScript errors
+    // Filter out expected/non-critical errors
     const criticalErrors = errors.filter(error =>
       !error.includes('favicon') &&
       !error.includes('404') &&
-      !error.includes('net::ERR_ABORTED')
+      !error.includes('net::ERR_ABORTED') &&
+      !error.includes('GeolocationPositionError') // Expected when geolocation is unavailable/denied
     );
 
     expect(criticalErrors).toHaveLength(0);

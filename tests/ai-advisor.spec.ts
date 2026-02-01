@@ -1,15 +1,30 @@
 import { test, expect } from '@playwright/test'
 
+// Helper to set up test data with AI advisor unlocked
+async function setupWithAiAdvisor(page: import('@playwright/test').Page) {
+  await page.addInitScript(() => {
+    // Set up allotment data with setup completed to skip onboarding
+    localStorage.setItem('allotment-unified-data', JSON.stringify({
+      meta: { setupCompleted: true },
+      layout: { areas: [] },
+      seasons: [],
+      currentYear: new Date().getFullYear(),
+      varieties: []
+    }))
+    // Unlock AI advisor feature
+    localStorage.setItem('allotment-engagement', JSON.stringify({
+      visitCount: 5,
+      lastVisit: new Date().toISOString(),
+      manuallyUnlocked: ['ai-advisor']
+    }))
+    // Mark all celebrations as shown to prevent modals
+    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
+  })
+}
+
 test.describe('AI Advisor (Aitor)', () => {
   test.beforeEach(async ({ page }) => {
-    // Unlock AI advisor feature for testing
-    await page.goto('/')
-    await page.evaluate(() => {
-      const stored = localStorage.getItem('feature-engagement')
-      const data = stored ? JSON.parse(stored) : { visits: 0, plantings: 0, harvests: 0, unlockedFeatures: [] }
-      data.unlockedFeatures = [...new Set([...data.unlockedFeatures, 'ai-advisor'])]
-      localStorage.setItem('feature-engagement', JSON.stringify(data))
-    })
+    await setupWithAiAdvisor(page)
   })
 
   test('should open modal when clicking floating button', async ({ page }) => {
