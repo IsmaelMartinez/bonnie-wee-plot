@@ -47,7 +47,7 @@ async function seedTestData(page: import('@playwright/test').Page) {
     // Spinner might not be present if page loaded quickly
   })
   // Also wait for the h1 to appear (indicates page finished loading)
-  await page.locator('h1').filter({ hasText: /Allotment/i }).waitFor({ state: 'visible', timeout: 30000 })
+  await page.locator('h1').filter({ hasText: /Plot Layout/i }).waitFor({ state: 'visible', timeout: 30000 })
 }
 
 // Helper function to create a sample rotation bed if none exists
@@ -145,7 +145,7 @@ test.describe('Allotment Page', () => {
 
   test('should display allotment page with header', async ({ page }) => {
     // Page should already be loaded with header visible from beforeEach
-    await expect(page.locator('h1').filter({ hasText: /Allotment/i })).toBeVisible()
+    await expect(page.locator('h1').filter({ hasText: /Plot Layout/i })).toBeVisible()
   })
 
   test('should display year selector with available years', async ({ page }) => {
@@ -213,7 +213,7 @@ test.describe('Allotment Page', () => {
 
     // Wait for data to load from localStorage
     await page.locator('.animate-spin').waitFor({ state: 'hidden', timeout: 30000 }).catch(() => {})
-    await page.locator('h1').filter({ hasText: /Allotment/i }).waitFor({ state: 'visible', timeout: 30000 })
+    await page.locator('h1').filter({ hasText: /Plot Layout/i }).waitFor({ state: 'visible', timeout: 30000 })
 
     // Year should still be selected after reload
     const yearButtonAfterReload = page.locator('button').filter({ hasText: String(currentYear) }).filter({ hasNot: page.locator('img, svg') })
@@ -374,7 +374,7 @@ test.describe('Allotment Mobile', () => {
     await page.goto('/allotment')
 
     // Main content should be visible - check for allotment header
-    await expect(page.locator('h1').filter({ hasText: /Allotment|Edinburgh/i })).toBeVisible()
+    await expect(page.locator('h1').filter({ hasText: /Plot Layout/i })).toBeVisible()
   })
 
   test('should show action buttons on mobile (not just hover)', async ({ page }) => {
@@ -643,88 +643,88 @@ test.describe('Custom Allotment Naming', () => {
   })
 
   test('should display custom allotment name in navigation', async ({ page }) => {
-    // Default name should be "My Allotment"
-    const navName = page.locator('nav').getByText('My Allotment')
+    // Default name should be "My Allotment" in the nav link
+    const navName = page.locator('nav a').filter({ hasText: 'My Allotment' })
     await expect(navName).toBeVisible()
   })
 
-  test('should display custom allotment name in page header', async ({ page }) => {
-    // Check the h1 in the allotment page shows the name
-    const headerName = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await expect(headerName).toBeVisible()
+  test('should show edit button next to allotment name', async ({ page }) => {
+    // Edit button (pencil icon) should be visible next to the name
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await expect(editButton).toBeVisible()
   })
 
-  test('should make allotment name editable on click', async ({ page }) => {
-    // Click on the allotment name in the header
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+  test('should make allotment name editable on edit button click', async ({ page }) => {
+    // Click the edit button (pencil icon)
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Should show an input field (wait for it to appear)
-    const nameInput = page.locator('input[value*="My Allotment"]')
+    // Should show an input field
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await expect(nameInput).toBeFocused()
   })
 
   test('should save new name on Enter key', async ({ page }) => {
-    // Click on the allotment name
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+    // Click the edit button
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Wait for input to appear
-    const nameInput = page.locator('input[type="text"]').first()
+    // Fill in new name
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('My Sunny Garden')
     await nameInput.press('Enter')
 
-    // New name should appear in the header (input should be replaced with heading)
-    await expect(page.locator('h1').filter({ hasText: 'My Sunny Garden' })).toBeVisible({ timeout: 5000 })
+    // New name should appear in the nav link
+    await expect(page.locator('nav a').filter({ hasText: 'My Sunny Garden' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should save new name on blur', async ({ page }) => {
-    // Click on the allotment name
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+    // Click the edit button
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Wait for input to appear
-    const nameInput = page.locator('input[value*="My Allotment"]')
+    // Fill in new name
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('My Beautiful Plot')
 
     // Click outside to blur
     await page.locator('body').click({ position: { x: 10, y: 10 } })
 
-    // New name should appear (input replaced with heading)
-    await expect(page.locator('h1').filter({ hasText: 'My Beautiful Plot' })).toBeVisible({ timeout: 5000 })
+    // New name should appear in nav
+    await expect(page.locator('nav a').filter({ hasText: 'My Beautiful Plot' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should cancel edit on Escape key', async ({ page }) => {
-    // Click on the allotment name
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+    // Click the edit button
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Wait for input to appear
-    const nameInput = page.locator('input[type="text"]').first()
+    // Fill in temporary name then press Escape
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Temporary Name')
     await nameInput.press('Escape')
 
-    // Original name should still be there (input replaced with heading showing original)
-    await expect(page.locator('h1').filter({ hasText: 'My Allotment' })).toBeVisible({ timeout: 5000 })
+    // Original name should still be there
+    await expect(page.locator('nav a').filter({ hasText: 'My Allotment' })).toBeVisible({ timeout: 5000 })
   })
 
   test('should persist custom name across page reloads', async ({ page }) => {
-    // Click on the allotment name
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+    // Click the edit button
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Wait for input to appear
-    const nameInput = page.locator('input[type="text"]').first()
+    // Fill in new name
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Edinburgh Garden')
     await nameInput.press('Enter')
 
-    // Wait for name to appear in header (confirms save started)
-    await expect(page.locator('h1').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 5000 })
+    // Wait for name to appear in nav
+    await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 5000 })
 
     // Wait for debounced save to complete by checking localStorage update
     await page.waitForFunction(
@@ -739,24 +739,23 @@ test.describe('Custom Allotment Naming', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Custom name should still be visible in both places
-    await expect(page.locator('h1').filter({ hasText: 'Edinburgh Garden' })).toBeVisible()
-    await expect(page.locator('nav').getByText('Edinburgh Garden')).toBeVisible()
+    // Custom name should still be visible in nav
+    await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible()
   })
 
   test('should show custom name in navigation after changing it', async ({ page }) => {
-    // Change the name
-    const nameHeading = page.locator('h1').filter({ hasText: 'My Allotment' })
-    await nameHeading.click()
+    // Click the edit button
+    const editButton = page.locator('nav button[aria-label="Edit allotment name"]')
+    await editButton.click()
 
-    // Wait for input to appear
-    const nameInput = page.locator('input[type="text"]').first()
+    // Fill in new name
+    const nameInput = page.locator('nav input[aria-label="Allotment name"]')
     await expect(nameInput).toBeVisible({ timeout: 3000 })
     await nameInput.fill('Test Garden Name')
     await nameInput.press('Enter')
 
-    // Wait for name to appear in header (confirms save started)
-    await expect(page.locator('h1').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 5000 })
+    // Wait for name to appear in nav
+    await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 5000 })
 
     // Wait for debounced save to complete
     await page.waitForFunction(
@@ -772,7 +771,7 @@ test.describe('Custom Allotment Naming', () => {
     await page.waitForLoadState('networkidle')
 
     // Custom name should appear in navigation
-    await expect(page.locator('nav').getByText('Test Garden Name')).toBeVisible()
+    await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible()
   })
 })
 
