@@ -461,7 +461,7 @@ function SeedsPageContent() {
                         return (
                           <div key={v.id} className={`pl-7 flex items-start gap-3 ${isArchived ? 'opacity-50' : selectedYear !== 'all' && status !== 'have' ? 'opacity-75' : ''}`}>
                             {selectedYear === 'all' ? (
-                              <div className="relative">
+                              <>
                                 <button
                                   onClick={() => setYearMenuOpen(yearMenuOpen === v.id ? null : v.id)}
                                   className="mt-0.5 px-2 py-1 rounded-zen bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 text-xs font-medium flex items-center gap-1 transition"
@@ -471,32 +471,43 @@ function SeedsPageContent() {
                                   <span>Add to Year</span>
                                 </button>
                                 {yearMenuOpen === v.id && (
-                                  <div className="absolute z-10 mt-1 left-0 bg-white rounded-zen shadow-lg border border-zen-stone-200 py-1 min-w-[100px]">
-                                    {availableYears.map(year => {
-                                      const alreadyTracked = v.seedsByYear && year in v.seedsByYear
-                                      return (
-                                        <button
-                                          key={year}
-                                          onClick={() => {
-                                            if (!alreadyTracked) {
-                                              addVarietyToYear(v.id, year, 'none')
-                                            }
-                                            setYearMenuOpen(null)
-                                          }}
-                                          disabled={alreadyTracked}
-                                          className={`w-full px-3 py-1.5 text-left text-sm ${
-                                            alreadyTracked
-                                              ? 'text-zen-stone-400 cursor-not-allowed'
-                                              : 'text-zen-ink-700 hover:bg-zen-moss-50'
-                                          }`}
-                                        >
-                                          {year} {alreadyTracked && '✓'}
-                                        </button>
-                                      )
-                                    })}
-                                  </div>
+                                  <>
+                                    {/* Backdrop to close on outside click */}
+                                    <div
+                                      className="fixed inset-0 z-40"
+                                      onClick={() => setYearMenuOpen(null)}
+                                    />
+                                    <div className="fixed z-50 bg-white rounded-zen shadow-xl border border-zen-stone-200 py-2 min-w-[140px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:translate-x-0 sm:translate-y-1 sm:mt-0">
+                                      <div className="px-3 py-1.5 text-xs font-medium text-zen-stone-500 border-b border-zen-stone-100 mb-1">
+                                        Add to year
+                                      </div>
+                                      {availableYears.map(year => {
+                                        const alreadyTracked = v.seedsByYear && year in v.seedsByYear
+                                        return (
+                                          <button
+                                            key={year}
+                                            onClick={() => {
+                                              if (!alreadyTracked) {
+                                                addVarietyToYear(v.id, year, 'none')
+                                              }
+                                              setYearMenuOpen(null)
+                                            }}
+                                            disabled={alreadyTracked}
+                                            className={`w-full px-3 py-2 text-left text-sm min-h-[44px] flex items-center justify-between ${
+                                              alreadyTracked
+                                                ? 'text-zen-stone-400 cursor-not-allowed bg-zen-stone-50'
+                                                : 'text-zen-ink-700 hover:bg-zen-moss-50 active:bg-zen-moss-100'
+                                            }`}
+                                          >
+                                            <span>{year}</span>
+                                            {alreadyTracked && <Check className="w-4 h-4 text-zen-moss-500" />}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  </>
                                 )}
-                              </div>
+                              </>
                             ) : (
                               <div className="flex items-center gap-1">
                                 <button
