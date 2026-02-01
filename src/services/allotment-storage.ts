@@ -1468,12 +1468,14 @@ export function removeSeason(data: AllotmentData, year: number): AllotmentData {
     return data
   }
 
-  const filteredSeasons = data.seasons.filter(s => s.year !== year)
+  // Use Number() to handle potential string/number type mismatch from JSON import
+  const yearNum = Number(year)
+  const filteredSeasons = data.seasons.filter(s => Number(s.year) !== yearNum)
 
   // If we removed the current year, switch to the most recent remaining year
   let newCurrentYear = data.currentYear
-  if (data.currentYear === year) {
-    const years = filteredSeasons.map(s => s.year).sort((a, b) => b - a)
+  if (Number(data.currentYear) === yearNum) {
+    const years = filteredSeasons.map(s => Number(s.year)).sort((a, b) => b - a)
     newCurrentYear = years[0]
   }
 
