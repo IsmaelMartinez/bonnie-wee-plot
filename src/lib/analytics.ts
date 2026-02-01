@@ -24,8 +24,6 @@ export interface AnalyticsData {
 
 import { STORAGE_KEY_ANALYTICS } from './storage-keys'
 
-/** @deprecated Use STORAGE_KEY_ANALYTICS from storage-keys.ts */
-export const ANALYTICS_STORAGE_KEY = STORAGE_KEY_ANALYTICS
 const MAX_EVENTS = 100
 
 // ============ CORE FUNCTIONS ============
@@ -39,7 +37,7 @@ export function loadAnalytics(): AnalyticsData {
   }
 
   try {
-    const stored = localStorage.getItem(ANALYTICS_STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY_ANALYTICS)
     if (!stored) {
       return { events: [] }
     }
@@ -60,7 +58,7 @@ function saveAnalytics(data: AnalyticsData): void {
   if (typeof window === 'undefined') return
 
   try {
-    localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(data))
+    localStorage.setItem(STORAGE_KEY_ANALYTICS, JSON.stringify(data))
   } catch {
     // Silently fail - analytics is non-critical
   }
@@ -158,7 +156,7 @@ export function clearAnalytics(): void {
   if (typeof window === 'undefined') return
 
   try {
-    localStorage.removeItem(ANALYTICS_STORAGE_KEY)
+    localStorage.removeItem(STORAGE_KEY_ANALYTICS)
   } catch {
     // Silently fail
   }

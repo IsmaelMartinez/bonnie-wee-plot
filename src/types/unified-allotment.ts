@@ -466,27 +466,7 @@ export type NewAreaNote = Omit<AreaNote, 'id' | 'createdAt' | 'updatedAt'>
  */
 export type AreaNoteUpdate = Partial<Omit<AreaNote, 'id' | 'createdAt'>>
 
-// ============ LEGACY TYPE ALIASES (for migration compatibility) ============
-
-/**
- * @deprecated Use AreaNote instead
- */
-export type BedNote = AreaNote
-
-/**
- * @deprecated Use AreaNoteType instead
- */
-export type BedNoteType = AreaNoteType
-
-/**
- * @deprecated Use NewAreaNote instead
- */
-export type NewBedNote = NewAreaNote
-
-/**
- * @deprecated Use AreaNoteUpdate instead
- */
-export type BedNoteUpdate = AreaNoteUpdate
+// ============ LEGACY TYPES (for v9 migration compatibility) ============
 
 /**
  * @deprecated Use AreaSeason instead. Kept for v9 migration.
