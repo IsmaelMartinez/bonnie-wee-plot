@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+// Custom event name for cross-component synchronization
+const SESSION_STORAGE_EVENT = 'session-storage-update'
+
 /**
- * Hook for managing session storage state
+ * Hook for managing session storage state with cross-component sync
  */
 export function useSessionStorage<T>(
   key: string,
@@ -23,7 +26,21 @@ export function useSessionStorage<T>(
     }
   }, [key])
 
-  // Save to session storage
+  // Listen for updates from other components in the same tab
+  useEffect(() => {
+    const handleStorageUpdate = (event: CustomEvent<{ key: string; value: unknown }>) => {
+      if (event.detail.key === key) {
+        setStoredValue(event.detail.value as T)
+      }
+    }
+
+    window.addEventListener(SESSION_STORAGE_EVENT, handleStorageUpdate as EventListener)
+    return () => {
+      window.removeEventListener(SESSION_STORAGE_EVENT, handleStorageUpdate as EventListener)
+    }
+  }, [key])
+
+  // Save to session storage and notify other components
   const setValue = useCallback((value: T) => {
     try {
       setStoredValue(value)
@@ -32,6 +49,10 @@ export function useSessionStorage<T>(
       } else {
         sessionStorage.setItem(key, JSON.stringify(value))
       }
+      // Dispatch custom event for cross-component sync
+      window.dispatchEvent(new CustomEvent(SESSION_STORAGE_EVENT, {
+        detail: { key, value }
+      }))
     } catch (error) {
       console.error(`Error setting sessionStorage key "${key}":`, error)
     }
@@ -42,6 +63,10 @@ export function useSessionStorage<T>(
     try {
       sessionStorage.removeItem(key)
       setStoredValue(initialValue)
+      // Dispatch custom event for cross-component sync
+      window.dispatchEvent(new CustomEvent(SESSION_STORAGE_EVENT, {
+        detail: { key, value: initialValue }
+      }))
     } catch (error) {
       console.error(`Error clearing sessionStorage key "${key}":`, error)
     }

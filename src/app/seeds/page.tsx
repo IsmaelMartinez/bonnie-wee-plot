@@ -477,7 +477,7 @@ function SeedsPageContent() {
                                       className="fixed inset-0 z-40"
                                       onClick={() => setYearMenuOpen(null)}
                                     />
-                                    <div className="fixed z-50 bg-white rounded-zen shadow-xl border border-zen-stone-200 py-2 min-w-[140px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:translate-x-0 sm:translate-y-1 sm:mt-0">
+                                    <div className="fixed z-50 bg-white rounded-zen shadow-xl border border-zen-stone-200 py-2 min-w-[140px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                                       <div className="px-3 py-1.5 text-xs font-medium text-zen-stone-500 border-b border-zen-stone-100 mb-1">
                                         Add to year
                                       </div>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, Calendar, Map, Package, Leaf, BookOpen, Recycle, Lock, Sparkles, Settings, Pencil } from 'lucide-react'
+import { Menu, X, ChevronDown, Calendar, Map, Package, BookOpen, Recycle, Lock, Sparkles, Settings, Pencil } from 'lucide-react'
 import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
@@ -28,14 +28,6 @@ interface LockedFeatureConfig {
 }
 
 const lockedFeatures: LockedFeatureConfig[] = [
-  {
-    href: '/ai-advisor',
-    label: 'Ask Aitor',
-    icon: Leaf,
-    description: 'AI garden advice',
-    teaser: 'Get personalized advice from your AI garden assistant. Ask about planting, pests, and more.',
-    feature: 'ai-advisor',
-  },
   {
     href: '/compost',
     label: 'Compost',
@@ -258,10 +250,10 @@ export default function Navigation() {
                       return (
                         <Link
                           key={item.href}
-                          href={item.href}
+                          href={item.href!}
                           role="menuitem"
                           className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                            isActive(item.href)
+                            isActive(item.href!)
                               ? 'bg-zen-moss-50'
                               : 'hover:bg-zen-stone-50'
                           }`}
@@ -269,12 +261,12 @@ export default function Navigation() {
                         >
                           <IconComponent
                             className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                              isActive(item.href) ? 'text-zen-moss-600' : 'text-zen-stone-400'
+                              isActive(item.href!) ? 'text-zen-moss-600' : 'text-zen-stone-400'
                             }`}
                           />
                           <div>
                             <div className={`text-sm font-medium ${
-                              isActive(item.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
+                              isActive(item.href!) ? 'text-zen-moss-700' : 'text-zen-ink-700'
                             }`}>
                               {item.label}
                             </div>
@@ -291,7 +283,7 @@ export default function Navigation() {
 
                     return (
                       <div
-                        key={item.href}
+                        key={item.feature}
                         role="menuitem"
                         className="px-4 py-3 hover:bg-zen-stone-50 transition-colors"
                       >
@@ -434,9 +426,9 @@ export default function Navigation() {
                         return (
                           <Link
                             key={item.href}
-                            href={item.href}
+                            href={item.href!}
                             className={`flex items-center gap-2 py-2 text-sm transition-colors ${
-                              isActive(item.href)
+                              isActive(item.href!)
                                 ? 'text-zen-moss-700'
                                 : 'text-zen-ink-600 hover:text-zen-ink-800'
                             }`}
@@ -452,7 +444,7 @@ export default function Navigation() {
                       const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
 
                       return (
-                        <div key={item.href} className="py-2">
+                        <div key={item.feature} className="py-2">
                           <div className="flex items-center gap-2">
                             <div className="relative">
                               <IconComponent className="w-4 h-4 text-zen-stone-300" />

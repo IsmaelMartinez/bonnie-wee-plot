@@ -144,18 +144,10 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
             )}
           </div>
           
-          {rateLimitInfo && (
-            <div className={`flex items-center gap-1 ${
-              rateLimitInfo.cooldownMs > 0 ? 'text-amber-600' : 'text-gray-400'
-            }`}>
-              {rateLimitInfo.cooldownMs > 0 ? (
-                <>
-                  <Clock className="w-4 h-4" aria-hidden="true" />
-                  <span>Wait {Math.ceil(rateLimitInfo.cooldownMs / 1000)}s</span>
-                </>
-              ) : (
-                <span>{rateLimitInfo.remainingRequests}/5 requests available</span>
-              )}
+          {rateLimitInfo && rateLimitInfo.cooldownMs > 0 && (
+            <div className="flex items-center gap-1 text-amber-600">
+              <Clock className="w-4 h-4" aria-hidden="true" />
+              <span>Wait {Math.ceil(rateLimitInfo.cooldownMs / 1000)}s</span>
             </div>
           )}
         </div>

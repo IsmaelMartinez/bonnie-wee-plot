@@ -38,7 +38,7 @@ test.describe('Homepage and Navigation', () => {
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
   });
 
-  test('should navigate to AI advisor page', async ({ page }) => {
+  test('should open AI advisor modal via floating button', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await skipOnboarding(page)
     await page.goto('/');
@@ -47,14 +47,13 @@ test.describe('Homepage and Navigation', () => {
     await unlockAllFeatures(page);
     await page.reload();
 
-    // AI advisor is now in "More" dropdown - click More button first
-    const moreButton = page.locator('header button').filter({ hasText: 'More' });
-    await moreButton.click();
+    // AI advisor is now accessed via floating button
+    const aitorButton = page.locator('button[aria-label*="Aitor"]');
+    await expect(aitorButton).toBeVisible();
+    await aitorButton.click();
 
-    // Then click "Ask Aitor" link in dropdown
-    const aiAdvisorLink = page.getByRole('menuitem', { name: /Ask Aitor/i });
-    await aiAdvisorLink.click();
-    await expect(page).toHaveURL(/ai-advisor/);
+    // Modal should open
+    await expect(page.locator('h2').filter({ hasText: /Ask Aitor/i })).toBeVisible();
   });
 
   test('should be responsive on mobile', async ({ page }) => {
@@ -92,10 +91,12 @@ test.describe('Homepage and Navigation', () => {
     await page.waitForLoadState('networkidle');
 
     // Check that there are no critical JavaScript errors
+    // Filter out expected/non-critical errors
     const criticalErrors = errors.filter(error =>
       !error.includes('favicon') &&
       !error.includes('404') &&
-      !error.includes('net::ERR_ABORTED')
+      !error.includes('net::ERR_ABORTED') &&
+      !error.includes('GeolocationPositionError') // Expected when geolocation is unavailable/denied
     );
 
     expect(criticalErrors).toHaveLength(0);

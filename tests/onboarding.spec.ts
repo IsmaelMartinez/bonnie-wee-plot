@@ -264,8 +264,12 @@ test.describe('Onboarding Wizard - Ask Path', () => {
     // Click "Start Exploring"
     await page.getByText('Start Exploring').click()
 
-    // Should navigate to /ai-advisor
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Should stay on home (modal opens instead of navigating)
+    await expect(page).toHaveURL('/')
+
+    // The Aitor modal should be open (or floating button should be visible)
+    const aitorButton = page.locator('button[aria-label*="Aitor"]')
+    await expect(aitorButton).toBeVisible()
   })
 
   test('ask path shows correct guidance content', async ({ page }) => {

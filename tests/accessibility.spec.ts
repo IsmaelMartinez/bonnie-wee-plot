@@ -51,9 +51,33 @@ test.describe('Accessibility - Allotment Page', () => {
   })
 })
 
-test.describe('Accessibility - AI Advisor Page', () => {
-  test('ai-advisor page should have no critical accessibility violations', async ({ page }) => {
-    await page.goto('/ai-advisor')
+test.describe('Accessibility - AI Advisor Modal', () => {
+  test('ai-advisor modal should have no critical accessibility violations', async ({ page }) => {
+    // Unlock AI advisor and mark all celebrations as shown
+    await page.addInitScript(() => {
+      localStorage.setItem('allotment-unified-data', JSON.stringify({
+        meta: { setupCompleted: true },
+        layout: { areas: [] },
+        seasons: [],
+        currentYear: new Date().getFullYear(),
+        varieties: []
+      }))
+      localStorage.setItem('allotment-engagement', JSON.stringify({
+        visitCount: 3,
+        lastVisit: new Date().toISOString(),
+        manuallyUnlocked: ['ai-advisor']
+      }))
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
+    })
+    await page.goto('/')
+
+    // Open the modal via floating button
+    const aitorButton = page.locator('button[aria-label*="Aitor"]')
+    await aitorButton.click()
+
+    // Wait for modal to be visible
+    await expect(page.locator('[role="dialog"]')).toBeVisible()
+
     await checkA11y(page)
   })
 })
@@ -170,7 +194,6 @@ test.describe('Accessibility - Detailed Report', () => {
     const routes = [
       { path: '/', name: 'Homepage' },
       { path: '/allotment', name: 'Allotment' },
-      { path: '/ai-advisor', name: 'AI Advisor' },
       { path: '/seeds', name: 'Seeds' },
       { path: '/this-month', name: 'This Month' },
       { path: '/compost', name: 'Compost' },
