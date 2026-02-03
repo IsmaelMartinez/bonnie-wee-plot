@@ -1,31 +1,17 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, GitMerge, Info, BarChart2 } from 'lucide-react'
+import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, BarChart2 } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
-import { CompostData } from '@/types/compost'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
 import { loadCompostData, saveCompostData } from '@/services/compost-storage'
 import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
 import { ImportError, ExportError } from '@/types/errors'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
-import {
-  migrateDryRun,
-  migrateVarietyStorage,
-  rollbackMigration,
-  listMigrationBackups,
-  deleteMigrationBackup,
-  getBackupMetadata,
-  type MigrationPlan,
-  type MigrationResult,
-} from '@/lib/migration-utils'
-import {
-  getAnalyticsSummary,
-  exportAnalytics,
-  clearAnalytics,
-  type AnalyticsEvent,
-} from '@/lib/analytics'
+import { clearAnalytics } from '@/lib/analytics'
+import StorageMigration from './StorageMigration'
+import AnalyticsViewer from './AnalyticsViewer'
 
 interface DataManagementProps {
   data: AllotmentData | null
@@ -37,7 +23,6 @@ interface DataManagementProps {
  * Validate import data structure before preview
  */
 function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
-  // Check if it's a valid object
   if (!parsed || typeof parsed !== 'object') {
     return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
   }
@@ -48,7 +33,6 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
   if (obj.allotment && obj.varieties) {
     const allotment = obj.allotment as Record<string, unknown>
 
-    // Validate required AllotmentData fields
     if (typeof allotment.version !== 'number') {
       return { valid: false, error: 'Invalid backup: missing or invalid version' }
     }
@@ -61,7 +45,6 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
       return { valid: false, error: 'Invalid backup: missing seasons data' }
     }
 
-    // Check version compatibility
     if (allotment.version > CURRENT_SCHEMA_VERSION) {
       return {
         valid: false,
@@ -74,7 +57,6 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
 
   // Check for old format (just AllotmentData)
   if (typeof obj.version === 'number' && obj.meta && Array.isArray(obj.seasons)) {
-    // Check version compatibility
     if (obj.version > CURRENT_SCHEMA_VERSION) {
       return {
         valid: false,
@@ -89,109 +71,6 @@ function validateImportData(parsed: unknown): { valid: boolean; error?: string }
 }
 
 /**
- * Simple analytics viewer component
- */
-function AnalyticsViewer({ onClearClick }: { onClearClick: () => void }) {
-  const summary = getAnalyticsSummary()
-
-  const handleExportAnalytics = () => {
-    const json = exportAnalytics()
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `analytics-${new Date().toISOString().split('T')[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  return (
-    <div className="mt-4 space-y-4">
-      {/* Summary */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Event Summary</h4>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-xs text-gray-500">Total Events</p>
-            <p className="text-lg font-semibold text-gray-900">{summary.totalEvents}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">Storage</p>
-            <p className="text-sm text-gray-700">Last 100 events</p>
-          </div>
-        </div>
-
-        {/* Category breakdown */}
-        {Object.keys(summary.categoryBreakdown).length > 0 && (
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <p className="text-xs font-medium text-gray-600 mb-2">By Category</p>
-            <div className="space-y-1">
-              {Object.entries(summary.categoryBreakdown).map(([category, count]) => (
-                <div key={category} className="flex justify-between text-sm">
-                  <span className="text-gray-600 capitalize">{category}</span>
-                  <span className="font-medium text-gray-900">{count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Recent events */}
-      {summary.recentEvents.length > 0 && (
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Events</h4>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {summary.recentEvents.map((event: AnalyticsEvent, idx: number) => (
-              <div key={idx} className="text-xs flex items-center gap-2">
-                <span className="text-gray-400 w-24 shrink-0">{formatTimestamp(event.timestamp)}</span>
-                <span className="px-1.5 py-0.5 bg-gray-200 rounded text-gray-700 capitalize">{event.category}</span>
-                <span className="text-gray-600">{event.action}</span>
-                {event.label && (
-                  <span className="text-gray-500 truncate">({event.label})</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={handleExportAnalytics}
-          disabled={summary.totalEvents === 0}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download className="w-3 h-3" />
-          Export JSON
-        </button>
-        <button
-          onClick={onClearClick}
-          disabled={summary.totalEvents === 0}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Trash2 className="w-3 h-3" />
-          Clear
-        </button>
-      </div>
-    </div>
-  )
-}
-
-/**
  * Component for managing allotment data - export, import, and clear
  */
 export default function DataManagement({ data, onDataImported, flushSave }: DataManagementProps) {
@@ -202,16 +81,10 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
   const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Migration state
-  const [migrationPlan, setMigrationPlan] = useState<MigrationPlan | null>(null)
-  const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null)
-  const [migrationBackups, setMigrationBackups] = useState<string[]>([])
-  const [migrationError, setMigrationError] = useState<string | null>(null)
-
   // Analytics state
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showClearAnalyticsConfirm, setShowClearAnalyticsConfirm] = useState(false)
-  const [analyticsKey, setAnalyticsKey] = useState(0) // Force re-render after clear
+  const [analyticsKey, setAnalyticsKey] = useState(0)
 
   // Get storage statistics
   const stats = getStorageStats()
@@ -222,13 +95,11 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     if (!data) return
 
     try {
-      // Check storage quota before export and warn if high
       const currentQuota = checkStorageQuota()
       if (currentQuota.percentageUsed > 80) {
         console.warn(`Storage usage is at ${currentQuota.percentageUsed.toFixed(1)}% - consider clearing old data`)
       }
 
-      // Create VarietyData from allotment varieties for backward compatibility
       const varieties: VarietyData = {
         version: 2,
         varieties: data.varieties || [],
@@ -238,7 +109,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         }
       }
 
-      // Load compost data (optional - not critical if it doesn't exist)
       const compostResult = loadCompostData()
       const compost = compostResult.success && compostResult.data ? compostResult.data : undefined
 
@@ -255,7 +125,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       })
       const url = URL.createObjectURL(blob)
 
-      // Create download link and trigger
       const a = document.createElement('a')
       a.href = url
       a.download = `allotment-backup-${new Date().toISOString().split('T')[0]}.json`
@@ -283,7 +152,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     setImportSuccess(false)
     setLastBackupKey(null)
 
-    // Flush any pending saves before importing
     if (flushSave) {
       try {
         await flushSave()
@@ -296,7 +164,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
     reader.onload = async (e) => {
       try {
-        // Parse and validate JSON first
         const content = e.target?.result as string
 
         let parsed: unknown
@@ -312,7 +179,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           return
         }
 
-        // Validate data structure before proceeding
         const validation = validateImportData(parsed)
         if (!validation.valid) {
           const errorMsg = validation.error || 'Invalid backup file'
@@ -326,7 +192,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           return
         }
 
-        // Create backup of existing data before import
         const backupResult = createPreImportBackup()
         if (!backupResult.success) {
           setImportError(new ImportError(
@@ -338,30 +203,25 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           return
         }
 
-        // Store backup key for potential restore
         setLastBackupKey(backupResult.backupKey || null)
 
         let allotmentData: AllotmentData
         let varietyData: VarietyData | null = null
-        let compostData: CompostData | null = null
+        let compostData = null
 
-        // Check if this is the new format (has allotment + varieties)
         if ((parsed as Record<string, unknown>).allotment && (parsed as Record<string, unknown>).varieties) {
           const complete = parsed as CompleteExport
           allotmentData = complete.allotment
           varietyData = complete.varieties
           compostData = complete.compost || null
 
-          // Merge varieties into allotment data
           if (varietyData && varietyData.varieties) {
             allotmentData.varieties = varietyData.varieties
           }
         } else {
-          // Old format - just AllotmentData
           allotmentData = parsed as AllotmentData
         }
 
-        // Update timestamps
         const timestampedData: AllotmentData = {
           ...allotmentData,
           meta: {
@@ -370,12 +230,8 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           }
         }
 
-        // Migrate imported data to current schema to ensure areas and other fields are properly initialized
         const migratedData = migrateSchemaForImport(timestampedData)
-        const finalAllotmentData = migratedData
-
-        // Save allotment data (now includes varieties merged from varietyData)
-        const allotmentResult = saveAllotmentData(finalAllotmentData)
+        const allotmentResult = saveAllotmentData(migratedData)
 
         if (!allotmentResult.success) {
           const errorMsg = allotmentResult.error || 'Failed to save allotment data'
@@ -392,23 +248,14 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           return
         }
 
-        // Save compost data if present
         if (compostData) {
           const compostResult = saveCompostData(compostData)
           if (!compostResult.success) {
             console.warn('Failed to import compost data:', compostResult.error)
-            // Don't fail the entire import if compost save fails
           }
         }
 
-        // Skip verification - saveAllotmentData has already validated the save was successful
-        // Success! Import is complete and data is persisted to localStorage
-        // CRITICAL: Set flag to prevent usePersistedStorage from overwriting imported data
-        // The hook's debounced save might fire with stale in-memory state before reload completes
         window.__disablePersistenceUntilReload = true
-
-        // Do an immediate hard reload to ensure the new data is loaded cleanly
-        // This avoids any React state conflicts with the hook
         window.location.reload()
       } catch (error) {
         console.error('Import failed:', error)
@@ -433,13 +280,11 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
     reader.readAsText(file)
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
   }, [flushSave])
 
-  // Restore from the last backup created before import
   const handleRestoreBackup = useCallback(() => {
     if (!lastBackupKey) return
 
@@ -459,7 +304,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     }
   }, [lastBackupKey, onDataImported])
 
-  // Clear all data
   const handleClear = useCallback(() => {
     const result = clearAllotmentData()
     if (result.success) {
@@ -469,66 +313,10 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     }
   }, [onDataImported])
 
-  // Clear analytics data
   const handleClearAnalytics = useCallback(() => {
     clearAnalytics()
-    setAnalyticsKey(k => k + 1) // Force re-render of analytics viewer
+    setAnalyticsKey(k => k + 1)
     setShowClearAnalyticsConfirm(false)
-  }, [])
-
-  // Migration handlers
-  const handleCheckMigration = useCallback(() => {
-    if (!data) return
-
-    setMigrationError(null)
-    const plan = migrateDryRun(data)
-    setMigrationPlan(plan)
-
-    // Load existing backups
-    const backups = listMigrationBackups()
-    setMigrationBackups(backups)
-  }, [data])
-
-  const handleMigrateStorage = useCallback(() => {
-    if (!data) return
-
-    setMigrationError(null)
-    setMigrationResult(null)
-
-    const result = migrateVarietyStorage(data)
-    setMigrationResult(result)
-
-    if (result.success) {
-      // Reload data after successful migration
-      setTimeout(() => {
-        onDataImported()
-        // Refresh migration status
-        handleCheckMigration()
-      }, 1500)
-    } else {
-      setMigrationError(result.error || 'Migration failed')
-    }
-  }, [data, onDataImported, handleCheckMigration])
-
-  const handleRollbackMigration = useCallback((backupKey: string) => {
-    const result = rollbackMigration(backupKey)
-
-    if (result.success) {
-      setMigrationResult(null)
-      setMigrationPlan(null)
-      setMigrationError(null)
-      onDataImported()
-      handleCheckMigration()
-    } else {
-      setMigrationError(result.error || 'Rollback failed')
-    }
-  }, [onDataImported, handleCheckMigration])
-
-  const handleDeleteBackup = useCallback((backupKey: string) => {
-    const result = deleteMigrationBackup(backupKey)
-    if (result.success) {
-      setMigrationBackups(prev => prev.filter(key => key !== backupKey))
-    }
   }, [])
 
   return (
@@ -616,7 +404,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             <p className="text-sm text-gray-500 mb-3">
               Restore from a backup file. <strong className="text-amber-600">This will overwrite all current data.</strong>
             </p>
-            
+
             <input
               ref={fileInputRef}
               type="file"
@@ -626,7 +414,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
               id="import-file"
               aria-label="Select backup file to import"
             />
-            
+
             <label
               htmlFor="import-file"
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer inline-flex"
@@ -647,7 +435,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                     </div>
                   </div>
 
-                  {/* Recovery suggestions */}
                   {importError.suggestions.length > 0 && (
                     <div className="mt-3 pl-6">
                       <p className="text-xs font-medium text-red-700 mb-1">Recovery Steps:</p>
@@ -663,7 +450,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                   )}
                 </div>
 
-                {/* Restore from backup button */}
                 {lastBackupKey && importError.recoverable && (
                   <button
                     onClick={handleRestoreBackup}
@@ -675,7 +461,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                 )}
               </div>
             )}
-            
+
             {importSuccess && (
               <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
@@ -685,146 +471,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           </div>
 
           {/* Storage Migration Section */}
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
-              <GitMerge className="w-4 h-4" />
-              Storage Migration
-            </h3>
-            <p className="text-sm text-gray-500 mb-3">
-              Migrate variety data from separate storage into allotment data. This consolidates your seed variety tracking.
-            </p>
-
-            {/* Check Migration Status Button */}
-            <button
-              onClick={handleCheckMigration}
-              disabled={!data}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed mb-3"
-            >
-              <Info className="w-4 h-4" />
-              Check Migration Status
-            </button>
-
-            {/* Migration Plan Display */}
-            {migrationPlan && (
-              <div className="mt-3 space-y-3">
-                {!migrationPlan.needsMigration ? (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <p className="text-sm text-green-700">No migration needed. All varieties are already in allotment storage.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="text-sm font-medium text-blue-800 mb-2">Migration Plan</h4>
-                      <div className="space-y-1 text-sm text-blue-700">
-                        <p>Varieties to merge: {migrationPlan.varietiesToMerge.length}</p>
-                        <p>Duplicates found: {migrationPlan.duplicatesFound.length}</p>
-                        <p>Total after migration: {migrationPlan.totalVarietiesAfterMigration}</p>
-                      </div>
-
-                      {migrationPlan.duplicatesFound.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-blue-200">
-                          <p className="text-xs font-medium text-blue-800 mb-1">Duplicate Resolution:</p>
-                          <ul className="text-xs text-blue-600 space-y-1">
-                            {migrationPlan.conflictResolution.slice(0, 3).map((resolution, idx) => (
-                              <li key={idx}>
-                                {resolution.plantId} - {resolution.normalizedName}: {resolution.reason}
-                              </li>
-                            ))}
-                            {migrationPlan.conflictResolution.length > 3 && (
-                              <li>... and {migrationPlan.conflictResolution.length - 3} more</li>
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Migrate Button */}
-                    <button
-                      onClick={handleMigrateStorage}
-                      className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition w-full justify-center"
-                    >
-                      <GitMerge className="w-4 h-4" />
-                      Migrate Storage
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Migration Result Display */}
-            {migrationResult && migrationResult.success && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <p className="text-sm font-medium text-green-700">Migration completed successfully!</p>
-                </div>
-                <div className="text-sm text-green-600 space-y-1">
-                  <p>Varieties merged: {migrationResult.varietiesMerged}</p>
-                  <p>Duplicates skipped: {migrationResult.duplicatesSkipped}</p>
-                  {migrationResult.backupKey && (
-                    <p className="text-xs mt-2">Backup created: {migrationResult.backupKey}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Migration Error Display */}
-            {migrationError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">{migrationError}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Migration Backups List */}
-            {migrationBackups.length > 0 && (
-              <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Migration Backups</h4>
-                <div className="space-y-2">
-                  {migrationBackups.slice(0, 3).map(backupKey => {
-                    const metadata = getBackupMetadata(backupKey)
-                    return (
-                      <div key={backupKey} className="flex items-center justify-between text-xs">
-                        <div className="flex-1">
-                          <p className="text-gray-700 font-medium">{metadata?.date ? new Date(metadata.date).toLocaleString() : 'Unknown date'}</p>
-                          <p className="text-gray-500">{backupKey}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleRollbackMigration(backupKey)}
-                            className="px-2 py-1 text-amber-600 hover:bg-amber-50 rounded transition"
-                            title="Rollback to this backup"
-                          >
-                            <RefreshCw className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBackup(backupKey)}
-                            className="px-2 py-1 text-red-600 hover:bg-red-50 rounded transition"
-                            title="Delete this backup"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {migrationBackups.length > 3 && (
-                    <p className="text-xs text-gray-500 text-center pt-2">
-                      ... and {migrationBackups.length - 3} more backups
-                    </p>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Warning: These backups are kept indefinitely. Delete old backups to free up storage space.
-                </p>
-              </div>
-            )}
-          </div>
+          <StorageMigration data={data} onDataImported={onDataImported} />
 
           {/* Analytics Section */}
           <div className="border-b border-gray-200 pb-6">
@@ -905,4 +552,3 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
     </>
   )
 }
-

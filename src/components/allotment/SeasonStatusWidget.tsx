@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Calendar, Package, ArrowRight } from 'lucide-react'
 import { SEASONAL_PHASES } from '@/lib/seasons'
