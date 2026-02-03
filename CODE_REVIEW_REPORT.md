@@ -16,7 +16,7 @@ Bonnie Wee Plot is a well-architected Next.js 16 garden planning application wit
 | **Architecture** | ⭐⭐⭐⭐⭐ | Well-organized, feature-based structure with clear patterns |
 | **Maintainability** | ⭐⭐⭐⭐ | Strong, but some large components need refactoring |
 | **UX/Accessibility** | ⭐⭐⭐⭐⭐ | Comprehensive ARIA, keyboard navigation, mobile-first |
-| **Security** | ⭐⭐⭐⭐ | Strong client-side practices; API routes need protection if Vercel-deployed |
+| **Security** | ⭐⭐⭐⭐ | Strong client-side practices; API routes lack server-side rate limiting |
 | **Testing** | ⭐⭐⭐⭐ | Strong E2E-first strategy; targeted unit test opportunities remain |
 | **Performance** | ⭐⭐⭐⭐ | Good practices, but over-reliance on client components |
 
@@ -47,18 +47,33 @@ Bonnie Wee Plot is a well-architected Next.js 16 garden planning application wit
 
 ### Deployment Model
 
-The app supports **two deployment modes** via `next.config.mjs`:
+The app is **deployed on Vercel** as a full Next.js server application. A fallback static export mode exists for GitHub Pages (enabled via `GITHUB_PAGES=true`), but is marked as a manual rollback option.
 
-- **Static export (GitHub Pages)**: When `GITHUB_PAGES=true`, the build uses `output: "export"` and strips all `/api/` routes. The result is a fully static site with no server-side code. This is the current primary deployment.
-- **Server deployment (Vercel)**: Without that flag, the app runs as a full Next.js server with API routes for AI advisor, data sharing (Upstash Redis), and health checks. The GitHub Actions workflow labels this as the migration target.
+On Vercel, the app runs **serverless functions** for its API routes and **middleware** for security headers. These are not a traditional always-on server — they're on-demand functions that Vercel spins up per-request. But they are real server-side code that executes on Vercel's infrastructure, not in the user's browser.
 
-This dual-mode design means **security, performance, and testing considerations differ depending on which deployment is active**. This report notes where recommendations are deployment-specific.
+### Server-Side API Routes
+
+The app has 4 API routes under `src/app/api/` that run as **Vercel serverless functions**:
+
+| Route | Method | Purpose | Called By |
+|-------|--------|---------|-----------|
+| `/api/ai-advisor` | POST | Proxies chat messages to OpenAI. Adds the Aitor system prompt, handles image uploads (gpt-4o for vision, gpt-4o-mini for text), and supports function calling to modify garden data. | Aitor chat modal when user sends a message |
+| `/api/share` | POST | Uploads allotment data to Upstash Redis with a 5-minute TTL. Returns a 6-character code for the receiver. | "Share My Allotment" button in Settings |
+| `/api/share/[code]` | GET | Retrieves shared allotment data by code so the receiver can preview and import it. Returns 404 if expired. | `/receive/{code}` page on the receiving device |
+| `/api/health` | GET | Returns app version, status, and memory stats. Used for external uptime monitoring (e.g., UptimeRobot). | Not called by the app itself |
+
+**Middleware** (`src/middleware.ts`) runs on every non-static request, adding CSP headers, X-Frame-Options, and enforcing a 10MB payload size limit.
+
+**Why these exist as API routes instead of direct client calls:**
+- `/api/ai-advisor` acts as a proxy so the OpenAI API key can optionally be set server-side (via `OPENAI_API_KEY` env var) rather than requiring every user to provide their own. It also keeps the system prompt server-side.
+- `/api/share` and `/api/share/[code]` need server-side access to Upstash Redis credentials, which can't be exposed to the client.
+- `/api/health` is a standard monitoring endpoint for uptime services.
 
 ### Architecture Patterns
 
 1. **Immutable Updates**: Storage functions return new data, never mutate
 2. **Progressive Disclosure**: Features unlock based on user engagement
-3. **API Proxy Pattern**: Server proxies OpenAI calls with BYO key model (Vercel only)
+3. **API Proxy Pattern**: Server proxies OpenAI calls with BYO key model
 4. **Compound Components**: Complex features like dialogs use composition
 5. **Hook Composition**: `useAllotment` facade built from focused sub-hooks
 
@@ -179,37 +194,37 @@ Three similar form components (~300 lines each):
 
 ### Strengths
 
-- **Strong CSP headers** with frame-ancestors, base-uri restrictions
-- **Comprehensive input validation** with Zod schemas
-- **No XSS vectors** - No innerHTML, dangerouslySetInnerHTML, or eval
-- **Proper API key handling** - Token never logged or persisted
-- **Tool execution confirmation** - Users must approve AI data modifications
-- **Immutable data patterns** - Prevents accidental mutations
-- **Client-side rate limiting** - Appropriate for static deployment where no server exists
+- **Strong CSP headers** via middleware — frame-ancestors, base-uri, X-Frame-Options, nosniff
+- **Comprehensive input validation** with Zod schemas on the AI advisor endpoint
+- **No XSS vectors** — no innerHTML, dangerouslySetInnerHTML, or eval usage
+- **Proper API key handling** — user tokens validated with format checks, never logged or persisted
+- **Tool execution confirmation** — users must approve before AI modifies garden data
+- **Immutable data patterns** — prevents accidental state mutations
+- **Payload size limit** — middleware enforces 10MB max on all requests
+- **Share data auto-expires** — Redis TTL of 5 minutes limits exposure window
 
-### Static Deployment (Current - GitHub Pages)
+### API Route Security
 
-When deployed as a static site, the `/api/` directory is stripped at build time. There are **no server endpoints to protect**, so server-side rate limiting is not applicable. The security posture is strong for a client-side application:
-
-- All data stays in the user's browser (localStorage)
-- No network calls to first-party servers
-- OpenAI API calls go directly from client (BYO key)
-- No user accounts or authentication needed
-
-### If/When Deploying to Vercel
-
-The codebase contains 4 API routes that would become live on a server deployment. If that path is taken, these should be addressed:
+Since the app is deployed on Vercel, the 4 API routes are **live serverless endpoints** accessible to anyone who knows the URL. Currently:
 
 | Issue | Severity | Description |
 |-------|----------|-------------|
-| No server-side rate limiting | **High** | `/api/ai-advisor` and `/api/share` could be abused |
-| Public API access | **Medium** | No authentication on endpoints |
-| Share code length | **Low** | 6-char codes have limited keyspace; consider 8+ |
+| No server-side rate limiting | **High** | `/api/ai-advisor` and `/api/share` can be called without limits. Client-side rate limiting exists but is easily bypassed. A bad actor could spam the share endpoint or rack up OpenAI costs if a server-side key is configured. |
+| Public API access | **Medium** | No authentication on any endpoint. Acceptable for BYO-key AI advisor (user pays their own costs), but the share endpoint writes to Redis using your Upstash credentials. |
+| Health endpoint exposes memory stats | **Low** | `/api/health` returns `heapUsed`, `heapTotal`, `rss` — minor information disclosure. |
+| `console.error` in share routes | **Low** | Error objects logged directly, which could leak stack traces in Vercel logs. |
 
-### Minor Recommendations (Any Deployment)
+### Mitigating Factors
 
-1. Remove memory usage from `/api/health` response (information disclosure)
-2. Sanitize `console.error` logs in share routes to avoid leaking stack traces
+- **AI advisor cost risk is limited**: Most users provide their own OpenAI key via the `x-openai-token` header, so abuse would hit the abuser's account. The risk only applies if you set `OPENAI_API_KEY` as a server-side env var.
+- **Share endpoint has natural limits**: Codes expire in 5 minutes, and each share stores a single allotment (~10-50KB). An attacker would need sustained requests to cause meaningful Redis costs.
+- **Vercel has built-in protections**: DDoS mitigation and request limits at the infrastructure level.
+
+### Recommendations
+
+1. **Add server-side rate limiting** on `/api/share` (e.g., 10 shares/hour per IP) — this is the most exposed endpoint since it uses your Upstash credentials
+2. **Consider removing memory stats** from `/api/health` — version and status are sufficient for monitoring
+3. **Replace `console.error(error)`** in share routes with structured logging that doesn't dump full error objects
 
 ---
 
@@ -236,7 +251,7 @@ The project deliberately favors **E2E tests over exhaustive unit test coverage**
 | Libraries | 47% (15/32) | ⚠️ Moderate | Core logic covered; some utilities untested |
 | Components | 5% (3/56) | ℹ️ By design | Covered by E2E tests instead |
 | Hooks | 16% (3/19) | ⚠️ Opportunity | Pure logic hooks would benefit from unit tests |
-| API Routes | 25% (1/4) | ℹ️ Context-dependent | Routes stripped in static deployment |
+| API Routes | 25% (1/4) | ⚠️ Opportunity | Share and health endpoints untested |
 
 ### Strengths
 
@@ -257,7 +272,7 @@ These are areas where **unit tests would be fast to run** and catch bugs that E2
 
 - **Single browser E2E** - Only Chromium tested (Firefox/Safari configs exist but disabled)
 - **No visual regression tests** - Grid layouts could drift without detection
-- **API route tests** - Low priority if static deployment continues
+- **API route tests** - Share and health endpoints have no unit tests
 
 ---
 
@@ -323,28 +338,21 @@ These are areas where **unit tests would be fast to run** and catch bugs that E2
 | 9 | Add keyboard shortcut documentation | UX | Low |
 | 10 | Add visual regression tests for grid layouts | Quality | Medium |
 
-### If Migrating to Vercel
-
-| # | Issue | Impact | Effort |
-|---|-------|--------|--------|
-| — | Add server-side rate limiting on API routes | Security | Medium |
-| — | Add CORS headers restricting to same-origin | Security | Low |
-| — | Add API route unit tests | Quality | Medium |
-
 ---
 
 ## Conclusion
 
-Bonnie Wee Plot demonstrates **strong engineering practices** with excellent TypeScript usage, well-organized architecture, and comprehensive accessibility. The deliberate E2E-first testing strategy is a sound tradeoff for build speed, and the dual deployment model (static/server) is well-implemented.
+Bonnie Wee Plot demonstrates **strong engineering practices** with excellent TypeScript usage, well-organized architecture, and comprehensive accessibility. The deliberate E2E-first testing strategy is a sound tradeoff for build speed.
 
 The main areas for improvement are:
 
-1. **Maintainability**: A few large components (`DataManagement`, `Navigation`) would benefit from splitting
-2. **Testing**: Targeted unit tests for pure logic hooks and utilities would complement the E2E suite without hurting build speed
-3. **Accessibility**: Minor gaps like skip-to-content link
-4. **Performance**: Opportunity to reduce client-side JS by converting presentational components to server components
+1. **Security**: Add server-side rate limiting on the share endpoint — it's the most exposed API route using your Upstash credentials
+2. **Maintainability**: A few large components (`DataManagement`, `Navigation`) would benefit from splitting
+3. **Testing**: Targeted unit tests for pure logic hooks and utilities would complement the E2E suite without hurting build speed
+4. **Accessibility**: Minor gaps like skip-to-content link
+5. **Performance**: Opportunity to reduce client-side JS by converting presentational components to server components
 
-The codebase is **well-positioned for growth** with its clear architecture, comprehensive type system, and solid ADR documentation. The security posture is appropriate for a static client-side application, though API route protection should be addressed if/when the Vercel deployment becomes primary.
+The codebase is **well-positioned for growth** with its clear architecture, comprehensive type system, and solid ADR documentation.
 
 ---
 
