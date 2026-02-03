@@ -43,7 +43,7 @@
     "@serwist/next": "^9.5.0",
     "@upstash/redis": "^1.36.1",
     "html5-qrcode": "^2.3.8",
-    "lucide-react": "^0.518.0",
+    "lucide-react": "^0.562.0",
     "next": "^16.1.6",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
