@@ -6,6 +6,9 @@ node_modules/
 # Testing
 /coverage
 
+# TypeScript
+*.tsbuildinfo
+
 # Next.js
 .next/
 out/
