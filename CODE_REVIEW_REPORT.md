@@ -16,11 +16,11 @@ Bonnie Wee Plot is a well-architected Next.js 16 garden planning application wit
 | **Architecture** | ⭐⭐⭐⭐⭐ | Well-organized, feature-based structure with clear patterns |
 | **Maintainability** | ⭐⭐⭐⭐ | Strong, but some large components need refactoring |
 | **UX/Accessibility** | ⭐⭐⭐⭐⭐ | Comprehensive ARIA, keyboard navigation, mobile-first |
-| **Security** | ⭐⭐⭐ | Good foundations, needs server-side rate limiting |
-| **Testing** | ⭐⭐⭐ | Strong E2E, but unit test coverage gaps |
+| **Security** | ⭐⭐⭐⭐ | Strong client-side practices; API routes need protection if Vercel-deployed |
+| **Testing** | ⭐⭐⭐⭐ | Strong E2E-first strategy; targeted unit test opportunities remain |
 | **Performance** | ⭐⭐⭐⭐ | Good practices, but over-reliance on client components |
 
-**Overall Grade: B+ (Strong)**
+**Overall Grade: A- (Strong)**
 
 ---
 
@@ -45,11 +45,20 @@ Bonnie Wee Plot is a well-architected Next.js 16 garden planning application wit
 | Unit Test Files | 26 |
 | E2E Test Files | 9 |
 
+### Deployment Model
+
+The app supports **two deployment modes** via `next.config.mjs`:
+
+- **Static export (GitHub Pages)**: When `GITHUB_PAGES=true`, the build uses `output: "export"` and strips all `/api/` routes. The result is a fully static site with no server-side code. This is the current primary deployment.
+- **Server deployment (Vercel)**: Without that flag, the app runs as a full Next.js server with API routes for AI advisor, data sharing (Upstash Redis), and health checks. The GitHub Actions workflow labels this as the migration target.
+
+This dual-mode design means **security, performance, and testing considerations differ depending on which deployment is active**. This report notes where recommendations are deployment-specific.
+
 ### Architecture Patterns
 
 1. **Immutable Updates**: Storage functions return new data, never mutate
 2. **Progressive Disclosure**: Features unlock based on user engagement
-3. **API Proxy Pattern**: Server proxies OpenAI calls with BYO key model
+3. **API Proxy Pattern**: Server proxies OpenAI calls with BYO key model (Vercel only)
 4. **Compound Components**: Complex features like dialogs use composition
 5. **Hook Composition**: `useAllotment` facade built from focused sub-hooks
 
@@ -166,7 +175,7 @@ Three similar form components (~300 lines each):
 
 ## 5. Security
 
-### Rating: ⭐⭐⭐ Moderate (Needs Improvement)
+### Rating: ⭐⭐⭐⭐ Good
 
 ### Strengths
 
@@ -176,33 +185,41 @@ Three similar form components (~300 lines each):
 - **Proper API key handling** - Token never logged or persisted
 - **Tool execution confirmation** - Users must approve AI data modifications
 - **Immutable data patterns** - Prevents accidental mutations
+- **Client-side rate limiting** - Appropriate for static deployment where no server exists
 
-### Critical Issues
+### Static Deployment (Current - GitHub Pages)
+
+When deployed as a static site, the `/api/` directory is stripped at build time. There are **no server endpoints to protect**, so server-side rate limiting is not applicable. The security posture is strong for a client-side application:
+
+- All data stays in the user's browser (localStorage)
+- No network calls to first-party servers
+- OpenAI API calls go directly from client (BYO key)
+- No user accounts or authentication needed
+
+### If/When Deploying to Vercel
+
+The codebase contains 4 API routes that would become live on a server deployment. If that path is taken, these should be addressed:
 
 | Issue | Severity | Description |
 |-------|----------|-------------|
-| No server-side rate limiting | **Critical** | API endpoints can be abused |
-| Public API access | **Critical** | No authentication on any endpoint |
-| Share endpoint unprotected | **High** | Could create spam codes |
-| Client-side rate limiting only | **High** | Easily bypassed |
+| No server-side rate limiting | **High** | `/api/ai-advisor` and `/api/share` could be abused |
+| Public API access | **Medium** | No authentication on endpoints |
+| Share code length | **Low** | 6-char codes have limited keyspace; consider 8+ |
 
-### Recommendations
+### Minor Recommendations (Any Deployment)
 
-**Immediate Actions:**
-1. Implement server-side rate limiting on `/api/ai-advisor` (5-10 req/hour)
-2. Add rate limiting on `/api/share` (5 shares/hour per IP)
-3. Add CORS headers restricting to same-origin
-
-**Short-term:**
-4. Remove memory usage from health endpoint
-5. Sanitize console.error logs in share routes
-6. Consider increasing share code length to 8+ characters
+1. Remove memory usage from `/api/health` response (information disclosure)
+2. Sanitize `console.error` logs in share routes to avoid leaking stack traces
 
 ---
 
 ## 6. Testing
 
-### Rating: ⭐⭐⭐ Moderate (Coverage Gaps)
+### Rating: ⭐⭐⭐⭐ Good (Deliberate E2E-First Strategy)
+
+### Test Strategy
+
+The project deliberately favors **E2E tests over exhaustive unit test coverage** to keep build times fast. This is a pragmatic tradeoff: E2E tests catch real user-facing regressions while unit tests are reserved for critical logic layers (services, libraries). This approach is well-suited to a project of this size.
 
 ### Test Infrastructure
 
@@ -213,33 +230,34 @@ Three similar form components (~300 lines each):
 
 ### Coverage Analysis
 
-| Category | Coverage | Status |
-|----------|----------|--------|
-| Services | 100% (3/3) | ✅ Excellent |
-| Libraries | 47% (15/32) | ⚠️ Moderate |
-| Components | 5% (3/56) | ❌ Poor |
-| Hooks | 16% (3/19) | ❌ Poor |
-| API Routes | 25% (1/4) | ⚠️ Low |
+| Category | Coverage | Status | Notes |
+|----------|----------|--------|-------|
+| Services | 100% (3/3) | ✅ Excellent | Schema migration, data repair thoroughly tested |
+| Libraries | 47% (15/32) | ⚠️ Moderate | Core logic covered; some utilities untested |
+| Components | 5% (3/56) | ℹ️ By design | Covered by E2E tests instead |
+| Hooks | 16% (3/19) | ⚠️ Opportunity | Pure logic hooks would benefit from unit tests |
+| API Routes | 25% (1/4) | ℹ️ Context-dependent | Routes stripped in static deployment |
 
 ### Strengths
 
 - **Excellent service layer testing** - Schema migration, data repair, quota handling
-- **Strong E2E test suite** - User flows, accessibility via axe-core
+- **Strong E2E test suite** - 9 test files covering user flows, accessibility via axe-core
 - **Good test utilities** - localStorage setup helpers, test data factories
+- **Accessibility testing built-in** - axe-core integration in E2E catches WCAG violations
 
-### Critical Gaps
+### Targeted Opportunities (High Value, Low Build Impact)
 
-1. **53 untested components** - Including AI advisor, dashboard, navigation
-2. **16 untested hooks** - Including critical `useAllotment` hook
-3. **3 untested API routes** - Share endpoints, health check
-4. **Single browser E2E** - Only Chromium tested (Firefox/Safari disabled)
+These are areas where **unit tests would be fast to run** and catch bugs that E2E tests might miss:
 
-### Missing Test Types
+1. **Pure logic hooks** - `useAllotment` and sub-hooks contain complex state logic. Unit testing these with mock localStorage would run in milliseconds and catch state management edge cases.
+2. **Untested library functions** - Pure functions in `src/lib/` that aren't yet covered (e.g., planting utilities, vegetable database queries). These are the cheapest tests to write and maintain.
+3. **Schema migration edge cases** - Already well-tested, but could add fuzz-style tests for malformed data.
 
-- No visual regression tests
-- No performance/load tests
-- No dedicated integration tests
-- No contract/snapshot tests
+### Less Critical Gaps
+
+- **Single browser E2E** - Only Chromium tested (Firefox/Safari configs exist but disabled)
+- **No visual regression tests** - Grid layouts could drift without detection
+- **API route tests** - Low priority if static deployment continues
 
 ---
 
@@ -284,41 +302,49 @@ Three similar form components (~300 lines each):
 
 | # | Issue | Impact | Effort |
 |---|-------|--------|--------|
-| 1 | Add server-side rate limiting | Security | Medium |
-| 2 | Add component unit tests (AI advisor, dashboard) | Quality | High |
-| 3 | Convert static components to server components | Performance | Medium |
-| 4 | Split DataManagement.tsx | Maintainability | Low |
+| 1 | Split `DataManagement.tsx` (908 lines) | Maintainability | Low |
+| 2 | Add unit tests for pure logic hooks (`useAllotment`) | Quality | Medium |
+| 3 | Add skip-to-content link | Accessibility | Low |
 
 ### Medium Priority
 
 | # | Issue | Impact | Effort |
 |---|-------|--------|--------|
-| 5 | Test useAllotment and related hooks | Quality | Medium |
-| 6 | Add skip-to-content link | Accessibility | Low |
-| 7 | Enable multi-browser E2E testing | Quality | Low |
-| 8 | Extract form component patterns | Maintainability | Medium |
+| 4 | Convert static/presentational components to server components | Performance | Medium |
+| 5 | Add unit tests for untested `src/lib/` utility functions | Quality | Low |
+| 6 | Extract common form patterns from Add/Edit area/planting forms | Maintainability | Medium |
+| 7 | Split `Navigation.tsx` (539 lines) | Maintainability | Low |
 
 ### Low Priority (Nice to Have)
 
 | # | Issue | Impact | Effort |
 |---|-------|--------|--------|
-| 9 | Add visual regression tests | Quality | Medium |
-| 10 | Add performance tests | Quality | Medium |
-| 11 | Add keyboard shortcut documentation | UX | Low |
-| 12 | Consider ThemeContext for seasonal theming | UX | Low |
+| 8 | Enable multi-browser E2E testing | Quality | Low |
+| 9 | Add keyboard shortcut documentation | UX | Low |
+| 10 | Add visual regression tests for grid layouts | Quality | Medium |
+
+### If Migrating to Vercel
+
+| # | Issue | Impact | Effort |
+|---|-------|--------|--------|
+| — | Add server-side rate limiting on API routes | Security | Medium |
+| — | Add CORS headers restricting to same-origin | Security | Low |
+| — | Add API route unit tests | Quality | Medium |
 
 ---
 
 ## Conclusion
 
-Bonnie Wee Plot demonstrates **strong engineering practices** with excellent TypeScript usage, well-organized architecture, and comprehensive accessibility. The main areas for improvement are:
+Bonnie Wee Plot demonstrates **strong engineering practices** with excellent TypeScript usage, well-organized architecture, and comprehensive accessibility. The deliberate E2E-first testing strategy is a sound tradeoff for build speed, and the dual deployment model (static/server) is well-implemented.
 
-1. **Security**: Server-side rate limiting is the most critical gap
-2. **Testing**: Component and hook unit tests need significant expansion
-3. **Performance**: Reduce client-side JavaScript by using more server components
-4. **Maintainability**: Break down the few large components
+The main areas for improvement are:
 
-The codebase is **well-positioned for growth** with its clear architecture and comprehensive type system. Addressing the security concerns should be the immediate priority before public deployment.
+1. **Maintainability**: A few large components (`DataManagement`, `Navigation`) would benefit from splitting
+2. **Testing**: Targeted unit tests for pure logic hooks and utilities would complement the E2E suite without hurting build speed
+3. **Accessibility**: Minor gaps like skip-to-content link
+4. **Performance**: Opportunity to reduce client-side JS by converting presentational components to server components
+
+The codebase is **well-positioned for growth** with its clear architecture, comprehensive type system, and solid ADR documentation. The security posture is appropriate for a static client-side application, though API route protection should be addressed if/when the Vercel deployment becomes primary.
 
 ---
 
