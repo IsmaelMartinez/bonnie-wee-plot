@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { AllotmentData } from '@/types/unified-allotment'
 import { validateAllotmentData } from '@/services/allotment-storage'
+import { checkRateLimit, getClientIp } from '@/lib/server-rate-limiter'
+import { logger } from '@/lib/logger'
 
 // Initialize Redis client (uses UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars)
 const redis = new Redis({
@@ -36,6 +38,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Share feature not configured' },
         { status: 503 }
+      )
+    }
+
+    // Rate limit: 10 shares per hour per IP
+    const ip = getClientIp(request)
+    const rateLimit = await checkRateLimit(ip, {
+      maxRequests: 10,
+      windowSeconds: 3600,
+      prefix: 'share',
+    })
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many share requests. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.resetInSeconds),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
       )
     }
 
@@ -87,7 +110,7 @@ export async function POST(request: NextRequest) {
       expiresInSeconds: EXPIRY_SECONDS,
     })
   } catch (error) {
-    console.error('Share API error:', error)
+    logger.error('Share API error', { error: error instanceof Error ? error.message : 'Unknown error' })
     return NextResponse.json(
       { error: 'Failed to share allotment' },
       { status: 500 }
