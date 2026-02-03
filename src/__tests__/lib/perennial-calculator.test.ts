@@ -226,7 +226,7 @@ describe('calculatePerennialStatus', () => {
 describe('getPerennialStatusFromPlant', () => {
   it('should return null if plant has no plantedYear', () => {
     const plant: PrimaryPlant = {
-      vegetableId: 'apple-tree',
+      plantId: 'apple-tree',
       plantedYear: undefined as unknown as number,
     }
     const result = getPerennialStatusFromPlant(plant, fruitTreeInfo, 2025)
@@ -235,7 +235,7 @@ describe('getPerennialStatusFromPlant', () => {
 
   it('should return status result for plant with plantedYear', () => {
     const plant: PrimaryPlant = {
-      vegetableId: 'apple-tree',
+      plantId: 'apple-tree',
       plantedYear: 2020,
     }
     const result = getPerennialStatusFromPlant(plant, fruitTreeInfo, 2025)
@@ -245,7 +245,7 @@ describe('getPerennialStatusFromPlant', () => {
 
   it('should pass firstHarvestYearOverride from plant', () => {
     const plant: PrimaryPlant = {
-      vegetableId: 'apple-tree',
+      plantId: 'apple-tree',
       plantedYear: 2020,
       firstHarvestYearOverride: 2022,
     }
