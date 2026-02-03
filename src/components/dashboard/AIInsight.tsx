@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Sparkles, ArrowRight } from 'lucide-react'
 import { generateAISuggestions, type GenerateSuggestionsInput } from '@/lib/ai-suggestions'

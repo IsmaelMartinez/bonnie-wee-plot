@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Grid3X3, Package, MessageCircle, Calendar } from 'lucide-react'
 

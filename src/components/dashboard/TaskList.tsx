@@ -1,5 +1,3 @@
-'use client'
-
 import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw } from 'lucide-react'
 import { MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
 import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'

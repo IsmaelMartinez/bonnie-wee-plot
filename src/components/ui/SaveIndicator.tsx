@@ -1,5 +1,3 @@
-'use client'
-
 import { CheckCircle, Cloud, CloudOff, Loader2 } from 'lucide-react'
 import type { SaveStatus } from '@/hooks/useAllotment'
 

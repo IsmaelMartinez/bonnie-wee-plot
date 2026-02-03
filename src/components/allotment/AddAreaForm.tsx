@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   Leaf,
   TreeDeciduous,
@@ -18,11 +17,22 @@ import { Area, AreaKind, InfrastructureSubtype } from '@/types/unified-allotment
 import { RotationGroup } from '@/types/garden-planner'
 import { ROTATION_GROUP_NAMES } from '@/lib/rotation'
 import { useAllotment } from '@/hooks/useAllotment'
+import { useFormState } from '@/hooks/useFormState'
 
 interface AddAreaFormProps {
   onSubmit: (area: Omit<Area, 'id'>) => void
   onCancel: () => void
   existingAreas: Area[]
+}
+
+type AddAreaFormFields = {
+  name: string
+  shortId: string
+  kind: AreaKind
+  description: string
+  rotationGroup: RotationGroup
+  infrastructureSubtype: InfrastructureSubtype
+  createdYear: number | undefined
 }
 
 const AREA_KIND_OPTIONS: { kind: AreaKind; label: string; icon: typeof Leaf; description: string }[] = [
@@ -65,95 +75,110 @@ export default function AddAreaForm({
   const { data } = useAllotment()
   const currentYear = data?.currentYear ?? new Date().getFullYear()
 
-  const [name, setName] = useState('')
-  const [shortId, setShortId] = useState('')
-  const [kind, setKind] = useState<AreaKind>('rotation-bed')
-  const [description, setDescription] = useState('')
-  const [rotationGroup, setRotationGroup] = useState<RotationGroup>('legumes')
-  const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>('shed')
-  const [createdYear, setCreatedYear] = useState<number | undefined>(undefined)
-  const [yearError, setYearError] = useState<string>()
+  const { fields, setField, errors, setError, handleSubmit, isSubmitting } = useFormState<AddAreaFormFields>({
+    initialValues: {
+      name: '',
+      shortId: '',
+      kind: 'rotation-bed' as AreaKind,
+      description: '',
+      rotationGroup: 'legumes' as RotationGroup,
+      infrastructureSubtype: 'shed' as InfrastructureSubtype,
+      createdYear: undefined,
+    },
+    validators: {
+      name: (value, allFields) => {
+        const trimmed = (value as string).trim()
+        // For infrastructure, name is optional
+        if ((allFields.kind as AreaKind) !== 'infrastructure' && !trimmed) {
+          return 'Area name is required'
+        }
+        if (trimmed && existingAreas.some(a => a.name.toLowerCase() === trimmed.toLowerCase())) {
+          return 'An area with this name already exists'
+        }
+      },
+      shortId: (value) => {
+        const id = (value as string).trim()
+        if (id && existingAreas.some(a => a.shortId?.toLowerCase() === id.toLowerCase())) {
+          return 'This short ID is already in use'
+        }
+      },
+      createdYear: (value) => {
+        const year = value as number | undefined
+        if (year !== undefined && (year < 1900 || year > currentYear + 10)) {
+          return `Year must be between 1900 and ${currentYear + 10}`
+        }
+      },
+    },
+    onSubmit: (values) => {
+      // For infrastructure, name is optional - use subtype label if not provided
+      let finalName = values.name.trim()
+      if (values.kind === 'infrastructure' && !finalName) {
+        const infraOption = INFRASTRUCTURE_OPTIONS.find(o => o.subtype === values.infrastructureSubtype)
+        finalName = infraOption?.label || 'Infrastructure'
+      }
 
-  // Check for duplicate names
-  const isDuplicateName = existingAreas.some(
-    a => a.name.toLowerCase() === name.trim().toLowerCase()
+      // Find next available grid position (simple: place at end)
+      const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
+
+      // Get default icon and color for the selected kind
+      const defaults = AREA_KIND_DEFAULTS[values.kind]
+
+      const newArea: Omit<Area, 'id'> = {
+        name: finalName,
+        shortId: values.shortId.trim() || undefined,
+        kind: values.kind,
+        description: values.description.trim() || undefined,
+        icon: defaults.icon,
+        color: defaults.color,
+        canHavePlantings: values.kind !== 'infrastructure',
+        gridPosition: {
+          x: 0,
+          y: maxY,
+          w: 2,
+          h: 1,  // v14: reduced from h:2 (100px) to h:1 (50px) for more compact layout
+        },
+        ...(values.kind === 'rotation-bed' && { rotationGroup: values.rotationGroup }),
+        ...(values.kind === 'infrastructure' && { infrastructureSubtype: values.infrastructureSubtype }),
+        createdYear: values.createdYear,
+      }
+
+      onSubmit(newArea)
+    },
+  })
+
+  // Computed duplicate checks for inline error display (shown while typing)
+  const isDuplicateName = fields.name.trim() !== '' && existingAreas.some(
+    a => a.name.toLowerCase() === fields.name.trim().toLowerCase()
   )
-
-  // Check for duplicate shortId (only if provided)
-  const isDuplicateShortId = shortId.trim() && existingAreas.some(
-    a => a.shortId?.toLowerCase() === shortId.trim().toLowerCase()
+  const isDuplicateShortId = fields.shortId.trim() !== '' && existingAreas.some(
+    a => a.shortId?.toLowerCase() === fields.shortId.trim().toLowerCase()
   )
-
-  // Validate createdYear (optional - undefined is valid)
-  const isValidCreatedYear = createdYear === undefined || (createdYear >= 1900 && createdYear <= currentYear + 10)
 
   const handleCreatedYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value
     if (input === '') {
-      setCreatedYear(undefined)
-      setYearError(undefined)
+      setField('createdYear', undefined)
       return
     }
 
     const parsed = parseInt(input, 10)
     if (isNaN(parsed)) {
-      setYearError('Please enter a valid year')
+      setError('createdYear', 'Please enter a valid year')
       return
     }
 
     if (parsed < 1900) {
-      setYearError('Year cannot be before 1900')
-      setCreatedYear(1900)
+      setField('createdYear', 1900)
+      setError('createdYear', 'Year cannot be before 1900')
     } else if (parsed > currentYear + 10) {
-      setYearError(`Year cannot be after ${currentYear + 10}`)
-      setCreatedYear(currentYear + 10)
+      setField('createdYear', currentYear + 10)
+      setError('createdYear', `Year cannot be after ${currentYear + 10}`)
     } else {
-      setYearError(undefined)
-      setCreatedYear(parsed)
+      setField('createdYear', parsed)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // For infrastructure, name is optional - use subtype label if not provided
-    let finalName = name.trim()
-    if (kind === 'infrastructure' && !finalName) {
-      const infraOption = INFRASTRUCTURE_OPTIONS.find(o => o.subtype === infrastructureSubtype)
-      finalName = infraOption?.label || 'Infrastructure'
-    }
-
-    if (!finalName || isDuplicateName || isDuplicateShortId || !isValidCreatedYear) return
-
-    // Find next available grid position (simple: place at end)
-    const maxY = Math.max(0, ...existingAreas.map(a => (a.gridPosition?.y ?? 0) + (a.gridPosition?.h ?? 1)))
-
-    // Get default icon and color for the selected kind
-    const defaults = AREA_KIND_DEFAULTS[kind]
-
-    const newArea: Omit<Area, 'id'> = {
-      name: finalName,
-      shortId: shortId.trim() || undefined,
-      kind,
-      description: description.trim() || undefined,
-      icon: defaults.icon,
-      color: defaults.color,
-      canHavePlantings: kind !== 'infrastructure',
-      gridPosition: {
-        x: 0,
-        y: maxY,
-        w: 2,
-        h: 1,  // v14: reduced from h:2 (100px) to h:1 (50px) for more compact layout
-      },
-      ...(kind === 'rotation-bed' && { rotationGroup }),
-      ...(kind === 'infrastructure' && { infrastructureSubtype }),
-      createdYear,
-    }
-
-    onSubmit(newArea)
-  }
-
-  const selectedKindOption = AREA_KIND_OPTIONS.find(o => o.kind === kind)
+  const selectedKindOption = AREA_KIND_OPTIONS.find(o => o.kind === fields.kind)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,12 +190,12 @@ export default function AddAreaForm({
         <div className="grid grid-cols-2 gap-2">
           {AREA_KIND_OPTIONS.map((option) => {
             const Icon = option.icon
-            const isSelected = kind === option.kind
+            const isSelected = fields.kind === option.kind
             return (
               <button
                 key={option.kind}
                 type="button"
-                onClick={() => setKind(option.kind)}
+                onClick={() => setField('kind', option.kind)}
                 className={`flex items-center gap-2 p-3 rounded-zen border text-left transition ${
                   isSelected
                     ? 'border-zen-moss-500 bg-zen-moss-50 text-zen-moss-700'
@@ -193,23 +218,23 @@ export default function AddAreaForm({
       {/* Name */}
       <div>
         <label htmlFor="area-name" className="block text-sm font-medium text-zen-ink-700 mb-1">
-          Name {kind !== 'infrastructure' && '*'}
+          Name {fields.kind !== 'infrastructure' && '*'}
         </label>
         <input
           id="area-name"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={fields.name}
+          onChange={(e) => setField('name', e.target.value)}
           placeholder={
-            kind === 'infrastructure'
-              ? `Optional (defaults to ${INFRASTRUCTURE_OPTIONS.find(o => o.subtype === infrastructureSubtype)?.label || 'type'})`
-              : kind === 'rotation-bed'
+            fields.kind === 'infrastructure'
+              ? `Optional (defaults to ${INFRASTRUCTURE_OPTIONS.find(o => o.subtype === fields.infrastructureSubtype)?.label || 'type'})`
+              : fields.kind === 'rotation-bed'
               ? 'e.g., Bed F'
-              : kind === 'tree'
+              : fields.kind === 'tree'
               ? 'e.g., Pear Tree'
               : 'e.g., New Area'
           }
-          required={kind !== 'infrastructure'}
+          required={fields.kind !== 'infrastructure'}
           className="zen-input"
         />
         {isDuplicateName && (
@@ -225,8 +250,8 @@ export default function AddAreaForm({
         <input
           id="area-short-id"
           type="text"
-          value={shortId}
-          onChange={(e) => setShortId(e.target.value)}
+          value={fields.shortId}
+          onChange={(e) => setField('shortId', e.target.value)}
           placeholder="e.g., A, B1, C"
           className="zen-input"
           maxLength={10}
@@ -240,15 +265,15 @@ export default function AddAreaForm({
       </div>
 
       {/* Rotation Group (for rotation beds) */}
-      {kind === 'rotation-bed' && (
+      {fields.kind === 'rotation-bed' && (
         <div>
           <label htmlFor="rotation-group" className="block text-sm font-medium text-zen-ink-700 mb-1">
             Rotation Group
           </label>
           <select
             id="rotation-group"
-            value={rotationGroup}
-            onChange={(e) => setRotationGroup(e.target.value as RotationGroup)}
+            value={fields.rotationGroup}
+            onChange={(e) => setField('rotationGroup', e.target.value as RotationGroup)}
             className="zen-select"
           >
             {(Object.keys(ROTATION_GROUP_NAMES) as RotationGroup[]).map((group) => (
@@ -261,7 +286,7 @@ export default function AddAreaForm({
       )}
 
       {/* Infrastructure Subtype */}
-      {kind === 'infrastructure' && (
+      {fields.kind === 'infrastructure' && (
         <>
           <div>
             <label htmlFor="infra-subtype" className="block text-sm font-medium text-zen-ink-700 mb-1">
@@ -269,8 +294,8 @@ export default function AddAreaForm({
             </label>
             <select
               id="infra-subtype"
-              value={infrastructureSubtype}
-              onChange={(e) => setInfrastructureSubtype(e.target.value as InfrastructureSubtype)}
+              value={fields.infrastructureSubtype}
+              onChange={(e) => setField('infrastructureSubtype', e.target.value as InfrastructureSubtype)}
               className="zen-select"
             >
               {INFRASTRUCTURE_OPTIONS.map((option) => (
@@ -290,8 +315,8 @@ export default function AddAreaForm({
         </label>
         <textarea
           id="area-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={fields.description}
+          onChange={(e) => setField('description', e.target.value)}
           rows={2}
           placeholder="Optional notes about this area..."
           className="zen-input"
@@ -309,17 +334,17 @@ export default function AddAreaForm({
             type="number"
             min={1900}
             max={currentYear + 10}
-            value={createdYear ?? ''}
+            value={fields.createdYear ?? ''}
             onChange={handleCreatedYearChange}
             placeholder="Leave empty if unknown"
             className="zen-input"
           />
-          {yearError && (
-            <p className="text-sm text-red-600 mt-1">{yearError}</p>
+          {errors.createdYear && (
+            <p className="text-sm text-red-600 mt-1">{errors.createdYear}</p>
           )}
           <p className="text-xs text-zen-stone-500 mt-1">
-            {createdYear
-              ? `This area will only appear in ${createdYear} and later years`
+            {fields.createdYear
+              ? `This area will only appear in ${fields.createdYear} and later years`
               : 'This area will appear in all years'
             }
           </p>
@@ -338,10 +363,11 @@ export default function AddAreaForm({
         <button
           type="submit"
           disabled={
-            (kind !== 'infrastructure' && !name.trim()) ||
+            isSubmitting ||
+            (fields.kind !== 'infrastructure' && !fields.name.trim()) ||
             isDuplicateName ||
-            !isValidCreatedYear ||
-            yearError !== undefined
+            isDuplicateShortId ||
+            !!errors.createdYear
           }
           className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >

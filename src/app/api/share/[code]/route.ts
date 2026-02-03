@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { AllotmentData } from '@/types/unified-allotment'
+import { logger } from '@/lib/logger'
 
 // Initialize Redis client
 const redis = new Redis({
@@ -62,7 +63,7 @@ export async function GET(
       sharedAt: shareData.sharedAt,
     })
   } catch (error) {
-    console.error('Share API error:', error)
+    logger.error('Share retrieval error', { error: error instanceof Error ? error.message : 'Unknown error' })
     return NextResponse.json(
       { error: 'Failed to retrieve shared allotment' },
       { status: 500 }
