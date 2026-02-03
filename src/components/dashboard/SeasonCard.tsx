@@ -1,5 +1,3 @@
-'use client'
-
 import Image from 'next/image'
 import { SeasonalPhase } from '@/lib/seasons'
 import { Season, SeasonalTheme } from '@/lib/seasonal-theme'

@@ -1,4 +1,4 @@
-import { Sprout, Grid3X3, Calendar, Package, MessageCircle, Leaf } from 'lucide-react'
+import { Sprout, Grid3X3, Calendar, Package, MessageCircle, Leaf, Keyboard } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AboutPage() {
@@ -106,6 +106,44 @@ export default function AboutPage() {
             >
               Talk to Aitor →
             </Link>
+          </div>
+        </section>
+
+        {/* Keyboard Shortcuts */}
+        <section className="mb-12">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Keyboard className="w-5 h-5 text-zen-stone-500" />
+            <h2 className="font-display text-zen-ink-800 text-xl">Keyboard Shortcuts</h2>
+          </div>
+          <div className="zen-card p-6">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="flex items-baseline gap-3">
+                <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700 shrink-0">Esc</kbd>
+                <span className="text-zen-stone-600 text-sm">Close dialogs and dropdowns</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700 shrink-0">Enter</kbd>
+                <span className="text-zen-stone-600 text-sm">Select option or confirm</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <div className="flex gap-1 shrink-0">
+                  <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700">&#8593;</kbd>
+                  <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700">&#8595;</kbd>
+                </div>
+                <span className="text-zen-stone-600 text-sm">Navigate options in lists</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <div className="flex gap-1 shrink-0">
+                  <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700">Home</kbd>
+                  <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700">End</kbd>
+                </div>
+                <span className="text-zen-stone-600 text-sm">Jump to first or last option</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <kbd className="px-2 py-1 text-xs font-mono bg-zen-stone-100 border border-zen-stone-300 rounded text-zen-ink-700 shrink-0">Tab</kbd>
+                <span className="text-zen-stone-600 text-sm">Move focus within dialogs</span>
+              </div>
+            </div>
           </div>
         </section>
 
