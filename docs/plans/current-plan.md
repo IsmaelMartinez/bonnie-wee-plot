@@ -28,6 +28,10 @@ Storage service and useAllotment hook refactored into smaller modules. Legacy de
 
 Systematic section-by-section UX review identified three high-priority issues, now fixed: UnlockCelebration AI Advisor tip corrected to reference the floating chat button instead of a non-existent menu entry, CompostAlerts on the dashboard gated behind the `isUnlocked('compost')` feature flag, and DataManagement (export/import/backup) added to the Settings page where users naturally look for it.
 
+### UX and Plant Data Improvements (PR #153)
+
+Medium-priority UX fixes: Add Area button on desktop no longer requires edit mode, Seeds year picker positioned at bottom on mobile. Plant data normalization: fixed Alliums bug (VAGUE_REFERENCES blocked CATEGORY_EXPANSIONS), added semantic mappings for parenthetical names (Broccoli, Chard, Squash, Courgette, etc.), updated category expansions to use actual database names, enabled Three Sisters tests.
+
 ---
 
 ## Next Steps
@@ -40,13 +44,12 @@ Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory),
 
 After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
 
-An initial systematic review has been completed (PR #151) covering all sections. High-priority issues are fixed. Medium-priority findings remain for future passes: desktop Add Area button disabled state confusion, Seeds year menu positioning on mobile, This Month calendar information hierarchy, and calendar showing static database data rather than user-specific plantings.
+An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. Remaining findings for future passes: This Month calendar information hierarchy and calendar showing static database data rather than user-specific plantings.
 
 ### Plant Data Validation (Parallel Track)
 
-Scottish outdoor plant validation is complete. Remaining work documented in `docs/research/plant-data-validation-strategy.md`:
+Scottish outdoor plant validation is complete. Companion name normalization is done (PR #153): plural-to-singular, semantic mappings for alternate names, category expansions using correct database names, and the Alliums resolution bug fixed. Remaining work documented in `docs/research/plant-data-validation-strategy.md`:
 
-- Companion data name normalization (plural-to-singular, semantic mapping)
 - External reference links (RHS URLs, Wikipedia, botanical names)
 - Companion data enhancement with confidence levels and mechanism types
 - Crop rotation alignment with RHS guidance
