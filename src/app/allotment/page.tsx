@@ -93,7 +93,6 @@ export default function AllotmentPage() {
   const [showEditAreaDialog, setShowEditAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
-  const [isGridEditing, setIsGridEditing] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [showMobileSheet, setShowMobileSheet] = useState(false)
 
@@ -425,9 +424,8 @@ export default function AllotmentPage() {
                 </h2>
                 <button
                   onClick={() => setShowAddAreaDialog(true)}
-                  disabled={!isMobile && !isGridEditing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
-                  title={!isGridEditing ? "Enable edit mode to add areas" : "Add a new area to your allotment"}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto hidden md:flex"
+                  title="Add a new area to your allotment"
                 >
                   <Plus className="w-4 h-4" />
                   Add Area
@@ -444,7 +442,7 @@ export default function AllotmentPage() {
                     areas={getAllAreas()}
                     areaSeasons={currentSeason?.areas}
                     selectedYear={selectedYear}
-                    onEditingChange={setIsGridEditing}
+
                     onPositionChange={handlePositionChange}
                   />
                 </div>
