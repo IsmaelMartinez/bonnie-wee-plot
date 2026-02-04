@@ -24,6 +24,10 @@ P2P sync was attempted, then replaced with a simpler share/receive flow using Up
 
 Storage service and useAllotment hook refactored into smaller modules. Legacy dead code removed. Components migrated to lightweight vegetable index for performance. Mobile-first allotment redesign. PlantingDetailDialog refactored into tabbed interface. Global Aitor chat modal accessible from any page. Seed status bugs fixed. Stale data race conditions fixed.
 
+### UX Review: High-Priority Fixes (PR #151)
+
+Systematic section-by-section UX review identified three high-priority issues, now fixed: UnlockCelebration AI Advisor tip corrected to reference the floating chat button instead of a non-existent menu entry, CompostAlerts on the dashboard gated behind the `isUnlocked('compost')` feature flag, and DataManagement (export/import/backup) added to the Settings page where users naturally look for it.
+
 ---
 
 ## Next Steps
@@ -36,7 +40,7 @@ Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory),
 
 After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
 
-Some UX work has already been done organically (mobile-first allotment redesign, planting dialog tabs, global AI chat, seed status fixes), but a systematic review hasn't happened yet.
+An initial systematic review has been completed (PR #151) covering all sections. High-priority issues are fixed. Medium-priority findings remain for future passes: desktop Add Area button disabled state confusion, Seeds year menu positioning on mobile, This Month calendar information hierarchy, and calendar showing static database data rather than user-specific plantings.
 
 ### Plant Data Validation (Parallel Track)
 
