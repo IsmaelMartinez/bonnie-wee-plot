@@ -10,7 +10,6 @@ import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/l
 import { ImportError, ExportError } from '@/types/errors'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import { clearAnalytics } from '@/lib/analytics'
-import StorageMigration from './StorageMigration'
 import AnalyticsViewer from './AnalyticsViewer'
 
 interface DataManagementProps {
@@ -469,9 +468,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
               </div>
             )}
           </div>
-
-          {/* Storage Migration Section */}
-          <StorageMigration data={data} onDataImported={onDataImported} />
 
           {/* Analytics Section */}
           <div className="border-b border-gray-200 pb-6">
