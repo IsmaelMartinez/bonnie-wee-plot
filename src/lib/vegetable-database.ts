@@ -174,7 +174,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/swiss-chard/grow-your-own'
   },
   {
     id: 'rocket',
@@ -801,7 +802,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'cauliflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/swede/grow-your-own'
   },
   {
     id: 'turnip',
@@ -832,7 +834,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/turnips/grow-your-own'
   },
   {
     id: 'radish',
@@ -868,7 +871,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'hyssop', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/radish/grow-your-own'
   },
   {
     id: 'salsify',
@@ -1076,7 +1080,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'kohlrabi', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/florence-fennel/grow-your-own'
   },
   {
     id: 'mooli',
@@ -1451,7 +1456,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/brussels-sprouts/grow-your-own'
   },
   {
     id: 'kohlrabi',
@@ -1486,7 +1492,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/kohlrabi/grow-your-own'
   },
   {
     id: 'savoy-cabbage',
@@ -1768,7 +1775,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true, source: 'Alliums may inhibit bean growth' },
       { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
       { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/runner-beans/grow-your-own'
   },
   {
     id: 'french-beans',
@@ -1803,7 +1811,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/french-beans/grow-your-own'
   },
   {
     id: 'broad-beans',
@@ -1841,7 +1850,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true },
       { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/broad-beans/grow-your-own'
   },
   {
     id: 'peas',
@@ -2193,7 +2203,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
   },
   {
     id: 'plum-tomato',
@@ -2229,7 +2240,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
   },
   {
     id: 'blight-resistant-tomato',
@@ -2265,7 +2277,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
   },
   {
     id: 'tomatillo',
@@ -2678,7 +2691,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/spring-onions/grow-your-own'
   },
   {
     id: 'shallot',
@@ -2715,7 +2729,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/shallots/grow-your-own'
   },
   {
     id: 'welsh-onion',
@@ -2954,7 +2969,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/parsley/grow-your-own'
   },
   {
     id: 'coriander',
@@ -2984,7 +3000,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Fennel'],
     enhancedCompanions: [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/coriander/grow-your-own'
   },
   {
     id: 'mint',
@@ -3019,7 +3036,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'chamomile', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'parsley', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/mint/grow-your-own'
   },
   {
     id: 'chives',
@@ -3049,7 +3067,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/chives/grow-your-own'
   },
   {
     id: 'rosemary',
@@ -3082,7 +3101,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'sage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/rosemary/grow-your-own'
   },
   {
     id: 'thyme',
@@ -3112,7 +3132,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/thyme/grow-your-own'
   },
   {
     id: 'lovage',
@@ -3276,7 +3297,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/oregano/grow-your-own'
   },
   {
     id: 'sage',
@@ -3310,7 +3332,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
-    enhancedAvoid: []
+    enhancedAvoid: [],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/sage/grow-your-own'
   },
   {
     id: 'french-tarragon',
@@ -3373,7 +3396,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/dill/grow-your-own'
   },
   {
     id: 'herb-fennel',
@@ -3665,7 +3689,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 1, max: 1 },
       productiveYears: { min: 3, max: 4 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/strawberries/grow-your-own'
   },
   {
     id: 'raspberry',
@@ -3708,7 +3733,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/raspberries/grow-your-own'
   },
   {
     id: 'blackberry',
@@ -3744,7 +3770,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 10, max: 15 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/blackberries/grow-your-own'
   },
   {
     id: 'blueberry',
@@ -3776,7 +3803,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 25 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/blueberries/grow-your-own'
   },
   {
     id: 'gooseberry',
@@ -3816,7 +3844,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/gooseberries/grow-your-own'
   },
   {
     id: 'blackcurrant',
@@ -4249,7 +4278,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/apples/grow-your-own'
   },
   {
     id: 'cherry-tree',
@@ -4291,7 +4321,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/cherries/grow-your-own'
   },
   {
     id: 'damson-tree',
@@ -4375,7 +4406,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/plums/grow-your-own'
   },
   {
     id: 'pear-tree',
@@ -4417,7 +4449,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 4, max: 6 },
       productiveYears: { min: 35, max: 50 }
-    }
+    },
+    rhsUrl: 'https://www.rhs.org.uk/fruit/pears/grow-your-own'
   },
   {
     id: 'greengage-tree',
@@ -4987,7 +5020,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/herbs/lavender/grow-your-own'
   },
   {
     id: 'echinacea',
@@ -5959,7 +5993,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/celery/grow-your-own'
   },
   {
     id: 'celeriac',
@@ -5995,7 +6030,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/celeriac/grow-your-own'
   },
   {
     id: 'cardoon',

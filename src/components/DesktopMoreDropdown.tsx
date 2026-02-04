@@ -67,46 +67,10 @@ export default function DesktopMoreDropdown({
           role="menu"
           className="absolute top-full right-0 mt-1 w-64 bg-white rounded-zen-lg border border-zen-stone-200 shadow-zen-md py-1 z-50"
         >
-          {/* Locked/Unlocked Features */}
-          {lockedFeatures.map((item) => {
+          {/* Still-locked Features (unlocked ones are in primary nav) */}
+          {lockedFeatures.filter(item => !isUnlocked(item.feature)).map((item) => {
             const IconComponent = item.icon
-            const unlocked = isUnlocked(item.feature)
             const progress = getProgress(item.feature)
-
-            if (unlocked) {
-              // Unlocked - show as regular link
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href!}
-                  role="menuitem"
-                  className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                    isActive(item.href!)
-                      ? 'bg-zen-moss-50'
-                      : 'hover:bg-zen-stone-50'
-                  }`}
-                  onClick={() => setIsMoreOpen(false)}
-                >
-                  <IconComponent
-                    className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                      isActive(item.href!) ? 'text-zen-moss-600' : 'text-zen-stone-400'
-                    }`}
-                  />
-                  <div>
-                    <div className={`text-sm font-medium ${
-                      isActive(item.href!) ? 'text-zen-moss-700' : 'text-zen-ink-700'
-                    }`}>
-                      {item.label}
-                    </div>
-                    <div className="text-xs text-zen-stone-500 mt-0.5">
-                      {item.description}
-                    </div>
-                  </div>
-                </Link>
-              )
-            }
-
-            // Locked - show with teaser, progress, and unlock CTA
             const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
 
             return (
@@ -124,11 +88,9 @@ export default function DesktopMoreDropdown({
                     <div className="text-sm font-medium text-zen-stone-500">
                       {item.label}
                     </div>
-                    {/* Feature teaser */}
                     <div className="text-xs text-zen-stone-500 mt-0.5">
                       {item.teaser}
                     </div>
-                    {/* Progress bar with hint */}
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-zen-stone-500">{progressHint}</span>
@@ -141,7 +103,6 @@ export default function DesktopMoreDropdown({
                         />
                       </div>
                     </div>
-                    {/* Unlock CTA */}
                     <button
                       type="button"
                       onClick={() => onUnlockClick(item.feature)}
@@ -156,8 +117,10 @@ export default function DesktopMoreDropdown({
             )
           })}
 
-          {/* Divider */}
-          <div className="border-t border-zen-stone-100 my-1" />
+          {/* Divider - only show if there are locked features */}
+          {lockedFeatures.some(item => !isUnlocked(item.feature)) && (
+            <div className="border-t border-zen-stone-100 my-1" />
+          )}
 
           {/* Always-available links */}
           {secondaryLinks.map((link) => {

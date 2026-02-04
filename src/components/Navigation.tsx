@@ -196,7 +196,26 @@ export default function Navigation() {
               </Link>
             ))}
 
-            {/* More Dropdown with Progressive Disclosure */}
+            {/* Unlocked features promoted to primary nav */}
+            {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => {
+              const IconComponent = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-zen-moss-50 text-zen-moss-700'
+                      : 'text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              )
+            })}
+
+            {/* More Dropdown - locked features + secondary links */}
             <DesktopMoreDropdown
               isMoreOpen={isMoreOpen}
               setIsMoreOpen={setIsMoreOpen}
@@ -238,7 +257,27 @@ export default function Navigation() {
                 </Link>
               ))}
 
-              {/* Mobile More Section with Progressive Disclosure */}
+              {/* Unlocked features promoted to primary nav */}
+              {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => {
+                const IconComponent = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-zen-moss-50 text-zen-moss-700'
+                        : 'text-zen-ink-600 hover:bg-zen-stone-50'
+                    }`}
+                    onClick={closeMobileMenu}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+
+              {/* Mobile More Section - locked features + secondary links */}
               <MobileMoreMenu
                 isActive={isActive}
                 isUnlocked={isUnlocked}

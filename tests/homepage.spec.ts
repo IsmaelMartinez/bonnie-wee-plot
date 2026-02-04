@@ -130,12 +130,16 @@ test.describe('More Dropdown Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
 
-    // Wait for dropdown links to become visible
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i });
-    await expect(compostLink).toBeVisible();
+    // Locked features show in dropdown with Unlock now button
+    const unlockButton = page.locator('[role="menu"]').getByText('Unlock now');
+    await expect(unlockButton.first()).toBeVisible();
+
+    // Settings/About links are always in dropdown
+    const aboutLink = page.locator('a[href^="/about"]');
+    await expect(aboutLink).toBeVisible();
   });
 
-  test('should navigate to Compost from dropdown', async ({ page }) => {
+  test('should navigate to Compost from primary nav when unlocked', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
@@ -143,12 +147,8 @@ test.describe('More Dropdown Navigation', () => {
     await unlockAllFeatures(page);
     await page.reload();
 
-    // Open dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' });
-    await moreButton.click();
-
-    // Wait for and click on Compost
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i });
+    // When unlocked, Compost appears in primary nav (not dropdown)
+    const compostLink = page.getByRole('link', { name: /Compost/i });
     await expect(compostLink).toBeVisible();
     await compostLink.click();
 
