@@ -224,9 +224,13 @@ See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. Se
 - Test files: unit tests in `src/__tests__/`, e2e tests in `tests/`
 - Immutable update patterns: storage functions return new data, never mutate
 
+## Current Plan
+
+`docs/plans/current-plan.md` is the single source of truth for what's been completed and what to work on next. Update it after completing significant work. Research documents in `docs/research/` provide detailed context when needed.
+
 ## Documentation Hygiene
 
-- Plan files in `docs/plans/` are temporary working documents - delete them after implementation is complete
+- Plan files in `docs/plans/` are temporary working documents - delete them after implementation is complete (except `current-plan.md` which is kept up to date)
 - Research documents in `docs/research/` should be reviewed periodically and removed when obsolete
 - ADRs preserve decisions but can be consolidated/merged when multiple related decisions become hard to follow
 - Keep documentation minimal and current; avoid accumulating stale artifacts

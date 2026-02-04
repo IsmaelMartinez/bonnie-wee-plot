@@ -46,9 +46,6 @@ Thumbs.db
 # Worktrees
 .worktrees/
 
-# Claude session handoffs (ephemeral, local only)
-docs/sessions/CURRENT.md
-
 # Logs
 *.log
 npm-debug.log*
