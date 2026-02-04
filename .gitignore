@@ -32,6 +32,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# TypeScript
+*.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/
