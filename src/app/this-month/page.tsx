@@ -445,6 +445,13 @@ export default function ThisMonthPage() {
           </div>
         )}
 
+        {/* Scottish Calendar Section Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5 text-zen-stone-400" />
+          <h2 className="font-display text-zen-ink-700">Scottish Gardening Calendar</h2>
+          <span className="text-xs text-zen-stone-400 bg-zen-stone-100 px-2 py-0.5 rounded-full">General guidance</span>
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           {/* Sowing Section */}
