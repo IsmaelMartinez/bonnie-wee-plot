@@ -95,7 +95,7 @@ export const FEATURE_INFO: Record<UnlockableFeature, Omit<FeatureInfo, 'icon'>> 
     name: 'Ask Aitor',
     description: 'Get personalized gardening advice from Aitor, your AI garden assistant. Ask questions about planting, pest control, companion planting, and more.',
     tips: [
-      'Find "Ask Aitor" in the More menu',
+      'Look for the Aitor chat button in the bottom-right corner',
       'You can ask about specific plants in your plot',
       'Upload photos for plant identification help',
     ],

@@ -7,11 +7,12 @@ import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import Link from 'next/link'
-import { Download, ArrowRight, Shield, MapPin, Leaf, Lock } from 'lucide-react'
+import { Download, ArrowRight, Shield, MapPin, Leaf, Lock, Database } from 'lucide-react'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
+import DataManagement from '@/components/allotment/DataManagement'
 
 export default function SettingsPage() {
-  const { data, flushSave } = useAllotment()
+  const { data, flushSave, reload } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
   const { isUnlocked } = useFeatureFlags(data)
@@ -175,6 +176,18 @@ export default function SettingsPage() {
             </button>
           )}
         </div>
+      </section>
+
+      {/* Data Management Section */}
+      <section className="mb-8 zen-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Database className="w-5 h-5 text-zen-stone-600" />
+          <h2 className="text-lg font-medium text-zen-ink-700">Data Management</h2>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Export your data for backup or import from a previous backup.
+        </p>
+        <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
       </section>
 
       {/* Share Section */}
