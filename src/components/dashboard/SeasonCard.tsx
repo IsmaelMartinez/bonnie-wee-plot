@@ -18,7 +18,7 @@ export default function SeasonCard({ seasonalPhase, currentMonth, theme }: Seaso
   const monthName = MONTH_NAMES[currentMonth - 1] || 'Today'
 
   return (
-    <div className="relative overflow-hidden rounded-zen-xl shadow-zen-md">
+    <div className="relative overflow-hidden rounded-zen-xl shadow-zen-md" data-tour="season-card">
       {/* Background image */}
       <div className="absolute inset-0">
         <Image
