@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { HelpCircle } from 'lucide-react'
 import { useTour } from '@/hooks/useTour'
 import { TourId, getTourDefinition } from '@/lib/tours/tour-definitions'
@@ -23,6 +23,7 @@ interface PageTourProps {
  *
  * Place this component on any page that has a defined tour.
  * It handles auto-starting on first visit and provides a manual trigger button.
+ * Tours auto-start only on the first 3 visits to a page.
  *
  * @example
  * ```tsx
@@ -37,10 +38,18 @@ export default function PageTour({
   showButton = true,
   buttonClassName = '',
 }: PageTourProps) {
-  const { startTour, shouldAutoStart, isCompleted, isActive } = useTour()
+  const { startTour, shouldAutoStart, isCompleted, isActive, incrementPageVisit } = useTour()
   const [hasCheckedAutoStart, setHasCheckedAutoStart] = useState(false)
+  const hasIncrementedVisit = useRef(false)
 
   const definition = getTourDefinition(tourId)
+
+  // Increment page visit count on mount (once per page load)
+  useEffect(() => {
+    if (!definition || hasIncrementedVisit.current) return
+    hasIncrementedVisit.current = true
+    incrementPageVisit(tourId)
+  }, [definition, tourId, incrementPageVisit])
 
   // Auto-start tour on first visit (after component mounts and delay)
   useEffect(() => {
