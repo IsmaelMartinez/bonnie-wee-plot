@@ -10,6 +10,7 @@ import { AitorChatProvider } from '@/contexts/AitorChatContext'
 import AitorChatModal from '@/components/ai-advisor/AitorChatModal'
 import AitorChatButton from '@/components/ai-advisor/AitorChatButton'
 import TourProvider from '@/components/onboarding/TourProvider'
+import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -59,6 +60,7 @@ export default function RootLayout({
           <WebVitalsReporter />
           <AitorChatButton />
           <AitorChatModal />
+          <TourKeyboardShortcut />
           </TourProvider>
         </AitorChatProvider>
       </body>

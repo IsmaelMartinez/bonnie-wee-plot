@@ -23,8 +23,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="season-card"]',
         popover: {
-          title: 'Seasonal Overview',
-          description: 'See what phase of the growing season you\'re in and what to focus on right now.',
+          title: 'Welcome to Your Garden',
+          description: 'This card shows where you are in the growing season. The advice updates as the year progresses, helping you stay on track.',
           side: 'bottom',
           align: 'center',
         },
@@ -32,8 +32,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="quick-actions"]',
         popover: {
-          title: 'Quick Actions',
-          description: 'Jump to key areas of the app: your allotment, calendar, seeds, and AI advisor.',
+          title: 'Navigate Quickly',
+          description: 'These shortcuts take you to the main sections: plan your beds, check the calendar, manage seeds, or chat with Aitor.',
           side: 'bottom',
           align: 'center',
         },
@@ -41,8 +41,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="task-list"]',
         popover: {
-          title: 'Your Tasks',
-          description: 'Personalised tasks based on your plantings and the current season. Complete them to keep your garden thriving!',
+          title: 'Your Personal To-Do List',
+          description: 'Tasks are generated based on what you\'ve planted and the current season. Check them off as you go!',
           side: 'top',
           align: 'center',
         },
@@ -50,8 +50,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="ai-insight"]',
         popover: {
-          title: 'AI Insights',
-          description: 'Aitor analyses your garden and provides timely advice. Click to chat for more help.',
+          title: 'Meet Aitor',
+          description: 'Aitor is your AI gardening companion. He looks at your garden and suggests what needs attention. Tap to ask him anything!',
           side: 'top',
           align: 'center',
         },
@@ -67,8 +67,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="month-selector"]',
         popover: {
-          title: 'Month Selector',
-          description: 'Browse through the year to see what to sow, plant, and harvest each month.',
+          title: 'Explore the Year',
+          description: 'Tap any month to see what to sow, plant, and harvest. Great for planning ahead or checking what you should be doing now.',
           side: 'bottom',
           align: 'center',
         },
@@ -76,8 +76,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="month-overview"]',
         popover: {
-          title: 'Monthly Overview',
-          description: 'A summary of the growing conditions and key focus areas for the selected month.',
+          title: 'Monthly Focus',
+          description: 'Each month has its own rhythm. This overview tells you what to expect and where to focus your energy.',
           side: 'bottom',
           align: 'center',
         },
@@ -85,8 +85,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="your-garden"]',
         popover: {
-          title: 'Your Garden This Month',
-          description: 'Once you add plantings, you\'ll see personalised information about your crops here.',
+          title: 'Your Plantings',
+          description: 'Once you add plants in the Allotment section, you\'ll see personalised info here about what might be ready.',
           side: 'bottom',
           align: 'center',
         },
@@ -94,8 +94,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="sowing-section"]',
         popover: {
-          title: 'What to Sow',
-          description: 'Lists of vegetables to sow indoors and outdoors this month, tailored for Scottish conditions.',
+          title: 'Time to Sow',
+          description: 'These lists are tailored for Scottish conditions - shorter summers, later last frosts. Indoor sowing gives you a head start!',
           side: 'right',
           align: 'start',
         },
@@ -103,8 +103,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="harvest-section"]',
         popover: {
-          title: 'Ready to Harvest',
-          description: 'Crops that are typically ready to harvest this month.',
+          title: 'Harvest Time',
+          description: 'The best bit! These crops are typically ready to pick this month. Nothing beats fresh veg straight from your plot.',
           side: 'left',
           align: 'start',
         },
@@ -120,8 +120,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="year-selector"]',
         popover: {
-          title: 'Year Navigation',
-          description: 'Switch between seasons to plan ahead or review past years. Click + to add new years.',
+          title: 'Plan Across Years',
+          description: 'Switch between seasons to plan next year or review what you grew before. The + button adds new years for planning ahead.',
           side: 'bottom',
           align: 'center',
         },
@@ -129,8 +129,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="season-status"]',
         popover: {
-          title: 'Season Status',
-          description: 'Quick overview of your planning progress - beds needing rotation and varieties to consider.',
+          title: 'Quick Planning Status',
+          description: 'At a glance: how many beds still need plants, and varieties you might want to consider from last year.',
           side: 'bottom',
           align: 'center',
         },
@@ -138,8 +138,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="plot-overview"]',
         popover: {
-          title: 'Plot Overview',
-          description: 'Your allotment layout. Drag areas to rearrange, click to select and view details.',
+          title: 'Your Plot Map',
+          description: 'Drag beds to rearrange them. Tap any area to see its details. The layout saves automatically and can be different each year.',
           side: 'right',
           align: 'start',
         },
@@ -147,8 +147,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="add-area-btn"]',
         popover: {
-          title: 'Add Areas',
-          description: 'Add beds, trees, berry bushes, or infrastructure to your plot.',
+          title: 'Expand Your Plot',
+          description: 'Add rotation beds for annual veg, permanent spots for fruit trees, berry bushes, or even a compost bin!',
           side: 'left',
           align: 'center',
         },
@@ -156,8 +156,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="item-detail"]',
         popover: {
-          title: 'Area Details',
-          description: 'When you select an area, its details appear here. Add plantings, notes, and manage crop rotation.',
+          title: 'Bed Details',
+          description: 'When you select a bed, manage its plantings here. Add crops, track rotation groups, and make notes about what worked.',
           side: 'left',
           align: 'start',
         },
@@ -173,8 +173,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="year-tabs"]',
         popover: {
-          title: 'Filter by Year',
-          description: 'View all varieties or filter to a specific year. Track which seeds you have for each season.',
+          title: 'Seeds by Season',
+          description: 'View all your varieties, or filter to a specific year. This helps you see what seeds you need for next season\'s plan.',
           side: 'bottom',
           align: 'center',
         },
@@ -182,8 +182,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="seed-stats"]',
         popover: {
-          title: 'Seed Status',
-          description: 'Quick count of seeds you have vs need to order. Click to filter the list.',
+          title: 'Seed Inventory',
+          description: 'Track what you have vs what you need to order. Tap these cards to filter the list below. Spend tracking is there too!',
           side: 'bottom',
           align: 'center',
         },
@@ -191,8 +191,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="add-variety-btn"]',
         popover: {
-          title: 'Add Varieties',
-          description: 'Track a new seed variety with supplier, price, and notes.',
+          title: 'Add Your Seeds',
+          description: 'Record variety names, suppliers, prices, and notes. Link them to specific vegetables to see them when planning beds.',
           side: 'left',
           align: 'center',
         },
@@ -200,8 +200,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="variety-list"]',
         popover: {
-          title: 'Your Varieties',
-          description: 'Varieties grouped by vegetable. Click the status badge to cycle through: Need → Ordered → Have → Had.',
+          title: 'Your Seed Collection',
+          description: 'Grouped by vegetable for easy browsing. Tap the status badge (Need/Ordered/Have/Had) to update as your seeds arrive!',
           side: 'top',
           align: 'center',
         },
@@ -217,8 +217,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="ai-settings"]',
         popover: {
-          title: 'AI Assistant',
-          description: 'Configure your OpenAI API key to unlock Aitor, your AI gardening companion.',
+          title: 'Unlock Aitor',
+          description: 'Add your OpenAI API key to chat with Aitor. He can identify plants from photos, suggest what to grow, and even add plants for you!',
           side: 'bottom',
           align: 'center',
         },
@@ -226,8 +226,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="location-settings"]',
         popover: {
-          title: 'Location',
-          description: 'Set your location for personalised growing advice based on your local climate.',
+          title: 'Set Your Location',
+          description: 'Your location helps with personalised growing advice. Scotland\'s microclimates vary a lot - coastal vs inland makes a difference!',
           side: 'bottom',
           align: 'center',
         },
@@ -235,8 +235,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="data-management"]',
         popover: {
-          title: 'Data Management',
-          description: 'Export your data for backup or import from a previous backup.',
+          title: 'Backup Your Data',
+          description: 'Export your garden data to a file for safekeeping. You can import it back later or on a new device.',
           side: 'bottom',
           align: 'center',
         },
@@ -244,8 +244,8 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       {
         element: '[data-tour="share-settings"]',
         popover: {
-          title: 'Share & Sync',
-          description: 'Share your allotment data with another device using a QR code or short code.',
+          title: 'Share Between Devices',
+          description: 'Want your garden on your phone and tablet? Generate a QR code to quickly transfer your data. Links expire after 5 minutes.',
           side: 'top',
           align: 'center',
         },
@@ -266,4 +266,18 @@ export function getTourDefinition(id: TourId): TourDefinition | undefined {
  */
 export function getAllTours(): TourDefinition[] {
   return Object.values(tourDefinitions)
+}
+
+/**
+ * Map paths to tour IDs for keyboard shortcut handling
+ */
+export function getTourIdForPath(pathname: string): TourId | null {
+  const pathToTour: Record<string, TourId> = {
+    '/': 'today',
+    '/this-month': 'this-month',
+    '/allotment': 'allotment',
+    '/seeds': 'seeds',
+    '/settings': 'settings',
+  }
+  return pathToTour[pathname] || null
 }
