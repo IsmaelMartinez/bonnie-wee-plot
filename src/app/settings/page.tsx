@@ -194,7 +194,7 @@ export default function SettingsPage() {
       <section className="mb-8 zen-card p-6">
         <h2 className="text-lg font-medium text-zen-ink-700 mb-4">Share Allotment</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Share your allotment data with another device. The share link expires after 5 minutes for security.
+          Share your allotment data with friends, family, or another device. Choose how long the share link stays active (up to 7 days).
         </p>
         <ShareDialog data={data} flushSave={flushSave} />
       </section>

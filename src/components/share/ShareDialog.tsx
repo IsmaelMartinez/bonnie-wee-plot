@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Share2, Copy, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react'
+import { Share2, Copy, CheckCircle, AlertTriangle, Loader2, Clock } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import Dialog from '@/components/ui/Dialog'
 import type { AllotmentData } from '@/types/unified-allotment'
@@ -12,17 +12,26 @@ interface ShareDialogProps {
 }
 
 interface ShareState {
-  status: 'idle' | 'loading' | 'success' | 'error'
+  status: 'idle' | 'selecting' | 'loading' | 'success' | 'error'
   code?: string
   expiresAt?: string
   error?: string
 }
+
+// Expiration options in minutes
+const EXPIRATION_OPTIONS = [
+  { value: 5, label: '5 minutes' },
+  { value: 60, label: '1 hour' },
+  { value: 1440, label: '1 day' },
+  { value: 10080, label: '7 days' },
+] as const
 
 export function ShareDialog({ data, flushSave }: ShareDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [shareState, setShareState] = useState<ShareState>({ status: 'idle' })
   const [copied, setCopied] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [expirationMinutes, setExpirationMinutes] = useState(1440) // Default to 1 day
 
   // Generate the share URL
   const shareUrl = shareState.code
@@ -48,7 +57,7 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
       const response = await fetch('/api/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ allotment: data }),
+        body: JSON.stringify({ allotment: data, expirationMinutes }),
       })
 
       if (!response.ok) {
@@ -69,14 +78,14 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
         error: error instanceof Error ? error.message : 'Failed to share allotment',
       })
     }
-  }, [data, flushSave])
+  }, [data, flushSave, expirationMinutes])
 
-  // Auto-share when dialog opens
+  // Show selection screen when dialog opens
   useEffect(() => {
     if (isOpen && shareState.status === 'idle' && data) {
-      handleShare()
+      setShareState({ status: 'selecting' })
     }
-  }, [isOpen, shareState.status, data, handleShare])
+  }, [isOpen, shareState.status, data])
 
   // Countdown timer
   useEffect(() => {
@@ -130,8 +139,18 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
     }
   }
 
-  // Format time remaining
+  // Format time remaining for display
   const formatTime = (seconds: number) => {
+    if (seconds >= 86400) {
+      const days = Math.floor(seconds / 86400)
+      const hours = Math.floor((seconds % 86400) / 3600)
+      return days === 1 ? `${days} day ${hours}h` : `${days} days ${hours}h`
+    }
+    if (seconds >= 3600) {
+      const hours = Math.floor(seconds / 3600)
+      const mins = Math.floor((seconds % 3600) / 60)
+      return `${hours}h ${mins}m`
+    }
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, '0')}`
@@ -156,6 +175,40 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
         maxWidth="sm"
       >
         <div className="flex flex-col items-center gap-4 py-4">
+          {shareState.status === 'selecting' && (
+            <div className="w-full space-y-4">
+              <div>
+                <label htmlFor="expiration-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Clock className="w-4 h-4 inline-block mr-1" />
+                  How long should the share link be valid?
+                </label>
+                <select
+                  id="expiration-select"
+                  value={expirationMinutes}
+                  onChange={(e) => setExpirationMinutes(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                >
+                  {EXPIRATION_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-sm text-gray-500">
+                {expirationMinutes >= 1440
+                  ? 'Longer expiration is convenient for sharing with family and friends.'
+                  : 'Shorter expiration is more secure for quick transfers.'}
+              </p>
+              <button
+                onClick={handleShare}
+                className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+              >
+                Create Share Link
+              </button>
+            </div>
+          )}
+
           {shareState.status === 'loading' && (
             <div className="flex flex-col items-center gap-3 py-8">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
