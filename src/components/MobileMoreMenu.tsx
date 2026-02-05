@@ -89,24 +89,20 @@ export default function MobileMoreMenu({
           )}
 
           {/* Always-available links */}
-          {secondaryLinks.map((link) => {
-            const IconComponent = link.icon
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-2 py-2 text-sm transition-colors ${
-                  isActive(link.href)
-                    ? 'text-zen-moss-700'
-                    : 'text-zen-ink-600 hover:text-zen-ink-800'
-                }`}
-                onClick={closeMobileMenu}
-              >
-                <IconComponent className="w-4 h-4" />
-                <span>{link.label}</span>
-              </Link>
-            )
-          })}
+          {secondaryLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block py-2 text-sm transition-colors ${
+                isActive(link.href)
+                  ? 'text-zen-moss-700'
+                  : 'text-zen-ink-600 hover:text-zen-ink-800'
+              }`}
+              onClick={closeMobileMenu}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       )}
     </div>

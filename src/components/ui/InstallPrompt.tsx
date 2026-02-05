@@ -116,13 +116,13 @@ export default function InstallPrompt() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={promptInstall}
-                className="flex-1 px-4 py-2.5 min-h-[44px] bg-zen-moss-600 text-white text-sm font-medium rounded-lg hover:bg-zen-moss-700 transition"
+                className="zen-btn-primary flex-1 min-h-[44px]"
               >
                 Install
               </button>
               <button
                 onClick={hidePrompt}
-                className="px-4 py-2.5 min-h-[44px] text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                className="zen-btn-ghost min-h-[44px]"
               >
                 Not now
               </button>
