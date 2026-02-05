@@ -78,7 +78,7 @@ export default function UnlockCelebration({
         <button
           type="button"
           onClick={onClose}
-          className="w-full px-4 py-3 bg-zen-moss-600 text-white rounded-lg font-medium hover:bg-zen-moss-700 transition-colors focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2"
+          className="zen-btn-primary w-full"
         >
           Got it
         </button>

@@ -133,14 +133,14 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveToken}
                   disabled={!tempToken.trim()}
-                  className="px-4 py-2 bg-zen-moss-600 text-white rounded-md hover:bg-zen-moss-700 focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2 transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Token
                 </button>
                 {token && (
                   <button
                     onClick={handleClearToken}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors min-h-[44px]"
+                    className="zen-btn-secondary min-h-[44px]"
                   >
                     Clear Token
                   </button>
