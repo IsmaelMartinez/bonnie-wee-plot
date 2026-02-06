@@ -123,38 +123,28 @@ export default function DesktopMoreDropdown({
           )}
 
           {/* Always-available links */}
-          {secondaryLinks.map((link) => {
-            const IconComponent = link.icon
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                role="menuitem"
-                className={`flex items-start gap-3 px-4 py-3 transition-colors ${
-                  isActive(link.href)
-                    ? 'bg-zen-moss-50'
-                    : 'hover:bg-zen-stone-50'
-                }`}
-                onClick={() => setIsMoreOpen(false)}
-              >
-                <IconComponent
-                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                    isActive(link.href) ? 'text-zen-moss-600' : 'text-zen-stone-400'
-                  }`}
-                />
-                <div>
-                  <div className={`text-sm font-medium ${
-                    isActive(link.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
-                  }`}>
-                    {link.label}
-                  </div>
-                  <div className="text-xs text-zen-stone-500 mt-0.5">
-                    {link.description}
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {secondaryLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              role="menuitem"
+              className={`block px-4 py-3 transition-colors ${
+                isActive(link.href)
+                  ? 'bg-zen-moss-50'
+                  : 'hover:bg-zen-stone-50'
+              }`}
+              onClick={() => setIsMoreOpen(false)}
+            >
+              <div className={`text-sm font-medium ${
+                isActive(link.href) ? 'text-zen-moss-700' : 'text-zen-ink-700'
+              }`}>
+                {link.label}
+              </div>
+              <div className="text-xs text-zen-stone-500 mt-0.5">
+                {link.description}
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>

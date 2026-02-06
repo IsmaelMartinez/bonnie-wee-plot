@@ -183,13 +183,13 @@ function ActionScreen({ path, onContinue, onBack }: ActionScreenProps) {
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="px-4 py-2.5 text-zen-stone-600 hover:text-zen-ink-800 transition-colors"
+          className="zen-btn-ghost"
         >
           Back
         </button>
         <button
           onClick={onContinue}
-          className="flex-1 px-4 py-2.5 bg-zen-moss-600 hover:bg-zen-moss-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          className="zen-btn-primary flex-1 flex items-center justify-center gap-2"
         >
           Got it, let&apos;s go
           <ArrowRight className="w-4 h-4" />
@@ -279,7 +279,7 @@ function SuccessScreen({ path, onFinish }: SuccessScreenProps) {
 
       <button
         onClick={onFinish}
-        className="w-full px-4 py-3 bg-zen-moss-600 hover:bg-zen-moss-700 text-white rounded-lg font-medium transition-colors"
+        className="zen-btn-primary w-full"
       >
         Start Exploring
       </button>
