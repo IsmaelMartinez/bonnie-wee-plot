@@ -7,9 +7,11 @@ import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import Link from 'next/link'
-import { Download, ArrowRight, Shield, MapPin, Leaf, Lock, Database } from 'lucide-react'
+import { Download, ArrowRight, Shield, MapPin, Leaf, Lock, Database, HelpCircle } from 'lucide-react'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataManagement from '@/components/allotment/DataManagement'
+import PageTour from '@/components/onboarding/PageTour'
+import TourManager from '@/components/onboarding/TourManager'
 
 export default function SettingsPage() {
   const { data, flushSave, reload } = useAllotment()
@@ -55,10 +57,13 @@ export default function SettingsPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-2xl font-display text-zen-ink-800 mb-6">Settings</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-display text-zen-ink-800">Settings</h1>
+        <PageTour tourId="settings" autoStart autoStartDelay={1000} />
+      </div>
 
       {/* AI Assistant Section */}
-      <section className="mb-8 zen-card p-6">
+      <section className="mb-8 zen-card p-6" data-tour="ai-settings">
         <div className="flex items-center gap-2 mb-4">
           <Leaf className="w-5 h-5 text-zen-moss-600" />
           <h2 className="text-lg font-medium text-zen-ink-700">AI Assistant (Aitor)</h2>
@@ -133,14 +138,14 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSaveToken}
                   disabled={!tempToken.trim()}
-                  className="px-4 py-2 bg-zen-moss-600 text-white rounded-md hover:bg-zen-moss-700 focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2 transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Token
                 </button>
                 {token && (
                   <button
                     onClick={handleClearToken}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors min-h-[44px]"
+                    className="zen-btn-secondary min-h-[44px]"
                   >
                     Clear Token
                   </button>
@@ -152,7 +157,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Location Section */}
-      <section className="mb-8 zen-card p-6">
+      <section className="mb-8 zen-card p-6" data-tour="location-settings">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-5 h-5 text-zen-water-600" />
           <h2 className="text-lg font-medium text-zen-ink-700">Location</h2>
@@ -179,7 +184,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Data Management Section */}
-      <section className="mb-8 zen-card p-6">
+      <section className="mb-8 zen-card p-6" data-tour="data-management">
         <div className="flex items-center gap-2 mb-4">
           <Database className="w-5 h-5 text-zen-stone-600" />
           <h2 className="text-lg font-medium text-zen-ink-700">Data Management</h2>
@@ -191,12 +196,24 @@ export default function SettingsPage() {
       </section>
 
       {/* Share Section */}
-      <section className="mb-8 zen-card p-6">
+      <section className="mb-8 zen-card p-6" data-tour="share-settings">
         <h2 className="text-lg font-medium text-zen-ink-700 mb-4">Share Allotment</h2>
         <p className="text-sm text-gray-600 mb-4">
           Share your allotment data with friends, family, or another device. Choose how long the share link stays active (up to 7 days).
         </p>
         <ShareDialog data={data} flushSave={flushSave} />
+      </section>
+
+      {/* Guided Tours Section */}
+      <section className="mb-8 zen-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <HelpCircle className="w-5 h-5 text-zen-water-600" />
+          <h2 className="text-lg font-medium text-zen-ink-700">Guided Tours</h2>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Interactive tours that help you learn each section of the app.
+        </p>
+        <TourManager />
       </section>
 
       {/* Receive Section */}

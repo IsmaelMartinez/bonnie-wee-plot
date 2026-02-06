@@ -132,7 +132,7 @@ export default function TaskList({ tasks, generatedTasks = [] }: TaskListProps) 
   const hiddenCount = totalTasks - displayGeneratedTasks.length - displayManualTasks.length
 
   return (
-    <div className="zen-card p-6">
+    <div className="zen-card p-6" data-tour="task-list">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg text-zen-ink-700">Tasks</h3>
         <span className="text-xs text-zen-stone-500">
