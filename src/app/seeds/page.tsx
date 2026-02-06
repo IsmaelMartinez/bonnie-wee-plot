@@ -25,6 +25,7 @@ import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
 import { getVarietyUsedYears } from '@/lib/variety-queries'
+import PageTour from '@/components/onboarding/PageTour'
 
 const SUPPLIER_URLS: Record<string, string> = {
   'Organic Gardening': 'https://www.organiccatalogue.com/',
@@ -246,9 +247,12 @@ function SeedsPageContent() {
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
         <header className="mb-10">
-          <div className="flex items-baseline gap-3 mb-2">
-            <Package className="w-6 h-6 text-zen-moss-600" />
-            <h1 className="text-zen-ink-900">Seeds & Varieties</h1>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-baseline gap-3">
+              <Package className="w-6 h-6 text-zen-moss-600" />
+              <h1 className="text-zen-ink-900">Seeds & Varieties</h1>
+            </div>
+            <PageTour tourId="seeds" autoStart autoStartDelay={1000} />
           </div>
           <p className="text-zen-stone-500 text-lg">
             Track your seed collection, plan by year
@@ -256,7 +260,7 @@ function SeedsPageContent() {
         </header>
 
         {/* Year Tabs */}
-        <div className="flex justify-center mb-8 overflow-x-auto">
+        <div className="flex justify-center mb-8 overflow-x-auto" data-tour="year-tabs">
           <div className="inline-flex zen-card p-1 gap-1">
             <button
               onClick={() => setSelectedYear('all')}
@@ -285,7 +289,7 @@ function SeedsPageContent() {
         </div>
 
         {/* Stats - clickable filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" data-tour="seed-stats">
           <button
             onClick={() => selectedYear !== 'all' && setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
             disabled={selectedYear === 'all'}
@@ -381,6 +385,7 @@ function SeedsPageContent() {
           <button
             onClick={handleOpenAddDialog}
             className="zen-btn-primary text-xs sm:text-sm min-h-[44px] self-end sm:self-auto"
+            data-tour="add-variety-btn"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Add Variety</span>
@@ -427,7 +432,7 @@ function SeedsPageContent() {
         )}
 
         {/* Variety groups */}
-        <div className="space-y-2">
+        <div className="space-y-2" data-tour="variety-list">
           {groupNames.map(name => {
             const varieties = grouped[name]
             const isExpanded = expandedGroups.has(name)

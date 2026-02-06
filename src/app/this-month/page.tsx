@@ -31,6 +31,7 @@ import {
 } from '@/data/scotland-calendar'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { Scissors, Droplet, TreeDeciduous, Layers } from 'lucide-react'
+import PageTour from '@/components/onboarding/PageTour'
 
 // Month selector button component
 function MonthButton({
@@ -311,9 +312,12 @@ export default function ThisMonthPage() {
       <div className="container mx-auto px-4 py-10 max-w-5xl">
         {/* Header */}
         <header className="mb-10">
-          <div className="flex items-baseline gap-3 mb-2">
-            <Calendar className="w-6 h-6 text-zen-moss-600" />
-            <h1 className="text-zen-ink-900">This Month</h1>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-baseline gap-3">
+              <Calendar className="w-6 h-6 text-zen-moss-600" />
+              <h1 className="text-zen-ink-900">This Month</h1>
+            </div>
+            <PageTour tourId="this-month" autoStart autoStartDelay={1000} />
           </div>
           <p className="text-zen-stone-500 text-lg">
             Seasonal tasks for Scottish gardens
@@ -321,7 +325,7 @@ export default function ThisMonthPage() {
         </header>
 
         {/* Month Selector */}
-        <div className="mb-8">
+        <div className="mb-8" data-tour="month-selector">
           <div className="flex gap-2 overflow-x-auto pb-2 justify-center flex-wrap">
             {MONTH_KEYS.map((monthKey) => (
               <MonthButton
@@ -345,7 +349,7 @@ export default function ThisMonthPage() {
         )}
 
         {/* Month Overview */}
-        <div className="zen-card p-6 mb-8">
+        <div className="zen-card p-6 mb-8" data-tour="month-overview">
           <div className="flex items-start">
             <span className="text-4xl mr-4">{data.emoji}</span>
             <div>
@@ -357,7 +361,7 @@ export default function ThisMonthPage() {
 
         {/* Personalized Section - Your Garden This Month */}
         {!isLoading && personalizedData && personalizedData.plantingCount > 0 && (
-          <div className="zen-card p-6 mb-8 border-zen-moss-200 bg-zen-moss-50/30">
+          <div className="zen-card p-6 mb-8 border-zen-moss-200 bg-zen-moss-50/30" data-tour="your-garden">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <MapPin className="w-5 h-5 text-zen-moss-600 mr-2" />
@@ -455,7 +459,7 @@ export default function ThisMonthPage() {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           {/* Sowing Section */}
-          <div className="zen-card p-6">
+          <div className="zen-card p-6" data-tour="sowing-section">
             <div className="flex items-center mb-4">
               <Sprout className="w-5 h-5 text-zen-moss-600 mr-2" />
               <h3 className="font-display text-zen-ink-800">What to Sow</h3>
@@ -497,7 +501,7 @@ export default function ThisMonthPage() {
           </div>
 
           {/* Harvest Section */}
-          <div className="zen-card p-6">
+          <div className="zen-card p-6" data-tour="harvest-section">
             <div className="flex items-center mb-4">
               <Carrot className="w-5 h-5 text-zen-kitsune-600 mr-2" />
               <h3 className="font-display text-zen-ink-800">Ready to Harvest</h3>
