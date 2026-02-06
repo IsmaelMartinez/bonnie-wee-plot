@@ -30,6 +30,7 @@ import EditAreaForm from '@/components/allotment/EditAreaForm'
 import ItemDetailSwitcher from '@/components/allotment/details/ItemDetailSwitcher'
 import MobileAreaBottomSheet from '@/components/allotment/MobileAreaBottomSheet'
 import MobileFloatingActions from '@/components/allotment/MobileFloatingActions'
+import PageTour from '@/components/onboarding/PageTour'
 
 // Helper to get previous year's rotation group for an area
 function getPreviousYearRotationGroup(
@@ -93,7 +94,6 @@ export default function AllotmentPage() {
   const [showEditAreaDialog, setShowEditAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
   const [showAutoRotateDialog, setShowAutoRotateDialog] = useState(false)
-  const [isGridEditing, setIsGridEditing] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [showMobileSheet, setShowMobileSheet] = useState(false)
 
@@ -255,6 +255,7 @@ export default function AllotmentPage() {
                 <TreeDeciduous className="w-4 h-4" />
                 <span className="hidden sm:inline">Care</span>
               </Link>
+              <PageTour tourId="allotment" autoStart autoStartDelay={1000} />
             </div>
           </div>
         </div>
@@ -306,7 +307,7 @@ export default function AllotmentPage() {
       )}
 
       {/* Year Selector */}
-      <div className="max-w-6xl mx-auto px-4 py-4">
+      <div className="max-w-6xl mx-auto px-4 py-4" data-tour="year-selector">
         <div className="zen-card p-2 sm:p-3">
           {/* Mobile: Horizontal scroll with compact buttons */}
           <div className="flex items-center gap-2">
@@ -405,7 +406,7 @@ export default function AllotmentPage() {
       </div>
 
       {/* Season Status Widget */}
-      <div className="max-w-6xl mx-auto px-4 py-2">
+      <div className="max-w-6xl mx-auto px-4 py-2" data-tour="season-status">
         <SeasonStatusWidget
           bedsNeedingRotation={getRotationBeds().filter(b => getPlantings(b.id).length === 0).length}
           totalRotationBeds={getRotationBeds().length}
@@ -416,7 +417,7 @@ export default function AllotmentPage() {
       <div className="max-w-6xl mx-auto px-4 py-2">
         <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
           {/* Main Layout */}
-          <div className="lg:col-span-2 w-full min-w-0">
+          <div className="lg:col-span-2 w-full min-w-0" data-tour="plot-overview">
             <div className="zen-card p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <h2 className="text-base sm:text-lg font-display text-zen-ink-700 flex items-center gap-2">
@@ -425,9 +426,9 @@ export default function AllotmentPage() {
                 </h2>
                 <button
                   onClick={() => setShowAddAreaDialog(true)}
-                  disabled={!isMobile && !isGridEditing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed hidden md:flex"
-                  title={!isGridEditing ? "Enable edit mode to add areas" : "Add a new area to your allotment"}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto hidden md:flex"
+                  title="Add a new area to your allotment"
+                  data-tour="add-area-btn"
                 >
                   <Plus className="w-4 h-4" />
                   Add Area
@@ -444,7 +445,7 @@ export default function AllotmentPage() {
                     areas={getAllAreas()}
                     areaSeasons={currentSeason?.areas}
                     selectedYear={selectedYear}
-                    onEditingChange={setIsGridEditing}
+
                     onPositionChange={handlePositionChange}
                   />
                 </div>
@@ -453,7 +454,7 @@ export default function AllotmentPage() {
           </div>
 
           {/* Sidebar - Item Details (hidden on mobile) */}
-          <div className="hidden lg:block lg:col-span-1 w-full">
+          <div className="hidden lg:block lg:col-span-1 w-full" data-tour="item-detail">
             <ItemDetailSwitcher
               selectedItemRef={selectedItemRef}
               getArea={getArea}

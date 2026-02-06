@@ -30,7 +30,7 @@ const ACTIONS = [
 
 export default function QuickActions() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-tour="quick-actions">
       {ACTIONS.map((action) => (
         <Link
           key={action.href}

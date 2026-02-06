@@ -78,7 +78,7 @@ export default function UnlockCelebration({
         <button
           type="button"
           onClick={onClose}
-          className="w-full px-4 py-3 bg-zen-moss-600 text-white rounded-lg font-medium hover:bg-zen-moss-700 transition-colors focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2"
+          className="zen-btn-primary w-full"
         >
           Got it
         </button>
@@ -95,7 +95,7 @@ export const FEATURE_INFO: Record<UnlockableFeature, Omit<FeatureInfo, 'icon'>> 
     name: 'Ask Aitor',
     description: 'Get personalized gardening advice from Aitor, your AI garden assistant. Ask questions about planting, pest control, companion planting, and more.',
     tips: [
-      'Find "Ask Aitor" in the More menu',
+      'Look for the Aitor chat button in the bottom-right corner',
       'You can ask about specific plants in your plot',
       'Upload photos for plant identification help',
     ],

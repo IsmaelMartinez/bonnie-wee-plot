@@ -40,31 +40,10 @@ export default function MobileMoreMenu({
 
       {isMobileMoreOpen && (
         <div className="ml-3 mt-1 space-y-1 border-l-2 border-zen-stone-200 pl-3">
-          {/* Locked/Unlocked Features */}
-          {lockedFeatures.map((item) => {
+          {/* Still-locked Features (unlocked ones are in primary nav) */}
+          {lockedFeatures.filter(item => !isUnlocked(item.feature)).map((item) => {
             const IconComponent = item.icon
-            const unlocked = isUnlocked(item.feature)
             const progress = getProgress(item.feature)
-
-            if (unlocked) {
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href!}
-                  className={`flex items-center gap-2 py-2 text-sm transition-colors ${
-                    isActive(item.href!)
-                      ? 'text-zen-moss-700'
-                      : 'text-zen-ink-600 hover:text-zen-ink-800'
-                  }`}
-                  onClick={closeMobileMenu}
-                >
-                  <IconComponent className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            }
-
-            // Locked - show with teaser, progress hint, and unlock option
             const progressHint = getProgressHint(progress.currentValue, progress.targetValue, progress.unlockCondition)
 
             return (
@@ -77,9 +56,7 @@ export default function MobileMoreMenu({
                   <span className="text-sm text-zen-stone-500">{item.label}</span>
                 </div>
                 <div className="mt-1 ml-6">
-                  {/* Feature teaser */}
                   <p className="text-xs text-zen-stone-500 mb-2">{item.teaser}</p>
-                  {/* Progress bar with hint */}
                   <div className="flex items-center gap-2 text-xs mb-1">
                     <span className="text-zen-moss-600 font-medium">{progress.currentValue}/{progress.targetValue}</span>
                     <div className="flex-1 h-1.5 bg-zen-stone-100 rounded-full overflow-hidden">
@@ -106,28 +83,26 @@ export default function MobileMoreMenu({
             )
           })}
 
-          {/* Divider */}
-          <div className="border-t border-zen-stone-100 my-1" />
+          {/* Divider - only show if there are locked features */}
+          {lockedFeatures.some(item => !isUnlocked(item.feature)) && (
+            <div className="border-t border-zen-stone-100 my-1" />
+          )}
 
           {/* Always-available links */}
-          {secondaryLinks.map((link) => {
-            const IconComponent = link.icon
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-2 py-2 text-sm transition-colors ${
-                  isActive(link.href)
-                    ? 'text-zen-moss-700'
-                    : 'text-zen-ink-600 hover:text-zen-ink-800'
-                }`}
-                onClick={closeMobileMenu}
-              >
-                <IconComponent className="w-4 h-4" />
-                <span>{link.label}</span>
-              </Link>
-            )
-          })}
+          {secondaryLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block py-2 text-sm transition-colors ${
+                isActive(link.href)
+                  ? 'text-zen-moss-700'
+                  : 'text-zen-ink-600 hover:text-zen-ink-800'
+              }`}
+              onClick={closeMobileMenu}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       )}
     </div>

@@ -18,31 +18,38 @@ const PLURAL_TO_SINGULAR: Record<string, string> = {
 const SEMANTIC_MAPPINGS: Record<string, string | null> = {
   'Artichokes': 'Globe Artichoke',
   'Beets': 'Beetroot',
+  'Broccoli': 'Calabrese (Broccoli)',
   'Bush beans': 'French Beans',
+  'Chard': 'Swiss Chard',
   'Corn': 'Sweetcorn',
+  'Corn Salad': 'Corn Salad (Lamb\'s Lettuce)',
+  'Corn salad': 'Corn Salad (Lamb\'s Lettuce)',
+  'Courgettes': 'Courgettes (Zucchini)',
+  'Courgette': 'Courgettes (Zucchini)',
   'Potato': 'Potatoes (Tatties)',
-  'Purslane': 'Winter Purslane',
-  'Corn salad': 'Corn Salad',
+  'Purslane': 'Winter Purslane (Claytonia)',
+  'Runner beans': 'Runner Beans',
+  'Squash': 'Winter Squash',
+  'Winter Purslane': 'Winter Purslane (Claytonia)',
   'Winter lettuce': 'Lettuce',
   'Tarragon': 'French Tarragon',
   'Succulents': null, // Remove - not a specific plant
 }
 
 // Category expansions - generic category names to specific plants
+// Names must match actual database plant names for resolution
 const CATEGORY_EXPANSIONS: Record<string, string[]> = {
   'Beans': ['Broad Beans', 'French Beans', 'Runner Beans'],
-  'Brassicas': ['Broccoli', 'Brussels Sprouts', 'Cabbage', 'Cauliflower', 'Kale'],
+  'Brassicas': ['Calabrese (Broccoli)', 'Brussels Sprouts', 'Cabbage', 'Cauliflower', 'Kale'],
   'Alliums': ['Onion', 'Garlic', 'Leek', 'Chives'],
-  'Cucurbits': ['Pumpkin', 'Squash', 'Courgette'],
+  'Cucurbits': ['Pumpkin', 'Winter Squash', 'Courgettes (Zucchini)'],
 }
 
 // Vague references to remove (16 items from analysis)
 const VAGUE_REFERENCES = [
   'All vegetables',
-  'Alliums',
   'Climbing vegetables',
   'Companion honeyberry varieties',
-  'Dill should be kept separate',
   'Herbs',
   'Most vegetables',
   'Native hedgerow plants',

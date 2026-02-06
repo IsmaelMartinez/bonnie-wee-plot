@@ -15,7 +15,7 @@ export default function AIInsight({ input }: AIInsightProps) {
   const Icon = topSuggestion.icon
 
   return (
-    <div className="zen-card p-5 border-zen-water-200">
+    <div className="zen-card p-5 border-zen-water-200" data-tour="ai-insight">
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0">
           <div className="w-10 h-10 rounded-full bg-zen-water-50 flex items-center justify-center">

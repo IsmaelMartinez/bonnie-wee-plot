@@ -2,6 +2,7 @@
 
 import { useTodayData } from '@/hooks/useTodayData'
 import { useAllotment } from '@/hooks/useAllotment'
+import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
@@ -9,6 +10,7 @@ import QuickActions from './QuickActions'
 import AIInsight from './AIInsight'
 import CompostAlerts from './CompostAlerts'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
+import PageTour from '@/components/onboarding/PageTour'
 import { trackEvent } from '@/lib/analytics'
 
 function LoadingSkeleton() {
@@ -43,6 +45,7 @@ export default function TodayDashboard() {
   } = useTodayData()
 
   const { data, updateMeta, isLoading: allotmentLoading } = useAllotment()
+  const { isUnlocked } = useFeatureFlags(data)
 
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
@@ -71,11 +74,14 @@ export default function TodayDashboard() {
       <div className="relative container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
         <header className="mb-10">
-          <div className="flex items-baseline gap-3 mb-2">
-            <h1 className="text-zen-ink-900">Today</h1>
-            <span className="text-zen-stone-400 text-lg font-display">
-              {seasonName.romaji}
-            </span>
+          <div className="flex items-baseline justify-between gap-3 mb-2">
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-zen-ink-900">Today</h1>
+              <span className="text-zen-stone-400 text-lg font-display">
+                {seasonName.romaji}
+              </span>
+            </div>
+            {!showOnboarding && <PageTour tourId="today" autoStart autoStartDelay={1500} />}
           </div>
           <p className="text-zen-stone-500 text-lg">
             Your garden, this moment
@@ -97,8 +103,8 @@ export default function TodayDashboard() {
           {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
           <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
 
-          {/* Compost Alerts */}
-          <CompostAlerts />
+          {/* Compost Alerts - only show when compost feature is unlocked */}
+          {isUnlocked('compost') && <CompostAlerts />}
 
           {/* AI Insight */}
           <AIInsight

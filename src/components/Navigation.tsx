@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Calendar, Map, Package, BookOpen, Recycle, Settings, Pencil, Sparkles } from 'lucide-react'
-import { getCurrentSeason, getSeasonalTheme } from '@/lib/seasonal-theme'
+import { Menu, X, Map, Recycle, Pencil, Sparkles } from 'lucide-react'
+import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import UnlockCelebration, { FEATURE_INFO } from '@/components/ui/UnlockCelebration'
@@ -15,8 +15,8 @@ import type { UnlockableFeature } from '@/lib/feature-flags'
 // Primary navigation - always visible (3 items for simplicity)
 const primaryNavLinks = [
   { href: '/', label: 'Today' },
-  { href: '/this-month', label: 'This Month', icon: Calendar },
-  { href: '/seeds', label: 'Seeds', icon: Package },
+  { href: '/this-month', label: 'This Month' },
+  { href: '/seeds', label: 'Seeds' },
 ]
 
 // Features with progressive disclosure
@@ -75,8 +75,8 @@ export function getProgressHint(currentValue: number, targetValue: number, unloc
 
 // Always-available secondary links
 export const secondaryLinks = [
-  { href: '/settings', label: 'Settings', icon: Settings, description: 'Sync & preferences' },
-  { href: '/about', label: 'About', icon: BookOpen, description: 'Learn more' },
+  { href: '/settings', label: 'Settings', description: 'Sync & preferences' },
+  { href: '/about', label: 'About', description: 'Learn more' },
 ]
 
 export default function Navigation() {
@@ -109,7 +109,7 @@ export default function Navigation() {
     }
   }
 
-  const theme = getSeasonalTheme(getCurrentSeason())
+  const seasonalPhase = getSeasonalPhase(new Date().getMonth())
 
   // Handle unlock CTA click
   const handleUnlockClick = (feature: UnlockableFeature) => {
@@ -136,10 +136,7 @@ export default function Navigation() {
             {isEditingName ? (
               <>
                 <span className="text-2xl" aria-hidden="true">
-                  {theme.season === 'winter' && '❄️'}
-                  {theme.season === 'spring' && '🌸'}
-                  {theme.season === 'summer' && '🌿'}
-                  {theme.season === 'autumn' && '🍂'}
+                  {seasonalPhase.emoji}
                 </span>
                 <input
                   type="text"
@@ -159,10 +156,7 @@ export default function Navigation() {
                   className="flex items-center gap-2 text-zen-ink-800 hover:text-zen-ink-900 transition-colors"
                 >
                   <span className="text-2xl" aria-hidden="true">
-                    {theme.season === 'winter' && '❄️'}
-                    {theme.season === 'spring' && '🌸'}
-                    {theme.season === 'summer' && '🌿'}
-                    {theme.season === 'autumn' && '🍂'}
+                    {seasonalPhase.emoji}
                   </span>
                   <span className="font-display text-xl tracking-tight">
                     {data?.meta.name || 'My Allotment'}
@@ -196,7 +190,22 @@ export default function Navigation() {
               </Link>
             ))}
 
-            {/* More Dropdown with Progressive Disclosure */}
+            {/* Unlocked features promoted to primary nav */}
+            {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-zen-moss-50 text-zen-moss-700'
+                    : 'text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {/* More Dropdown - locked features + secondary links */}
             <DesktopMoreDropdown
               isMoreOpen={isMoreOpen}
               setIsMoreOpen={setIsMoreOpen}
@@ -238,7 +247,23 @@ export default function Navigation() {
                 </Link>
               ))}
 
-              {/* Mobile More Section with Progressive Disclosure */}
+              {/* Unlocked features promoted to primary nav */}
+              {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-zen-moss-50 text-zen-moss-700'
+                      : 'text-zen-ink-600 hover:bg-zen-stone-50'
+                  }`}
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Mobile More Section - locked features + secondary links */}
               <MobileMoreMenu
                 isActive={isActive}
                 isUnlocked={isUnlocked}

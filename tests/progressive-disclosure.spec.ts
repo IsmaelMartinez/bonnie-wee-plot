@@ -256,12 +256,8 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
     })
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
-
-    // Compost should be unlocked (clickable link)
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i })
+    // Compost should be unlocked and promoted to primary nav
+    const compostLink = page.getByRole('link', { name: /Compost/i })
     await compostLink.click()
     await expect(page).toHaveURL(/compost/)
   })
@@ -284,12 +280,8 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
     }, allotmentData)
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
-
-    // Compost should be unlocked
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i })
+    // Compost should be unlocked and promoted to primary nav
+    const compostLink = page.getByRole('link', { name: /Compost/i })
     await compostLink.click()
     await expect(page).toHaveURL(/compost/)
   })
@@ -350,12 +342,8 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
     }, allotmentData)
     await page.goto('/')
 
-    // Open More dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' })
-    await moreButton.click()
-
-    // Allotment should be unlocked
-    const allotmentLink = page.getByRole('menuitem', { name: /Allotment/i })
+    // Allotment should be unlocked and promoted to primary nav
+    const allotmentLink = page.getByRole('link', { name: 'Allotment', exact: true })
     await allotmentLink.click()
     await expect(page).toHaveURL(/allotment/)
   })
@@ -399,6 +387,10 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
 
   test('clicking "Unlock now" manually unlocks Compost', async ({ page }) => {
     await skipOnboarding(page)
+    // Pre-mark celebration as shown to prevent modal from blocking
+    await page.addInitScript(() => {
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
+    })
     await page.goto('/')
 
     // Open More dropdown
@@ -410,17 +402,18 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     const unlockButton = compostSection.getByText('Unlock now')
     await unlockButton.click()
 
-    // Re-open More dropdown
-    await moreButton.click()
-
-    // Compost should now be unlocked
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i })
+    // After unlock, Compost should appear in primary nav (not dropdown)
+    const compostLink = page.getByRole('link', { name: /Compost/i })
     await compostLink.click()
     await expect(page).toHaveURL(/compost/)
   })
 
   test('clicking "Unlock now" manually unlocks Allotment', async ({ page }) => {
     await skipOnboarding(page)
+    // Pre-mark celebration as shown to prevent modal from blocking
+    await page.addInitScript(() => {
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
+    })
     await page.goto('/')
 
     // Open More dropdown
@@ -432,17 +425,18 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     const unlockButton = allotmentSection.getByText('Unlock now')
     await unlockButton.click()
 
-    // Re-open More dropdown
-    await moreButton.click()
-
-    // Allotment should now be unlocked
-    const allotmentLink = page.getByRole('menuitem', { name: /Allotment/i })
+    // After unlock, Allotment should appear in primary nav (not dropdown)
+    const allotmentLink = page.getByRole('link', { name: 'Allotment', exact: true })
     await allotmentLink.click()
     await expect(page).toHaveURL(/allotment/)
   })
 
   test('manual unlock persists after page reload', async ({ page }) => {
     await skipOnboarding(page)
+    // Pre-mark celebration as shown to prevent modal from blocking
+    await page.addInitScript(() => {
+      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
+    })
     await page.goto('/')
 
     // Open More dropdown and manually unlock Compost
@@ -456,11 +450,8 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
     // Reload the page
     await page.reload()
 
-    // Open More dropdown
-    await moreButton.click()
-
-    // Compost should still be unlocked (no Unlock now button)
-    const compostLink = page.getByRole('menuitem', { name: /Compost/i })
+    // Compost should still be unlocked and in primary nav
+    const compostLink = page.getByRole('link', { name: /Compost/i })
     await compostLink.click()
     await expect(page).toHaveURL(/compost/)
   })
@@ -511,9 +502,8 @@ test.describe('Progressive Disclosure - Mobile', () => {
 
     // After unlock, menu closes. Re-open it
     await page.getByLabel('Open menu').click()
-    await page.getByRole('button', { name: 'More' }).click()
 
-    // Now Compost should be a clickable link in the mobile menu
+    // After unlock, Compost is promoted to primary mobile nav (not in More submenu)
     const compostLink = page.getByRole('banner').getByRole('link', { name: 'Compost' })
     await compostLink.click()
     await expect(page).toHaveURL(/compost/)

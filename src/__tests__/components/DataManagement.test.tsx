@@ -37,15 +37,6 @@ vi.mock('@/lib/storage-utils', () => ({
   restoreFromBackup: vi.fn(() => ({ success: true })),
 }))
 
-vi.mock('@/lib/migration-utils', () => ({
-  migrateDryRun: vi.fn(() => ({ needsMigration: false })),
-  migrateVarietyStorage: vi.fn(() => ({ success: true, varietiesMerged: 0, duplicatesSkipped: 0 })),
-  rollbackMigration: vi.fn(() => ({ success: true })),
-  listMigrationBackups: vi.fn(() => []),
-  deleteMigrationBackup: vi.fn(() => ({ success: true })),
-  getBackupMetadata: vi.fn(() => null),
-}))
-
 vi.mock('@/lib/analytics', () => ({
   getAnalyticsSummary: vi.fn(() => ({
     totalEvents: 5,
@@ -293,24 +284,6 @@ describe('DataManagement Component', () => {
       await userEvent.click(screen.getByRole('button', { name: /data management/i }))
 
       expect(screen.getByText(/storage is 85% full/i)).toBeInTheDocument()
-    })
-  })
-
-  describe('Migration status check', () => {
-    it('shows migration status when check button is clicked', async () => {
-      render(
-        <DataManagement
-          data={mockAllotmentData}
-          onDataImported={mockOnDataImported}
-        />
-      )
-
-      await userEvent.click(screen.getByRole('button', { name: /data management/i }))
-      await userEvent.click(screen.getByRole('button', { name: /check migration status/i }))
-
-      await waitFor(() => {
-        expect(screen.getByText(/no migration needed/i)).toBeInTheDocument()
-      })
     })
   })
 

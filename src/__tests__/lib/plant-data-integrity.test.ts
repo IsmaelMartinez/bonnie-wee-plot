@@ -67,8 +67,7 @@ describe('Plant Data Integrity', () => {
       )).toBe(true)
     })
 
-    // TODO: Phase 1 - Add sweetcorn to runner beans companions
-    it.skip('runner beans should have sweetcorn as companion', () => {
+    it('runner beans should have sweetcorn as companion', () => {
       const runnerBeans = getVegetableById('runner-beans')
       expect(runnerBeans).toBeDefined()
       expect(runnerBeans?.companionPlants.some(c =>
@@ -76,8 +75,7 @@ describe('Plant Data Integrity', () => {
       )).toBe(true)
     })
 
-    // TODO: Phase 1 - Add sweetcorn to squash companions
-    it.skip('squash should have sweetcorn as companion', () => {
+    it('squash should have sweetcorn as companion', () => {
       const squash = getVegetableById('squash')
       expect(squash).toBeDefined()
       expect(squash?.companionPlants.some(c =>
@@ -89,10 +87,8 @@ describe('Plant Data Integrity', () => {
   describe('Companion Data Quality', () => {
     const VAGUE_REFERENCES = [
       'All vegetables',
-      'Alliums',
       'Climbing vegetables',
       'Companion honeyberry varieties',
-      'Dill should be kept separate',
       'Herbs',
       'Most vegetables',
       'Native hedgerow plants',

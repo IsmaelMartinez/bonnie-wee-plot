@@ -9,6 +9,8 @@ import { WebVitalsReporter } from '@/components/web-vitals'
 import { AitorChatProvider } from '@/contexts/AitorChatContext'
 import AitorChatModal from '@/components/ai-advisor/AitorChatModal'
 import AitorChatButton from '@/components/ai-advisor/AitorChatButton'
+import TourProvider from '@/components/onboarding/TourProvider'
+import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -34,12 +36,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AitorChatProvider>
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
-          >
-            Skip to main content
-          </a>
+          <TourProvider>
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-primary-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
+            >
+              Skip to main content
+            </a>
           <OfflineIndicator />
           <StorageWarningBanner />
           <Navigation />
@@ -57,6 +60,8 @@ export default function RootLayout({
           <WebVitalsReporter />
           <AitorChatButton />
           <AitorChatModal />
+          <TourKeyboardShortcut />
+          </TourProvider>
         </AitorChatProvider>
       </body>
     </html>

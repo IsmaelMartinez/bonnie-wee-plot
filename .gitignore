@@ -6,6 +6,9 @@ node_modules/
 # Testing
 /coverage
 
+# TypeScript
+*.tsbuildinfo
+
 # Next.js
 .next/
 out/
@@ -29,6 +32,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# TypeScript
+*.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/
@@ -39,9 +45,6 @@ Thumbs.db
 
 # Worktrees
 .worktrees/
-
-# Claude session handoffs (ephemeral, local only)
-docs/sessions/CURRENT.md
 
 # Logs
 *.log
