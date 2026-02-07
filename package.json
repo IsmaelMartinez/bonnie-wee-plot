@@ -25,17 +25,10 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "test": "playwright test",
+    "test": "vitest run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
-    "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug",
-    "test:headed": "playwright test --headed",
-    "test:chrome": "playwright test --project=chromium",
-    "test:firefox": "playwright test --project=firefox",
-    "test:webkit": "playwright test --project=webkit",
-    "test:all": "npm run test:unit && npm run test",
     "prepare": "husky"
   },
   "dependencies": {
@@ -56,9 +49,7 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.0",
     "@eslint/eslintrc": "^3.3.3",
-    "@playwright/test": "^1.53.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
