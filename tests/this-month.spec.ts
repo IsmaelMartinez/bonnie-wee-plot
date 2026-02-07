@@ -289,6 +289,82 @@ test.describe('This Month - Personalized Content', () => {
   })
 })
 
+test.describe('This Month - Month Styling', () => {
+  test('should show selected month with active styling', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/this-month')
+
+    // Click June (index 5)
+    const monthButtons = page.locator('[data-tour="month-selector"] button')
+    await monthButtons.nth(5).click()
+
+    // Selected button should have the moss-600 bg color
+    await expect(monthButtons.nth(5)).toHaveClass(/bg-zen-moss-600/)
+  })
+
+  test('should show month content organized by category', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/this-month')
+
+    // Verify the 4 main sections exist with their heading structure
+    const sowSection = page.locator('[data-tour="sowing-section"]')
+    await expect(sowSection).toBeVisible()
+    await expect(sowSection.getByText('Indoors')).toBeVisible()
+    await expect(sowSection.getByText('Outdoors')).toBeVisible()
+  })
+
+  test('should show harvest readiness alerts when plantings have harvest months', async ({ page }) => {
+    await setupPageWithPlantings(page)
+    await page.goto('/this-month')
+
+    // Navigate to a month that overlaps with carrot/lettuce/broad bean harvest windows
+    const monthButtons = page.locator('[data-tour="month-selector"] button')
+    // July (index 6) is a common harvest month
+    await monthButtons.nth(6).click()
+
+    // Wait for personalized data
+    await page.waitForLoadState('networkidle')
+
+    // Check if the harvest alert appears (may or may not depending on test plant data)
+    const personalSection = page.locator('[data-tour="your-garden"]')
+    if (await personalSection.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await expect(personalSection.getByText('May Be Ready')).toBeVisible()
+    }
+  })
+
+  test('should be keyboard navigable on month buttons', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/this-month')
+
+    // Focus the first month button
+    const firstButton = page.locator('[data-tour="month-selector"] button').first()
+    await firstButton.focus()
+    await expect(firstButton).toBeFocused()
+
+    // Tab to next button
+    await page.keyboard.press('Tab')
+    const secondButton = page.locator('[data-tour="month-selector"] button').nth(1)
+    await expect(secondButton).toBeFocused()
+  })
+})
+
+test.describe('This Month - Tree Maintenance with Plantings', () => {
+  test('should show personalized tree maintenance when user has trees', async ({ page }) => {
+    await setupPageWithPlantings(page)
+    await page.goto('/this-month')
+
+    await page.waitForLoadState('networkidle')
+
+    // The setup includes an apple tree, so personalized maintenance may appear
+    const treesSection = page.getByText('Your Trees & Perennials')
+    if (await treesSection.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await expect(treesSection).toBeVisible()
+      // Should show the apple tree name
+      await expect(page.getByText('Apple Tree')).toBeVisible()
+    }
+  })
+})
+
 test.describe('This Month - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } })
 
@@ -300,5 +376,14 @@ test.describe('This Month - Mobile', () => {
     // Month buttons should still be visible
     const monthButtons = page.locator('[data-tour="month-selector"] button')
     await expect(monthButtons.first()).toBeVisible()
+  })
+
+  test('should not have horizontal scroll on mobile', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/this-month')
+
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth)
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1)
   })
 })

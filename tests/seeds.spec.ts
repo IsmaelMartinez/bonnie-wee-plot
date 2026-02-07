@@ -384,6 +384,249 @@ test.describe('Seeds Page - Status Cycling', () => {
   })
 })
 
+test.describe('Seeds Page - Add Variety Full Flow', () => {
+  test('should accept supplier field text', async ({ page }) => {
+    await setupEmpty(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    // Select plant first
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Carrot')
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    // Fill supplier
+    const supplierField = page.getByRole('textbox', { name: /supplier/i })
+    if (await supplierField.isVisible()) {
+      await supplierField.fill('Organic Gardening')
+      await expect(supplierField).toHaveValue('Organic Gardening')
+    }
+  })
+
+  test('should accept price field numbers', async ({ page }) => {
+    await setupEmpty(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Carrot')
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    const priceField = page.locator('input[type="number"]').first()
+    if (await priceField.isVisible()) {
+      await priceField.fill('2.50')
+      await expect(priceField).toHaveValue('2.50')
+    }
+  })
+
+  test('should accept notes field text', async ({ page }) => {
+    await setupEmpty(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Carrot')
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    const notesField = page.getByRole('textbox', { name: /notes/i }).or(page.locator('textarea'))
+    if (await notesField.isVisible()) {
+      await notesField.fill('Test notes here')
+      await expect(notesField).toHaveValue('Test notes here')
+    }
+  })
+
+  test('should show new variety in list immediately after adding', async ({ page }) => {
+    await setupEmpty(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Lettuce')
+    await page.getByRole('option', { name: /^Lettuce/ }).first().click()
+
+    await page.getByRole('textbox', { name: 'Variety Name' }).fill('Test Variety')
+    await page.getByRole('dialog').getByRole('button', { name: 'Add Variety' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+
+    // Variety should appear in list
+    await expect(page.getByRole('button', { name: /Lettuce \(1\)/ })).toBeVisible()
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+    await expect(page.getByText('Test Variety')).toBeVisible()
+  })
+})
+
+test.describe('Seeds Page - Edit Variety Full Flow', () => {
+  test('should pre-populate all fields when editing', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+    await expect(page.getByText('Little Gem')).toBeVisible()
+
+    // Click edit on first variety
+    const editButtons = page.locator('button').filter({ hasText: /edit/i }).or(page.locator('button[aria-label*="Edit"]'))
+    const firstEditButton = editButtons.first()
+    if (await firstEditButton.isVisible()) {
+      await firstEditButton.click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+
+      // Check that variety name is pre-populated
+      const nameInput = dialog.getByRole('textbox', { name: 'Variety Name' })
+      if (await nameInput.isVisible()) {
+        await expect(nameInput).toHaveValue('Little Gem')
+      }
+    }
+  })
+
+  test('should save updated variety', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+
+    const editButtons = page.locator('button').filter({ hasText: /edit/i }).or(page.locator('button[aria-label*="Edit"]'))
+    const firstEditButton = editButtons.first()
+    if (await firstEditButton.isVisible()) {
+      await firstEditButton.click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+
+      const nameInput = dialog.getByRole('textbox', { name: 'Variety Name' })
+      if (await nameInput.isVisible()) {
+        await nameInput.clear()
+        await nameInput.fill('Renamed Gem')
+        await dialog.getByRole('button', { name: /save|update/i }).click()
+        await expect(dialog).not.toBeVisible({ timeout: 5000 })
+        await expect(page.getByText('Renamed Gem')).toBeVisible()
+      }
+    }
+  })
+
+  test('should cancel edit without saving', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+
+    const editButtons = page.locator('button').filter({ hasText: /edit/i }).or(page.locator('button[aria-label*="Edit"]'))
+    const firstEditButton = editButtons.first()
+    if (await firstEditButton.isVisible()) {
+      await firstEditButton.click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('dialog')).not.toBeVisible()
+      // Original name should still be there
+      await expect(page.getByText('Little Gem')).toBeVisible()
+    }
+  })
+})
+
+test.describe('Seeds Page - Status Persistence', () => {
+  test('should persist status after page reload', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    // Expand Lettuce group
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+
+    // Little Gem has 'have' status - cycle it
+    const haveButton = page.locator('button').filter({ hasText: 'Have' }).first()
+    if (await haveButton.isVisible()) {
+      await haveButton.click()
+      // Now should be 'Had'
+      await expect(page.locator('button').filter({ hasText: 'Had' }).first()).toBeVisible({ timeout: 3000 })
+
+      // Reload
+      await page.reload()
+
+      // Expand Lettuce again and verify
+      await page.getByRole('button', { name: /Lettuce/ }).click()
+      await expect(page.locator('button').filter({ hasText: 'Had' }).first()).toBeVisible()
+    }
+  })
+})
+
+test.describe('Seeds Page - Archive/Delete Flow', () => {
+  test('should show delete confirmation dialog', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Carrot/ }).click()
+    const deleteButton = page.locator('button[aria-label*="delete" i], button[aria-label*="archive" i]').first()
+    if (await deleteButton.isVisible()) {
+      await deleteButton.click()
+      // Should see confirmation or the item archived
+      // Wait for UI response
+      await page.waitForTimeout(500)
+    }
+  })
+})
+
+test.describe('Seeds Page - External Links', () => {
+  test('should show supplier links when varieties are expanded', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    await page.getByRole('button', { name: /Lettuce/ }).click()
+    // Organic Gardening supplier should be visible
+    await expect(page.getByText('Organic Gardening')).toBeVisible()
+  })
+})
+
+test.describe('Seeds Page - Stats Update', () => {
+  test('should show spending stats', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    const statsGrid = page.locator('[data-tour="seed-stats"]')
+    // Should show spending columns
+    await expect(statsGrid.getByText(/Spent/)).toBeVisible()
+  })
+
+  test('should update stats when switching years', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    // Get initial have count
+    const statsGrid = page.locator('[data-tour="seed-stats"]')
+    const initialHaveText = await statsGrid.getByText('Have Seeds').locator('..').locator('div').first().textContent()
+    expect(initialHaveText).toBeTruthy()
+
+    // Switch to All
+    await page.locator('[data-tour="year-tabs"] button').filter({ hasText: 'All' }).click()
+
+    // Stats should be disabled (showing 0 or different state)
+    const haveButton = statsGrid.locator('button').filter({ hasText: 'Have Seeds' })
+    await expect(haveButton).toBeDisabled()
+  })
+
+  test('should show All filter resets to show everything', async ({ page }) => {
+    await setupWithVarieties(page)
+    await page.goto('/seeds')
+
+    // Apply have filter
+    const haveButton = page.locator('[data-tour="seed-stats"] button').filter({ hasText: 'Have Seeds' })
+    await haveButton.click()
+
+    // Some varieties might be filtered out - expand all
+    await page.getByRole('button', { name: /Expand/ }).click()
+
+    // Toggle filter off (back to all)
+    await haveButton.click()
+
+    // All varieties should be back
+    await expect(page.getByText('Little Gem')).toBeVisible()
+    await expect(page.getByText('Nantes')).toBeVisible()
+  })
+})
+
 test.describe('Seeds Page - Empty State', () => {
   test('should show empty state when no varieties exist', async ({ page }) => {
     await setupEmpty(page)

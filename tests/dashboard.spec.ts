@@ -140,6 +140,133 @@ test.describe('Dashboard (Today) Page', () => {
   })
 })
 
+test.describe('Dashboard - Season Card Details', () => {
+  test('should display seasonal emoji in season card', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const seasonCard = page.locator('[data-tour="season-card"]')
+    // Seasonal emoji is rendered with role="img"
+    const emoji = seasonCard.locator('[role="img"]')
+    await expect(emoji).toBeVisible()
+  })
+
+  test('should display seasonal phase action text', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const seasonCard = page.locator('[data-tour="season-card"]')
+    // Phase action text is a <p> after the heading
+    const actionText = seasonCard.locator('p.text-white\\/90')
+    await expect(actionText).toBeVisible()
+    const text = await actionText.textContent()
+    expect(text!.length).toBeGreaterThan(10)
+  })
+
+  test('should show month name in season card', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const seasonCard = page.locator('[data-tour="season-card"]')
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December']
+    const currentMonth = months[new Date().getMonth()]
+    await expect(seasonCard.getByText(currentMonth)).toBeVisible()
+  })
+})
+
+test.describe('Dashboard - Quick Actions Labels', () => {
+  test('should have descriptive text for each quick action on desktop', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    // Desktop descriptions (hidden on mobile)
+    await expect(page.getByText('View beds')).toBeVisible()
+    await expect(page.getByText('Manage stock')).toBeVisible()
+    await expect(page.getByText('Get advice')).toBeVisible()
+    await expect(page.getByText('What to do')).toBeVisible()
+  })
+})
+
+test.describe('Dashboard - AI Insight', () => {
+  test('should display AI insight section', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const insight = page.locator('[data-tour="ai-insight"]')
+    await expect(insight).toBeVisible()
+  })
+
+  test('should show Aitor suggests label', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    await expect(page.getByText('Aitor suggests')).toBeVisible()
+  })
+
+  test('should have non-empty insight text', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const insight = page.locator('[data-tour="ai-insight"]')
+    const text = await insight.textContent()
+    expect(text!.length).toBeGreaterThan(30)
+  })
+})
+
+test.describe('Dashboard - Task List', () => {
+  test('should display task list section', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const taskList = page.locator('[data-tour="task-list"]')
+    await expect(taskList).toBeVisible()
+  })
+
+  test('should show tasks heading', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const taskList = page.locator('[data-tour="task-list"]')
+    await expect(taskList.getByText('Tasks')).toBeVisible()
+  })
+
+  test('should show empty state or task items', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const taskList = page.locator('[data-tour="task-list"]')
+    // Either shows "No tasks this month" empty state or actual tasks
+    const text = await taskList.textContent()
+    expect(text!.length).toBeGreaterThan(5)
+  })
+})
+
+test.describe('Dashboard - No Horizontal Scroll', () => {
+  test.use({ viewport: { width: 375, height: 667 } })
+
+  test('should not have horizontal scroll on mobile', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    const clientWidth = await page.evaluate(() => document.documentElement.clientWidth)
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1) // +1 for rounding
+  })
+
+  test('quick action touch targets should be at least 44px', async ({ page }) => {
+    await setupPage(page)
+    await page.goto('/')
+
+    const quickActions = page.locator('[data-tour="quick-actions"] a')
+    const count = await quickActions.count()
+    for (let i = 0; i < count; i++) {
+      const box = await quickActions.nth(i).boundingBox()
+      expect(box!.height).toBeGreaterThanOrEqual(44)
+    }
+  })
+})
+
 test.describe('Dashboard - Compost Alerts', () => {
   test('should not show compost alerts when feature is locked', async ({ page }) => {
     await setupPage(page)

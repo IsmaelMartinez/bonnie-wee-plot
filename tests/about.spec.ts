@@ -121,6 +121,38 @@ test.describe('About Page', () => {
   })
 })
 
+test.describe('About Page - BYO API Key Section', () => {
+  test('should explain the BYO concept clearly', async ({ page }) => {
+    await page.goto('/about')
+    await disableTours(page)
+
+    // Should have explanation text about bringing your own key
+    await expect(page.getByText(/personalized gardening advice/)).toBeVisible()
+    await expect(page.getByText(/BYO API Key/)).toBeVisible()
+  })
+
+  test('should mention benefits of AI advisor', async ({ page }) => {
+    await page.goto('/about')
+    await disableTours(page)
+
+    // Should have text about what Aitor can help with
+    await expect(page.getByText(/pests|planting|companion|garden/i)).toBeVisible()
+  })
+
+  test('should use approachable language', async ({ page }) => {
+    await page.goto('/about')
+    await disableTours(page)
+
+    // Verify the section doesn't use intimidating technical jargon
+    const aitorSection = page.locator('section').filter({ hasText: 'Ask Aitor' })
+    const text = await aitorSection.textContent()
+    // Should use friendly language
+    expect(text).toContain('advice')
+    expect(text).not.toContain('endpoint')
+    expect(text).not.toContain('REST')
+  })
+})
+
 test.describe('About Page - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } })
 

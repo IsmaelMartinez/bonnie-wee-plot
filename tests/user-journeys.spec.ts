@@ -182,7 +182,88 @@ test.describe('Journey 3: Check What To Do', () => {
   })
 })
 
+test.describe('Journey 3b: Check What To Do - Full Flow', () => {
+  test('should view tasks on dashboard and explore this-month calendar', async ({ page }) => {
+    await setupFreshUser(page)
+    await page.goto('/')
+
+    // 1. Dashboard loads
+    await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible()
+
+    // 2. Task list section visible
+    const taskList = page.locator('[data-tour="task-list"]')
+    await expect(taskList).toBeVisible()
+
+    // 3. Navigate to This Month
+    await page.locator('[data-tour="quick-actions"] a[href="/this-month"]').click()
+
+    // 4. Select current month (should be auto-selected)
+    await expect(page.getByText("You're viewing the current month")).toBeVisible()
+
+    // 5. See calendar sections
+    await expect(page.getByRole('heading', { name: 'What to Sow' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Ready to Harvest' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Key Tasks' })).toBeVisible()
+  })
+})
+
 test.describe('Journey 4: Add Seeds I Bought', () => {
+  test('should add a variety with supplier and price, then use it in allotment', async ({ page }) => {
+    await setupFreshUser(page)
+
+    // 1. Go to Seeds page
+    await page.goto('/seeds')
+    await expect(page.getByRole('heading', { name: /Seeds & Varieties/i })).toBeVisible({ timeout: 15000 })
+
+    // 2. Add a variety with all fields
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Carrot')
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    await page.getByRole('textbox', { name: 'Variety Name' }).fill('Autumn King')
+
+    // Fill supplier and price if visible
+    const supplierField = page.getByRole('textbox', { name: /supplier/i })
+    if (await supplierField.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await supplierField.fill('Organic Gardening')
+    }
+    const priceField = page.locator('input[type="number"]').first()
+    if (await priceField.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await priceField.fill('2.50')
+    }
+
+    await page.getByRole('dialog').getByRole('button', { name: 'Add Variety' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+
+    // 3. Verify variety appears
+    await expect(page.getByRole('button', { name: /Carrot \(1\)/ })).toBeVisible()
+
+    // 4. Navigate to allotment
+    await page.goto('/allotment')
+    await expect(page.locator('h1').filter({ hasText: /Plot Layout/i })).toBeVisible({ timeout: 15000 })
+
+    // 5. Select bed and add planting
+    const selected = await selectRotationBed(page)
+    if (!selected) return
+
+    await page.locator('button').filter({ hasText: /^Add$/ }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+
+    const allotmentCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await allotmentCombobox.click()
+    await allotmentCombobox.fill('Carrot')
+    await page.getByRole('option', { name: /^Carrot/ }).first().click()
+
+    await page.getByRole('dialog').getByRole('button', { name: /Add Planting/i }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
+
+    await expect(page.getByText('Carrot')).toBeVisible()
+  })
+
   test('should add a variety in seeds and use it when adding a planting', async ({ page }) => {
     await setupFreshUser(page)
 
@@ -236,6 +317,36 @@ test.describe('Journey 4: Add Seeds I Bought', () => {
   })
 })
 
+test.describe('Journey 4b: Set Seed Status to Have', () => {
+  test('should set seed status to have on the seeds page', async ({ page }) => {
+    await setupFreshUser(page)
+
+    // Add a variety first
+    await page.goto('/seeds')
+    await expect(page.getByRole('heading', { name: /Seeds & Varieties/i })).toBeVisible({ timeout: 15000 })
+
+    await page.getByRole('button', { name: /Add Variety/i }).click()
+    const plantCombobox = page.getByRole('combobox', { name: 'Search for a plant' })
+    await plantCombobox.click()
+    await plantCombobox.fill('Tomato')
+    await page.getByRole('option', { name: /Tomato/ }).first().click()
+    await page.getByRole('textbox', { name: 'Variety Name' }).fill('Moneymaker')
+    await page.getByRole('dialog').getByRole('button', { name: 'Add Variety' }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible()
+
+    // Expand the group
+    await page.getByRole('button', { name: /Tomato \(1\)/ }).click()
+
+    // Cycle status: Need -> Ordered -> Have
+    const statusButton = page.locator('button').filter({ hasText: 'Need' }).first()
+    if (await statusButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await statusButton.click() // Need -> Ordered
+      await page.locator('button').filter({ hasText: 'Ordered' }).first().click() // Ordered -> Have
+      await expect(page.locator('button').filter({ hasText: 'Have' }).first()).toBeVisible()
+    }
+  })
+})
+
 test.describe('Journey 5: Navigate Cross-Section', () => {
   test('should navigate between all main sections smoothly', async ({ page }) => {
     await setupFreshUser(page)
@@ -264,8 +375,58 @@ test.describe('Journey 5: Navigate Cross-Section', () => {
     await expect(page).toHaveURL(/compost/)
     await expect(page.getByRole('heading', { name: /Compost/i }).first()).toBeVisible()
 
+    // Go to About via nav
+    await page.getByRole('link', { name: /About/i }).click()
+    await expect(page).toHaveURL(/about/)
+    await expect(page.getByRole('heading', { name: /Bonnie Wee Plot/i })).toBeVisible()
+
+    // Go to Settings
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: /Settings/i })).toBeVisible()
+
     // Go back to Today via nav
     await page.getByRole('link', { name: /Today/i }).click()
     await expect(page).toHaveURL('/')
+  })
+})
+
+test.describe('Journey 6: Ask for Help', () => {
+  test('should open AI advisor and interact with it', async ({ page }) => {
+    await setupFreshUser(page)
+    await page.goto('/')
+
+    // 1. AI advisor button should be visible (features are unlocked)
+    const aitorButton = page.getByRole('button', { name: /Ask Aitor/i })
+    await expect(aitorButton).toBeVisible()
+
+    // 2. Click to open modal
+    await aitorButton.click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await expect(page.getByText('Ask Aitor')).toBeVisible()
+
+    // 3. Quick topics should be visible
+    const topicButtons = page.getByRole('dialog').locator('button').filter({ hasText: /.{10,}/ })
+    const topicCount = await topicButtons.count()
+    if (topicCount > 0) {
+      // 4. Click a quick topic
+      await topicButtons.first().click()
+
+      // Message should appear in chat
+      await page.waitForTimeout(1000)
+    } else {
+      // Type a question
+      const input = page.locator('input[aria-label*="gardening question"]').or(page.locator('input[placeholder*="Ask about"]'))
+      await input.fill('What should I plant?')
+      await input.press('Enter')
+    }
+
+    // 5. Chat log should have content
+    const chatLog = page.locator('[role="log"]')
+    const text = await chatLog.textContent()
+    expect(text!.length).toBeGreaterThan(0)
+
+    // 6. Close modal
+    await page.getByRole('button', { name: /Close/i }).click()
+    await expect(page.getByRole('dialog')).not.toBeVisible()
   })
 })
