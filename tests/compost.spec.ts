@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test'
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // Helper to wait for page to be ready
 async function waitForPageReady(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle')
@@ -9,6 +15,7 @@ test.describe('Compost Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
   })
@@ -33,6 +40,7 @@ test.describe('Compost Pile CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
   })
@@ -147,6 +155,7 @@ test.describe('Compost Inputs', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
   })
@@ -200,6 +209,7 @@ test.describe('Compost Events', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
   })
@@ -233,6 +243,7 @@ test.describe('Compost Status Changes', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
   })
@@ -262,6 +273,7 @@ test.describe('Compost Data Persistence', () => {
   test('should persist piles across page reloads', async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
 
@@ -330,6 +342,7 @@ test.describe('Compost Empty State', () => {
   test('should show empty state when no piles exist', async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
 
@@ -340,6 +353,7 @@ test.describe('Compost Empty State', () => {
   test('should create pile from empty state button', async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await waitForPageReady(page)
 

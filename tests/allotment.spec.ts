@@ -39,6 +39,7 @@ async function seedTestData(page: import('@playwright/test').Page) {
       gardenEvents: []
     }
     localStorage.setItem('allotment-unified-data', JSON.stringify(testData))
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
   await page.reload()
   await page.waitForLoadState('domcontentloaded')

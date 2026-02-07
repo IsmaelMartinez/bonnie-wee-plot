@@ -1,5 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // ============ HELPERS ============
 
 /**
@@ -14,6 +20,7 @@ async function skipOnboarding(page: Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 
@@ -115,6 +122,7 @@ test.describe('Progressive Disclosure - Navigation', () => {
   test('new users see only 3 primary nav items (Today, This Month, Seeds)', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Primary nav should show exactly 3 items (use exact match for nav links)
     const nav = page.getByRole('navigation')
@@ -134,6 +142,7 @@ test.describe('Progressive Disclosure - Navigation', () => {
   test('locked features show lock icon and progress bar in More dropdown', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -151,6 +160,7 @@ test.describe('Progressive Disclosure - Navigation', () => {
   test('shows progress text for locked features', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -185,6 +195,7 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // AI Advisor should be unlocked - floating button should be visible
     const aitorButton = page.locator('button[aria-label*="Aitor"]')
@@ -209,6 +220,7 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     }, allotmentData)
     await page.goto('/')
+    await disableTours(page)
 
     // AI Advisor should be unlocked - floating button should be visible
     const aitorButton = page.locator('button[aria-label*="Aitor"]')
@@ -222,6 +234,7 @@ test.describe('Progressive Disclosure - AI Advisor Unlock', () => {
   test('AI Advisor stays locked with 0 visits and 0 plantings', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // AI Advisor should be locked - floating button should NOT be visible
     const aitorButton = page.locator('button[aria-label*="Aitor"]')
@@ -255,6 +268,7 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
       ]))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Compost should be unlocked and promoted to primary nav
     const compostLink = page.getByRole('link', { name: /Compost/i })
@@ -279,6 +293,7 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
       ]))
     }, allotmentData)
     await page.goto('/')
+    await disableTours(page)
 
     // Compost should be unlocked and promoted to primary nav
     const compostLink = page.getByRole('link', { name: /Compost/i })
@@ -305,6 +320,7 @@ test.describe('Progressive Disclosure - Compost Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -341,6 +357,7 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
       ]))
     }, allotmentData)
     await page.goto('/')
+    await disableTours(page)
 
     // Allotment should be unlocked and promoted to primary nav
     const allotmentLink = page.getByRole('link', { name: 'Allotment', exact: true })
@@ -363,6 +380,7 @@ test.describe('Progressive Disclosure - Allotment Layout Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
     }, allotmentData)
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -392,6 +410,7 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -415,6 +434,7 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -438,6 +458,7 @@ test.describe('Progressive Disclosure - Manual Unlock', () => {
       localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['compost']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown and manually unlock Compost
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -465,6 +486,7 @@ test.describe('Progressive Disclosure - Mobile', () => {
   test('mobile menu shows locked features with progress', async ({ page }) => {
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')
@@ -487,6 +509,7 @@ test.describe('Progressive Disclosure - Mobile', () => {
       ]))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')

@@ -2,6 +2,12 @@ import { test, expect, type Page } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // Helper to wait for import to complete
 // Import now does an immediate page reload, so we race between success message and navigation
 async function waitForImportComplete(page: Page) {
@@ -136,6 +142,7 @@ test.describe('Variety Management E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment', { waitUntil: 'load', timeout: 60000 })
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload({ waitUntil: 'load', timeout: 60000 })
     await page.waitForLoadState('networkidle', { timeout: 30000 })
   })
