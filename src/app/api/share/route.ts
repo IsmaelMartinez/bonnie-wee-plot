@@ -2,7 +2,7 @@
  * Share API - POST endpoint
  *
  * Stores allotment data temporarily in Upstash Redis with a short code.
- * Data expires after 5 minutes for security.
+ * Data expires after a configurable time (default 1 day, max 7 days).
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -28,8 +28,10 @@ function generateShareCode(): string {
   return code
 }
 
-// Expiry time in seconds (5 minutes)
-const EXPIRY_SECONDS = 5 * 60
+// Default expiry time in minutes (1 day)
+const DEFAULT_EXPIRY_MINUTES = 1440
+// Maximum expiry time in minutes (7 days)
+const MAX_EXPIRY_MINUTES = 10080
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,7 +65,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { allotment } = body as { allotment: AllotmentData }
+    const { allotment, expirationMinutes: requestedExpiry } = body as {
+      allotment: AllotmentData
+      expirationMinutes?: number
+    }
+
+    // Calculate expiry time in seconds (validated and capped)
+    const expirationMinutes = Math.min(
+      Math.max(requestedExpiry ?? DEFAULT_EXPIRY_MINUTES, 1), // At least 1 minute
+      MAX_EXPIRY_MINUTES // Cap at 7 days
+    )
+    const expirySeconds = expirationMinutes * 60
 
     // Validate the allotment data
     const validation = validateAllotmentData(allotment)
@@ -98,16 +110,16 @@ export async function POST(request: NextRequest) {
     }
 
     await redis.set(`share:${code}`, JSON.stringify(shareData), {
-      ex: EXPIRY_SECONDS,
+      ex: expirySeconds,
     })
 
     // Calculate expiry time
-    const expiresAt = new Date(Date.now() + EXPIRY_SECONDS * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + expirySeconds * 1000).toISOString()
 
     return NextResponse.json({
       code,
       expiresAt,
-      expiresInSeconds: EXPIRY_SECONDS,
+      expiresInSeconds: expirySeconds,
     })
   } catch (error) {
     logger.error('Share API error', { error: error instanceof Error ? error.message : 'Unknown error' })
