@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test'
 import { checkA11y, runA11yScan, formatViolations } from './utils/accessibility'
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 /**
  * Accessibility tests for all main routes
  *
@@ -12,12 +18,14 @@ import { checkA11y, runA11yScan, formatViolations } from './utils/accessibility'
 test.describe('Accessibility - Homepage', () => {
   test('homepage should have no critical accessibility violations', async ({ page }) => {
     await page.goto('/')
+    await disableTours(page)
     await checkA11y(page)
   })
 
   test('homepage mobile view should be accessible', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
     await page.goto('/')
+    await disableTours(page)
     await checkA11y(page)
   })
 })
@@ -26,6 +34,7 @@ test.describe('Accessibility - Allotment Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
   })
@@ -53,7 +62,7 @@ test.describe('Accessibility - Allotment Page', () => {
 
 test.describe('Accessibility - AI Advisor Modal', () => {
   test('ai-advisor modal should have no critical accessibility violations', async ({ page }) => {
-    // Unlock AI advisor and mark all celebrations as shown
+    // Set up allotment data to skip onboarding
     await page.addInitScript(() => {
       localStorage.setItem('allotment-unified-data', JSON.stringify({
         meta: { setupCompleted: true },
@@ -62,14 +71,9 @@ test.describe('Accessibility - AI Advisor Modal', () => {
         currentYear: new Date().getFullYear(),
         varieties: []
       }))
-      localStorage.setItem('allotment-engagement', JSON.stringify({
-        visitCount: 3,
-        lastVisit: new Date().toISOString(),
-        manuallyUnlocked: ['ai-advisor']
-      }))
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
     })
     await page.goto('/')
+    await disableTours(page)
 
     // Open the modal via floating button
     const aitorButton = page.locator('button[aria-label*="Aitor"]')
@@ -86,6 +90,7 @@ test.describe('Accessibility - Seeds Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/seeds')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
   })
@@ -107,6 +112,7 @@ test.describe('Accessibility - Seeds Page', () => {
 test.describe('Accessibility - This Month Page', () => {
   test('this-month page should have no critical accessibility violations', async ({ page }) => {
     await page.goto('/this-month')
+    await disableTours(page)
     await checkA11y(page)
   })
 })
@@ -115,6 +121,7 @@ test.describe('Accessibility - Compost Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
   })
@@ -133,6 +140,7 @@ test.describe('Accessibility - Compost Page', () => {
 test.describe('Accessibility - About Page', () => {
   test('about page should have no critical accessibility violations', async ({ page }) => {
     await page.goto('/about')
+    await disableTours(page)
     await checkA11y(page)
   })
 })
@@ -164,6 +172,7 @@ test.describe('Accessibility - Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 720 })
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Open More dropdown
     const moreButton = page.locator('header button').filter({ hasText: 'More' })
@@ -178,6 +187,7 @@ test.describe('Accessibility - Navigation', () => {
     await page.setViewportSize({ width: 375, height: 667 })
     await skipOnboarding(page)
     await page.goto('/')
+    await disableTours(page)
 
     // Open mobile menu
     const menuButton = page.getByLabel('Open menu')
@@ -204,6 +214,7 @@ test.describe('Accessibility - Detailed Report', () => {
 
     for (const route of routes) {
       await page.goto(route.path)
+      await disableTours(page)
       await page.waitForLoadState('networkidle')
 
       const results = await runA11yScan(page)

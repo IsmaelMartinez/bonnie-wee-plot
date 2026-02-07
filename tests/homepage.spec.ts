@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // Helper to skip onboarding by marking setup as complete
 async function skipOnboarding(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
@@ -11,23 +17,10 @@ async function skipOnboarding(page: import('@playwright/test').Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 
-// Helper to unlock all features for navigation tests
-async function unlockAllFeatures(page: import('@playwright/test').Page) {
-  await page.evaluate(() => {
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }));
-    // Mark all celebrations as already shown to prevent modals
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
-      'ai-advisor', 'compost', 'allotment-layout'
-    ]));
-  });
-}
 
 test.describe('Homepage and Navigation', () => {
   test('should display the homepage with correct content', async ({ page }) => {
@@ -43,11 +36,7 @@ test.describe('Homepage and Navigation', () => {
     await skipOnboarding(page)
     await page.goto('/');
 
-    // Unlock all features for navigation testing
-    await unlockAllFeatures(page);
-    await page.reload();
-
-    // AI advisor is now accessed via floating button
+    // AI advisor is accessed via floating button
     const aitorButton = page.locator('button[aria-label*="Aitor"]');
     await expect(aitorButton).toBeVisible();
     await aitorButton.click();
@@ -59,6 +48,7 @@ test.describe('Homepage and Navigation', () => {
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
+    await disableTours(page);
 
     // Check that Today heading is still visible on mobile
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
@@ -66,6 +56,7 @@ test.describe('Homepage and Navigation', () => {
 
   test('should have proper meta tags', async ({ page }) => {
     await page.goto('/');
+    await disableTours(page);
 
     // Check that the page has proper meta tags
     const title = await page.title();
@@ -86,6 +77,7 @@ test.describe('Homepage and Navigation', () => {
     });
 
     await page.goto('/');
+    await disableTours(page);
 
     // Wait for any potential JavaScript to execute
     await page.waitForLoadState('networkidle');
@@ -104,6 +96,7 @@ test.describe('Homepage and Navigation', () => {
 
   test('should have no critical accessibility violations', async ({ page }) => {
     await page.goto('/');
+    await disableTours(page);
     await checkA11y(page);
   });
 });
@@ -130,24 +123,16 @@ test.describe('More Dropdown Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
 
-    // Locked features show in dropdown with Unlock now button
-    const unlockButton = page.locator('[role="menu"]').getByText('Unlock now');
-    await expect(unlockButton.first()).toBeVisible();
-
-    // Settings/About links are always in dropdown
+    // Settings/About links are in dropdown
     const aboutLink = page.locator('a[href^="/about"]');
     await expect(aboutLink).toBeVisible();
   });
 
-  test('should navigate to Compost from primary nav when unlocked', async ({ page }) => {
+  test('should navigate to Compost from primary nav', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
 
-    // Unlock all features for navigation testing
-    await unlockAllFeatures(page);
-    await page.reload();
-
-    // When unlocked, Compost appears in primary nav (not dropdown)
+    // Compost is in primary nav
     const compostLink = page.getByRole('link', { name: /Compost/i });
     await expect(compostLink).toBeVisible();
     await compostLink.click();

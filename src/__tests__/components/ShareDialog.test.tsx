@@ -55,6 +55,15 @@ const mockAllotmentData: AllotmentData = {
   varieties: [],
 }
 
+// Helper to open dialog and click create share link button
+async function openDialogAndShare() {
+  await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /create share link/i })).toBeInTheDocument()
+  })
+  await userEvent.click(screen.getByRole('button', { name: /create share link/i }))
+}
+
 describe('ShareDialog Component', () => {
   const mockFlushSave = vi.fn().mockResolvedValue(true)
 
@@ -88,8 +97,58 @@ describe('ShareDialog Component', () => {
     })
   })
 
-  describe('Dialog opening and auto-share', () => {
+  describe('Dialog opening and expiration selection', () => {
     it('opens dialog when share button is clicked', async () => {
+      render(<ShareDialog data={mockAllotmentData} />)
+
+      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
+        // Check for the dialog title specifically (in h2 element)
+        expect(screen.getByRole('heading', { name: /share your allotment/i })).toBeInTheDocument()
+      })
+    })
+
+    it('shows expiration selection options when dialog opens', async () => {
+      render(<ShareDialog data={mockAllotmentData} />)
+
+      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/how long should the share link be valid/i)).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: '5 minutes' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: '1 hour' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: '1 day' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: '7 days' })).toBeInTheDocument()
+      })
+    })
+
+    it('starts sharing when create share link button is clicked', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          code: 'ABC123',
+          expiresAt: new Date(Date.now() + 300000).toISOString(),
+          expiresInSeconds: 300,
+        }),
+      })
+
+      render(<ShareDialog data={mockAllotmentData} flushSave={mockFlushSave} />)
+
+      await openDialogAndShare()
+
+      await waitFor(() => {
+        expect(mockFlushSave).toHaveBeenCalled()
+        expect(mockFetch).toHaveBeenCalledWith('/api/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ allotment: mockAllotmentData, expirationMinutes: 1440 }),
+        })
+      })
+    })
+
+    it('sends selected expiration duration to API', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
@@ -104,32 +163,19 @@ describe('ShareDialog Component', () => {
       await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
 
       await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument()
-        // Check for the dialog title specifically (in h2 element)
-        expect(screen.getByRole('heading', { name: /share your allotment/i })).toBeInTheDocument()
-      })
-    })
-
-    it('automatically starts sharing when dialog opens', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          code: 'ABC123',
-          expiresAt: new Date(Date.now() + 300000).toISOString(),
-          expiresInSeconds: 300,
-        }),
+        expect(screen.getByLabelText(/how long should the share link be valid/i)).toBeInTheDocument()
       })
 
-      render(<ShareDialog data={mockAllotmentData} flushSave={mockFlushSave} />)
+      // Select 5 minutes option
+      await userEvent.selectOptions(screen.getByLabelText(/how long should the share link be valid/i), '5')
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await userEvent.click(screen.getByRole('button', { name: /create share link/i }))
 
       await waitFor(() => {
-        expect(mockFlushSave).toHaveBeenCalled()
         expect(mockFetch).toHaveBeenCalledWith('/api/share', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ allotment: mockAllotmentData }),
+          body: JSON.stringify({ allotment: mockAllotmentData, expirationMinutes: 5 }),
         })
       })
     })
@@ -142,7 +188,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/creating share link/i)).toBeInTheDocument()
@@ -163,7 +209,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         // QR code should be visible
@@ -186,7 +232,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         const urlInput = screen.getByRole('textbox')
@@ -206,7 +252,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         const qrCode = screen.getByTestId('qr-code')
@@ -224,7 +270,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/unable to share/i)).toBeInTheDocument()
@@ -240,7 +286,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
@@ -256,7 +302,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
@@ -285,7 +331,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/unable to share/i)).toBeInTheDocument()
@@ -307,7 +353,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument()
@@ -330,7 +376,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument()
@@ -357,7 +403,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /copy link/i })).toBeInTheDocument()
@@ -403,7 +449,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/expires in/i)).toBeInTheDocument()
@@ -423,7 +469,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText('1:00')).toBeInTheDocument()
@@ -460,7 +506,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText('0:02')).toBeInTheDocument()
@@ -488,7 +534,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText('2:05')).toBeInTheDocument()
@@ -509,8 +555,8 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      // Open dialog
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      // Open dialog and share
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByTestId('qr-code')).toBeInTheDocument()
@@ -523,7 +569,15 @@ describe('ShareDialog Component', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
 
-      // Re-open dialog - should start fresh
+      // Re-open dialog - should show selection screen again
+      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+
+      await waitFor(() => {
+        // Should show expiration selection again
+        expect(screen.getByRole('button', { name: /create share link/i })).toBeInTheDocument()
+      })
+
+      // Share again
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
@@ -533,10 +587,10 @@ describe('ShareDialog Component', () => {
         }),
       })
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await userEvent.click(screen.getByRole('button', { name: /create share link/i }))
 
       await waitFor(() => {
-        // Should be loading again (new share)
+        // Should have made a second API call
         expect(mockFetch).toHaveBeenCalledTimes(2)
       })
     })
@@ -555,7 +609,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/on the receiving device/i)).toBeInTheDocument()
@@ -575,7 +629,7 @@ describe('ShareDialog Component', () => {
 
       render(<ShareDialog data={mockAllotmentData} />)
 
-      await userEvent.click(screen.getByRole('button', { name: /share my allotment/i }))
+      await openDialogAndShare()
 
       await waitFor(() => {
         expect(screen.getByText(/or enter this code/i)).toBeInTheDocument()

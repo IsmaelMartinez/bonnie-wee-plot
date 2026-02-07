@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-// Helper to set up test data with AI advisor unlocked
-async function setupWithAiAdvisor(page: import('@playwright/test').Page) {
+async function setupPage(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
     // Set up allotment data with setup completed to skip onboarding
     localStorage.setItem('allotment-unified-data', JSON.stringify({
@@ -11,20 +10,14 @@ async function setupWithAiAdvisor(page: import('@playwright/test').Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
-    // Unlock AI advisor feature
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 5,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor']
-    }))
-    // Mark all celebrations as shown to prevent modals
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
+    // Disable tours to prevent overlays blocking interactions
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 
 test.describe('AI Advisor (Aitor)', () => {
   test.beforeEach(async ({ page }) => {
-    await setupWithAiAdvisor(page)
+    await setupPage(page)
   })
 
   test('should open modal when clicking floating button', async ({ page }) => {

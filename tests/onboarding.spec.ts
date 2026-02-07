@@ -52,6 +52,7 @@ async function skipOnboarding(page: Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 
@@ -63,6 +64,7 @@ test.describe('Onboarding Wizard - Display', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -79,6 +81,7 @@ test.describe('Onboarding Wizard - Display', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -126,6 +129,7 @@ test.describe('Onboarding Wizard - Explore Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -159,6 +163,7 @@ test.describe('Onboarding Wizard - Explore Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -177,14 +182,7 @@ test.describe('Onboarding Wizard - Plan Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
-      // Also manually unlock allotment for this test since it navigates there
-      localStorage.setItem('allotment-engagement', JSON.stringify({
-        visitCount: 0,
-        lastVisit: new Date().toISOString(),
-        manuallyUnlocked: ['allotment-layout']
-      }))
-      // Mark celebrations as shown to prevent modals
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['allotment-layout']))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -216,6 +214,7 @@ test.describe('Onboarding Wizard - Plan Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -234,14 +233,7 @@ test.describe('Onboarding Wizard - Ask Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
-      // Also manually unlock ai-advisor for this test
-      localStorage.setItem('allotment-engagement', JSON.stringify({
-        visitCount: 0,
-        lastVisit: new Date().toISOString(),
-        manuallyUnlocked: ['ai-advisor']
-      }))
-      // Mark celebrations as shown to prevent modals
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor']))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -277,6 +269,7 @@ test.describe('Onboarding Wizard - Ask Path', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -295,6 +288,7 @@ test.describe('Onboarding Wizard - Skip', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -319,6 +313,7 @@ test.describe('Onboarding Wizard - Skip', () => {
       if (!localStorage.getItem('allotment-unified-data')) {
         localStorage.setItem('allotment-unified-data', JSON.stringify(data))
       }
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -347,6 +342,7 @@ test.describe('Onboarding Wizard - Back Navigation', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -370,6 +366,7 @@ test.describe('Onboarding Wizard - Back Navigation', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -397,6 +394,7 @@ test.describe('Onboarding Wizard - Completion State', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -430,6 +428,7 @@ test.describe('Onboarding Wizard - Completion State', () => {
       if (!localStorage.getItem('allotment-unified-data')) {
         localStorage.setItem('allotment-unified-data', JSON.stringify(data))
       }
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -461,6 +460,7 @@ test.describe('Onboarding Wizard - Mobile', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 
@@ -478,6 +478,7 @@ test.describe('Onboarding Wizard - Mobile', () => {
 
     await page.addInitScript((data) => {
       localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
 

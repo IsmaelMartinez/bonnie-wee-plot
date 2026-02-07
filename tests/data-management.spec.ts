@@ -2,6 +2,12 @@ import { test, expect } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // Helper function to enable edit mode and add an area
 async function addAreaInEditMode(page: import('@playwright/test').Page, areaName: string) {
   // Click Lock/Locked button to enter edit mode
@@ -26,6 +32,7 @@ test.describe('Data Management - Export/Import', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
     await page.evaluate(() => localStorage.clear())
+    await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
   })

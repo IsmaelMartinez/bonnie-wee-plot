@@ -1,8 +1,10 @@
 # Product Roadmap - Quick Reference
 
 **File:** `docs/research/product-roadmap.md`
-**Status:** Ready for Review
+**Status:** Partially Obsolete
 **Last Updated:** January 2026
+
+> **Note (Feb 2026):** Progressive disclosure / feature gating was implemented then removed. All features are now directly accessible in the navigation. The unlock conditions, celebration modals, and feature flag system described below no longer exist. This document is retained for historical context on the product strategy decisions.
 
 ---
 

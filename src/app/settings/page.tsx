@@ -5,9 +5,8 @@ import { ShareDialog } from '@/components/share/ShareDialog'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import Link from 'next/link'
-import { Download, ArrowRight, Shield, MapPin, Leaf, Lock, Database, HelpCircle } from 'lucide-react'
+import { Download, ArrowRight, Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataManagement from '@/components/allotment/DataManagement'
 import PageTour from '@/components/onboarding/PageTour'
@@ -17,7 +16,6 @@ export default function SettingsPage() {
   const { data, flushSave, reload } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
-  const { isUnlocked } = useFeatureFlags(data)
   const [tempToken, setTempToken] = useState('')
 
   // Sync temp token with actual token
@@ -53,8 +51,6 @@ export default function SettingsPage() {
     e.preventDefault()
   }
 
-  const aiUnlocked = isUnlocked('ai-advisor')
-
   return (
     <main className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
@@ -67,93 +63,79 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2 mb-4">
           <Leaf className="w-5 h-5 text-zen-moss-600" />
           <h2 className="text-lg font-medium text-zen-ink-700">AI Assistant (Aitor)</h2>
-          {!aiUnlocked && (
-            <span className="inline-flex items-center gap-1 text-xs text-zen-stone-500 bg-zen-stone-100 px-2 py-0.5 rounded-full">
-              <Lock className="w-3 h-3" />
-              Locked
-            </span>
-          )}
         </div>
 
-        {!aiUnlocked ? (
-          <p className="text-sm text-gray-600 mb-4">
-            Aitor is your AI gardening companion. Add a planting or visit the app a few more times to unlock this feature.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-gray-600 mb-4">
-              Configure your OpenAI API key to use Aitor, your AI gardening assistant.
-              Aitor can help with planting advice, pest identification, and even add plants to your garden.
-            </p>
+        <p className="text-sm text-gray-600 mb-4">
+          Configure your OpenAI API key to use Aitor, your AI gardening assistant.
+          Aitor can help with planting advice, pest identification, and even add plants to your garden.
+        </p>
 
-            {/* API Token Configuration */}
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="openai-token" className="block text-sm font-medium text-gray-700 mb-2">
-                  OpenAI API Key
-                </label>
-                <div className="relative">
-                  <input
-                    id="openai-token"
-                    type="password"
-                    value={tempToken}
-                    onChange={(e) => setTempToken(e.target.value)}
-                    onPaste={handlePaste}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Paste your API key here"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
-                    aria-describedby="token-help-text token-privacy-notice"
-                    autoComplete="off"
-                  />
-                </div>
+        {/* API Token Configuration */}
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="openai-token" className="block text-sm font-medium text-gray-700 mb-2">
+              OpenAI API Key
+            </label>
+            <div className="relative">
+              <input
+                id="openai-token"
+                type="password"
+                value={tempToken}
+                onChange={(e) => setTempToken(e.target.value)}
+                onPaste={handlePaste}
+                onKeyDown={handleKeyDown}
+                placeholder="Paste your API key here"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
+                aria-describedby="token-help-text token-privacy-notice"
+                autoComplete="off"
+              />
+            </div>
 
-                <div id="token-help-text" className="mt-2 text-xs text-gray-500">
-                  <p>
-                    Your OpenAI API key from the OpenAI dashboard.{' '}
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zen-moss-600 hover:underline"
-                    >
-                      Get one here
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div id="token-privacy-notice" className="bg-yellow-50 border border-yellow-200 rounded-md p-3" role="note">
-                <div className="flex items-start">
-                  <Shield className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                  <div className="ml-2">
-                    <p className="text-sm text-yellow-800">
-                      <strong>Privacy Notice:</strong> Your token is stored only in your browser session and never saved permanently.
-                      It&apos;s sent securely to OpenAI only when making requests.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSaveToken}
-                  disabled={!tempToken.trim()}
-                  className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+            <div id="token-help-text" className="mt-2 text-xs text-gray-500">
+              <p>
+                Your OpenAI API key from the OpenAI dashboard.{' '}
+                <a
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-zen-moss-600 hover:underline"
                 >
-                  Save Token
-                </button>
-                {token && (
-                  <button
-                    onClick={handleClearToken}
-                    className="zen-btn-secondary min-h-[44px]"
-                  >
-                    Clear Token
-                  </button>
-                )}
+                  Get one here
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div id="token-privacy-notice" className="bg-yellow-50 border border-yellow-200 rounded-md p-3" role="note">
+            <div className="flex items-start">
+              <Shield className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <div className="ml-2">
+                <p className="text-sm text-yellow-800">
+                  <strong>Privacy Notice:</strong> Your token is stored only in your browser session and never saved permanently.
+                  It&apos;s sent securely to OpenAI only when making requests.
+                </p>
               </div>
             </div>
-          </>
-        )}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleSaveToken}
+              disabled={!tempToken.trim()}
+              className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save Token
+            </button>
+            {token && (
+              <button
+                onClick={handleClearToken}
+                className="zen-btn-secondary min-h-[44px]"
+              >
+                Clear Token
+              </button>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Location Section */}
@@ -199,7 +181,7 @@ export default function SettingsPage() {
       <section className="mb-8 zen-card p-6" data-tour="share-settings">
         <h2 className="text-lg font-medium text-zen-ink-700 mb-4">Share Allotment</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Share your allotment data with another device. The share link expires after 5 minutes for security.
+          Share your allotment data with friends, family, or another device. Choose how long the share link stays active (up to 7 days).
         </p>
         <ShareDialog data={data} flushSave={flushSave} />
       </section>
