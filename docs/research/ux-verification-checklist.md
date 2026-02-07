@@ -20,24 +20,24 @@
 - 🔲 Seasonal greeting text matches current season
 
 ### Season Card
-- 🔲 Current season name displays correctly
+- ✅ Current season name displays correctly
 - 🔲 Season-appropriate information shown
 - 🔲 Information hierarchy feels right (most important first)
 
 ### Quick Actions
-- 🔲 All quick action cards are visible
-- 🔲 "Plan your plot" links to /allotment
-- 🔲 "Track seeds" links to /seeds
-- 🔲 "View calendar" links to /this-month
+- ✅ All quick action cards are visible
+- ✅ "Plan your plot" links to /allotment
+- ✅ "Track seeds" links to /seeds
+- ✅ "View calendar" links to /this-month
 - 🔲 Cards have clear icons and labels
 - 🔲 Hover states work correctly 🖥️
 - 🔲 Touch targets are 44px minimum 📱
 
 ### Compost Alerts (when unlocked)
-- 🔲 Only shows when `compost` feature is unlocked
+- ✅ Only shows when `compost` feature is unlocked
 - 🔲 Shows active pile count
 - 🔲 Links to /compost page
-- 🔲 Hidden completely when feature is locked
+- ✅ Hidden completely when feature is locked
 
 ### AI Insight
 - 🔲 Shows contextual gardening tips
@@ -51,7 +51,7 @@
 
 ### Mobile Responsive
 - ✅ Page displays correctly on mobile (375x667)
-- 🔲 Cards stack vertically on narrow screens 📱
+- ✅ Cards stack vertically on narrow screens (grid-cols-2) 📱
 - 🔲 No horizontal scrolling 📱
 - 🔲 Touch targets meet accessibility standards 📱
 
@@ -62,41 +62,41 @@
 ### Page Load
 - ✅ Navigation to page works
 - ✅ No accessibility violations
-- 🔲 Page header shows current month name
+- ✅ Page header shows "This Month"
 - 🔲 Loading state displays while fetching data
 
 ### Month Selector
-- 🔲 All 12 months displayed as buttons
-- 🔲 Current month has animated indicator
-- 🔲 Clicking month button changes selection
+- ✅ All 12 months displayed as buttons
+- ✅ Current month has animated indicator
+- ✅ Clicking month button changes selection
 - 🔲 Selected month has different styling (active state)
 - 🔲 Month emoji shows on desktop, first letter on mobile 📱
 - 🔲 Month buttons are keyboard navigable
 
 ### Calendar Content
-- 🔲 Shows seasonal tasks (sow indoors, sow outdoors, plant out, harvest)
+- ✅ Shows seasonal tasks (sow indoors, sow outdoors, plant out, harvest)
 - 🔲 Tasks organized by category
-- 🔲 Key tasks highlighted appropriately
-- 🔲 Weather expectations visible for selected month
-- 🔲 Tip of the month shows
+- ✅ Key tasks highlighted appropriately
+- ✅ Weather expectations visible for selected month
+- ✅ Tip of the month shows
 
 ### Personalized Section ("Your Garden in [Month]")
-- 🔲 Only shows if user has plantings for selected year
-- 🔲 Shows planting counts correctly
-- 🔲 Shows active area counts
+- ✅ Only shows if user has plantings for selected year
+- ✅ Shows planting counts correctly
+- ✅ Shows active area counts
 - 🔲 Harvest readiness alerts display for ready items
-- 🔲 "View in Allotment" links work correctly
-- 🔲 Empty state message when no plantings
+- ✅ "View in Allotment" links work correctly
+- ✅ Empty state message when no plantings
 
 ### Expert Tips (Collapsible)
-- 🔲 Composting tip expands/collapses
-- 🔲 Crop Rotation tip expands/collapses
-- 🔲 Companion Plants tip expands/collapses
-- 🔲 Organic methods tip expands/collapses
+- ✅ Composting tip expands/collapses
+- ✅ Crop Rotation tip expands/collapses
+- ✅ Companion Plants tip expands/collapses
+- ✅ Organic methods tip expands/collapses
 - 🔲 Collapsed state persists correctly
 
 ### Tree & Perennials Care
-- 🔲 Section expands/collapses
+- ✅ Section expands/collapses
 - 🔲 Shows maintenance tasks for user's permanent plantings
 - 🔲 Generic tips show when no user perennials
 
@@ -111,36 +111,36 @@
 ### Page Load
 - ✅ No accessibility violations
 - ✅ Dialog accessibility when open
-- 🔲 Page header visible
+- ✅ Page header visible
 - 🔲 Loading state while fetching data
 
 ### Year Navigation
-- 🔲 "All" tab shows all varieties
-- 🔲 Year tabs show available years
-- 🔲 Current year tab selected by default
-- 🔲 Clicking year tab switches view
+- ✅ "All" tab shows all varieties
+- ✅ Year tabs show available years
+- ✅ Current year tab selected by default
+- ✅ Clicking year tab switches view
 - 🔲 Year picker positioned at bottom on mobile 📱
 
 ### Status Filters
-- 🔲 Filters disabled when "All" selected
-- 🔲 "Have Seeds" filter works
-- 🔲 "Need to Order" filter works
+- ✅ Filters disabled when "All" selected
+- ✅ "Have Seeds" filter works
+- ✅ "Need to Order" filter works
 - 🔲 "All" filter shows everything
 - 🔲 Filter selection updates variety list
 
 ### Statistics Cards
-- 🔲 "Have" count is accurate
-- 🔲 "Need" count is accurate
+- ✅ "Have" count is accurate
+- ✅ "Need" count is accurate
 - 🔲 "Spent last year" shows correct total
 - 🔲 "Spent this year" shows correct total
 - 🔲 Numbers update when year changes
 
 ### Variety List
-- 🔲 Varieties grouped by plant type
-- 🔲 Plant group headers show count (e.g., "Lettuce (3)")
-- 🔲 Group expand/collapse works
-- 🔲 "Expand all" button works
-- 🔲 "Collapse all" button works
+- ✅ Varieties grouped by plant type
+- ✅ Plant group headers show count (e.g., "Lettuce (3)")
+- ✅ Group expand/collapse works
+- ✅ "Expand all" button works
+- ✅ "Collapse all" button works
 
 ### Add Variety
 - ✅ Add Variety button opens dialog
@@ -155,7 +155,7 @@
 - 🔲 New variety appears in list immediately
 
 ### Edit Variety
-- 🔲 Click variety card opens edit dialog
+- ✅ Click variety card opens edit dialog
 - 🔲 All fields pre-populated correctly
 - 🔲 Can change variety name
 - 🔲 Can change supplier
@@ -165,21 +165,21 @@
 - 🔲 Cancel discards changes
 
 ### Seed Status Cycling
-- 🔲 Click status button cycles: none → ordered → have → had
-- 🔲 Status badge updates visually
+- ✅ Click status button cycles: none → ordered → have → had
+- ✅ Status badge updates visually
 - 🔲 Status persists after page reload
 
 ### Archive/Delete
 - 🔲 Archive option available in edit dialog
-- 🔲 Archived varieties hidden by default
-- 🔲 "Show archived" toggle reveals archived
+- ✅ Archived varieties hidden by default
+- ✅ "Show archived" toggle reveals archived
 - 🔲 Can restore archived variety
 - 🔲 Permanent delete available for archived
 - 🔲 Delete confirmation dialog appears
 - 🔲 Deleting removes variety from list
 
 ### Notes Warning
-- 🔲 Notes with warning words ("rotten", "poor", "failed") show warning icon
+- ✅ Notes with warning words ("rotten", "poor", "failed") show warning icon
 - 🔲 Warning highlighting visible
 
 ### External Links
@@ -190,6 +190,7 @@
 
 ### Mobile
 - ✅ Seed dialog accessibility on mobile
+- ✅ Page responsive on mobile 📱
 - 🔲 Cards are touch-friendly 📱
 - 🔲 Year picker accessible at bottom 📱
 
@@ -590,29 +591,29 @@
 
 ### Page Load
 - ✅ No accessibility violations
-- 🔲 Header with app name visible
-- 🔲 Tagline visible
+- ✅ Header with app name visible
+- ✅ Tagline visible
 
 ### Content Sections
-- 🔲 Mission statement card visible
-- 🔲 Core features overview (3 cards) visible
-- 🔲 Quick action cards (2) visible
-- 🔲 AI Advisor section with BYO API key badge
-- 🔲 Keyboard shortcuts reference visible
-- 🔲 Philosophy statement visible
-- 🔲 Footer note visible
+- ✅ Mission statement card visible
+- ✅ Core features overview (3 cards) visible
+- ✅ Quick action cards (2) visible
+- ✅ AI Advisor section with BYO API key badge
+- ✅ Keyboard shortcuts reference visible
+- ✅ Philosophy statement visible
+- ✅ Footer note visible
 
 ### Quick Action Links
-- 🔲 "My Allotment" link works
-- 🔲 "This Month" link works
-- 🔲 "Talk to Aitor" link works (opens modal)
+- ✅ "My Allotment" link works
+- ✅ "This Month" link works
+- ✅ "Talk to Aitor" link works (opens modal)
 
 ### Keyboard Shortcuts Reference
-- 🔲 ESC shortcut documented
-- 🔲 Enter shortcut documented
-- 🔲 Arrow keys documented
-- 🔲 Tab documented
-- 🔲 Home/End documented
+- ✅ ESC shortcut documented
+- ✅ Enter shortcut documented
+- ✅ Arrow keys documented
+- ✅ Tab documented
+- ✅ Home/End documented
 
 ### BYO API Key Explanation
 - 🔲 Concept explained clearly
@@ -836,22 +837,22 @@
 ## User Journeys to Test End-to-End
 
 ### Journey 1: Plan a New Bed
-1. 🔲 Go to Allotment
-2. 🔲 Enter edit mode
-3. 🔲 Click Add Area
-4. 🔲 Fill in name and select rotation group
-5. 🔲 Submit - bed appears in grid
-6. 🔲 Click new bed to select
-7. 🔲 Click Add (planting)
-8. 🔲 Search for and select a vegetable
+1. ✅ Go to Allotment
+2. ✅ Enter edit mode
+3. ✅ Click Add Area
+4. ✅ Fill in name and select rotation group
+5. ✅ Submit - bed appears in grid
+6. ✅ Click new bed to select
+7. ✅ Click Add (planting)
+8. ✅ Search for and select a vegetable
 9. 🔲 Set sow date and method
-10. 🔲 Submit - planting appears
+10. ✅ Submit - planting appears
 11. 🔲 Navigate to Today
 12. 🔲 See relevant info about new planting
 
 ### Journey 2: Track a Harvest
-1. 🔲 Go to Allotment
-2. 🔲 Select a bed with plantings
+1. ✅ Go to Allotment
+2. ✅ Select a bed with plantings
 3. 🔲 Click on a planting card
 4. 🔲 PlantingDetailDialog opens
 5. 🔲 Set actual harvest start date
@@ -859,25 +860,25 @@
 7. 🔲 Check harvest totals update
 
 ### Journey 3: Check What To Do
-1. 🔲 Go to Today (dashboard)
-2. 🔲 See seasonal tasks
+1. ✅ Go to Today (dashboard)
+2. ✅ See seasonal tasks
 3. 🔲 See maintenance reminders
-4. 🔲 Navigate to This Month
+4. ✅ Navigate to This Month
 5. 🔲 Select current month
 6. 🔲 See personalized section
-7. 🔲 See what's ready to harvest
+7. ✅ See what's ready to harvest
 
 ### Journey 4: Add Seeds I Bought
-1. 🔲 Go to Seeds
-2. 🔲 Click Add Variety
-3. 🔲 Select plant type
-4. 🔲 Enter variety name
+1. ✅ Go to Seeds
+2. ✅ Click Add Variety
+3. ✅ Select plant type
+4. ✅ Enter variety name
 5. 🔲 Enter supplier and price
-6. 🔲 Submit - variety appears
+6. ✅ Submit - variety appears
 7. 🔲 Click to set status to "have"
-8. 🔲 Go to Allotment
-9. 🔲 Add planting, select variety from dropdown
-10. 🔲 Variety shows correctly
+8. ✅ Go to Allotment
+9. ✅ Add planting, select variety from dropdown
+10. ✅ Variety shows correctly
 
 ### Journey 5: Share with Family
 1. 🔲 Go to Settings
@@ -906,25 +907,25 @@
 ### Playwright Test Coverage by Section:
 | Section | Covered | Manual | Total |
 |---------|---------|--------|-------|
-| Today | 4 | 18 | 22 |
-| This Month | 2 | 21 | 23 |
-| Seeds | 10 | 25 | 35 |
+| Today | 12 | 10 | 22 |
+| This Month | 17 | 6 | 23 |
+| Seeds | 25 | 11 | 36 |
 | Allotment | 45 | 35 | 80 |
 | Compost | 28 | 10 | 38 |
 | AI Advisor | 12 | 20 | 32 |
 | Settings | 15 | 15 | 30 |
-| About | 1 | 14 | 15 |
+| About | 15 | 0 | 15 |
 | Navigation | 15 | 8 | 23 |
 | Progressive Disclosure | 18 | 6 | 24 |
 | Onboarding | 25 | 0 | 25 |
 | Accessibility | 15 | 8 | 23 |
-| **TOTAL** | **190** | **180** | **370** |
+| User Journeys | 25 | 17 | 42 |
+| **TOTAL** | **267** | **146** | **413** |
 
-**Coverage: ~51% automated, ~49% manual verification needed**
+**Coverage: ~65% automated, ~35% manual verification needed**
 
 ### Priority Areas for Manual Review:
-1. **This Month** - Calendar personalization, information hierarchy
-2. **AI Advisor** - Tool calling flow, rate limiting, image upload
-3. **Seeds** - Edit variety flow, status cycling
-4. **Allotment** - Planting detail dialog, mobile experience
-5. **Settings** - Share/receive flow, location detection
+1. **AI Advisor** - Tool calling flow, rate limiting, image upload
+2. **Allotment** - Planting detail dialog, mobile experience
+3. **Settings** - Share/receive flow, location detection
+4. **Seeds** - Supplier/price fields, archive restore flow
