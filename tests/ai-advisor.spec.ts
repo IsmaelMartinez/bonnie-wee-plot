@@ -19,6 +19,8 @@ async function setupWithAiAdvisor(page: import('@playwright/test').Page) {
     }))
     // Mark all celebrations as shown to prevent modals
     localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
+    // Disable tours to prevent overlays blocking interactions
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 

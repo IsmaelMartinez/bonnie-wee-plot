@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
 
+async function disableTours(page: import('@playwright/test').Page) {
+  await page.evaluate(() => {
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }));
+  });
+}
+
 // Helper to skip onboarding by marking setup as complete
 async function skipOnboarding(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
@@ -11,6 +17,7 @@ async function skipOnboarding(page: import('@playwright/test').Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
+    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
 
@@ -59,6 +66,7 @@ test.describe('Homepage and Navigation', () => {
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
+    await disableTours(page);
 
     // Check that Today heading is still visible on mobile
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
@@ -66,6 +74,7 @@ test.describe('Homepage and Navigation', () => {
 
   test('should have proper meta tags', async ({ page }) => {
     await page.goto('/');
+    await disableTours(page);
 
     // Check that the page has proper meta tags
     const title = await page.title();
@@ -86,6 +95,7 @@ test.describe('Homepage and Navigation', () => {
     });
 
     await page.goto('/');
+    await disableTours(page);
 
     // Wait for any potential JavaScript to execute
     await page.waitForLoadState('networkidle');
@@ -104,6 +114,7 @@ test.describe('Homepage and Navigation', () => {
 
   test('should have no critical accessibility violations', async ({ page }) => {
     await page.goto('/');
+    await disableTours(page);
     await checkA11y(page);
   });
 });
