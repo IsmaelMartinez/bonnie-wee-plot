@@ -34,16 +34,15 @@ test.describe('Settings Page - Page Load', () => {
 })
 
 test.describe('Settings Page - AI Assistant Section', () => {
-  test('should show locked state when AI not unlocked', async ({ page }) => {
+  test('should show AI assistant section', async ({ page }) => {
     await setupPage(page)
     await page.goto('/settings')
 
-    // AI section should show unlock hint
     const aiSection = page.locator('[data-tour="ai-settings"]')
     await expect(aiSection).toBeVisible()
   })
 
-  test('should show API key input when AI is unlocked', async ({ page }) => {
+  test('should show API key input', async ({ page }) => {
     await setupPage(page)
     await page.goto('/settings')
 

@@ -10,7 +10,6 @@ Welcome to Bonnie Wee Plot - your digital companion for planning and tracking yo
 4. [Tracking Seeds](#tracking-seeds) - Managing your seed inventory
 5. [Using the Calendar](#using-the-calendar) - What to do this month
 6. [Asking Aitor](#asking-aitor) - Getting AI gardening advice
-7. [Unlocking More Features](#unlocking-more-features) - Progressive feature access
 
 ---
 
@@ -32,23 +31,21 @@ Choose the path that matches your immediate need. You can always access everythi
 
 ## The Main Sections
 
-The navigation shows three primary sections to keep things simple:
+The navigation shows your main sections:
 
 | Section | Purpose |
 |---------|---------|
 | **Today** | Your daily dashboard - what needs doing now |
 | **This Month** | Seasonal calendar - what to sow, transplant, harvest |
 | **Seeds** | Seed inventory - track what you have and order |
+| **Compost** | Track your compost piles |
+| **Allotment** | Visual bed layout and planning |
 
-### More Features
+### More
 
-Click **More** in the navigation to access additional features:
-- **Ask Aitor** - AI gardening advice
-- **Compost** - Track your compost piles
-- **Allotment** - Visual bed layout and planning
+Click **More** in the navigation to access:
+- **Settings** - API keys, data management, sharing
 - **About** - Learn more about the app
-
-Some features unlock as you use the app - see [Unlocking More Features](#unlocking-more-features).
 
 ---
 
@@ -115,11 +112,11 @@ For each variety, track whether you:
 
 ## Asking Aitor
 
-Aitor is your AI gardening advisor, powered by OpenAI. You can find Aitor under **More > Ask Aitor**.
+Aitor is your AI gardening advisor, powered by OpenAI. You can access Aitor via the floating "Ask Aitor" button on any page.
 
 ### Getting Started with Aitor
 
-1. Go to **Ask Aitor** (via the More menu)
+1. Click the **Ask Aitor** floating button (bottom-right corner)
 2. Enter your OpenAI API key (you only need to do this once per session)
 3. Ask anything about gardening!
 
@@ -149,32 +146,6 @@ When Aitor suggests a change to your data, you'll see a confirmation dialog befo
 - Share what you've already planted
 - Include photos of problems for diagnosis
 - Aitor has access to your allotment data for contextual advice
-
----
-
-## Unlocking More Features
-
-Bonnie Wee Plot uses progressive feature disclosure - you start with the essentials and unlock more as you go.
-
-### How It Works
-
-As you use the app, you'll unlock additional features based on your engagement:
-
-| Feature | Unlock Condition |
-|---------|------------------|
-| **Ask Aitor** | Visit 3 times OR add your first planting |
-| **Compost** | Visit 5 times OR record your first harvest |
-| **Allotment Layout** | Add 5 plantings |
-
-### Checking Progress
-
-1. Click **More** in the navigation
-2. Locked features show a progress bar
-3. See how close you are to unlocking
-
-### Skip the Wait
-
-If you prefer immediate access, each locked feature has an "Unlock now" button. This reveals the feature right away without meeting the threshold.
 
 ---
 

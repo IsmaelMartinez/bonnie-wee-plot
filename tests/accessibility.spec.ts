@@ -62,7 +62,7 @@ test.describe('Accessibility - Allotment Page', () => {
 
 test.describe('Accessibility - AI Advisor Modal', () => {
   test('ai-advisor modal should have no critical accessibility violations', async ({ page }) => {
-    // Unlock AI advisor and mark all celebrations as shown
+    // Set up allotment data to skip onboarding
     await page.addInitScript(() => {
       localStorage.setItem('allotment-unified-data', JSON.stringify({
         meta: { setupCompleted: true },

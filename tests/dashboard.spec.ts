@@ -14,19 +14,6 @@ async function setupPage(page: import('@playwright/test').Page) {
   })
 }
 
-// Helper to setup with all features unlocked
-async function setupPageWithFeatures(page: import('@playwright/test').Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem('allotment-unified-data', JSON.stringify({
-      meta: { setupCompleted: true },
-      layout: { areas: [] },
-      seasons: [],
-      currentYear: new Date().getFullYear(),
-      varieties: []
-    }))
-    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-  })
-}
 
 test.describe('Dashboard (Today) Page', () => {
   test('should display Today heading', async ({ page }) => {
@@ -260,24 +247,15 @@ test.describe('Dashboard - No Horizontal Scroll', () => {
 })
 
 test.describe('Dashboard - Compost Alerts', () => {
-  test('should not show compost alerts when feature is locked', async ({ page }) => {
+  test('should render compost alerts section on dashboard', async ({ page }) => {
     await setupPage(page)
-    await page.goto('/')
-
-    // Compost section should NOT be visible without the feature unlocked
-    await expect(page.getByText('Compost')).not.toBeVisible()
-  })
-
-  test('should show compost section when feature is unlocked', async ({ page }) => {
-    await setupPageWithFeatures(page)
     await page.goto('/')
 
     // Wait for page to fully load
     await page.waitForLoadState('networkidle')
 
     // The CompostAlerts component should be rendered (even if empty)
-    // It may show a message about no active piles
-    // Just verify the dashboard loaded successfully with features unlocked
+    // Just verify the dashboard loaded successfully
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible()
   })
 })

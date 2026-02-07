@@ -32,11 +32,10 @@
 - ✅ Hover states work correctly 🖥️ — `dashboard.spec.ts: quick actions labels`
 - ✅ Touch targets are 44px minimum 📱 — `dashboard.spec.ts: touch target size validation`
 
-### Compost Alerts (when unlocked)
-- ✅ Only shows when `compost` feature is unlocked
-- ✅ Shows active pile count — `progressive-disclosure-extended.spec.ts`
-- ✅ Links to /compost page — `progressive-disclosure-extended.spec.ts`
-- ✅ Hidden completely when feature is locked
+### Compost Alerts
+- ✅ Always shown on dashboard
+- ✅ Shows active pile count
+- ✅ Links to /compost page
 
 ### AI Insight
 - ✅ Shows contextual gardening tips — `dashboard.spec.ts: AI insight section`
@@ -449,8 +448,7 @@
 ## 6. AI Advisor (Aitor Modal)
 
 ### Access
-- ✅ Floating button visible when feature unlocked
-- ✅ Floating button NOT visible when locked
+- ✅ Floating button always visible (except on /ai-advisor page)
 - ✅ Click floating button opens modal
 - ✅ /ai-advisor redirects to home and opens modal
 - ✅ Button position consistent across pages — `ai-advisor-extended.spec.ts: button on multiple pages`
@@ -531,9 +529,8 @@
 - ✅ All sections visible — `settings.spec.ts: all sections visible`
 
 ### AI Assistant Section
-- ✅ Shows locked state when AI not unlocked — `settings.spec.ts: AI locked state`
-- ✅ Unlock hint visible when locked — `settings.spec.ts: AI locked state`
-- ✅ API key input visible when unlocked — `settings.spec.ts: AI unlocked state`
+- ✅ AI section always shows configuration — `settings.spec.ts: AI assistant section`
+- ✅ API key input always visible — `settings.spec.ts: API key input`
 - ✅ Input is paste-only (blocks typing) — `settings.spec.ts: API key input`
 - ✅ Can paste API key — `settings.spec.ts: API key input`
 - ✅ "Save Token" button works — `settings.spec.ts: save/clear token`
@@ -624,15 +621,11 @@
 ## 9. Navigation
 
 ### Desktop Navigation
-- ✅ Primary nav items visible (Today, This Month, Seeds)
+- ✅ Primary nav items visible (Today, This Month, Seeds, Compost, Allotment)
 - ✅ "More" dropdown button visible
 - ✅ Dropdown opens on click
-- ✅ Dropdown shows locked features with unlock CTAs
 - ✅ About link in dropdown
-- ✅ Settings accessible
-- ✅ Unlocked features promoted to primary nav
-- ✅ Compost link works when unlocked
-- ✅ Allotment link works when unlocked
+- ✅ Settings link in dropdown
 - ✅ Seasonal emoji in header correct — `navigation-extended.spec.ts: seasonal emoji`
 - ✅ Active page indicator visible — `navigation-extended.spec.ts: active page indicator`
 - ✅ Keyboard navigation works — `navigation-extended.spec.ts: keyboard tab navigation`
@@ -643,8 +636,6 @@
 - ✅ Close button works
 - ✅ All nav links visible in menu
 - ✅ "More" section expandable
-- ✅ Manual unlock works on mobile
-- ✅ Unlocked features promoted
 - ✅ Menu closes after navigation 📱 — `navigation-extended.spec.ts: mobile menu closes`
 - ✅ Touch targets 44px minimum 📱 — `navigation-extended.spec.ts: touch targets`
 
@@ -655,45 +646,13 @@
 
 ---
 
-## 10. Progressive Disclosure / Feature Gating
+## 10. Feature Access
 
-### Initial State (New User)
-- ✅ Only 3 primary nav items (Today, This Month, Seeds)
-- ✅ Locked features in "More" dropdown
-- ✅ Progress bars visible for locked features
-- ✅ Progress text shows (e.g., "0/3", "0/5")
-- ✅ AI Advisor floating button NOT visible
-- ✅ Compost alerts NOT visible on dashboard — `progressive-disclosure-extended.spec.ts`
+All features (AI Advisor, Compost, Allotment Layout) are directly accessible in the navigation without any unlock conditions. Progressive disclosure was removed as it was confusing and interfered with testing.
 
-### AI Advisor Unlock
-- ✅ Unlocks after 3 visits
-- ✅ Unlocks after 1 planting
-- ✅ Stays locked with 0 visits and 0 plantings
-- ✅ Floating button appears when unlocked
-- ✅ Modal opens when clicked
-- ✅ Unlock celebration shows (once) — `progressive-disclosure-extended.spec.ts: celebration dialog`
-
-### Compost Unlock
-- ✅ Unlocks after 5 visits
-- ✅ Unlocks after first harvest
-- ✅ Stays locked with <5 visits and no harvest
-- ✅ Appears in primary nav when unlocked
-- ✅ Unlock celebration shows (once) — `progressive-disclosure-extended.spec.ts: celebration dialog`
-- ✅ Dashboard compost alerts appear — `progressive-disclosure-extended.spec.ts`
-
-### Allotment Layout Unlock
-- ✅ Unlocks after 5 plantings
-- ✅ Stays locked with <5 plantings
-- ✅ Progress shows (e.g., "4/5")
-- ✅ Appears in primary nav when unlocked
-- ✅ Unlock celebration shows (once) — `progressive-disclosure-extended.spec.ts: celebration dialog`
-
-### Manual Unlock
-- ✅ "Unlock now" button in dropdown
-- ✅ Click manually unlocks feature
-- ✅ Feature promoted to nav immediately
-- ✅ Unlock persists after page reload
-- ✅ Works on mobile
+- ✅ AI Advisor floating button always visible
+- ✅ Compost alerts always shown on dashboard
+- ✅ All features in primary navigation
 
 ---
 
@@ -787,13 +746,6 @@
 - ✅ Shows on supported browsers — `shared-ui.spec.ts: PWA install`
 - ✅ Install button works — `shared-ui.spec.ts: PWA install`
 - ✅ Can dismiss prompt — `shared-ui.spec.ts: PWA install`
-
-### Unlock Celebration
-- ✅ Shows when feature newly unlocked — `progressive-disclosure-extended.spec.ts`
-- ✅ Feature name displayed — `progressive-disclosure-extended.spec.ts`
-- ✅ Feature-specific tips shown — `progressive-disclosure-extended.spec.ts`
-- ✅ Only shows once per feature — `progressive-disclosure-extended.spec.ts`
-- ✅ Can dismiss — `progressive-disclosure-extended.spec.ts`
 
 ---
 
@@ -890,8 +842,7 @@
 8. ✅ Data appears on second device — `settings.spec.ts: receive page`
 
 ### Journey 6: Ask for Help
-1. ✅ Unlock AI Advisor (or manually unlock) — `user-journeys.spec.ts: journey 6`
-2. ✅ Click floating Aitor button — `user-journeys.spec.ts: journey 6`
+1. ✅ Click floating Aitor button — `user-journeys.spec.ts: journey 6`
 3. ✅ Modal opens — `user-journeys.spec.ts: journey 6`
 4. ✅ Type a question or click quick topic — `user-journeys.spec.ts: journey 6`
 5. ✅ Wait for response — `ai-advisor-extended.spec.ts`
@@ -915,7 +866,6 @@
 | Settings | 30 | 0 | 30 |
 | About | 15 | 0 | 15 |
 | Navigation | 23 | 0 | 23 |
-| Progressive Disclosure | 24 | 0 | 24 |
 | Onboarding | 25 | 0 | 25 |
 | Shared UI | 23 | 0 | 23 |
 | Accessibility | 23 | 0 | 23 |
