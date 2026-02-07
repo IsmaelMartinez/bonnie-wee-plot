@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-async function setupWithAIUnlocked(page: import('@playwright/test').Page) {
+async function setupPage(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
     localStorage.setItem('allotment-unified-data', JSON.stringify({
       version: 16,
@@ -13,18 +13,12 @@ async function setupWithAIUnlocked(page: import('@playwright/test').Page) {
       gardenEvents: []
     }))
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
   })
 }
 
 test.describe('AI Advisor - Access', () => {
   test('should have proper aria-label on floating button', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     const button = page.getByRole('button', { name: /Ask Aitor/i })
@@ -33,7 +27,7 @@ test.describe('AI Advisor - Access', () => {
   })
 
   test('should show button on allotment page too', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/allotment')
 
     await expect(page.getByRole('button', { name: /Ask Aitor/i })).toBeVisible()
@@ -42,7 +36,7 @@ test.describe('AI Advisor - Access', () => {
 
 test.describe('AI Advisor - Modal Display', () => {
   test('should open as dialog with proper heading', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -51,7 +45,7 @@ test.describe('AI Advisor - Modal Display', () => {
   })
 
   test('should close on close button', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -62,7 +56,7 @@ test.describe('AI Advisor - Modal Display', () => {
   })
 
   test('should show chat messages area with log role', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -72,7 +66,7 @@ test.describe('AI Advisor - Modal Display', () => {
 
 test.describe('AI Advisor - Chat Interface', () => {
   test('should show text input with proper label', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -81,7 +75,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('should show send button', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -93,7 +87,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('should show image upload button', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -103,7 +97,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('should display user message in chat after typing and submitting', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -116,7 +110,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('should show loading indicator after sending message', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -131,7 +125,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('should show API key error when no key is set', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -144,7 +138,7 @@ test.describe('AI Advisor - Chat Interface', () => {
   })
 
   test('quick topics should hide after first message', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()
@@ -167,7 +161,7 @@ test.describe('AI Advisor - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } })
 
   test('should show chat input area on mobile', async ({ page }) => {
-    await setupWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/')
 
     await page.getByRole('button', { name: /Ask Aitor/i }).click()

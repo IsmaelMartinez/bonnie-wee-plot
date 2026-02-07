@@ -3,77 +3,22 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Map, Recycle, Pencil, Sparkles } from 'lucide-react'
+import { Menu, X, Pencil } from 'lucide-react'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
-import { useFeatureFlags } from '@/hooks/useFeatureFlags'
-import UnlockCelebration, { FEATURE_INFO } from '@/components/ui/UnlockCelebration'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
-import type { UnlockableFeature } from '@/lib/feature-flags'
 
-// Primary navigation - always visible (3 items for simplicity)
+// Primary navigation - always visible
 const primaryNavLinks = [
   { href: '/', label: 'Today' },
   { href: '/this-month', label: 'This Month' },
   { href: '/seeds', label: 'Seeds' },
+  { href: '/compost', label: 'Compost' },
+  { href: '/allotment', label: 'Allotment' },
 ]
 
-// Features with progressive disclosure
-export interface LockedFeatureConfig {
-  href: string
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-  description: string
-  teaser: string // Longer description for locked state
-  feature: UnlockableFeature
-}
-
-export const lockedFeatures: LockedFeatureConfig[] = [
-  {
-    href: '/compost',
-    label: 'Compost',
-    icon: Recycle,
-    description: 'Track your piles',
-    teaser: 'Track your compost piles and know when they\'re ready to use in your garden.',
-    feature: 'compost',
-  },
-  {
-    href: '/allotment',
-    label: 'Allotment',
-    icon: Map,
-    description: 'Plan your layout',
-    teaser: 'Visualize your entire allotment. Arrange beds, paths, and permanent features.',
-    feature: 'allotment-layout',
-  },
-]
-
-/**
- * Format progress hint text based on progress data
- */
-export function getProgressHint(currentValue: number, targetValue: number, unlockCondition: string): string {
-  const remaining = targetValue - currentValue
-
-  if (unlockCondition.includes('planting')) {
-    if (remaining === 1) return 'Add 1 more planting to unlock'
-    if (remaining > 1) return `Add ${remaining} more plantings to unlock`
-    return 'Add a planting to unlock'
-  }
-
-  if (unlockCondition.includes('harvest')) {
-    return 'Record a harvest to unlock'
-  }
-
-  if (unlockCondition.includes('Visit')) {
-    if (remaining === 1) return 'Visit 1 more time to unlock'
-    if (remaining > 1) return `Visit ${remaining} more times to unlock`
-    return 'Keep visiting to unlock'
-  }
-
-  return `${currentValue}/${targetValue} ${unlockCondition}`
-}
-
-// Always-available secondary links
+// Secondary links shown in "More" dropdown
 export const secondaryLinks = [
   { href: '/settings', label: 'Settings', description: 'Sync & preferences' },
   { href: '/about', label: 'About', description: 'Learn more' },
@@ -86,7 +31,6 @@ export default function Navigation() {
   const [nameInput, setNameInput] = useState('')
   const pathname = usePathname()
   const { data, updateMeta } = useAllotment()
-  const { isUnlocked, unlock, getProgress, newlyUnlockedFeature, dismissCelebration } = useFeatureFlags(data)
 
   const handleStartEditName = () => {
     setNameInput(data?.meta.name || 'My Allotment')
@@ -110,12 +54,6 @@ export default function Navigation() {
   }
 
   const seasonalPhase = getSeasonalPhase(new Date().getMonth())
-
-  // Handle unlock CTA click
-  const handleUnlockClick = (feature: UnlockableFeature) => {
-    unlock(feature)
-    setIsMoreOpen(false)
-  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -190,29 +128,11 @@ export default function Navigation() {
               </Link>
             ))}
 
-            {/* Unlocked features promoted to primary nav */}
-            {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-zen-moss-50 text-zen-moss-700'
-                    : 'text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-
-            {/* More Dropdown - locked features + secondary links */}
+            {/* More Dropdown - secondary links */}
             <DesktopMoreDropdown
               isMoreOpen={isMoreOpen}
               setIsMoreOpen={setIsMoreOpen}
               isActive={isActive}
-              isUnlocked={isUnlocked}
-              getProgress={getProgress}
-              onUnlockClick={handleUnlockClick}
             />
           </div>
 
@@ -247,57 +167,15 @@ export default function Navigation() {
                 </Link>
               ))}
 
-              {/* Unlocked features promoted to primary nav */}
-              {lockedFeatures.filter(f => isUnlocked(f.feature)).map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`block px-3 py-2 rounded-zen text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-zen-moss-50 text-zen-moss-700'
-                      : 'text-zen-ink-600 hover:bg-zen-stone-50'
-                  }`}
-                  onClick={closeMobileMenu}
-                >
-                  {item.label}
-                </Link>
-              ))}
-
-              {/* Mobile More Section - locked features + secondary links */}
+              {/* Mobile More Section - secondary links */}
               <MobileMoreMenu
                 isActive={isActive}
-                isUnlocked={isUnlocked}
-                getProgress={getProgress}
-                onUnlockClick={handleUnlockClick}
                 closeMobileMenu={closeMobileMenu}
               />
             </div>
           </div>
         )}
       </div>
-
-      {/* Unlock Celebration Modal */}
-      <UnlockCelebration
-        isOpen={newlyUnlockedFeature !== null}
-        onClose={dismissCelebration}
-        feature={
-          newlyUnlockedFeature
-            ? {
-                name: FEATURE_INFO[newlyUnlockedFeature].name,
-                description: FEATURE_INFO[newlyUnlockedFeature].description,
-                tips: FEATURE_INFO[newlyUnlockedFeature].tips,
-                icon: (() => {
-                  const featureConfig = lockedFeatures.find(f => f.feature === newlyUnlockedFeature)
-                  const IconComponent = featureConfig?.icon
-                  if (!IconComponent) {
-                    return <Sparkles className="w-8 h-8" />
-                  }
-                  return <IconComponent className="w-8 h-8" />
-                })(),
-              }
-            : null
-        }
-      />
     </header>
   )
 }

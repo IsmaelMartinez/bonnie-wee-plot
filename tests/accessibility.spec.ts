@@ -71,12 +71,6 @@ test.describe('Accessibility - AI Advisor Modal', () => {
         currentYear: new Date().getFullYear(),
         varieties: []
       }))
-      localStorage.setItem('allotment-engagement', JSON.stringify({
-        visitCount: 3,
-        lastVisit: new Date().toISOString(),
-        manuallyUnlocked: ['ai-advisor']
-      }))
-      localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
     })
     await page.goto('/')
     await disableTours(page)

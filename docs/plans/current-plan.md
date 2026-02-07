@@ -10,7 +10,7 @@ All foundational phases are done: foundation fixes, security hardening (CSP, inp
 
 ### Product Roadmap Phase 1: Simplified Launch
 
-Progressive disclosure system with feature gating (`src/lib/feature-flags.ts`), engagement-based unlocks, unlock celebration modals, and the 3-screen onboarding wizard are all implemented. Navigation simplified to 3 core items with AI Advisor, Compost, and Allotment Layout hidden behind unlock conditions. Local analytics tracking added.
+3-screen onboarding wizard implemented. All features (AI Advisor, Compost, Allotment Layout) are directly accessible in the navigation. Local analytics tracking added. Progressive disclosure was previously implemented but removed as it was confusing and interfered with e2e tests.
 
 ### AI Tool Calling
 
@@ -26,7 +26,7 @@ Storage service and useAllotment hook refactored into smaller modules. Legacy de
 
 ### UX Review: High-Priority Fixes (PR #151)
 
-Systematic section-by-section UX review identified three high-priority issues, now fixed: UnlockCelebration AI Advisor tip corrected to reference the floating chat button instead of a non-existent menu entry, CompostAlerts on the dashboard gated behind the `isUnlocked('compost')` feature flag, and DataManagement (export/import/backup) added to the Settings page where users naturally look for it.
+Systematic section-by-section UX review identified high-priority issues, now fixed: DataManagement (export/import/backup) added to the Settings page where users naturally look for it. Progressive disclosure issues (UnlockCelebration, CompostAlerts gating) are no longer relevant as progressive disclosure was removed.
 
 ### UX and Plant Data Improvements (PR #153)
 
