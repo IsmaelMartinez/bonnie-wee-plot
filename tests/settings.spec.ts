@@ -13,26 +13,6 @@ async function setupPage(page: import('@playwright/test').Page) {
   })
 }
 
-async function setupPageWithAIUnlocked(page: import('@playwright/test').Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem('allotment-unified-data', JSON.stringify({
-      meta: { setupCompleted: true },
-      layout: { areas: [] },
-      seasons: [],
-      currentYear: new Date().getFullYear(),
-      varieties: []
-    }))
-    localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
-      'ai-advisor', 'compost', 'allotment-layout'
-    ]))
-  })
-}
 
 test.describe('Settings Page - Page Load', () => {
   test('should display page header', async ({ page }) => {
@@ -42,7 +22,7 @@ test.describe('Settings Page - Page Load', () => {
   })
 
   test('should display all settings sections', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/settings')
 
     await expect(page.getByRole('heading', { name: /AI Assistant/i })).toBeVisible()
@@ -54,17 +34,16 @@ test.describe('Settings Page - Page Load', () => {
 })
 
 test.describe('Settings Page - AI Assistant Section', () => {
-  test('should show locked state when AI not unlocked', async ({ page }) => {
+  test('should show AI assistant section', async ({ page }) => {
     await setupPage(page)
     await page.goto('/settings')
 
-    // AI section should show unlock hint
     const aiSection = page.locator('[data-tour="ai-settings"]')
     await expect(aiSection).toBeVisible()
   })
 
-  test('should show API key input when AI is unlocked', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+  test('should show API key input', async ({ page }) => {
+    await setupPage(page)
     await page.goto('/settings')
 
     const tokenInput = page.locator('input#openai-token')
@@ -72,21 +51,21 @@ test.describe('Settings Page - AI Assistant Section', () => {
   })
 
   test('should show Save Token button', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/settings')
 
     await expect(page.getByRole('button', { name: /Save Token/i })).toBeVisible()
   })
 
   test('should show Clear Token button', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/settings')
 
     await expect(page.getByRole('button', { name: /Clear Token/i })).toBeVisible()
   })
 
   test('should show privacy notice', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/settings')
 
     const privacyNote = page.locator('[role="note"]')
@@ -94,7 +73,7 @@ test.describe('Settings Page - AI Assistant Section', () => {
   })
 
   test('should show link to OpenAI dashboard', async ({ page }) => {
-    await setupPageWithAIUnlocked(page)
+    await setupPage(page)
     await page.goto('/settings')
 
     const openaiLink = page.locator('a[href*="openai"]')

@@ -161,16 +161,6 @@ See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 - Supports area name resolution (e.g., "Bed A" instead of internal IDs)
 - Tool schema defined in `src/lib/ai-tools-schema.ts`
 
-### Progressive Disclosure
-
-Feature gating for new users to reduce initial complexity:
-- `src/lib/feature-flags.ts` - Unlock conditions and thresholds
-- `src/hooks/useFeatureFlags.ts` - React hook for checking/unlocking features
-- Features unlock based on engagement (planting count, harvest count)
-- Users can manually unlock via "Unlock now" CTAs
-
-Unlockable features: `ai-advisor`, `compost`, `allotment-layout`
-
 ### Onboarding
 
 `src/components/onboarding/OnboardingWizard.tsx` - 3-screen welcome for new users:

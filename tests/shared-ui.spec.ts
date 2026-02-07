@@ -10,12 +10,6 @@ async function setupPage(page: import('@playwright/test').Page) {
       varieties: []
     }))
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
   })
 }
 

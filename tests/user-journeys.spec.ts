@@ -36,14 +36,6 @@ async function setupFreshUser(page: import('@playwright/test').Page) {
       gardenEvents: []
     }))
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify([
-      'ai-advisor', 'compost', 'allotment-layout'
-    ]))
   }, currentYear)
 }
 
@@ -370,7 +362,7 @@ test.describe('Journey 5: Navigate Cross-Section', () => {
     await page.getByRole('link', { name: /Allotment|Test Garden/i }).click()
     await expect(page).toHaveURL(/allotment/)
 
-    // Go to Compost via nav (should be visible since unlocked)
+    // Go to Compost via nav
     await page.getByRole('link', { name: /Compost/i }).click()
     await expect(page).toHaveURL(/compost/)
     await expect(page.getByRole('heading', { name: /Compost/i }).first()).toBeVisible()
@@ -395,7 +387,7 @@ test.describe('Journey 6: Ask for Help', () => {
     await setupFreshUser(page)
     await page.goto('/')
 
-    // 1. AI advisor button should be visible (features are unlocked)
+    // 1. AI advisor button should be visible
     const aitorButton = page.getByRole('button', { name: /Ask Aitor/i })
     await expect(aitorButton).toBeVisible()
 

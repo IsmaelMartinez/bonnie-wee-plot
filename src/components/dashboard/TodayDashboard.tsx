@@ -2,7 +2,6 @@
 
 import { useTodayData } from '@/hooks/useTodayData'
 import { useAllotment } from '@/hooks/useAllotment'
-import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
@@ -45,7 +44,6 @@ export default function TodayDashboard() {
   } = useTodayData()
 
   const { data, updateMeta, isLoading: allotmentLoading } = useAllotment()
-  const { isUnlocked } = useFeatureFlags(data)
 
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
@@ -103,8 +101,8 @@ export default function TodayDashboard() {
           {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
           <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
 
-          {/* Compost Alerts - only show when compost feature is unlocked */}
-          {isUnlocked('compost') && <CompostAlerts />}
+          {/* Compost Alerts */}
+          <CompostAlerts />
 
           {/* AI Insight */}
           <AIInsight

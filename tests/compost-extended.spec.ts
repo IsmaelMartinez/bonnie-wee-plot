@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 async function setupWithPile(page: import('@playwright/test').Page) {
-  const now = new Date().toISOString()
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  await page.addInitScript(([nowStr, weekAgoStr]) => {
+  await page.addInitScript((weekAgoStr) => {
     localStorage.setItem('allotment-unified-data', JSON.stringify({
       meta: { setupCompleted: true },
       layout: { areas: [] },
@@ -12,12 +11,6 @@ async function setupWithPile(page: import('@playwright/test').Page) {
       varieties: []
     }))
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: nowStr,
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
     localStorage.setItem('compost-piles', JSON.stringify([{
       id: 'pile-1',
       name: 'Main Pile',
@@ -32,7 +25,7 @@ async function setupWithPile(page: import('@playwright/test').Page) {
         { id: 'e1', date: weekAgoStr, type: 'turn', notes: 'First turn' }
       ]
     }]))
-  }, [now, oneWeekAgo])
+  }, oneWeekAgo)
 }
 
 async function setupEmpty(page: import('@playwright/test').Page) {
@@ -45,12 +38,6 @@ async function setupEmpty(page: import('@playwright/test').Page) {
       varieties: []
     }))
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    localStorage.setItem('allotment-engagement', JSON.stringify({
-      visitCount: 10,
-      lastVisit: new Date().toISOString(),
-      manuallyUnlocked: ['ai-advisor', 'compost', 'allotment-layout']
-    }))
-    localStorage.setItem('allotment-celebrations-shown', JSON.stringify(['ai-advisor', 'compost', 'allotment-layout']))
   })
 }
 

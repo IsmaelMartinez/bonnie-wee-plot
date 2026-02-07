@@ -2,20 +2,11 @@
 
 import { MessageCircle } from 'lucide-react'
 import { useAitorChat } from '@/contexts/AitorChatContext'
-import { useAllotment } from '@/hooks/useAllotment'
-import { useFeatureFlags } from '@/hooks/useFeatureFlags'
 import { usePathname } from 'next/navigation'
 
 export default function AitorChatButton() {
   const { openChat, isOpen } = useAitorChat()
-  const { data } = useAllotment()
-  const { isUnlocked } = useFeatureFlags(data)
   const pathname = usePathname()
-
-  // Don't show if AI advisor is not unlocked
-  if (!isUnlocked('ai-advisor')) {
-    return null
-  }
 
   // Don't show on the AI advisor page itself (to avoid confusion)
   if (pathname === '/ai-advisor') {
