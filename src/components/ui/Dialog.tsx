@@ -16,6 +16,10 @@
 import { useEffect, useRef, useCallback, ReactNode, useState } from 'react'
 import { X } from 'lucide-react'
 
+// Track how many dialogs are open so only the outermost one manages body scroll
+let openDialogCount = 0
+let savedOverflow = ''
+
 interface DialogProps {
   isOpen: boolean
   onClose: () => void
@@ -80,8 +84,11 @@ export default function Dialog({
   useEffect(() => {
     if (!isOpen) return
 
-    // Prevent body scroll
-    const originalOverflow = document.body.style.overflow
+    // Prevent body scroll - only the first dialog saves the original overflow
+    if (openDialogCount === 0) {
+      savedOverflow = document.body.style.overflow
+    }
+    openDialogCount++
     document.body.style.overflow = 'hidden'
 
     // Focus the dialog or first focusable element
@@ -101,8 +108,12 @@ export default function Dialog({
 
     return () => {
       clearTimeout(timeoutId)
-      document.body.style.overflow = originalOverflow
-      
+      openDialogCount--
+      // Only restore overflow when the last dialog closes
+      if (openDialogCount === 0) {
+        document.body.style.overflow = savedOverflow
+      }
+
       // Return focus to previous element
       if (previousActiveElement.current && previousActiveElement.current.focus) {
         previousActiveElement.current.focus()
