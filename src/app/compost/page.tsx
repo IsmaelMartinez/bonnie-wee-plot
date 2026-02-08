@@ -264,7 +264,7 @@ export default function CompostPage() {
                           className="zen-input text-sm w-auto"
                           onChange={(e) => {
                             if (e.target.value) {
-                              updatePile(pile.id, { startDate: new Date(e.target.value).toISOString() })
+                              updatePile(pile.id, { startDate: new Date(e.target.value + 'T00:00:00').toISOString() })
                               setEditingStartDate(null)
                             }
                           }}

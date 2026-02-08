@@ -421,7 +421,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
               className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition min-h-[44px] ml-auto"
             >
               <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Lock</span>
+              <span>Lock</span>
             </button>
           </>
         ) : (
