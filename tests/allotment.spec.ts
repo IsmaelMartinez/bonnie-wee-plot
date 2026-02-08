@@ -62,9 +62,8 @@ async function ensureRotationBedExists(page: import('@playwright/test').Page) {
     .catch(() => false)
 
   if (!hasItems) {
-    // Check if we're on desktop (Edit layout / Lock button visible) or mobile
-    // The button shows "Locked" when not editing, "Editing" when editing
-    const editButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
+    // Check if we're on desktop (Unlock/Lock button visible) or mobile
+    const editButton = page.locator('button').filter({ hasText: /Unlock to edit|Lock/ }).first()
     const isDesktop = await editButton.isVisible({ timeout: 2000 }).catch(() => false)
 
     if (isDesktop) {
@@ -91,12 +90,12 @@ async function ensureRotationBedExists(page: import('@playwright/test').Page) {
       await expect(dialog).not.toBeVisible({ timeout: 5000 })
       await expect(page.locator('[class*="react-grid-item"]').first()).toBeVisible({ timeout: 5000 })
 
-      // Exit edit mode - button now shows "Stop editing" or "Editing"
-      const stopEditButton = page.locator('button').filter({ hasText: /Stop editing|Editing/ }).first()
-      if (await stopEditButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await stopEditButton.click()
-        // Wait for edit mode to exit (Locked button should reappear)
-        await expect(page.locator('button').filter({ hasText: /Locked/ })).toBeVisible({ timeout: 3000 }).catch(() => {})
+      // Exit edit mode - click Lock button
+      const lockButton = page.locator('button').filter({ hasText: /^Lock$/ }).first()
+      if (await lockButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await lockButton.click()
+        // Wait for edit mode to exit (Unlock button should reappear)
+        await expect(page.locator('button').filter({ hasText: /Unlock to edit/ })).toBeVisible({ timeout: 3000 }).catch(() => {})
       }
     } else {
       // Mobile: seed data via localStorage
@@ -603,7 +602,7 @@ test.describe('Allotment Grid Resizing', () => {
     await ensureRotationBedExists(page)
 
     // Enter edit mode
-    const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
+    const lockButton = page.locator('button').filter({ hasText: /Unlock to edit|Lock/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
 
@@ -933,7 +932,7 @@ test.describe('Allotment Infrastructure Areas', () => {
 
   test('should allow adding infrastructure without a name', async ({ page }) => {
     // First, enable edit mode by clicking the "Edit layout" / "Locked" button
-    const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
+    const lockButton = page.locator('button').filter({ hasText: /Unlock to edit|Lock/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
 
@@ -976,7 +975,7 @@ test.describe('Allotment Infrastructure Areas', () => {
 
   test('should use custom name if provided for infrastructure', async ({ page }) => {
     // First, enable edit mode by clicking the "Edit layout" / "Locked" button
-    const lockButton = page.locator('button').filter({ hasText: /Lock|Edit/ }).first()
+    const lockButton = page.locator('button').filter({ hasText: /Unlock to edit|Lock/ }).first()
     await expect(lockButton).toBeVisible({ timeout: 5000 })
     await lockButton.click()
 
