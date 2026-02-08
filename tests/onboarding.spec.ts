@@ -398,10 +398,12 @@ test.describe('Onboarding Wizard - Completion State', () => {
     }, newUserData)
     await page.goto('/')
 
-    // Complete the wizard
+    // Complete the wizard step by step, waiting for each screen
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByText('Show me what to grow').click()
+    await expect(page.getByText("Got it, let's go")).toBeVisible()
     await page.getByText("Got it, let's go").click()
+    await expect(page.getByText('Start Exploring')).toBeVisible()
     await page.getByText('Start Exploring').click()
 
     // Wait for navigation
@@ -432,10 +434,12 @@ test.describe('Onboarding Wizard - Completion State', () => {
     }, newUserData)
     await page.goto('/')
 
-    // Complete the wizard
+    // Complete the wizard step by step, waiting for each screen
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByText('Show me what to grow').click()
+    await expect(page.getByText("Got it, let's go")).toBeVisible()
     await page.getByText("Got it, let's go").click()
+    await expect(page.getByText('Start Exploring')).toBeVisible()
     await page.getByText('Start Exploring').click()
     await expect(page).toHaveURL(/this-month/)
 
