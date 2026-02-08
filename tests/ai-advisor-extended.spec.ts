@@ -118,10 +118,9 @@ test.describe('AI Advisor - Chat Interface', () => {
     await input.fill('Hello')
     await input.press('Enter')
 
-    // Loading state should appear (typing indicator or spinner)
-    const loading = page.locator('[role="status"][aria-label*="typing"]').or(page.locator('.animate-bounce').first())
-    // It may appear briefly - check it's at least attached or an error message appears
-    await expect(loading.or(page.locator('[role="alert"]')).or(page.getByText(/error|api key|token/i))).toBeVisible({ timeout: 10000 })
+    // Loading state should appear briefly, then a response (API key setup message or actual reply)
+    const aitorResponse = page.locator('article[aria-label="Aitor said"]')
+    await expect(aitorResponse).toBeVisible({ timeout: 10000 })
   })
 
   test('should show API key error when no key is set', async ({ page }) => {
