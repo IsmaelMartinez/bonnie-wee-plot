@@ -79,7 +79,7 @@ export default function TodayDashboard() {
                 {seasonName.romaji}
               </span>
             </div>
-            {!showOnboarding && <PageTour tourId="today" autoStart autoStartDelay={1500} />}
+            {!showOnboarding && <PageTour tourId="today" />}
           </div>
           <p className="text-zen-stone-500 text-lg">
             Your garden, this moment

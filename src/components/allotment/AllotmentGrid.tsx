@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactGridLayout from 'react-grid-layout'
-import { Lock, Unlock, RotateCcw, Move } from 'lucide-react'
+import { Lock, Unlock, RotateCcw, Move, Plus } from 'lucide-react'
 import {
   DEFAULT_GRID_LAYOUT,
   GridItemConfig
@@ -25,6 +25,7 @@ interface AllotmentGridProps {
   selectedYear: number
   onEditingChange?: (isEditing: boolean) => void
   onPositionChange?: (areaId: string, position: GridPosition) => void  // v14: callback for position updates
+  onAddArea?: () => void
 }
 
 // Layout item type for react-grid-layout
@@ -119,7 +120,7 @@ function areasToGridConfig(areas: Area[], areaSeasons?: AreaSeason[]): GridItemC
     })
 }
 
-export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, areaSeasons, selectedYear, onEditingChange, onPositionChange }: AllotmentGridProps) {
+export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlantingsForBed, areas, areaSeasons, selectedYear, onEditingChange, onPositionChange, onAddArea }: AllotmentGridProps) {
   // Filter areas by selected year
   const visibleAreas = useMemo(() => {
     if (!areas) return undefined
@@ -391,34 +392,21 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2" role="toolbar" aria-label="Grid controls">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            aria-pressed={isEditing}
-            aria-label={isEditing ? 'Stop editing layout' : 'Edit layout'}
-            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition min-h-[44px] ${
-              isEditing
-                ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {isEditing ? (
-              <>
-                <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Editing</span>
-                <span className="sm:hidden">Edit</span>
-              </>
-            ) : (
-              <>
-                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Locked</span>
-                <span className="sm:hidden">Lock</span>
-              </>
+      <div className="flex items-center gap-2" role="toolbar" aria-label="Grid controls">
+        {isEditing ? (
+          <>
+            {onAddArea && (
+              <button
+                onClick={onAddArea}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 transition min-h-[44px]"
+                title="Add a new area to your allotment"
+                data-tour="add-area-btn"
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Add Area</span>
+                <span className="sm:hidden">Add</span>
+              </button>
             )}
-          </button>
-
-          {isEditing && (
             <button
               onClick={handleReset}
               aria-label="Reset layout to default"
@@ -427,12 +415,26 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Reset</span>
             </button>
-          )}
-        </div>
-
-        <div className="text-xs text-gray-400 hidden sm:block" aria-live="polite">
-          {isEditing ? 'Drag items to reposition • Drag corners to resize • Press M on focused item to reposition with keyboard' : 'Click edit to modify layout'}
-        </div>
+            <button
+              onClick={() => setIsEditing(false)}
+              aria-label="Lock layout"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition min-h-[44px] ml-auto"
+            >
+              <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Lock</span>
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setIsEditing(true)}
+            aria-label="Unlock to edit layout"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition min-h-[44px]"
+          >
+            <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Unlock to edit</span>
+            <span className="sm:hidden">Unlock</span>
+          </button>
+        )}
       </div>
 
       {/* Year filtering feedback */}

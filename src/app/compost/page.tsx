@@ -13,6 +13,7 @@ import {
   ChevronUp,
   Sprout,
   Lightbulb,
+  Pencil,
 } from 'lucide-react'
 import { useCompost } from '@/hooks/useCompost'
 import {
@@ -24,7 +25,6 @@ import {
   NewCompostEvent,
 } from '@/types/compost'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
-import SaveIndicator from '@/components/ui/SaveIndicator'
 
 const STATUS_CONFIG: Record<CompostStatus, { label: string; color: string; bg: string }> = {
   active: { label: 'Active', color: 'text-zen-moss-700', bg: 'bg-zen-moss-100' },
@@ -64,8 +64,6 @@ export default function CompostPage() {
   const {
     data,
     isLoading,
-    saveStatus,
-    lastSavedAt,
     addPile,
     updatePile,
     removePile,
@@ -78,6 +76,7 @@ export default function CompostPage() {
   const [showLogEventDialog, setShowLogEventDialog] = useState<string | null>(null)
   const [pileToDelete, setPileToDelete] = useState<string | null>(null)
   const [expandedPiles, setExpandedPiles] = useState<Set<string>>(new Set())
+  const [editingStartDate, setEditingStartDate] = useState<string | null>(null)
 
   // Form state for new pile
   const [newPileName, setNewPileName] = useState('')
@@ -191,7 +190,6 @@ export default function CompostPage() {
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0 self-end sm:self-auto">
-              <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
               <Link
                 href="/allotment"
                 className="zen-btn-secondary flex items-center gap-2 whitespace-nowrap"
@@ -257,9 +255,32 @@ export default function CompostPage() {
                     </div>
 
                     {/* Age */}
-                    <p className="text-sm text-zen-stone-600 mb-4">
-                      Started {daysSinceStart} days ago
-                    </p>
+                    <div className="text-sm text-zen-stone-600 mb-4">
+                      {editingStartDate === pile.id ? (
+                        <input
+                          type="date"
+                          defaultValue={pile.startDate.slice(0, 10)}
+                          autoFocus
+                          className="zen-input text-sm w-auto"
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              updatePile(pile.id, { startDate: new Date(e.target.value).toISOString() })
+                              setEditingStartDate(null)
+                            }
+                          }}
+                          onBlur={() => setEditingStartDate(null)}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setEditingStartDate(pile.id)}
+                          className="inline-flex items-center gap-1.5 hover:text-zen-moss-700 transition-colors"
+                        >
+                          Started {daysSinceStart} days ago
+                          <Pencil className="w-3 h-3 text-zen-stone-400" />
+                        </button>
+                      )}
+                    </div>
 
                     {/* Quick Actions */}
                     <div className="flex gap-2">

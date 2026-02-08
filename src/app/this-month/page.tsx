@@ -176,7 +176,6 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
   const [isExpertTipsOpen, setIsExpertTipsOpen] = useState(false)
-  const [isTreeCareOpen, setIsTreeCareOpen] = useState(false)
 
   // Load allotment data for personalization
   const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreasByKind } = useAllotment()
@@ -189,18 +188,13 @@ export default function ThisMonthPage() {
   const data = scotlandMonthlyCalendar[selectedMonth]
   const isCurrentMonth = selectedMonth === getCurrentMonthKey()
 
-  // Get maintenance tasks for trees, shrubs, and perennials this month
-  const maintenanceTasks = useMemo(() => {
-    const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
-    return getMaintenanceForMonth(monthIndex)
-  }, [selectedMonth])
-
   // Get personalized maintenance for user's permanent plantings (trees, berries, perennials)
   const personalizedMaintenance = useMemo(() => {
     const treeAreas = getAreasByKind('tree')
     const berryAreas = getAreasByKind('berry')
     const herbAreas = getAreasByKind('herb')
-    const permanentAreas: Area[] = [...treeAreas, ...berryAreas, ...herbAreas]
+    const perennialBedAreas = getAreasByKind('perennial-bed')
+    const permanentAreas: Area[] = [...treeAreas, ...berryAreas, ...herbAreas, ...perennialBedAreas]
     if (permanentAreas.length === 0) return { tasks: [] as MaintenanceTask[], plantings: [] as Area[] }
 
     const plantIds = permanentAreas
@@ -306,6 +300,10 @@ export default function ThisMonthPage() {
 
     return entries
   }, [currentSeason, allotmentData])
+
+  const hasAnnualPlantings = personalizedData && personalizedData.plantingCount > 0
+  const hasPermanentPlantings = personalizedMaintenance.plantings.length > 0
+  const hasAnyPlantings = hasAnnualPlantings || hasPermanentPlantings
   
   return (
     <div className="min-h-screen bg-zen-stone-50 zen-texture">
@@ -317,7 +315,7 @@ export default function ThisMonthPage() {
               <Calendar className="w-6 h-6 text-zen-moss-600" />
               <h1 className="text-zen-ink-900">This Month</h1>
             </div>
-            <PageTour tourId="this-month" autoStart autoStartDelay={1000} />
+            <PageTour tourId="this-month" />
           </div>
           <p className="text-zen-stone-500 text-lg">
             Seasonal tasks for Scottish gardens
@@ -359,8 +357,8 @@ export default function ThisMonthPage() {
           </div>
         </div>
 
-        {/* Personalized Section - Your Garden This Month */}
-        {!isLoading && personalizedData && personalizedData.plantingCount > 0 && (
+        {/* Personalized Section - Your Garden This Month (unified: annuals + trees & perennials) */}
+        {!isLoading && hasAnyPlantings && (
           <div className="zen-card p-6 mb-8 border-zen-moss-200 bg-zen-moss-50/30" data-tour="your-garden">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -375,47 +373,93 @@ export default function ThisMonthPage() {
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white/60 rounded-zen p-3 text-center">
-                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.plantingCount}</div>
-                <div className="text-xs text-zen-stone-600">Plantings in {selectedYear}</div>
-              </div>
-              <div className="bg-white/60 rounded-zen p-3 text-center">
-                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.areaCount}</div>
-                <div className="text-xs text-zen-stone-600">Active Areas</div>
-              </div>
-              <div className="bg-white/60 rounded-zen p-3 text-center">
-                <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.readyToHarvest.length}</div>
-                <div className="text-xs text-zen-stone-600">May Be Ready</div>
-              </div>
-            </div>
-
-            {/* Your Plantings */}
-            {personalizedData.allPlantings.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Your Current Plantings</h4>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {personalizedData.allPlantings.map((p, i) => (
-                    <PersonalizedPlanting
-                      key={i}
-                      bedId={p.areaId}
-                      vegetableName={p.vegetableName}
-                      varietyName={p.varietyName}
-                    />
-                  ))}
+            {hasAnnualPlantings && personalizedData && (
+              <>
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-white/60 rounded-zen p-3 text-center">
+                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.plantingCount}</div>
+                    <div className="text-xs text-zen-stone-600">Plantings in {selectedYear}</div>
+                  </div>
+                  <div className="bg-white/60 rounded-zen p-3 text-center">
+                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.areaCount}</div>
+                    <div className="text-xs text-zen-stone-600">Active Areas</div>
+                  </div>
+                  <div className="bg-white/60 rounded-zen p-3 text-center">
+                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.readyToHarvest.length}</div>
+                    <div className="text-xs text-zen-stone-600">May Be Ready</div>
+                  </div>
                 </div>
-              </div>
+
+                {/* Your Plantings */}
+                {personalizedData.allPlantings.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Your Current Plantings</h4>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {personalizedData.allPlantings.map((p, i) => (
+                        <PersonalizedPlanting
+                          key={i}
+                          bedId={p.areaId}
+                          vegetableName={p.vegetableName}
+                          varietyName={p.varietyName}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {personalizedData.readyToHarvest.length > 0 && (
+                  <div className="mt-4 p-3 bg-zen-kitsune-50 rounded-zen border border-zen-kitsune-200">
+                    <div className="flex items-center text-zen-kitsune-700 font-medium mb-1">
+                      <Carrot className="w-4 h-4 mr-2" />
+                      Might be ready to harvest soon
+                    </div>
+                    <p className="text-sm text-zen-kitsune-600">
+                      {personalizedData.readyToHarvest.map(p => p.vegetableName).join(', ')}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
-            {personalizedData.readyToHarvest.length > 0 && (
-              <div className="mt-4 p-3 bg-zen-kitsune-50 rounded-zen border border-zen-kitsune-200">
-                <div className="flex items-center text-zen-kitsune-700 font-medium mb-1">
-                  <Carrot className="w-4 h-4 mr-2" />
-                  Might be ready to harvest soon
+            {/* Trees & Perennials subsection */}
+            {hasPermanentPlantings && (
+              <div className={hasAnnualPlantings ? 'mt-6 pt-5 border-t border-zen-moss-200' : ''}>
+                <div className="flex items-center mb-3">
+                  <TreeDeciduous className="w-4 h-4 text-zen-moss-600 mr-2" />
+                  <h4 className="text-sm font-medium text-zen-ink-700">Trees & Perennials</h4>
                 </div>
-                <p className="text-sm text-zen-kitsune-600">
-                  {personalizedData.readyToHarvest.map(p => p.vegetableName).join(', ')}
-                </p>
+
+                {/* List user's permanent plantings */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {personalizedMaintenance.plantings.map((area: Area) => (
+                    <span
+                      key={area.id}
+                      className="inline-flex items-center px-2 py-1 rounded-zen bg-white/70 border border-zen-moss-200 text-sm text-zen-ink-700"
+                    >
+                      {area.kind === 'tree' && '🌳'}
+                      {area.kind === 'berry' && '🫐'}
+                      {area.kind === 'perennial-bed' && '🥬'}
+                      {area.kind === 'herb' && '🌿'}
+                      <span className="ml-1">{area.name}</span>
+                    </span>
+                  ))}
+                </div>
+
+                {/* Personalized maintenance tasks */}
+                {personalizedMaintenance.tasks.length > 0 ? (
+                  <div>
+                    <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Maintenance for {data.month}</h4>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {personalizedMaintenance.tasks.map((task, index) => (
+                        <MaintenanceCard key={`personal-${task.vegetable.id}-${task.type}-${index}`} task={task} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-zen-stone-500 italic">
+                    No specific maintenance tasks for your trees and perennials this month.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -432,7 +476,7 @@ export default function ThisMonthPage() {
         )}
 
         {/* No plantings prompt */}
-        {!isLoading && (!personalizedData || personalizedData.plantingCount === 0) && (
+        {!isLoading && !hasAnyPlantings && (
           <div className="zen-card p-6 mb-8 text-center border-zen-water-200 bg-zen-water-50/30">
             <Sprout className="w-10 h-10 text-zen-water-400 mx-auto mb-3" />
             <h3 className="text-lg font-display text-zen-water-800 mb-2">Track Your Garden</h3>
@@ -521,91 +565,6 @@ export default function ThisMonthPage() {
             <TaskList items={data.tasks} />
           </div>
         </div>
-        
-        {/* Personalized Trees & Perennials Maintenance */}
-        {!isLoading && personalizedMaintenance.plantings.length > 0 && (
-          <div className="zen-card p-6 mb-8 border-zen-sakura-200 bg-zen-sakura-50/30">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <TreeDeciduous className="w-5 h-5 text-zen-sakura-600 mr-2" />
-                <h3 className="font-display text-zen-ink-800">Your Trees & Perennials</h3>
-              </div>
-              <Link
-                href="/allotment"
-                className="text-sm text-zen-sakura-600 hover:text-zen-sakura-700"
-              >
-                View in Allotment →
-              </Link>
-            </div>
-
-            {/* List user's permanent plantings */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {personalizedMaintenance.plantings.map((area: Area) => (
-                <span
-                  key={area.id}
-                  className="inline-flex items-center px-2 py-1 rounded-zen bg-white/70 border border-zen-sakura-200 text-sm text-zen-ink-700"
-                >
-                  {area.kind === 'tree' && '🌳'}
-                  {area.kind === 'berry' && '🫐'}
-                  {area.kind === 'perennial-bed' && '🥬'}
-                  {area.kind === 'herb' && '🌿'}
-                  <span className="ml-1">{area.name}</span>
-                </span>
-              ))}
-            </div>
-
-            {/* Personalized maintenance tasks */}
-            {personalizedMaintenance.tasks.length > 0 ? (
-              <div>
-                <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Tasks for {data.month}</h4>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {personalizedMaintenance.tasks.map((task, index) => (
-                    <MaintenanceCard key={`personal-${task.vegetable.id}-${task.type}-${index}`} task={task} />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-zen-stone-500 italic">
-                No specific maintenance tasks for your trees and perennials this month.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Generic Trees & Shrubs Maintenance Section - Collapsible */}
-        {maintenanceTasks.length > 0 && (
-          <div className="zen-card p-6 mb-8">
-            <button
-              onClick={() => setIsTreeCareOpen(!isTreeCareOpen)}
-              className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition"
-              aria-expanded={isTreeCareOpen}
-              aria-controls="tree-care-content"
-              aria-label="Toggle tree and perennials care section"
-            >
-              <div className="flex items-center">
-                <TreeDeciduous className="w-5 h-5 text-zen-moss-700 mr-2" />
-                <h3 className="font-display text-zen-ink-800">All Trees & Perennials Care</h3>
-              </div>
-              {isTreeCareOpen ? (
-                <ChevronUp className="w-5 h-5 text-zen-stone-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-zen-stone-500" />
-              )}
-            </button>
-            {isTreeCareOpen && (
-              <div id="tree-care-content">
-                <p className="text-zen-stone-600 text-sm mb-4">
-                  General maintenance tasks for fruit trees, berry bushes, and perennials this month.
-                </p>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {maintenanceTasks.map((task, index) => (
-                    <MaintenanceCard key={`${task.vegetable.id}-${task.type}-${index}`} task={task} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Soil Care - Featured Section */}
         <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
@@ -704,4 +663,3 @@ export default function ThisMonthPage() {
     </div>
   )
 }
-

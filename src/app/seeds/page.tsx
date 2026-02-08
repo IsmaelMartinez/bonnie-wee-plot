@@ -252,7 +252,7 @@ function SeedsPageContent() {
               <Package className="w-6 h-6 text-zen-moss-600" />
               <h1 className="text-zen-ink-900">Seeds & Varieties</h1>
             </div>
-            <PageTour tourId="seeds" autoStart autoStartDelay={1000} />
+            <PageTour tourId="seeds" />
           </div>
           <p className="text-zen-stone-500 text-lg">
             Track your seed collection, plan by year
