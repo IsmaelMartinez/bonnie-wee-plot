@@ -44,12 +44,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'PORT=3000 npm run dev',
+    command: process.env.CI ? 'PORT=3000 npm run start' : 'PORT=3000 npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes to start server
     env: {
-      NODE_ENV: 'development', // Changed from 'test' to 'development'
       NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE: 'true',
       PORT: '3000'
     }
