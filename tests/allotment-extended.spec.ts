@@ -313,7 +313,7 @@ test.describe('Allotment - Planting Card', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    await expect(page.getByText('Lettuce')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('button', { name: /View details for Lettuce/ })).toBeVisible({ timeout: 5000 })
   })
 
   test('should open planting detail dialog on click', async ({ page }) => {
@@ -325,7 +325,7 @@ test.describe('Allotment - Planting Card', () => {
     await bedA.click()
 
     // Click on the Lettuce planting card
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -344,7 +344,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -363,7 +363,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -386,7 +386,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -408,7 +408,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -429,7 +429,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
@@ -450,7 +450,7 @@ test.describe('Allotment - Planting Detail Dialog', () => {
     await expect(bedA).toBeVisible({ timeout: 15000 })
     await bedA.click()
 
-    const plantingCard = page.locator('[role="button"]').filter({ hasText: 'Lettuce' })
+    const plantingCard = page.getByRole('button', { name: /View details for Lettuce/ })
     await expect(plantingCard).toBeVisible({ timeout: 5000 })
     await plantingCard.click()
 
