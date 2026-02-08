@@ -22,6 +22,18 @@ function createNewUserData() {
 }
 
 /**
+ * Complete the onboarding wizard step by step
+ */
+async function completeOnboardingWizard(page: Page) {
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByText('Show me what to grow').click()
+  await expect(page.getByText("Got it, let's go")).toBeVisible()
+  await page.getByText("Got it, let's go").click()
+  await expect(page.getByText('Start Exploring')).toBeVisible()
+  await page.getByText('Start Exploring').click()
+}
+
+/**
  * Create allotment data WITH setup completed (skips onboarding)
  */
 function createExistingUserData() {
@@ -396,12 +408,7 @@ test.describe('Onboarding Wizard - Completion State', () => {
     await page.goto('/')
 
     // Complete the wizard step by step, waiting for each screen
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.getByText('Show me what to grow').click()
-    await expect(page.getByText("Got it, let's go")).toBeVisible()
-    await page.getByText("Got it, let's go").click()
-    await expect(page.getByText('Start Exploring')).toBeVisible()
-    await page.getByText('Start Exploring').click()
+    await completeOnboardingWizard(page)
 
     // Wait for navigation
     await expect(page).toHaveURL(/this-month/)
@@ -432,12 +439,7 @@ test.describe('Onboarding Wizard - Completion State', () => {
     await page.goto('/')
 
     // Complete the wizard step by step, waiting for each screen
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.getByText('Show me what to grow').click()
-    await expect(page.getByText("Got it, let's go")).toBeVisible()
-    await page.getByText("Got it, let's go").click()
-    await expect(page.getByText('Start Exploring')).toBeVisible()
-    await page.getByText('Start Exploring').click()
+    await completeOnboardingWizard(page)
     await expect(page).toHaveURL(/this-month/)
 
     // Navigate back to homepage
