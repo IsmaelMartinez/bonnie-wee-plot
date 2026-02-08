@@ -249,6 +249,8 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
   }, [state.dismissed])
 
   const shouldAutoStart = useCallback((tourId: TourId): boolean => {
+    // Don't auto-start in Playwright test mode
+    if (process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true') return false
     // Don't auto-start if tours are disabled
     if (state.disabled) return false
     // Don't auto-start if already completed or dismissed

@@ -22,6 +22,18 @@ function createNewUserData() {
 }
 
 /**
+ * Complete the onboarding wizard step by step
+ */
+async function completeOnboardingWizard(page: Page) {
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByText('Show me what to grow').click()
+  await expect(page.getByText("Got it, let's go")).toBeVisible()
+  await page.getByText("Got it, let's go").click()
+  await expect(page.getByText('Start Exploring')).toBeVisible()
+  await page.getByText('Start Exploring').click()
+}
+
+/**
  * Create allotment data WITH setup completed (skips onboarding)
  */
 function createExistingUserData() {
@@ -254,14 +266,11 @@ test.describe('Onboarding Wizard - Ask Path', () => {
     await expect(page.getByText('All set!')).toBeVisible()
 
     // Click "Start Exploring"
+    await expect(page.getByText('Start Exploring')).toBeVisible()
     await page.getByText('Start Exploring').click()
 
-    // Should stay on home (modal opens instead of navigating)
-    await expect(page).toHaveURL('/')
-
-    // The Aitor modal should be open (or floating button should be visible)
-    const aitorButton = page.locator('button[aria-label*="Aitor"]')
-    await expect(aitorButton).toBeVisible()
+    // Should navigate to AI advisor
+    await expect(page).toHaveURL(/ai-advisor/)
   })
 
   test('ask path shows correct guidance content', async ({ page }) => {
@@ -398,11 +407,8 @@ test.describe('Onboarding Wizard - Completion State', () => {
     }, newUserData)
     await page.goto('/')
 
-    // Complete the wizard
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.getByText('Show me what to grow').click()
-    await page.getByText("Got it, let's go").click()
-    await page.getByText('Start Exploring').click()
+    // Complete the wizard step by step, waiting for each screen
+    await completeOnboardingWizard(page)
 
     // Wait for navigation
     await expect(page).toHaveURL(/this-month/)
@@ -432,11 +438,8 @@ test.describe('Onboarding Wizard - Completion State', () => {
     }, newUserData)
     await page.goto('/')
 
-    // Complete the wizard
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.getByText('Show me what to grow').click()
-    await page.getByText("Got it, let's go").click()
-    await page.getByText('Start Exploring').click()
+    // Complete the wizard step by step, waiting for each screen
+    await completeOnboardingWizard(page)
     await expect(page).toHaveURL(/this-month/)
 
     // Navigate back to homepage

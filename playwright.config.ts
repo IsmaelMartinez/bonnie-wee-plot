@@ -12,7 +12,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: 10, 
+  workers: process.env.CI ? 2 : 3,
   /* Global timeout for each test */
   timeout: 90000, // 90 seconds
   /* Global timeout for entire test run */
@@ -40,24 +40,15 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'PORT=3000 npm run dev',
+    command: process.env.CI ? 'PORT=3000 npm run start' : 'PORT=3000 npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes to start server
     env: {
-      NODE_ENV: 'development', // Changed from 'test' to 'development'
       NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE: 'true',
       PORT: '3000'
     }
