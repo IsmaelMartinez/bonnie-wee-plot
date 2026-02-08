@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-04
+Last updated: 2026-02-08
 
 ## What's Been Completed
 
@@ -31,6 +31,10 @@ Systematic section-by-section UX review identified high-priority issues, now fix
 ### UX and Plant Data Improvements (PR #153)
 
 Medium-priority UX fixes: Add Area button on desktop no longer requires edit mode, Seeds year picker positioned at bottom on mobile. Plant data normalization: fixed Alliums bug (VAGUE_REFERENCES blocked CATEGORY_EXPANSIONS), added semantic mappings for parenthetical names (Broccoli, Chard, Squash, Courgette, etc.), updated category expansions to use actual database names, enabled Three Sisters tests.
+
+### UX Polish Batch (PR #167)
+
+Settings page restructured into tabbed interface (AI & Location, Data, Help). Plot overview toolbar simplified with clear unlock/lock toggle and inline Add Area. This Month view merges trees and perennials into a single unified section within "Your Garden". Tours no longer auto-start; user must initiate from help button. Dead SaveIndicator component removed. Documentation cleaned up: version references updated (Next.js 16, schema v16), project naming corrected, obsolete progressive disclosure content trimmed from roadmap doc, dead document links marked, pre-production checklist updated.
 
 ---
 
