@@ -1,10 +1,10 @@
-# Pre-Production Strategic Plan: Community Allotment 2.0
+# Pre-Production Strategic Plan: Bonnie Wee Plot
 
 ## Executive Summary
 
 This document synthesizes findings from five specialized deep-dive analyses covering security, PWA/mobile, observability, maintainability, and accessibility. It provides a unified roadmap for taking Community Allotment from its current prototype state to a production-ready, maintainable application.
 
-The application is at an inflection point: solid foundations exist (Next.js 15, React 19, TypeScript, good testing), with clear plans for Clerk auth, Supabase storage, and multi-provider AI. However, significant work is needed across all five domains before production deployment.
+The application is at an inflection point: solid foundations exist (Next.js 16, React 19, TypeScript, good testing), with clear plans for Clerk auth, Supabase storage, and multi-provider AI. However, significant work is needed across all five domains before production deployment.
 
 ## Status Update (January 2026)
 
@@ -16,11 +16,13 @@ Phases 0-5 have been completed. The app is deployed to GitHub Pages. Phases 6-8 
 
 ### What's Working Well
 
-The application demonstrates thoughtful architecture documented across 12 ADRs. The unified data model in `src/types/unified-allotment.ts` cleanly handles schema versioning (v10) with automatic migration and repair. State management via `useAllotment` hook provides clean separation between UI and persistence. The BYOK (Bring Your Own Key) model for AI keeps costs user-managed while the client-side rate limiter prevents accidental API abuse.
+The application demonstrates thoughtful architecture documented across 23 ADRs. The unified data model in `src/types/unified-allotment.ts` cleanly handles schema versioning (v16) with automatic migration and repair. State management via `useAllotment` hook provides clean separation between UI and persistence. The BYOK (Bring Your Own Key) model for AI keeps costs user-managed while the client-side rate limiter prevents accidental API abuse.
 
 Testing infrastructure is reasonably mature with Vitest for unit tests (~2,800 lines) and Playwright for E2E (~1,950 lines). The CI pipeline runs lint, type-check, and tests in parallel before builds.
 
 ### Critical Gaps Identified
+
+Note: All gaps below were addressed in Phases 0-5 (completed January 2026).
 
 Security has no CSP headers, no server-side rate limiting, and API tokens stored in sessionStorage are vulnerable to XSS. There's no authentication infrastructure and input validation on API routes is minimal.
 
@@ -64,9 +66,9 @@ The OpenFarm API is DOWN (redirects to GitHub). The repository was archived Apri
 
 See `docs/research/plant-data-validation-strategy.md` for detailed implementation guidance.
 
-#### Parallel Implementation Plan Available
+#### Parallel Implementation Plan Available (removed)
 
-A comprehensive parallel execution plan has been created through 5-expert debate analysis (Data Quality, UX/Product, Database Architecture, DevOps/Testing, Horticulture). See `/tasks/plant-data-parallel-plan.md` for:
+A comprehensive parallel execution plan was previously created. See `/tasks/plant-data-parallel-plan.md` (removed) for historical reference. The key findings from that analysis were:
 - 3 parallel workstreams that can execute simultaneously
 - Critical blocker identified: ID mismatch between vegetable index and database
 - Specific test cases, CI enhancements, and rollback strategies
@@ -189,7 +191,7 @@ The code is in place but Sentry needs to be configured to activate error trackin
    SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
    NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
    SENTRY_ORG=your-org-slug
-   SENTRY_PROJECT=community-allotment
+   SENTRY_PROJECT=bonnie-wee-plot
    ```
 5. For Vercel: Add these in Project Settings > Environment Variables
 6. Sentry also provides uptime monitoring via Crons feature (no separate service needed)
@@ -374,7 +376,7 @@ The `allotment-storage.ts` file has grown too large for effective AI assistance.
 | Error Tracking | Sentry | 5,000 errors/month | Phase 2 |
 | Log Aggregation | Axiom | 500GB/month, 30 days | Phase 2 |
 | Uptime Monitoring | UptimeRobot | 50 monitors, 5-min intervals | Phase 2 |
-| PWA | @ducanh2912/next-pwa | Open source | Phase 3 |
+| PWA | Serwist | Open source | Phase 3 |
 | Authentication | Clerk | 10,000 MAU | Phase 6 |
 | Database | Supabase | 500MB, 1GB storage | Phase 7 |
 | Performance | Vercel Speed Insights | Included with Vercel | Phase 2 |
@@ -386,26 +388,26 @@ The `allotment-storage.ts` file has grown too large for effective AI assistance.
 ### Pre-Production Checklist
 
 Security:
-- [ ] CSP headers configured
-- [ ] Server-side rate limiting active
-- [ ] Input validation on all API routes
-- [ ] RLS policies tested extensively
+- [x] CSP headers configured (Phase 1)
+- [ ] Server-side rate limiting active (Deferred to Phase 6)
+- [x] Input validation on all API routes (Phase 1)
+- [ ] RLS policies tested extensively (Phase 7)
 
 PWA:
-- [ ] App installs successfully on iOS and Android
-- [ ] Offline mode works after initial visit
-- [ ] Lighthouse PWA score = "installable"
+- [x] App installs successfully on iOS and Android (Phase 3)
+- [ ] Offline mode works after initial visit (Future enhancement)
+- [ ] Lighthouse PWA score = "installable" (Phase 3)
 
 Accessibility:
-- [ ] AllotmentGrid navigable by keyboard
-- [ ] Screen reader can access core functionality
-- [ ] All touch targets meet 44px minimum
-- [ ] axe-core tests pass in CI
+- [x] AllotmentGrid navigable by keyboard (Phase 4)
+- [x] Screen reader can access core functionality (Phase 4)
+- [x] All touch targets meet 44px minimum (Phase 5)
+- [ ] axe-core tests pass in CI (Future enhancement)
 
 Observability:
-- [ ] Sentry capturing errors
-- [ ] Health check endpoint responding
-- [ ] Core Web Vitals tracked
+- [x] Sentry capturing errors (Phase 2)
+- [x] Health check endpoint responding (Phase 2)
+- [x] Core Web Vitals tracked (Phase 2)
 
 Performance:
 - [ ] LCP < 2.5 seconds
@@ -458,12 +460,12 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 
 ### Existing Research Documents
 - Product Roadmap Quick Reference: docs/research/product-roadmap-quick-reference.md
-- Plant Dialog UX Research: docs/research/plant-dialog-ux-research.md
+- Plant Dialog UX Research: docs/research/plant-dialog-ux-research.md (not yet created)
 - AI Inventory Management: docs/research/ai-inventory-management.md
 - Plant Data Validation Strategy: docs/research/plant-data-validation-strategy.md
-- Clerk User Management: docs/research/clerk-user-management.md (future)
-- Supabase Data Storage: docs/research/supabase-data-storage.md (future)
-- Multi-Provider AI Integration: docs/research/multi-provider-ai-integration.md (future)
+- Clerk User Management: docs/research/clerk-user-management.md (not yet created)
+- Supabase Data Storage: docs/research/supabase-data-storage.md (not yet created)
+- Multi-Provider AI Integration: docs/research/multi-provider-ai-integration.md (not yet created)
 
 ### Key External Sources
 - [RHS Crop Rotation](https://www.rhs.org.uk/vegetables/crop-rotation)

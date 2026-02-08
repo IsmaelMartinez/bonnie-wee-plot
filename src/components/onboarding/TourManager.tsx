@@ -17,8 +17,6 @@ export default function TourManager() {
     resetAllTours,
     resetTour,
     startTour,
-    isDisabled,
-    setDisabled,
   } = useTour()
   const [mounted, setMounted] = useState(false)
   const tours = getAllTours()
@@ -43,28 +41,6 @@ export default function TourManager() {
 
   return (
     <div className="space-y-4">
-      {/* Disable Toggle */}
-      <label className="flex items-center justify-between p-3 bg-zen-stone-50 rounded-zen cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={isDisabled}
-              onChange={(e) => setDisabled(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-6 bg-zen-stone-300 rounded-full peer-checked:bg-zen-ume-500 transition-colors" />
-            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-4 transition-transform" />
-          </div>
-          <div>
-            <div className="font-medium text-zen-ink-700">Disable auto-start tours</div>
-            <div className="text-xs text-zen-stone-500">
-              Tours won&apos;t start automatically when visiting pages
-            </div>
-          </div>
-        </div>
-      </label>
-
       {/* Summary */}
       <div className="flex items-center justify-between text-sm">
         <span className="text-zen-stone-600">
@@ -141,8 +117,7 @@ export default function TourManager() {
 
       {/* Help text */}
       <p className="text-xs text-zen-stone-500 mt-2">
-        Tours help you learn each section of the app. They auto-start on your first 3 visits to each page.
-        Press <kbd className="px-1.5 py-0.5 bg-zen-stone-200 rounded text-zen-ink-600 font-mono">?</kbd> on any page to start its tour manually.
+        Tours help you learn each section of the app. You can start a tour from the help button on each page, or from this list.
       </p>
     </div>
   )

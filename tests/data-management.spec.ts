@@ -10,8 +10,8 @@ async function disableTours(page: import('@playwright/test').Page) {
 
 // Helper function to enable edit mode and add an area
 async function addAreaInEditMode(page: import('@playwright/test').Page, areaName: string) {
-  // Click Lock/Locked button to enter edit mode
-  const lockButton = page.locator('button').filter({ hasText: /Lock/ })
+  // Click Unlock button to enter edit mode
+  const lockButton = page.locator('button').filter({ hasText: /lock/i })
   await expect(lockButton).toBeVisible({ timeout: 5000 })
   await lockButton.click()
   await page.waitForTimeout(300)

@@ -22,7 +22,6 @@ import { ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import DataManagement from '@/components/allotment/DataManagement'
-import SaveIndicator from '@/components/ui/SaveIndicator'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
@@ -52,7 +51,6 @@ export default function AllotmentPage() {
     selectedItemRef,
     isLoading,
     saveError,
-    isSyncedFromOtherTab,
     selectYear,
     getYears,
     selectItem,
@@ -69,8 +67,6 @@ export default function AllotmentPage() {
     clearSaveError,
     reload,
     flushSave,
-    saveStatus,
-    lastSavedAt,
     getAreaNotes,
     addAreaNote,
     updateAreaNote,
@@ -229,12 +225,9 @@ export default function AllotmentPage() {
             <div className="flex items-center gap-3">
               <Map className="w-7 h-7 text-zen-moss-600 flex-shrink-0" />
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-base sm:text-lg font-display text-zen-ink-800 truncate">
-                    Plot Layout
-                  </h1>
-                  <SaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
-                </div>
+                <h1 className="text-base sm:text-lg font-display text-zen-ink-800 truncate">
+                  Plot Layout
+                </h1>
                 <p className="text-xs text-zen-stone-500 truncate">{data?.meta.location || 'Edinburgh, Scotland'}</p>
               </div>
             </div>
@@ -255,7 +248,7 @@ export default function AllotmentPage() {
                 <TreeDeciduous className="w-4 h-4" />
                 <span className="hidden sm:inline">Care</span>
               </Link>
-              <PageTour tourId="allotment" autoStart autoStartDelay={1000} />
+              <PageTour tourId="allotment" />
             </div>
           </div>
         </div>
@@ -284,24 +277,6 @@ export default function AllotmentPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Multi-tab Sync Notification */}
-      {isSyncedFromOtherTab && (
-        <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div
-            className="zen-card p-3 border-zen-water-200 bg-zen-water-50 flex items-center gap-3 animate-pulse"
-            role="status"
-            aria-live="polite"
-          >
-            <svg className="w-5 h-5 text-zen-water-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <p className="text-sm text-zen-water-700">
-              Data synced from another browser tab
-            </p>
           </div>
         </div>
       )}
@@ -419,21 +394,10 @@ export default function AllotmentPage() {
           {/* Main Layout */}
           <div className="lg:col-span-2 w-full min-w-0" data-tour="plot-overview">
             <div className="zen-card p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                <h2 className="text-base sm:text-lg font-display text-zen-ink-700 flex items-center gap-2">
-                  <Leaf className="w-5 h-5 text-zen-moss-600 flex-shrink-0" />
-                  <span className="truncate">Plot Overview - {selectedYear}</span>
-                </h2>
-                <button
-                  onClick={() => setShowAddAreaDialog(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-zen-moss-100 text-zen-moss-700 hover:bg-zen-moss-200 rounded-zen transition whitespace-nowrap self-end sm:self-auto hidden md:flex"
-                  title="Add a new area to your allotment"
-                  data-tour="add-area-btn"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Area
-                </button>
-              </div>
+              <h2 className="text-base sm:text-lg font-display text-zen-ink-700 flex items-center gap-2 mb-4">
+                <Leaf className="w-5 h-5 text-zen-moss-600 flex-shrink-0" />
+                <span className="truncate">Plot Overview - {selectedYear}</span>
+              </h2>
 
               {/* Draggable Grid Layout */}
               <div className="overflow-x-auto -mx-3 sm:mx-0">
@@ -445,8 +409,8 @@ export default function AllotmentPage() {
                     areas={getAllAreas()}
                     areaSeasons={currentSeason?.areas}
                     selectedYear={selectedYear}
-
                     onPositionChange={handlePositionChange}
+                    onAddArea={() => setShowAddAreaDialog(true)}
                   />
                 </div>
               </div>

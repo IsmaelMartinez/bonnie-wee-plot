@@ -1,192 +1,23 @@
 # Product Roadmap - Quick Reference
 
-**File:** `docs/research/product-roadmap.md`
-**Status:** Partially Obsolete
-**Last Updated:** January 2026
-
-> **Note (Feb 2026):** Progressive disclosure / feature gating was implemented then removed. All features are now directly accessible in the navigation. The unlock conditions, celebration modals, and feature flag system described below no longer exist. This document is retained for historical context on the product strategy decisions.
+**Status:** Active (trimmed Feb 2026)
+**Last Updated:** February 2026
 
 ---
 
-## TL;DR - The Strategy
+## Background
 
-### The Problem
-Current app shows ALL features (Today, This Month, Seeds, Compost, AI Advisor, Allotment) to new users → overwhelming, high abandonment.
+This document originally described a progressive disclosure strategy where features were hidden behind unlock conditions. That system was implemented and later removed (PR #163) as it was confusing and interfered with testing. All features are now directly accessible in the navigation.
 
-### The Solution
-**Progressive Feature Disclosure:**
-- Start with 3 core features (Today, This Month, Seeds)
-- Hide AI Advisor, Compost, and Allotment Layout initially
-- Unlock features as users demonstrate engagement
-
-### How Features Unlock
-
-| Feature | Unlock Condition | Why |
-|---------|-----------------|-----|
-| **AI Advisor** | 3 visits OR click CTA | Users have context, ready for advanced help |
-| **Compost Tracker** | 5 visits OR request | Additional value for engaged users |
-| **Layout Planner** | 5 plantings OR request | Users have data to populate beds with |
-
----
-
-## The 4 Phases
-
-### Phase 1: Simplified Launch (3-4 weeks)
-**Ship:** Feature gating system, simplified nav (3 items), onboarding, unlock celebrations
-**Hide:** AI Advisor, Compost, Allotment Layout
-**Goal:** 500 users, 50% retention, 30% unlock AI, 20% unlock Compost
-
-### Phase 2: Feature Discovery (5-6 weeks)
-**Ship:** Enhanced unlocks, notifications, feature tours, sharing
-**Goal:** 60% of users unlock features, 40% return 4+ times
-
-### Phase 3: Power Users (7-9 weeks)
-**Ship:** Auth (Clerk), cloud sync (Supabase), advanced planner, weather API
-**Goal:** 20% create accounts, 10% use sync
-
-### Phase 4: Community & Scale (3-4 months)
-**Ship:** Social features, mobile app, localization
-**Goal:** 1,000+ MAU, network effects
-
----
-
-## Implementation Priority
-
-### Pre-Development (3-5 days)
-- [ ] User interviews: Validate 3-feature approach
-- [ ] Design: Unlock celebrations, progress indicators
-- [ ] Refine: Finalize unlock criteria
-
-### Phase 1 Build (15-20 working days)
-
-**Week 1: Core Gating (5-6 days)**
-1. Feature flag system (2-3 days) ← **START HERE**
-2. Simplified navigation to 3 items (1 day)
-3. Hide Compost/AI/Allotment routes (1 day)
-4. Basic unlock logic (1-2 days)
-
-**Week 2: Onboarding & Discovery (5-6 days)**
-5. Onboarding flow (2-3 days)
-6. Unlock celebration modals (1-2 days)
-7. Progress indicators & CTAs (2 days)
-
-**Week 3: Polish Core Features (5-6 days)**
-8. Today dashboard empty states (2 days)
-9. This Month personalization (2 days)
-10. Seeds page polish (1-2 days)
-
-**Week 4: Testing & Launch Prep (3-4 days)**
-11. E2E testing unlock flows (1-2 days)
-12. Analytics integration (1 day)
-13. Bug fixes & refinement (1-2 days)
-
-**Total:** 18-22 days (3.5-4.5 weeks calendar time)
-
----
-
-## Key Metrics to Track
-
-**Acquisition:**
-- Unique visitors
-- Onboarding completion rate (target: 70%)
-
-**Activation:**
-- Plantings added (target: 3+ per user)
-- Seeds tracked (target: 15%)
-
-**Engagement:**
-- AI unlock rate (target: 30%)
-- Compost unlock rate (target: 20%)
-- Layout unlock rate (target: 15%)
-- Return visits (target: 50% within 7 days)
-
-**Retention:**
-- 7-day retention (target: 50%)
-- 30-day retention (target: 30%)
-
----
-
-## What Changed from Original Plan
-
-| Original | New Approach | Why |
-|----------|-------------|-----|
-| Show all 6 nav items | Show 3 core items | Reduce overwhelm by 50% |
-| Compost in main nav | Hide until 5 visits | Uncertain value, validate demand |
-| Allotment in main nav | Hide until unlocked | Too complex for beginners |
-| AI Advisor visible | Hide until 3 visits | API key friction, needs context |
-| Linear onboarding | Progressive disclosure | Earn features naturally |
-| Generic metrics | Unlock rate metrics | Measure engagement depth |
-
----
-
-## Risks & Mitigations
-
-**Risk:** Users never unlock features
-**Mitigation:** Low thresholds (3 visits, 5 plantings), prominent CTAs, progress bars
-
-**Risk:** Users frustrated by "hidden" features
-**Mitigation:** Clear teasers, value props, "coming soon" indicators
-
-**Risk:** Too simple, not enough value
-**Mitigation:** Phase 1 still has personalization, calendar, tracking
-
----
-
-## Next Decision Points
-
-1. **After user interviews (Week of Jan 20):**
-   - Validate gating strategy
-   - Adjust unlock criteria if needed
-   - Finalize Phase 1 scope
-
-2. **After Phase 1 launch (Feb 2026):**
-   - Analyze unlock rates
-   - A/B test criteria (3 vs 5 visits?)
-   - Iterate based on data
-
-3. **End of Q1 2026:**
-   - Review metrics vs targets
-   - Decide on Phase 2 timeline
-   - Plan authentication approach
-
----
-
-## Files in This Plan
-
-- `docs/research/product-roadmap.md` - Full detailed roadmap (881 lines)
-- `docs/research/product-roadmap-quick-reference.md` - This summary
-
----
-
-## Related Documentation
-
-- **ADR-020: Planting Detail Dialog** (`docs/adrs/020-planting-detail-dialog.md`) - Architecture decision record documenting the bottom sheet dialog pattern and UI decisions
-- **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
+The valuable part of this document is the UX review checklist below, which remains relevant for ongoing polish work.
 
 ---
 
 ## Production Preparation Steps
 
-Before implementing progressive disclosure, complete these UX improvements:
+### Step 1: Plant Dialog UX Implementation (COMPLETE)
 
-### Step 1: Plant Dialog UX Implementation (✅ COMPLETE)
-
-**Status:** Completed in PR #68 and #69 (January 27, 2026)
-
-**What was implemented:**
-- Bottom sheet dialog pattern for mobile-first UX
-- Full inline editing of planting information (dates, notes, success ratings)
-- Sow method selection with conditional transplant date field
-- Harvest date tracking (expected and actual)
-- Companion planting visibility with good/conflict indicators
-- Plant care information display (water, sun, spacing, days to harvest)
-- Delete functionality with confirmation
-- Full accessibility support (ARIA labels, keyboard navigation, 44px touch targets)
-- Shared utility functions for code maintainability
-
-**Related PRs:**
-- PR #68: Add planting detail dialog with expanded editing capabilities
-- PR #69: Fix planting dialog accessibility and state management issues
+Completed in PR #68 and #69 (January 27, 2026). Bottom sheet dialog pattern for mobile-first UX, full inline editing of planting information, sow method selection, harvest date tracking, companion planting visibility, plant care information display, delete with confirmation, and full accessibility support.
 
 ### Step 2: Section-by-Section UX Review
 
@@ -230,7 +61,7 @@ Review each section's components individually, then how they integrate within th
 - Is the grid vs detail panel relationship clear?
 - Is mobile view (AllotmentMobileView) as capable as desktop?
 - Are the different area types (beds, trees, infrastructure) handled consistently?
-**Intra-section integration:** Grid selection → Detail panel → Planting cards → Detail dialog flow
+**Intra-section integration:** Grid selection -> Detail panel -> Planting cards -> Detail dialog flow
 
 #### 2.5 Compost
 **Components:** Pile tracking, event logging, C:N ratio display
@@ -247,7 +78,7 @@ Review each section's components individually, then how they integrate within th
 - Are tool calls (modifying plantings) trustworthy and confirmable?
 - Do QuickTopics help users get started?
 - Is the inline prompt (contextual AI) useful?
-**Intra-section integration:** Token setup → Chat flow → Tool confirmations → Data modifications
+**Intra-section integration:** Token setup -> Chat flow -> Tool confirmations -> Data modifications
 
 #### 2.7 Settings
 **Components:** DataManagement (export/import/clear), ShareDialog, storage stats
@@ -259,7 +90,7 @@ Review each section's components individually, then how they integrate within th
 **Intra-section integration:** Data management vs sharing vs app info
 
 #### 2.8 Shared UI Components
-**Components:** Dialog, SaveIndicator, Toast, StorageWarningBanner, InstallPrompt, OfflineIndicator, UnlockCelebration
+**Components:** Dialog, SaveIndicator, Toast, StorageWarningBanner, InstallPrompt, OfflineIndicator
 **Key Questions:**
 - Are dialogs consistent (bottom-sheet on mobile)?
 - Is save status clear and non-intrusive?
@@ -288,12 +119,12 @@ Review each section's components individually, then how they integrate within th
 After reviewing sections individually, map how they connect:
 
 #### User Journeys to Test
-- "Plan a new bed" → Allotment → Add area → Add plantings → See in Today
-- "Track a harvest" → Allotment → Select planting → Log harvest → See totals
-- "Check what to do" → Today → See tasks → Navigate to relevant section
-- "Add seeds I bought" → Seeds → Add variety → Mark as "have" → See in Allotment when planting
-- "Share with family" → Settings → Share → Receive on other device → Verify data
-- "Ask for help" → AI Advisor → Ask question → Confirm tool call → See change in Allotment
+- "Plan a new bed" -> Allotment -> Add area -> Add plantings -> See in Today
+- "Track a harvest" -> Allotment -> Select planting -> Log harvest -> See totals
+- "Check what to do" -> Today -> See tasks -> Navigate to relevant section
+- "Add seeds I bought" -> Seeds -> Add variety -> Mark as "have" -> See in Allotment when planting
+- "Share with family" -> Settings -> Share -> Receive on other device -> Verify data
+- "Ask for help" -> AI Advisor -> Ask question -> Confirm tool call -> See change in Allotment
 
 #### Integration Questions
 - Is terminology consistent across sections (variety vs seed, area vs bed)?
@@ -301,19 +132,16 @@ After reviewing sections individually, map how they connect:
 - Is data shown consistently (same planting looks same everywhere)?
 - Are empty states helpful and guide to next action?
 
-**Goal:** Ship a polished, coherent experience before adding progressive disclosure complexity.
+**Goal:** Ship a polished, coherent experience.
 
 ---
 
-## Questions for Review
+## Related Documentation
 
-1. **Unlock criteria:** Are 3 visits / 5 plantings the right thresholds?
-2. **Hidden features:** Should anything else be hidden? Shown earlier?
-3. **Phase 1 scope:** Too ambitious for 4-5 weeks? Cut anything?
-4. **Metrics:** Are the success targets realistic?
-5. **User interviews:** What questions should we prioritize?
+- **ADR-020: Planting Detail Dialog** (`docs/adrs/020-planting-detail-dialog.md`) - Architecture decision record documenting the bottom sheet dialog pattern and UI decisions
+- **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
 
 ---
 
-**Status:** ✅ Step 1 Complete | Ready for Step 2
+**Status:** Step 1 Complete | Ready for Step 2
 **Next:** Section-by-Section UX Review (Step 2)

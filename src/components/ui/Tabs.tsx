@@ -22,11 +22,15 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Tab buttons */}
-      <div className="flex border-b border-zen-stone-200 -mx-6 px-6 overflow-x-auto">
+      <div className="flex border-b border-zen-stone-200 -mx-6 px-6 overflow-x-auto" role="tablist">
         {tabs.map(tab => (
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium whitespace-nowrap transition border-b-2 -mb-[1px] ${
               activeTab === tab.id
@@ -41,7 +45,12 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
       </div>
 
       {/* Tab content */}
-      <div className="flex-1 pt-6 overflow-y-auto">
+      <div
+        className="flex-1 pt-6 overflow-y-auto"
+        role="tabpanel"
+        id={`tabpanel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+      >
         {activeTabData?.content}
       </div>
     </div>

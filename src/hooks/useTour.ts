@@ -9,15 +9,11 @@ const TOUR_STORAGE_KEY = 'bonnie-wee-plot-tours'
 interface TourState {
   completed: TourId[]
   dismissed: TourId[]
-  disabled: boolean
-  pageVisits: Partial<Record<TourId, number>>
 }
 
 const defaultState: TourState = {
   completed: [],
   dismissed: [],
-  disabled: false,
-  pageVisits: {},
 }
 
 // Singleton state manager for cross-component sync
@@ -32,12 +28,9 @@ function loadTourState(): TourState {
     const stored = localStorage.getItem(TOUR_STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
-      // Migrate old state format
       return {
         completed: parsed.completed || [],
         dismissed: parsed.dismissed || [],
-        disabled: parsed.disabled || false,
-        pageVisits: parsed.pageVisits || {},
       }
     }
   } catch {
@@ -88,42 +81,20 @@ if (typeof window !== 'undefined') {
   })
 }
 
-interface UseTourOptions {
-  /** Delay before auto-starting tour (ms) */
-  autoStartDelay?: number
-}
-
 interface UseTourReturn {
-  /** Start a specific tour */
   startTour: (tourId: TourId) => void
-  /** Check if a tour has been completed */
   isCompleted: (tourId: TourId) => boolean
-  /** Check if a tour has been dismissed (skipped) */
   isDismissed: (tourId: TourId) => boolean
-  /** Check if tour is currently active */
   isActive: boolean
-  /** Reset all tour progress */
   resetAllTours: () => void
-  /** Reset a specific tour */
   resetTour: (tourId: TourId) => void
-  /** Check if a tour should auto-start (not completed, not dismissed, not disabled, visits < 3) */
-  shouldAutoStart: (tourId: TourId) => boolean
-  /** Check if tours are globally disabled */
-  isDisabled: boolean
-  /** Toggle tours globally */
-  setDisabled: (disabled: boolean) => void
-  /** Increment page visit count */
-  incrementPageVisit: (tourId: TourId) => void
-  /** Get visit count for a page */
-  getPageVisits: (tourId: TourId) => number
 }
 
 /**
  * Hook to manage guided tours using driver.js
  * Uses a singleton pattern for cross-component state sync
  */
-export function useTour(options: UseTourOptions = {}): UseTourReturn {
-  const { autoStartDelay = 500 } = options
+export function useTour(): UseTourReturn {
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
   const [isActive, setIsActive] = useState(false)
   const driverRef = useRef<Driver | null>(null)
@@ -145,20 +116,6 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
         : [...prev.dismissed, tourId],
     }))
   }, [])
-
-  const incrementPageVisit = useCallback((tourId: TourId) => {
-    setTourState(prev => ({
-      ...prev,
-      pageVisits: {
-        ...prev.pageVisits,
-        [tourId]: (prev.pageVisits[tourId] || 0) + 1,
-      },
-    }))
-  }, [])
-
-  const getPageVisits = useCallback((tourId: TourId): number => {
-    return state.pageVisits[tourId] || 0
-  }, [state.pageVisits])
 
   const startTour = useCallback((tourId: TourId) => {
     const definition = getTourDefinition(tourId)
@@ -237,8 +194,8 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
 
       setIsActive(true)
       driverInstance.drive()
-    }, autoStartDelay)
-  }, [autoStartDelay, markCompleted, markDismissed])
+    }, 500)
+  }, [markCompleted, markDismissed])
 
   const isCompleted = useCallback((tourId: TourId): boolean => {
     return state.completed.includes(tourId)
@@ -248,25 +205,11 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
     return state.dismissed.includes(tourId)
   }, [state.dismissed])
 
-  const shouldAutoStart = useCallback((tourId: TourId): boolean => {
-    // Don't auto-start in Playwright test mode
-    if (process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true') return false
-    // Don't auto-start if tours are disabled
-    if (state.disabled) return false
-    // Don't auto-start if already completed or dismissed
-    if (state.completed.includes(tourId) || state.dismissed.includes(tourId)) return false
-    // Don't auto-start after 3 visits
-    const visits = state.pageVisits[tourId] || 0
-    if (visits >= 3) return false
-    return true
-  }, [state.completed, state.dismissed, state.disabled, state.pageVisits])
-
   const resetAllTours = useCallback(() => {
     setTourState(prev => ({
       ...prev,
       completed: [],
       dismissed: [],
-      pageVisits: {},
     }))
   }, [])
 
@@ -275,17 +218,6 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
       ...prev,
       completed: prev.completed.filter(id => id !== tourId),
       dismissed: prev.dismissed.filter(id => id !== tourId),
-      pageVisits: {
-        ...prev.pageVisits,
-        [tourId]: 0,
-      },
-    }))
-  }, [])
-
-  const setDisabled = useCallback((disabled: boolean) => {
-    setTourState(prev => ({
-      ...prev,
-      disabled,
     }))
   }, [])
 
@@ -305,10 +237,5 @@ export function useTour(options: UseTourOptions = {}): UseTourReturn {
     isActive,
     resetAllTours,
     resetTour,
-    shouldAutoStart,
-    isDisabled: state.disabled,
-    setDisabled,
-    incrementPageVisit,
-    getPageVisits,
   }
 }
