@@ -192,9 +192,8 @@ describe('AllotmentGrid Component', () => {
       )
 
       await waitFor(() => {
-        const lockButton = screen.getByRole('button', { name: /edit layout/i })
+        const lockButton = screen.getByRole('button', { name: /unlock to edit/i })
         expect(lockButton).toBeInTheDocument()
-        expect(lockButton).toHaveAttribute('aria-pressed', 'false')
       })
     })
 
@@ -208,15 +207,14 @@ describe('AllotmentGrid Component', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /edit layout/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /unlock to edit/i })).toBeInTheDocument()
       })
 
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       await waitFor(() => {
         expect(mockOnEditingChange).toHaveBeenCalledWith(true)
-        const editingButton = screen.getByRole('button', { name: /stop editing layout/i })
-        expect(editingButton).toHaveAttribute('aria-pressed', 'true')
+        expect(screen.getByRole('button', { name: /lock layout/i })).toBeInTheDocument()
       })
     })
 
@@ -232,7 +230,7 @@ describe('AllotmentGrid Component', () => {
         expect(screen.queryByRole('button', { name: /reset layout/i })).not.toBeInTheDocument()
       })
 
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /reset layout/i })).toBeInTheDocument()
@@ -544,10 +542,10 @@ describe('AllotmentGrid Component', () => {
 
       // First, enable editing mode
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /edit layout/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /unlock to edit/i })).toBeInTheDocument()
       })
 
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       // Now press M on a grid item
       const firstButton = screen.getByRole('button', { name: /bed a/i })
@@ -598,7 +596,7 @@ describe('AllotmentGrid Component', () => {
       )
 
       // Enable editing mode
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       // Enter reposition mode
       const firstButton = screen.getByRole('button', { name: /bed a/i })
@@ -629,7 +627,7 @@ describe('AllotmentGrid Component', () => {
       )
 
       // Enable editing mode
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       // Enter reposition mode
       const firstButton = screen.getByRole('button', { name: /bed a/i })
@@ -662,7 +660,7 @@ describe('AllotmentGrid Component', () => {
       )
 
       // Enable editing mode
-      await userEvent.click(screen.getByRole('button', { name: /edit layout/i }))
+      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /reset layout/i })).toBeInTheDocument()
