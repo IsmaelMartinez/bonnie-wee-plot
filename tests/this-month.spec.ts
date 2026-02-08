@@ -244,7 +244,7 @@ test.describe('This Month - No Plantings State', () => {
 
     const allotmentLink = page.getByRole('link', { name: 'Manage My Allotment' })
     await expect(allotmentLink).toBeVisible()
-    await expect(allotmentLink).toHaveAttribute('href', '/allotment')
+    await expect(allotmentLink).toHaveAttribute('href', '/allotment/')
   })
 })
 
@@ -285,7 +285,7 @@ test.describe('This Month - Personalized Content', () => {
 
     const viewAllLink = personalSection.getByRole('link', { name: /View All/ })
     await expect(viewAllLink).toBeVisible()
-    await expect(viewAllLink).toHaveAttribute('href', '/allotment')
+    await expect(viewAllLink).toHaveAttribute('href', '/allotment/')
   })
 })
 

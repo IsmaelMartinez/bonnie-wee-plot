@@ -43,13 +43,13 @@ test.describe('About Page', () => {
     await expect(page.getByRole('heading', { name: 'My Allotment' })).toBeVisible()
     const allotmentLink = page.getByRole('link', { name: 'Open Allotment' })
     await expect(allotmentLink).toBeVisible()
-    await expect(allotmentLink).toHaveAttribute('href', '/allotment')
+    await expect(allotmentLink).toHaveAttribute('href', '/allotment/')
 
     // This Month card
     await expect(page.getByRole('heading', { name: 'This Month' })).toBeVisible()
     const calendarLink = page.getByRole('link', { name: 'View Tasks' })
     await expect(calendarLink).toBeVisible()
-    await expect(calendarLink).toHaveAttribute('href', '/this-month')
+    await expect(calendarLink).toHaveAttribute('href', '/this-month/')
   })
 
   test('should display AI Advisor section with BYO badge', async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe('About Page', () => {
 
     const aitorLink = page.getByRole('link', { name: /Talk to Aitor/ })
     await expect(aitorLink).toBeVisible()
-    await expect(aitorLink).toHaveAttribute('href', '/ai-advisor')
+    await expect(aitorLink).toHaveAttribute('href', '/ai-advisor/')
   })
 
   test('should display keyboard shortcuts section', async ({ page }) => {
@@ -136,7 +136,7 @@ test.describe('About Page - BYO API Key Section', () => {
     await disableTours(page)
 
     // Should have text about what Aitor can help with
-    await expect(page.getByText(/pests|planting|companion|garden/i)).toBeVisible()
+    await expect(page.getByText(/Ask about pests/i)).toBeVisible()
   })
 
   test('should use approachable language', async ({ page }) => {

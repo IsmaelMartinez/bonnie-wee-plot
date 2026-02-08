@@ -99,9 +99,13 @@ jobs:
       
       - name: Build application
         run: npm run build
-      
+        env:
+          NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE: 'true'
+
       - name: Run Playwright tests
         run: npm run test:chrome
+        env:
+          NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE: 'true'
       
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

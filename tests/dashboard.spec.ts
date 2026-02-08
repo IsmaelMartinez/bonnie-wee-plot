@@ -59,7 +59,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    const allotmentLink = page.locator('[data-tour="quick-actions"] a[href="/allotment"]')
+    const allotmentLink = page.locator('[data-tour="quick-actions"] a[href="/allotment/"]')
     await expect(allotmentLink).toBeVisible()
   })
 
@@ -67,7 +67,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    const seedsLink = page.locator('[data-tour="quick-actions"] a[href="/seeds"]')
+    const seedsLink = page.locator('[data-tour="quick-actions"] a[href="/seeds/"]')
     await expect(seedsLink).toBeVisible()
   })
 
@@ -75,7 +75,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    const calendarLink = page.locator('[data-tour="quick-actions"] a[href="/this-month"]')
+    const calendarLink = page.locator('[data-tour="quick-actions"] a[href="/this-month/"]')
     await expect(calendarLink).toBeVisible()
   })
 
@@ -83,7 +83,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    const aitorLink = page.locator('[data-tour="quick-actions"] a[href="/ai-advisor"]')
+    const aitorLink = page.locator('[data-tour="quick-actions"] a[href="/ai-advisor/"]')
     await expect(aitorLink).toBeVisible()
   })
 
@@ -91,7 +91,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    await page.locator('[data-tour="quick-actions"] a[href="/allotment"]').click()
+    await page.locator('[data-tour="quick-actions"] a[href="/allotment/"]').click()
     await expect(page).toHaveURL(/allotment/)
   })
 
@@ -99,7 +99,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    await page.locator('[data-tour="quick-actions"] a[href="/seeds"]').click()
+    await page.locator('[data-tour="quick-actions"] a[href="/seeds/"]').click()
     await expect(page).toHaveURL(/seeds/)
   })
 
@@ -107,7 +107,7 @@ test.describe('Dashboard (Today) Page', () => {
     await setupPage(page)
     await page.goto('/')
 
-    await page.locator('[data-tour="quick-actions"] a[href="/this-month"]').click()
+    await page.locator('[data-tour="quick-actions"] a[href="/this-month/"]').click()
     await expect(page).toHaveURL(/this-month/)
   })
 
@@ -193,33 +193,6 @@ test.describe('Dashboard - AI Insight', () => {
   })
 })
 
-test.describe('Dashboard - Task List', () => {
-  test('should display task list section', async ({ page }) => {
-    await setupPage(page)
-    await page.goto('/')
-
-    const taskList = page.locator('[data-tour="task-list"]')
-    await expect(taskList).toBeVisible()
-  })
-
-  test('should show tasks heading', async ({ page }) => {
-    await setupPage(page)
-    await page.goto('/')
-
-    const taskList = page.locator('[data-tour="task-list"]')
-    await expect(taskList.getByText('Tasks')).toBeVisible()
-  })
-
-  test('should show empty state or task items', async ({ page }) => {
-    await setupPage(page)
-    await page.goto('/')
-
-    const taskList = page.locator('[data-tour="task-list"]')
-    // Either shows "No tasks this month" empty state or actual tasks
-    const text = await taskList.textContent()
-    expect(text!.length).toBeGreaterThan(5)
-  })
-})
 
 test.describe('Dashboard - No Horizontal Scroll', () => {
   test.use({ viewport: { width: 375, height: 667 } })

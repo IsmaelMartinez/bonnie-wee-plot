@@ -149,7 +149,7 @@ test.describe('Settings Page - Receive Allotment', () => {
 
     const receiveLink = page.getByRole('link', { name: /Receive Data/i })
     await expect(receiveLink).toBeVisible()
-    await expect(receiveLink).toHaveAttribute('href', '/receive')
+    await expect(receiveLink).toHaveAttribute('href', '/receive/')
   })
 })
 

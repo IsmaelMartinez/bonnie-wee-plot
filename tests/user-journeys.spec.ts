@@ -162,7 +162,7 @@ test.describe('Journey 3: Check What To Do', () => {
     await expect(page.locator('[data-tour="season-card"]')).toBeVisible()
 
     // 3. Navigate to This Month via quick action
-    await page.locator('[data-tour="quick-actions"] a[href="/this-month"]').click()
+    await page.locator('[data-tour="quick-actions"] a[href="/this-month/"]').click()
     await expect(page).toHaveURL(/this-month/)
 
     // 4. This Month page should load with calendar content
@@ -187,7 +187,7 @@ test.describe('Journey 3b: Check What To Do - Full Flow', () => {
     await expect(taskList).toBeVisible()
 
     // 3. Navigate to This Month
-    await page.locator('[data-tour="quick-actions"] a[href="/this-month"]').click()
+    await page.locator('[data-tour="quick-actions"] a[href="/this-month/"]').click()
 
     // 4. Select current month (should be auto-selected)
     await expect(page.getByText("You're viewing the current month")).toBeVisible()
