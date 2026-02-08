@@ -9,6 +9,12 @@ interface PlantingEntry {
   bedColor: string
   plantId: string
   varietyName?: string
+  // Personalised date fields (ISO date strings)
+  sowDate?: string
+  expectedHarvestStart?: string
+  expectedHarvestEnd?: string
+  actualHarvestStart?: string
+  actualHarvestEnd?: string
 }
 
 interface UnifiedCalendarProps {
@@ -17,6 +23,26 @@ interface UnifiedCalendarProps {
 }
 
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+
+/** Extract 1-based month from an ISO date string */
+function monthFromDate(isoDate: string): number {
+  return new Date(isoDate).getMonth() + 1
+}
+
+/** Get the range of months (1-based) between two ISO dates, inclusive */
+function monthRange(startDate: string, endDate: string): number[] {
+  const start = monthFromDate(startDate)
+  const end = monthFromDate(endDate)
+  const months: number[] = []
+  if (start <= end) {
+    for (let m = start; m <= end; m++) months.push(m)
+  } else {
+    // Wraps across year boundary (e.g., Nov to Feb)
+    for (let m = start; m <= 12; m++) months.push(m)
+    for (let m = 1; m <= end; m++) months.push(m)
+  }
+  return months
+}
 
 export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCalendarProps) {
   // Group plantings by bed
@@ -41,6 +67,9 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
       </div>
     )
   }
+
+  // Check if any planting has personalised dates
+  const hasAnyPersonalised = plantings.some(p => p.sowDate || p.expectedHarvestStart || p.actualHarvestStart)
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
@@ -92,24 +121,56 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
                     ? `${veg.name} (${item.varietyName})`
                     : veg.name
 
+                  // Determine personalised vs generic months
+                  const hasPersonalisedSow = !!item.sowDate
+                  const hasPersonalisedHarvest = !!(item.actualHarvestStart || item.expectedHarvestStart)
+
+                  const personalisedSowMonths: number[] = item.sowDate
+                    ? [monthFromDate(item.sowDate)]
+                    : []
+
+                  const personalisedHarvestMonths: number[] = (() => {
+                    const hStart = item.actualHarvestStart || item.expectedHarvestStart
+                    const hEnd = item.actualHarvestEnd || item.expectedHarvestEnd
+                    if (hStart && hEnd) return monthRange(hStart, hEnd)
+                    if (hStart) return [monthFromDate(hStart)]
+                    return []
+                  })()
+
                   return (
                     <div key={`${item.plantId}-${idx}`} className="grid grid-cols-12 gap-1">
                       {Array.from({ length: 12 }, (_, i) => {
                         const month = (i + 1) as Month
-                        const canSow = veg.planting.sowOutdoorsMonths.includes(month) ||
-                                       veg.planting.sowIndoorsMonths.includes(month)
-                        const canHarvest = veg.planting.harvestMonths.includes(month)
                         const isCurrentMonth = currentMonth === month
 
+                        // Use personalised dates when available, otherwise fall back to database
+                        const canSow = hasPersonalisedSow
+                          ? personalisedSowMonths.includes(month)
+                          : (veg.planting.sowOutdoorsMonths.includes(month) ||
+                             veg.planting.sowIndoorsMonths.includes(month))
+
+                        const canHarvest = hasPersonalisedHarvest
+                          ? personalisedHarvestMonths.includes(month)
+                          : veg.planting.harvestMonths.includes(month)
+
+                        const isGenericFallback = (!hasPersonalisedSow && canSow) || (!hasPersonalisedHarvest && canHarvest)
+
                         let bgClass = 'bg-gray-100'
-                        if (canHarvest) bgClass = 'bg-amber-400'
-                        else if (canSow) bgClass = 'bg-green-400'
+                        if (canHarvest && isGenericFallback && !canSow) {
+                          bgClass = 'bg-amber-400/50'
+                        } else if (canHarvest) {
+                          bgClass = 'bg-amber-400'
+                        } else if (canSow && isGenericFallback) {
+                          bgClass = 'bg-green-400/50'
+                        } else if (canSow) {
+                          bgClass = 'bg-green-400'
+                        }
 
                         return (
                           <div
                             key={i}
                             className={`h-4 rounded-sm ${bgClass} ${isCurrentMonth ? 'ring-2 ring-green-600 ring-offset-1' : ''}`}
-                            title={`${veg.name}: ${canSow ? 'Sow ' : ''}${canHarvest ? 'Harvest' : ''}`}
+                            title={`${veg.name}: ${canSow ? 'Sow ' : ''}${canHarvest ? 'Harvest' : ''}${isGenericFallback ? ' (estimated)' : ''}`}
                           />
                         )
                       })}
@@ -135,8 +196,13 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
           <span className="w-3 h-3 bg-amber-400 rounded" />
           Harvest
         </span>
+        {hasAnyPersonalised && (
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 bg-green-400/50 rounded" />
+            Estimated (generic)
+          </span>
+        )}
       </div>
     </div>
   )
 }
-

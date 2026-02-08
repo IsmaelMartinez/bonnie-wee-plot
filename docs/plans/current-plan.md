@@ -48,7 +48,7 @@ Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory),
 
 After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
 
-An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. Remaining findings for future passes: This Month calendar information hierarchy and calendar showing static database data rather than user-specific plantings.
+An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. The This Month page has been updated to use personalised planting dates: the UnifiedCalendar now shows actual sow/harvest dates when available (with faded colours for generic fallback), and the "Your Garden" section is restructured into task-oriented categories (Harvest now, Sow this month, Growing) with expected dates shown.
 
 ### Plant Data Validation (Parallel Track)
 

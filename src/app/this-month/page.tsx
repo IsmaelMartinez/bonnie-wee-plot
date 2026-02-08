@@ -22,7 +22,7 @@ import {
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableById, getMaintenanceForMonth, type MaintenanceTask } from '@/lib/vegetable-database'
-import { Area, AreaSeason } from '@/types/unified-allotment'
+import { Area } from '@/types/unified-allotment'
 import {
   scotlandMonthlyCalendar,
   MONTH_KEYS,
@@ -118,15 +118,34 @@ function TipCard({
   )
 }
 
+// Format a date range for display (e.g., "mid-July to August")
+function formatDateRange(startDate?: string, endDate?: string): string | null {
+  if (!startDate) return null
+  const start = new Date(startDate)
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const startMonth = monthNames[start.getMonth()]
+  if (!endDate) return startMonth
+  const end = new Date(endDate)
+  const endMonth = monthNames[end.getMonth()]
+  if (startMonth === endMonth) return startMonth
+  return `${startMonth} to ${endMonth}`
+}
+
 // Personalized planting card
 function PersonalizedPlanting({
   bedId,
   vegetableName,
-  varietyName
+  varietyName,
+  context,
+  dateInfo,
+  sowMethodHint
 }: {
   bedId: string
   vegetableName: string
   varietyName?: string
+  context?: 'harvest' | 'growing' | 'sow'
+  dateInfo?: string | null
+  sowMethodHint?: string
 }) {
   return (
     <div className="flex items-start gap-3 p-3 bg-white/80 rounded-zen border border-zen-moss-200">
@@ -134,6 +153,15 @@ function PersonalizedPlanting({
         <div className="font-medium text-zen-ink-800">{vegetableName}</div>
         {varietyName && <div className="text-xs text-zen-stone-500">{varietyName}</div>}
         <div className="text-xs text-zen-moss-600 mt-1">Bed {bedId}</div>
+        {context === 'harvest' && dateInfo && (
+          <div className="text-xs text-zen-kitsune-600 mt-1">Expected harvest: {dateInfo}</div>
+        )}
+        {context === 'growing' && dateInfo && (
+          <div className="text-xs text-zen-water-600 mt-1">Harvest expected: {dateInfo}</div>
+        )}
+        {context === 'sow' && sowMethodHint && (
+          <div className="text-xs text-zen-moss-500 mt-1">{sowMethodHint}</div>
+        )}
       </div>
     </div>
   )
@@ -178,7 +206,7 @@ export default function ThisMonthPage() {
   const [isExpertTipsOpen, setIsExpertTipsOpen] = useState(false)
 
   // Load allotment data for personalization
-  const { data: allotmentData, currentSeason, selectedYear, isLoading, getAreasByKind } = useAllotment()
+  const { data: allotmentData, currentSeason, isLoading, getAreasByKind } = useAllotment()
 
   // Auto-select current month on page load
   useEffect(() => {
@@ -212,61 +240,102 @@ export default function ThisMonthPage() {
     return { tasks, plantings: permanentAreas }
   }, [getAreasByKind, selectedMonth])
   
-  // Get personalized tasks based on user's plantings
+  // Get personalized tasks based on user's plantings, using actual dates when available
   const personalizedData = useMemo(() => {
     if (!currentSeason || !allotmentData) return null
 
-    const allPlantings: Array<{
+    interface PlantingInfo {
       areaId: string
       plantId: string
       vegetableName: string
       varietyName?: string
+      sowDate?: string
+      expectedHarvestStart?: string
+      expectedHarvestEnd?: string
+      actualHarvestStart?: string
+      actualHarvestEnd?: string
       harvestMonths: number[]
       sowMonths: number[]
-      category: string
-    }> = []
+      sowMethodHint?: string
+      hasSowDate: boolean
+    }
+
+    const allPlantings: PlantingInfo[] = []
 
     for (const areaSeason of currentSeason.areas) {
       for (const planting of areaSeason.plantings) {
         const veg = getVegetableById(planting.plantId)
         if (veg) {
+          const sowIndoors = veg.planting?.sowIndoorsMonths || []
+          const sowOutdoors = veg.planting?.sowOutdoorsMonths || []
           allPlantings.push({
             areaId: areaSeason.areaId,
             plantId: planting.plantId,
             vegetableName: veg.name,
             varietyName: planting.varietyName,
+            sowDate: planting.sowDate,
+            expectedHarvestStart: planting.expectedHarvestStart,
+            expectedHarvestEnd: planting.expectedHarvestEnd,
+            actualHarvestStart: planting.actualHarvestStart,
+            actualHarvestEnd: planting.actualHarvestEnd,
             harvestMonths: veg.planting?.harvestMonths || [],
-            sowMonths: [...(veg.planting?.sowIndoorsMonths || []), ...(veg.planting?.sowOutdoorsMonths || [])],
-            category: veg.category
+            sowMonths: [...sowIndoors, ...sowOutdoors],
+            sowMethodHint: sowIndoors.length > 0 && sowOutdoors.length > 0
+              ? 'Sow indoors or outdoors'
+              : sowIndoors.length > 0 ? 'Sow indoors' : 'Sow outdoors',
+            hasSowDate: !!planting.sowDate
           })
         }
       }
     }
 
-    // Get month index (1-12) for comparison
     const monthIndex = MONTH_KEYS.indexOf(selectedMonth) + 1
 
-    // Get plantings that might be ready to harvest this month
-    const readyToHarvest = allPlantings.filter(p => {
-      // Check if current month is within harvest months
-      return p.harvestMonths.includes(monthIndex) ||
-             p.harvestMonths.includes(monthIndex + 1) ||
-             p.harvestMonths.includes(monthIndex - 1)
+    // Helper: check if a month falls within a date range
+    const monthInRange = (month: number, startDate?: string, endDate?: string): boolean => {
+      if (!startDate) return false
+      const startMonth = new Date(startDate).getMonth() + 1
+      if (!endDate) return month === startMonth
+      const endMonth = new Date(endDate).getMonth() + 1
+      if (startMonth <= endMonth) return month >= startMonth && month <= endMonth
+      // Wraps year boundary
+      return month >= startMonth || month <= endMonth
+    }
+
+    // "Harvest now" — plantings whose harvest window includes this month
+    const harvestNow = allPlantings.filter(p => {
+      const hStart = p.actualHarvestStart || p.expectedHarvestStart
+      const hEnd = p.actualHarvestEnd || p.expectedHarvestEnd
+      if (hStart) return monthInRange(monthIndex, hStart, hEnd)
+      // Fall back to static database months
+      return p.harvestMonths.includes(monthIndex)
     })
 
-    // Get plantings that need attention (sowing season)
-    const needsAttention = allPlantings.filter(p => {
-      return p.sowMonths.includes(monthIndex) ||
-             p.sowMonths.includes(monthIndex + 1) ||
-             p.sowMonths.includes(monthIndex - 1)
+    // "Sow this month" — plantings without a sow date where the database says this is a sow window
+    const sowThisMonth = allPlantings.filter(p => {
+      if (p.hasSowDate) return false
+      return p.sowMonths.includes(monthIndex)
+    })
+
+    // "Growing" — planted but not yet ready to harvest this month
+    const growing = allPlantings.filter(p => {
+      if (!p.hasSowDate) return false
+      const hStart = p.actualHarvestStart || p.expectedHarvestStart
+      const hEnd = p.actualHarvestEnd || p.expectedHarvestEnd
+      if (hStart) {
+        const inHarvestWindow = monthInRange(monthIndex, hStart, hEnd)
+        if (inHarvestWindow) return false
+      } else {
+        if (p.harvestMonths.includes(monthIndex)) return false
+      }
+      return true
     })
 
     return {
       plantingCount: allPlantings.length,
-      areaCount: currentSeason.areas.filter((a: AreaSeason) => a.plantings.length > 0).length,
-      readyToHarvest: readyToHarvest.slice(0, 4),
-      needsAttention: needsAttention.slice(0, 4),
-      allPlantings: allPlantings.slice(0, 6)
+      harvestNow,
+      sowThisMonth,
+      growing
     }
   }, [currentSeason, allotmentData, selectedMonth])
 
@@ -280,6 +349,11 @@ export default function ThisMonthPage() {
       bedColor: string
       plantId: string
       varietyName?: string
+      sowDate?: string
+      expectedHarvestStart?: string
+      expectedHarvestEnd?: string
+      actualHarvestStart?: string
+      actualHarvestEnd?: string
     }> = []
 
     for (const areaSeason of currentSeason.areas) {
@@ -293,7 +367,12 @@ export default function ThisMonthPage() {
           bedName,
           bedColor,
           plantId: planting.plantId,
-          varietyName: planting.varietyName
+          varietyName: planting.varietyName,
+          sowDate: planting.sowDate,
+          expectedHarvestStart: planting.expectedHarvestStart,
+          expectedHarvestEnd: planting.expectedHarvestEnd,
+          actualHarvestStart: planting.actualHarvestStart,
+          actualHarvestEnd: planting.actualHarvestEnd
         })
       }
     }
@@ -374,51 +453,85 @@ export default function ThisMonthPage() {
             </div>
 
             {hasAnnualPlantings && personalizedData && (
-              <>
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-white/60 rounded-zen p-3 text-center">
-                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.plantingCount}</div>
-                    <div className="text-xs text-zen-stone-600">Plantings in {selectedYear}</div>
-                  </div>
-                  <div className="bg-white/60 rounded-zen p-3 text-center">
-                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.areaCount}</div>
-                    <div className="text-xs text-zen-stone-600">Active Areas</div>
-                  </div>
-                  <div className="bg-white/60 rounded-zen p-3 text-center">
-                    <div className="text-2xl font-bold text-zen-moss-600">{personalizedData.readyToHarvest.length}</div>
-                    <div className="text-xs text-zen-stone-600">May Be Ready</div>
-                  </div>
-                </div>
-
-                {/* Your Plantings */}
-                {personalizedData.allPlantings.length > 0 && (
+              <div className="space-y-4">
+                {/* Harvest now */}
+                {personalizedData.harvestNow.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-zen-ink-700 mb-2">Your Current Plantings</h4>
+                    <h4 className="text-sm font-medium text-zen-kitsune-700 mb-2 flex items-center">
+                      <Carrot className="w-4 h-4 mr-2" />
+                      Harvest now
+                    </h4>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {personalizedData.allPlantings.map((p, i) => (
+                      {personalizedData.harvestNow.map((p, i) => (
                         <PersonalizedPlanting
                           key={i}
                           bedId={p.areaId}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
+                          context="harvest"
+                          dateInfo={formatDateRange(
+                            p.actualHarvestStart || p.expectedHarvestStart,
+                            p.actualHarvestEnd || p.expectedHarvestEnd
+                          )}
                         />
                       ))}
                     </div>
                   </div>
                 )}
 
-                {personalizedData.readyToHarvest.length > 0 && (
-                  <div className="mt-4 p-3 bg-zen-kitsune-50 rounded-zen border border-zen-kitsune-200">
-                    <div className="flex items-center text-zen-kitsune-700 font-medium mb-1">
-                      <Carrot className="w-4 h-4 mr-2" />
-                      Might be ready to harvest soon
+                {/* Sow this month */}
+                {personalizedData.sowThisMonth.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-zen-moss-700 mb-2 flex items-center">
+                      <Sprout className="w-4 h-4 mr-2" />
+                      Sow this month
+                    </h4>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {personalizedData.sowThisMonth.map((p, i) => (
+                        <PersonalizedPlanting
+                          key={i}
+                          bedId={p.areaId}
+                          vegetableName={p.vegetableName}
+                          varietyName={p.varietyName}
+                          context="sow"
+                          sowMethodHint={p.sowMethodHint}
+                        />
+                      ))}
                     </div>
-                    <p className="text-sm text-zen-kitsune-600">
-                      {personalizedData.readyToHarvest.map(p => p.vegetableName).join(', ')}
-                    </p>
                   </div>
                 )}
-              </>
+
+                {/* Growing */}
+                {personalizedData.growing.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-zen-water-700 mb-2 flex items-center">
+                      <Leaf className="w-4 h-4 mr-2" />
+                      Growing
+                    </h4>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {personalizedData.growing.map((p, i) => (
+                        <PersonalizedPlanting
+                          key={i}
+                          bedId={p.areaId}
+                          vegetableName={p.vegetableName}
+                          varietyName={p.varietyName}
+                          context="growing"
+                          dateInfo={formatDateRange(
+                            p.expectedHarvestStart,
+                            p.expectedHarvestEnd
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {personalizedData.harvestNow.length === 0 && personalizedData.sowThisMonth.length === 0 && personalizedData.growing.length === 0 && (
+                  <p className="text-sm text-zen-stone-500 italic">
+                    No specific tasks for your plantings this month.
+                  </p>
+                )}
+              </div>
             )}
 
             {/* Trees & Perennials subsection */}
