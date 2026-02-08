@@ -15,7 +15,7 @@ A Next.js application for garden planning and AI-powered gardening advice.
 
 ## Technology Stack:
 
-- Next.js 15 with TypeScript
+- Next.js 16 with TypeScript
 - React 19
 - Tailwind CSS for styling
 - Lucide React for icons
@@ -52,7 +52,7 @@ A Next.js application for garden planning and AI-powered gardening advice.
 
 ## Data Storage:
 
-- Currently uses localStorage with schema versioning (v10)
+- Currently uses localStorage with schema versioning (v16)
 - Unified data model in `src/types/unified-allotment.ts`
 - State managed via `useAllotment` hook
-- Supabase integration planned for future multi-device sync
+- Supabase integration considered for future multi-device sync (contingent on user adoption)

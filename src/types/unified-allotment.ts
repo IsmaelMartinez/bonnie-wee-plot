@@ -1,11 +1,12 @@
 /**
- * Unified Allotment Data Model (v10)
+ * Unified Allotment Data Model (v16)
  *
  * Single source of truth for all allotment data.
  *
- * v10 introduces a simplified unified Area type that consolidates
+ * v10 introduced a simplified unified Area type that consolidates
  * the previous BedArea, PermanentArea, and InfrastructureArea types.
  * All areas can now have plantings (strawberries under trees, flowers by shed, etc.)
+ * The model has been extended through v16 with lifecycle tracking, variety management, and grid positioning.
  */
 
 import type {

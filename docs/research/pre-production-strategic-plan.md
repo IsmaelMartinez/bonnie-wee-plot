@@ -1,10 +1,10 @@
-# Pre-Production Strategic Plan: Community Allotment 2.0
+# Pre-Production Strategic Plan: Bonnie Wee Plot
 
 ## Executive Summary
 
 This document synthesizes findings from five specialized deep-dive analyses covering security, PWA/mobile, observability, maintainability, and accessibility. It provides a unified roadmap for taking Community Allotment from its current prototype state to a production-ready, maintainable application.
 
-The application is at an inflection point: solid foundations exist (Next.js 15, React 19, TypeScript, good testing), with clear plans for Clerk auth, Supabase storage, and multi-provider AI. However, significant work is needed across all five domains before production deployment.
+The application is at an inflection point: solid foundations exist (Next.js 16, React 19, TypeScript, good testing), with clear plans for Clerk auth, Supabase storage, and multi-provider AI. However, significant work is needed across all five domains before production deployment.
 
 ## Status Update (January 2026)
 
@@ -16,11 +16,13 @@ Phases 0-5 have been completed. The app is deployed to GitHub Pages. Phases 6-8 
 
 ### What's Working Well
 
-The application demonstrates thoughtful architecture documented across 12 ADRs. The unified data model in `src/types/unified-allotment.ts` cleanly handles schema versioning (v10) with automatic migration and repair. State management via `useAllotment` hook provides clean separation between UI and persistence. The BYOK (Bring Your Own Key) model for AI keeps costs user-managed while the client-side rate limiter prevents accidental API abuse.
+The application demonstrates thoughtful architecture documented across 23 ADRs. The unified data model in `src/types/unified-allotment.ts` cleanly handles schema versioning (v16) with automatic migration and repair. State management via `useAllotment` hook provides clean separation between UI and persistence. The BYOK (Bring Your Own Key) model for AI keeps costs user-managed while the client-side rate limiter prevents accidental API abuse.
 
 Testing infrastructure is reasonably mature with Vitest for unit tests (~2,800 lines) and Playwright for E2E (~1,950 lines). The CI pipeline runs lint, type-check, and tests in parallel before builds.
 
 ### Critical Gaps Identified
+
+Note: All gaps below were addressed in Phases 0-5 (completed January 2026).
 
 Security has no CSP headers, no server-side rate limiting, and API tokens stored in sessionStorage are vulnerable to XSS. There's no authentication infrastructure and input validation on API routes is minimal.
 
@@ -189,7 +191,7 @@ The code is in place but Sentry needs to be configured to activate error trackin
    SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
    NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
    SENTRY_ORG=your-org-slug
-   SENTRY_PROJECT=community-allotment
+   SENTRY_PROJECT=bonnie-wee-plot
    ```
 5. For Vercel: Add these in Project Settings > Environment Variables
 6. Sentry also provides uptime monitoring via Crons feature (no separate service needed)
