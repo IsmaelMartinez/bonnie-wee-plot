@@ -45,7 +45,7 @@ test.describe('Accessibility - Allotment Page', () => {
 
   test('allotment page with dialog open should be accessible', async ({ page }) => {
     // Need to enable edit mode first, then click Add Area
-    const lockButton = page.locator('button').filter({ hasText: /Lock/ })
+    const lockButton = page.locator('button').filter({ hasText: /lock/i })
     if (await lockButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await lockButton.click()
       await page.waitForTimeout(300)
