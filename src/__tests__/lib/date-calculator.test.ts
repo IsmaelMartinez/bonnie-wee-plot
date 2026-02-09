@@ -42,8 +42,8 @@ const testPeas: Vegetable = {
     difficulty: 'beginner',
     tips: [],
   },
-  companionPlants: [],
-  avoidPlants: [],
+  enhancedCompanions: [],
+  enhancedAvoid: [],
 }
 
 const testTomato: Vegetable = {
@@ -66,8 +66,8 @@ const testTomato: Vegetable = {
     difficulty: 'intermediate',
     tips: [],
   },
-  companionPlants: [],
-  avoidPlants: [],
+  enhancedCompanions: [],
+  enhancedAvoid: [],
 }
 
 const testCarrot: Vegetable = {
@@ -90,8 +90,8 @@ const testCarrot: Vegetable = {
     difficulty: 'intermediate',
     tips: [],
   },
-  companionPlants: [],
-  avoidPlants: [],
+  enhancedCompanions: [],
+  enhancedAvoid: [],
 }
 
 describe('getGerminationDays', () => {
