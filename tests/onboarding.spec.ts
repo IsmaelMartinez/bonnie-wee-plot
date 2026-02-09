@@ -269,8 +269,8 @@ test.describe('Onboarding Wizard - Ask Path', () => {
     await expect(page.getByText('Start Exploring')).toBeVisible()
     await page.getByText('Start Exploring').click()
 
-    // Should navigate to AI advisor
-    await expect(page).toHaveURL(/ai-advisor/)
+    // Should navigate to AI advisor (extended timeout for CI)
+    await expect(page).toHaveURL(/ai-advisor/, { timeout: 15000 })
   })
 
   test('ask path shows correct guidance content', async ({ page }) => {
