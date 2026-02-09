@@ -669,7 +669,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'potato',
     name: 'Potatoes (Tatties)',
-    category: 'root-vegetables',
+    category: 'solanaceae',
     description: 'Scottish staple! Plant after last frost risk around late April.',
     planting: {
       sowIndoorsMonths: [],
@@ -781,7 +781,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'swede',
     name: 'Swede (Neeps)',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Essential for Burns Night! Hardy Scottish favorite that loves cool weather.',
     planting: {
       sowIndoorsMonths: [],
@@ -819,7 +819,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'turnip',
     name: 'Turnip',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Fast-growing root with edible greens. Best harvested young.',
     planting: {
       sowIndoorsMonths: [],
@@ -852,7 +852,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'radish',
     name: 'Radish',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Quick-growing root crop. Ready in weeks - ideal for Scottish summer.',
     planting: {
       sowIndoorsMonths: [],
@@ -951,7 +951,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'early-potato',
     name: 'First Early Potato',
-    category: 'root-vegetables',
+    category: 'solanaceae',
     description: 'Fast-maturing new potatoes. Ready 10-12 weeks after planting, ideal for Scottish climate.',
     planting: {
       sowIndoorsMonths: [],
@@ -988,7 +988,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'second-early-potato',
     name: 'Second Early Potato',
-    category: 'root-vegetables',
+    category: 'solanaceae',
     description: 'Mid-season potatoes with better yields than first earlies. Harvest July-August.',
     planting: {
       sowIndoorsMonths: [],
@@ -1025,7 +1025,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'maincrop-potato',
     name: 'Maincrop Potato',
-    category: 'root-vegetables',
+    category: 'solanaceae',
     description: 'Late season storage potatoes. Higher yields but more blight susceptible in wet Scottish summers.',
     planting: {
       sowIndoorsMonths: [],
@@ -3236,7 +3236,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'rhubarb',
     name: 'Rhubarb',
-    category: 'root-vegetables',
+    category: 'other',
     description: 'Perennial vegetable (used as fruit). Thrives in Scottish climate!',
     planting: {
       sowIndoorsMonths: [],
@@ -3278,7 +3278,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'jerusalem-artichoke',
     name: 'Jerusalem Artichoke',
-    category: 'root-vegetables',
+    category: 'other',
     description: 'Perennial tuber with nutty flavor. Extremely productive and hardy in Scotland.',
     planting: {
       sowIndoorsMonths: [],
