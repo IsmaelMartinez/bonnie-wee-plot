@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-09
+Last updated: 2026-02-09 (PR #178)
 
 ## What's Been Completed
 
@@ -60,6 +60,10 @@ Populated `wikipediaUrl` for all 192 plant entries in the vegetable database usi
 
 Added `enhancedAvoid` entries to 15 plants (brassicas avoiding potato, cucurbits avoiding potato, herbs avoiding fennel, berries cross-avoidance, apple-tree avoiding potato) and `enhancedCompanions` to 2 plants (ice-plant, horseradish). Bidirectional flags aligned with existing reverse entries for data consistency.
 
+### Companion Planting Migration (PR #178)
+
+Completed migration from legacy string-based companion system to ID-based enhanced arrays. Removed `companionPlants` and `avoidPlants` string arrays from all 192 plant entries in the database. Deleted entire `companion-normalization.ts` module (95 lines). Refactored `companion-validation.ts` to use direct ID lookups on `enhancedCompanions` and `enhancedAvoid` arrays, simplifying from 270 to 195 lines. Made enhanced arrays required fields in the Vegetable type. Added runner-beans to sweetcorn for proper Three Sisters bidirectional relationship. Net reduction of 450 lines across the codebase with cleaner, more maintainable code.
+
 ---
 
 ## Next Steps
@@ -76,7 +80,7 @@ An initial systematic review has been completed (PRs #151, #153, #169, #171) cov
 
 ### Plant Data Validation (Complete)
 
-All plant data validation work is done. Scottish outdoor plant validation, companion name normalization (PR #153), external reference links (56 RHS URLs, 59 botanical names, 192 Wikipedia URLs), crop rotation alignment with RHS four-year guidance (PR #174), and companion data enhancement with confidence levels, mechanism types, and bidirectional consistency (PR #176).
+All plant data validation work is done. Scottish outdoor plant validation, companion name normalization (PR #153), external reference links (56 RHS URLs, 59 botanical names, 192 Wikipedia URLs), crop rotation alignment with RHS four-year guidance (PR #174), companion data enhancement with confidence levels, mechanism types, and bidirectional consistency (PR #176), and companion planting system migration to ID-based arrays (PR #178).
 
 ### Future Phases (Contingent on User Adoption)
 
