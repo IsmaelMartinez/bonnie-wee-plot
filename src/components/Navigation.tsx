@@ -68,7 +68,7 @@ export default function Navigation() {
   return (
     <header className="bg-white border-b border-zen-stone-200">
       <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between h-16" role="navigation">
+        <nav className="flex items-center justify-between h-16" role="navigation" aria-label="Main navigation">
           {/* Logo and Allotment Name */}
           <div className="flex items-center gap-1">
             {isEditingName ? (

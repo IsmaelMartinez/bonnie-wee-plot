@@ -66,6 +66,7 @@ export default function AboutPage() {
             <Link
               href="/allotment"
               className="zen-btn-primary inline-block"
+              aria-label="Open Allotment — manage beds and plantings"
             >
               Open Allotment
             </Link>
@@ -82,6 +83,7 @@ export default function AboutPage() {
             <Link
               href="/this-month"
               className="zen-btn-secondary inline-block"
+              aria-label="View Tasks — seasonal sowing and harvesting"
             >
               View Tasks
             </Link>
@@ -103,6 +105,7 @@ export default function AboutPage() {
             <Link
               href="/ai-advisor"
               className="inline-block text-zen-sakura-700 hover:text-zen-sakura-800 text-sm font-medium transition"
+              aria-label="Talk to Aitor — AI gardening advisor"
             >
               Talk to Aitor →
             </Link>
