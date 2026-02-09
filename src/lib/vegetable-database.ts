@@ -41,7 +41,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/lettuce/grow-your-own',
-    botanicalName: 'Lactuca sativa'
+    botanicalName: 'Lactuca sativa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lactuca_sativa'
   },
   {
     id: 'spinach',
@@ -75,7 +76,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/spinach/grow-your-own',
-    botanicalName: 'Spinacia oleracea'
+    botanicalName: 'Spinacia oleracea',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Spinacia_oleracea'
   },
   {
     id: 'perpetual-spinach',
@@ -107,7 +109,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Chard'
   },
   {
     id: 'kale',
@@ -137,6 +140,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Strawberry'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/kale/grow-your-own',
     botanicalName: 'Brassica oleracea var. sabellica',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Kale',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -179,7 +183,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/swiss-chard/grow-your-own',
-    botanicalName: 'Beta vulgaris subsp. cicla'
+    botanicalName: 'Beta vulgaris subsp. cicla',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Chard'
   },
   {
     id: 'rocket',
@@ -213,7 +218,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    botanicalName: 'Eruca vesicaria'
+    botanicalName: 'Eruca vesicaria',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Eruca_vesicaria'
   },
   {
     id: 'mizuna',
@@ -247,7 +253,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    botanicalName: 'Brassica rapa var. nipposinica'
+    botanicalName: 'Brassica rapa var. nipposinica',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_rapa'
   },
   {
     id: 'land-cress',
@@ -278,7 +285,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Barbarea_verna'
   },
   {
     id: 'corn-salad',
@@ -309,7 +317,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Valerianella_locusta'
   },
   {
     id: 'winter-purslane',
@@ -339,7 +348,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Claytonia_perfoliata'
   },
   {
     id: 'mustard-greens',
@@ -372,7 +382,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Mustard_greens'
   },
   {
     id: 'watercress',
@@ -403,7 +414,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'mint', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Watercress'
   },
   {
     id: 'salad-burnet',
@@ -435,7 +447,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'oregano', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Sanguisorba_minor'
   },
   {
     id: 'orache',
@@ -467,7 +480,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Atriplex_hortensis'
   },
   {
     id: 'new-zealand-spinach',
@@ -499,7 +513,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tetragonia_tetragonioides'
   },
   {
     id: 'good-king-henry',
@@ -531,7 +546,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'rhubarb', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Blitum_bonus-henricus'
   },
   {
     id: 'radicchio',
@@ -563,7 +579,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'endive', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Radicchio'
   },
   {
     id: 'endive',
@@ -595,7 +612,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'radicchio', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Endive'
   },
   {
     id: 'ice-plant',
@@ -623,7 +641,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Winter Purslane'],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Mesembryanthemum_crystallinum'
   },
 
   // ============ ROOT VEGETABLES ============
@@ -664,7 +683,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'parsnip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/carrots/grow-your-own',
-    botanicalName: 'Daucus carota'
+    botanicalName: 'Daucus carota',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Daucus_carota'
   },
   {
     id: 'potato',
@@ -694,6 +714,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Squash'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/potatoes/grow-your-own',
     botanicalName: 'Solanum tuberosum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum',
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -738,7 +759,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'runner-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/beetroot/grow-your-own',
-    botanicalName: 'Beta vulgaris'
+    botanicalName: 'Beta vulgaris',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Beetroot'
   },
   {
     id: 'parsnip',
@@ -776,7 +798,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/parsnips/grow-your-own',
-    botanicalName: 'Pastinaca sativa'
+    botanicalName: 'Pastinaca sativa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pastinaca_sativa'
   },
   {
     id: 'swede',
@@ -814,7 +837,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'cauliflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/swede/grow-your-own',
-    botanicalName: 'Brassica napus'
+    botanicalName: 'Brassica napus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rutabaga'
   },
   {
     id: 'turnip',
@@ -847,7 +871,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/turnips/grow-your-own',
-    botanicalName: 'Brassica rapa'
+    botanicalName: 'Brassica rapa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Turnip'
   },
   {
     id: 'radish',
@@ -885,7 +910,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'hyssop', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/radish/grow-your-own',
-    botanicalName: 'Raphanus sativus'
+    botanicalName: 'Raphanus sativus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Radish'
   },
   {
     id: 'salsify',
@@ -916,7 +942,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tragopogon_porrifolius'
   },
   {
     id: 'hamburg-parsley',
@@ -946,7 +973,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Petroselinum_crispum'
   },
   {
     id: 'early-potato',
@@ -983,7 +1011,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
   },
   {
     id: 'second-early-potato',
@@ -1020,7 +1049,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
   },
   {
     id: 'maincrop-potato',
@@ -1057,7 +1087,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
   },
   {
     id: 'florence-fennel',
@@ -1095,7 +1126,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'kohlrabi', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/florence-fennel/grow-your-own',
-    botanicalName: 'Foeniculum vulgare var. azoricum'
+    botanicalName: 'Foeniculum vulgare var. azoricum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Fennel'
   },
   {
     id: 'mooli',
@@ -1131,7 +1163,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Daikon'
   },
   {
     id: 'black-radish',
@@ -1167,7 +1200,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Radish'
   },
   {
     id: 'scorzonera',
@@ -1199,7 +1233,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Scorzonera_hispanica'
   },
   {
     id: 'horseradish',
@@ -1227,7 +1262,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Potato'],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Horseradish'
   },
   {
     id: 'chinese-artichoke',
@@ -1258,7 +1294,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'jerusalem-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Stachys_affinis'
   },
   {
     id: 'yacon',
@@ -1289,7 +1326,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Yac%C3%B3n'
   },
 
   // ============ BRASSICAS ============
@@ -1321,6 +1359,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Strawberry'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own',
     botanicalName: 'Brassica oleracea var. capitata',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_oleracea',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -1359,6 +1398,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Strawberry'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own',
     botanicalName: 'Brassica oleracea var. italica',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Broccoli',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'celery', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -1401,7 +1441,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Broccoli'
   },
   {
     id: 'cauliflower',
@@ -1438,7 +1479,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cauliflowers/grow-your-own',
-    botanicalName: 'Brassica oleracea var. botrytis'
+    botanicalName: 'Brassica oleracea var. botrytis',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Cauliflower'
   },
   {
     id: 'brussels-sprouts',
@@ -1475,7 +1517,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/brussels-sprouts/grow-your-own',
-    botanicalName: 'Brassica oleracea var. gemmifera'
+    botanicalName: 'Brassica oleracea var. gemmifera',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Brussels_sprout'
   },
   {
     id: 'kohlrabi',
@@ -1512,7 +1555,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/kohlrabi/grow-your-own',
-    botanicalName: 'Brassica oleracea var. gongylodes'
+    botanicalName: 'Brassica oleracea var. gongylodes',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Kohlrabi'
   },
   {
     id: 'savoy-cabbage',
@@ -1548,7 +1592,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Savoy_cabbage'
   },
   {
     id: 'red-cabbage',
@@ -1584,7 +1629,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Red_cabbage'
   },
   {
     id: 'chinese-broccoli',
@@ -1620,7 +1666,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Gai_lan'
   },
   {
     id: 'romanesco',
@@ -1656,7 +1703,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Romanesco_broccoli'
   },
   {
     id: 'turnip-tops',
@@ -1689,7 +1737,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rapini'
   },
   {
     id: 'sea-kale',
@@ -1721,7 +1770,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'rhubarb', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima'
   },
   {
     id: 'mibuna',
@@ -1754,7 +1804,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'mizuna', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_rapa'
   },
 
   // ============ LEGUMES ============
@@ -1796,7 +1847,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'herb-fennel', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/runner-beans/grow-your-own',
-    botanicalName: 'Phaseolus coccineus'
+    botanicalName: 'Phaseolus coccineus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_coccineus'
   },
   {
     id: 'french-beans',
@@ -1833,7 +1885,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/french-beans/grow-your-own',
-    botanicalName: 'Phaseolus vulgaris'
+    botanicalName: 'Phaseolus vulgaris',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_vulgaris'
   },
   {
     id: 'broad-beans',
@@ -1873,7 +1926,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'garlic', confidence: 'likely', mechanism: 'allelopathy', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broad-beans/grow-your-own',
-    botanicalName: 'Vicia faba'
+    botanicalName: 'Vicia faba',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Vicia_faba'
   },
   {
     id: 'peas',
@@ -1903,6 +1957,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Onion', 'Garlic'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/peas/grow-your-own',
     botanicalName: 'Pisum sativum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pisum_sativum',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -1946,7 +2001,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_vulgaris'
   },
   {
     id: 'borlotti-beans',
@@ -1981,7 +2037,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Borlotti_bean'
   },
   {
     id: 'edamame',
@@ -2016,7 +2073,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Soybean'
   },
   {
     id: 'mangetout',
@@ -2053,7 +2111,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snow_pea'
   },
   {
     id: 'sugar-snap-peas',
@@ -2090,7 +2149,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snap_pea'
   },
   {
     id: 'asparagus-peas',
@@ -2125,7 +2185,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tetragonolobus_purpureus'
   },
   {
     id: 'black-turtle-beans',
@@ -2160,7 +2221,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Black_turtle_bean'
   },
   {
     id: 'fenugreek',
@@ -2188,7 +2250,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Fenugreek'
   },
 
   // ============ SOLANACEAE ============
@@ -2228,7 +2291,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
-    botanicalName: 'Solanum lycopersicum'
+    botanicalName: 'Solanum lycopersicum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
   },
   {
     id: 'plum-tomato',
@@ -2265,7 +2329,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
   },
   {
     id: 'blight-resistant-tomato',
@@ -2302,7 +2367,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ],
-    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
   },
   {
     id: 'tomatillo',
@@ -2336,7 +2402,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tomatillo'
   },
 
   // ============ CUCURBITS ============
@@ -2372,7 +2439,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own',
-    botanicalName: 'Cucurbita pepo'
+    botanicalName: 'Cucurbita pepo',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Zucchini'
   },
   {
     id: 'squash',
@@ -2406,7 +2474,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/squash/grow-your-own',
-    botanicalName: 'Cucurbita maxima'
+    botanicalName: 'Cucurbita maxima',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Cucurbita'
   },
   {
     id: 'pumpkin',
@@ -2439,7 +2508,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own',
-    botanicalName: 'Cucurbita pepo'
+    botanicalName: 'Cucurbita pepo',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pumpkin'
   },
   {
     id: 'patty-pan-squash',
@@ -2472,7 +2542,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pattypan_squash'
   },
   {
     id: 'butternut-squash',
@@ -2505,7 +2576,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Butternut_squash'
   },
   {
     id: 'spaghetti-squash',
@@ -2538,7 +2610,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Spaghetti_squash'
   },
   {
     id: 'acorn-squash',
@@ -2571,7 +2644,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Acorn_squash'
   },
 
   // ============ ALLIUMS ============
@@ -2603,6 +2677,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Beans', 'Peas'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/onions/grow-your-own',
     botanicalName: 'Allium cepa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_cepa',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Classic pairing - onion scent may deter carrot fly (mixed research)' },
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -2642,6 +2717,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Beans', 'Peas'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/garlic/grow-your-own',
     botanicalName: 'Allium sativum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_sativum',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
@@ -2678,6 +2754,7 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Beans', 'Peas'],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own',
     botanicalName: 'Allium ampeloprasum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_ampeloprasum',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Leek scent may deter carrot fly' },
       { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -2723,7 +2800,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/spring-onions/grow-your-own',
-    botanicalName: 'Allium fistulosum'
+    botanicalName: 'Allium fistulosum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_fistulosum'
   },
   {
     id: 'shallot',
@@ -2762,7 +2840,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/shallots/grow-your-own',
-    botanicalName: 'Allium cepa var. aggregatum'
+    botanicalName: 'Allium cepa var. aggregatum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Shallot'
   },
   {
     id: 'welsh-onion',
@@ -2798,7 +2877,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_fistulosum'
   },
   {
     id: 'elephant-garlic',
@@ -2831,7 +2911,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Elephant_garlic'
   },
   {
     id: 'walking-onion',
@@ -2867,7 +2948,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_%C3%97_proliferum'
   },
   {
     id: 'potato-onion',
@@ -2903,7 +2985,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Potato_onion'
   },
   {
     id: 'garlic-chives',
@@ -2938,7 +3021,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_tuberosum'
   },
   {
     id: 'ramps',
@@ -2966,7 +3050,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Woodland plants', 'Ferns'],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_tricoccum'
   },
 
   // ============ HERBS ============
@@ -3003,7 +3088,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/parsley/grow-your-own',
-    botanicalName: 'Petroselinum crispum'
+    botanicalName: 'Petroselinum crispum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Petroselinum_crispum'
   },
   {
     id: 'coriander',
@@ -3035,7 +3121,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/coriander/grow-your-own',
-    botanicalName: 'Coriandrum sativum'
+    botanicalName: 'Coriandrum sativum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Coriandrum_sativum'
   },
   {
     id: 'mint',
@@ -3072,7 +3159,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'parsley', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/mint/grow-your-own',
-    botanicalName: 'Mentha spp.'
+    botanicalName: 'Mentha spp.',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Mentha'
   },
   {
     id: 'chives',
@@ -3104,7 +3192,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/chives/grow-your-own',
-    botanicalName: 'Allium schoenoprasum'
+    botanicalName: 'Allium schoenoprasum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Chives'
   },
   {
     id: 'rosemary',
@@ -3139,7 +3228,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/rosemary/grow-your-own',
-    botanicalName: 'Salvia rosmarinus'
+    botanicalName: 'Salvia rosmarinus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rosmarinus_officinalis'
   },
   {
     id: 'thyme',
@@ -3171,7 +3261,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/thyme/grow-your-own',
-    botanicalName: 'Thymus vulgaris'
+    botanicalName: 'Thymus vulgaris',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Thymus_vulgaris'
   },
   {
     id: 'lovage',
@@ -3198,7 +3289,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lovage'
   },
   {
     id: 'sorrel',
@@ -3229,7 +3321,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Sorrel'
   },
 
   // ============ OTHER SCOTTISH FAVORITES ============
@@ -3265,6 +3358,7 @@ export const vegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/rhubarb/grow-your-own',
     botanicalName: 'Rheum rhabarbarum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rhubarb',
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
@@ -3305,7 +3399,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Jerusalem_artichoke'
   },
   {
     id: 'oregano',
@@ -3338,7 +3433,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/oregano/grow-your-own',
-    botanicalName: 'Origanum vulgare'
+    botanicalName: 'Origanum vulgare',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Origanum_vulgare'
   },
   {
     id: 'sage',
@@ -3374,7 +3470,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [],
     rhsUrl: 'https://www.rhs.org.uk/herbs/sage/grow-your-own',
-    botanicalName: 'Salvia officinalis'
+    botanicalName: 'Salvia officinalis',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Salvia_officinalis'
   },
   {
     id: 'french-tarragon',
@@ -3402,7 +3499,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tarragon'
   },
   {
     id: 'dill',
@@ -3439,7 +3537,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/dill/grow-your-own',
-    botanicalName: 'Anethum graveolens'
+    botanicalName: 'Anethum graveolens',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Dill'
   },
   {
     id: 'herb-fennel',
@@ -3471,7 +3570,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'dill', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy' }
     ],
-    botanicalName: 'Foeniculum vulgare'
+    botanicalName: 'Foeniculum vulgare',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Fennel'
   },
   {
     id: 'lemon-balm',
@@ -3500,7 +3600,8 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: [],
     avoidPlants: [],
-    enhancedCompanions: []
+    enhancedCompanions: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Melissa_officinalis'
   },
   {
     id: 'marjoram',
@@ -3528,7 +3629,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Marjoram'
   },
   {
     id: 'bay',
@@ -3560,7 +3662,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Laurus_nobilis'
   },
   {
     id: 'borage',
@@ -3591,7 +3694,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Borage'
   },
   {
     id: 'chamomile',
@@ -3623,7 +3727,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Chamomile'
   },
   {
     id: 'winter-savory',
@@ -3655,7 +3760,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Satureja_montana'
   },
   {
     id: 'hyssop',
@@ -3689,7 +3795,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Hyssopus_officinalis'
   },
 
   // ============ BERRIES ============
@@ -3734,7 +3841,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 3, max: 4 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/strawberries/grow-your-own',
-    botanicalName: 'Fragaria × ananassa'
+    botanicalName: 'Fragaria × ananassa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Fragaria_%C3%97_ananassa'
   },
   {
     id: 'raspberry',
@@ -3779,7 +3887,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 10, max: 15 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/raspberries/grow-your-own',
-    botanicalName: 'Rubus idaeus'
+    botanicalName: 'Rubus idaeus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rubus_idaeus'
   },
   {
     id: 'blackberry',
@@ -3817,7 +3926,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 10, max: 15 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/blackberries/grow-your-own',
-    botanicalName: 'Rubus fruticosus'
+    botanicalName: 'Rubus fruticosus',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Blackberry'
   },
   {
     id: 'blueberry',
@@ -3851,7 +3961,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 15, max: 25 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/blueberries/grow-your-own',
-    botanicalName: 'Vaccinium corymbosum'
+    botanicalName: 'Vaccinium corymbosum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Vaccinium_corymbosum'
   },
   {
     id: 'gooseberry',
@@ -3893,7 +4004,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 15, max: 20 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/gooseberries/grow-your-own',
-    botanicalName: 'Ribes uva-crispa'
+    botanicalName: 'Ribes uva-crispa',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Gooseberry'
   },
   {
     id: 'blackcurrant',
@@ -3935,7 +4047,8 @@ export const vegetables: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 10, max: 15 }
     },
-    botanicalName: 'Ribes nigrum'
+    botanicalName: 'Ribes nigrum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Blackcurrant'
   },
   {
     id: 'redcurrant',
@@ -3976,7 +4089,8 @@ export const vegetables: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
     },
-    botanicalName: 'Ribes rubrum'
+    botanicalName: 'Ribes rubrum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Redcurrant'
   },
   {
     id: 'tayberry',
@@ -4017,7 +4131,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tayberry'
   },
   {
     id: 'loganberry',
@@ -4058,7 +4173,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Loganberry'
   },
   {
     id: 'jostaberry',
@@ -4098,7 +4214,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Jostaberry'
   },
   {
     id: 'honeyberry',
@@ -4135,7 +4252,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lonicera_caerulea'
   },
   {
     id: 'goji-berry',
@@ -4172,7 +4290,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 15, max: 20 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Goji'
   },
   {
     id: 'aronia',
@@ -4209,7 +4328,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Aronia'
   },
   {
     id: 'elderberry',
@@ -4246,7 +4366,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Sambucus'
   },
   {
     id: 'sea-buckthorn',
@@ -4283,7 +4404,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 4 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Hippophae'
   },
 
   // ============ FRUIT TREES ============
@@ -4330,7 +4452,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 30, max: 50 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/apples/grow-your-own',
-    botanicalName: 'Malus domestica'
+    botanicalName: 'Malus domestica',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Malus_domestica'
   },
   {
     id: 'cherry-tree',
@@ -4374,7 +4497,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/cherries/grow-your-own',
-    botanicalName: 'Prunus avium'
+    botanicalName: 'Prunus avium',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Prunus_avium'
   },
   {
     id: 'damson-tree',
@@ -4416,7 +4540,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Damson'
   },
   {
     id: 'plum-tree',
@@ -4460,7 +4585,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/plums/grow-your-own',
-    botanicalName: 'Prunus domestica'
+    botanicalName: 'Prunus domestica',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Prunus_domestica'
   },
   {
     id: 'pear-tree',
@@ -4504,7 +4630,8 @@ export const vegetables: Vegetable[] = [
       productiveYears: { min: 35, max: 50 }
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/pears/grow-your-own',
-    botanicalName: 'Pyrus communis'
+    botanicalName: 'Pyrus communis',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pyrus_communis'
   },
   {
     id: 'greengage-tree',
@@ -4546,7 +4673,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Greengages'
   },
   {
     id: 'medlar-tree',
@@ -4588,7 +4716,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Medlar'
   },
   {
     id: 'quince-tree',
@@ -4630,7 +4759,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Quince'
   },
   {
     id: 'fig-tree',
@@ -4671,7 +4801,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 30, max: 50 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Common_fig'
   },
   {
     id: 'mulberry-tree',
@@ -4713,7 +4844,8 @@ export const vegetables: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 50, max: 100 }
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Mulberry'
   },
 
   // ============ ADDITIONAL SCOTLAND-FRIENDLY VEGETABLES ============
@@ -4752,7 +4884,8 @@ export const vegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    botanicalName: 'Brassica rapa subsp. chinensis'
+    botanicalName: 'Brassica rapa subsp. chinensis',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Bok_choy'
   },
   {
     id: 'sweetcorn',
@@ -4786,7 +4919,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/sweetcorn/grow-your-own',
-    botanicalName: 'Zea mays'
+    botanicalName: 'Zea mays',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Maize'
   },
   {
     id: 'cavolo-nero',
@@ -4822,7 +4956,8 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Kale'
   },
 
   // Annual Flowers
@@ -4855,7 +4990,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Cosmos_(plant)'
   },
   {
     id: 'sunflower',
@@ -4886,7 +5022,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: ['Potato'],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Helianthus_annuus'
   },
   {
     id: 'zinnia',
@@ -4917,7 +5054,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Zinnia'
   },
   {
     id: 'marigold',
@@ -4949,7 +5087,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tagetes'
   },
   {
     id: 'calendula',
@@ -4981,7 +5120,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Calendula_officinalis'
   },
   {
     id: 'nasturtium',
@@ -5015,7 +5155,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tropaeolum'
   },
   {
     id: 'cornflower',
@@ -5043,7 +5184,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Centaurea_cyanus'
   },
 
   // Perennial Flowers
@@ -5077,7 +5219,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
-    rhsUrl: 'https://www.rhs.org.uk/herbs/lavender/grow-your-own'
+    rhsUrl: 'https://www.rhs.org.uk/herbs/lavender/grow-your-own',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lavandula'
   },
   {
     id: 'echinacea',
@@ -5109,7 +5252,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'rudbeckia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Echinacea'
   },
   {
     id: 'rudbeckia',
@@ -5141,7 +5285,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'echinacea', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'sedum', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rudbeckia'
   },
   {
     id: 'sedum',
@@ -5174,7 +5319,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Sedum'
   },
   {
     id: 'geranium',
@@ -5206,7 +5352,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Geranium'
   },
   {
     id: 'salvia',
@@ -5238,7 +5385,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'echinacea', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Salvia'
   },
 
   // Bulbs
@@ -5271,7 +5419,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tulip'
   },
   {
     id: 'daffodil',
@@ -5303,7 +5452,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'tulip', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'crocus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Narcissus_(plant)'
   },
   {
     id: 'allium-flower',
@@ -5331,7 +5481,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: ['Roses', 'Perennials', 'Grasses'],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium'
   },
   {
     id: 'crocus',
@@ -5362,7 +5513,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crocus'
   },
   {
     id: 'dahlia',
@@ -5390,7 +5542,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Dahlia'
   },
 
   // Climbers
@@ -5425,7 +5578,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lathyrus_odoratus'
   },
   {
     id: 'clematis',
@@ -5456,7 +5610,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'honeysuckle', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Clematis'
   },
   {
     id: 'honeysuckle',
@@ -5487,7 +5642,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'clematis', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Honeysuckle'
   },
   {
     id: 'morning-glory',
@@ -5518,7 +5674,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Ipomoea'
   },
 
   // ============ ADDITIONAL PERENNIAL FLOWERS ============
@@ -5551,7 +5708,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Achillea_millefolium'
   },
   {
     id: 'bergamot',
@@ -5582,7 +5740,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Monarda'
   },
   {
     id: 'comfrey',
@@ -5611,7 +5770,8 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Potato', 'Squash'],
     avoidPlants: [],
-    enhancedCompanions: []
+    enhancedCompanions: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Comfrey'
   },
   {
     id: 'tansy',
@@ -5642,7 +5802,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tansy'
   },
   {
     id: 'nepeta',
@@ -5674,7 +5835,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'lavender', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Nepeta'
   },
   {
     id: 'agastache',
@@ -5703,7 +5865,8 @@ export const vegetables: Vegetable[] = [
     },
     companionPlants: ['Squash'],
     avoidPlants: [],
-    enhancedCompanions: []
+    enhancedCompanions: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Agastache'
   },
 
   // ============ ADDITIONAL ANNUAL FLOWERS ============
@@ -5737,7 +5900,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lobularia_maritima'
   },
   {
     id: 'phacelia',
@@ -5768,7 +5932,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phacelia'
   },
   {
     id: 'cleome',
@@ -5799,7 +5964,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Cleome'
   },
   {
     id: 'nigella',
@@ -5832,7 +5998,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Nigella_damascena'
   },
   {
     id: 'poppy',
@@ -5864,7 +6031,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'cornflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Papaver_rhoeas'
   },
 
   // ============ ADDITIONAL CLIMBERS ============
@@ -5897,7 +6065,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Humulus_lupulus'
   },
   {
     id: 'hardy-kiwi',
@@ -5929,7 +6098,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Actinidia_arguta'
   },
 
   // ============ ADDITIONAL SPECIALTY VEGETABLES ============
@@ -5969,6 +6139,7 @@ export const vegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/asparagus/grow-your-own',
     botanicalName: 'Asparagus officinalis',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Asparagus_officinalis',
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
@@ -6014,7 +6185,8 @@ export const vegetables: Vegetable[] = [
       feedMonths: [3, 5],
       mulchMonths: [11],
       notes: ['Protect crowns with straw in winter']
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Globe_artichoke'
   },
   {
     id: 'celery',
@@ -6052,7 +6224,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/celery/grow-your-own',
-    botanicalName: 'Apium graveolens'
+    botanicalName: 'Apium graveolens',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Celery'
   },
   {
     id: 'celeriac',
@@ -6090,7 +6263,8 @@ export const vegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/celeriac/grow-your-own',
-    botanicalName: 'Apium graveolens var. rapaceum'
+    botanicalName: 'Apium graveolens var. rapaceum',
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Celeriac'
   },
   {
     id: 'cardoon',
@@ -6122,7 +6296,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'globe-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Cardoon'
   },
   {
     id: 'skirret',
@@ -6154,7 +6329,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Sium_sisarum'
   },
   {
     id: 'seakale',
@@ -6193,7 +6369,8 @@ export const vegetables: Vegetable[] = [
     maintenance: {
       feedMonths: [3],
       notes: ['Cover crowns to blanch shoots']
-    }
+    },
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima'
   },
   {
     id: 'oca',
@@ -6225,7 +6402,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Oxalis_tuberosa'
   },
   {
     id: 'mashua',
@@ -6256,7 +6434,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tropaeolum_tuberosum'
   },
   {
     id: 'ulluco',
@@ -6288,7 +6467,8 @@ export const vegetables: Vegetable[] = [
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Ullucus'
   },
   {
     id: 'ground-nut',
@@ -6319,7 +6499,8 @@ export const vegetables: Vegetable[] = [
     avoidPlants: [],
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ]
+    ],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Apios_americana'
   },
 
   // ============ MUSHROOMS ============
@@ -6349,7 +6530,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pleurotus_ostreatus'
   },
   {
     id: 'shiitake',
@@ -6377,7 +6559,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Lentinula_edodes'
   },
   {
     id: 'lions-mane',
@@ -6405,7 +6588,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Hericium_erinaceus'
   },
   {
     id: 'king-oyster',
@@ -6433,7 +6617,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pleurotus_eryngii'
   },
   {
     id: 'button-mushroom',
@@ -6461,7 +6646,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Agaricus_bisporus'
   },
 
   // ============ GREEN MANURES ============
@@ -6491,7 +6677,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Trifolium_incarnatum'
   },
   {
     id: 'white-clover',
@@ -6519,7 +6706,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Trifolium_repens'
   },
   {
     id: 'winter-field-beans',
@@ -6547,7 +6735,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Vicia_faba'
   },
   {
     id: 'winter-rye',
@@ -6575,7 +6764,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rye'
   },
   {
     id: 'buckwheat',
@@ -6603,7 +6793,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Buckwheat'
   },
   {
     id: 'white-mustard',
@@ -6631,7 +6822,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     companionPlants: [],
-    avoidPlants: []
+    avoidPlants: [],
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Mustard_plant'
   }
 ]
 
