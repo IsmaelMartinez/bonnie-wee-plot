@@ -1,8 +1,8 @@
 /**
  * Crop Rotation Module
- * 
+ *
  * Unified crop rotation logic for tracking, suggestions, and planning.
- * Implements a 4-year rotation system for optimal soil health.
+ * Based on RHS four-year rotation guidance with extended groups.
  * Handles both grid plots and physical bed layouts.
  */
 
@@ -30,15 +30,21 @@ import { getAreasByKind } from '@/services/allotment-storage'
 
 /**
  * Map vegetable categories to rotation groups
+ * Based on RHS four-year rotation:
+ * - Year 1: Legumes (peas, beans)
+ * - Year 2: Brassicas (cabbage family, including radish/swede/turnip)
+ * - Year 3: Potatoes (solanaceae - tomatoes can go anywhere)
+ * - Year 4: Roots (beetroot, carrot, parsnip, etc.)
+ * - Flexible: Salads, cucurbits, sweetcorn, perennials (no strict rotation needed)
  */
 export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
-  'brassicas': 'brassicas',
-  'legumes': 'legumes',
-  'root-vegetables': 'roots',
-  'solanaceae': 'solanaceae',
-  'alliums': 'alliums',
-  'cucurbits': 'cucurbits',
-  'leafy-greens': 'roots',         // Often grouped with roots in rotation
+  'brassicas': 'brassicas',         // Year 2 (RHS) - includes radish, swede, turnip
+  'legumes': 'legumes',             // Year 1 (RHS) - nitrogen fixers
+  'root-vegetables': 'roots',       // Year 4 (RHS) - beetroot, carrot, parsnip
+  'solanaceae': 'solanaceae',       // Year 3 (RHS) - potatoes (tomatoes flexible)
+  'alliums': 'alliums',             // Extended - onion family (clean soil)
+  'cucurbits': 'cucurbits',         // Extended - squash family (flexible per RHS)
+  'leafy-greens': 'permanent',      // Flexible (RHS) - salads don't need rotation
   'herbs': 'permanent',             // Perennials, don't need rotation
   'berries': 'permanent',           // Perennials
   'fruit-trees': 'permanent',       // Perennials
@@ -46,42 +52,44 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
   'perennial-flowers': 'permanent', // Flowers don't need rotation
   'bulbs': 'permanent',             // Flowers don't need rotation
   'climbers': 'permanent',          // Flowers don't need rotation
-  'green-manures': 'legumes',       // Most fix nitrogen like legumes
+  'green-manures': 'legumes',       // Nitrogen-fixing types (clover, field beans)
   'mushrooms': 'permanent',         // Grown on substrate, not in rotation
-  'other': 'roots'                  // Sweetcorn etc - treat as roots for rotation
+  'other': 'permanent'              // Flexible (RHS) - sweetcorn etc. don't need rotation
 }
 
 /**
- * Simple 3-year rotation order
+ * Simple 3-year rotation order (aligned with RHS guidance)
  * Legumes first (fix nitrogen), then brassicas (heavy feeders), then roots (light feeders)
  */
 export const ROTATION_ORDER: RotationGroup[] = [
-  'legumes',      // Year 1: Fix nitrogen in soil
-  'brassicas',    // Year 2: Heavy feeders use the nitrogen
-  'roots'         // Year 3: Light feeders, break pest cycles
+  'legumes',      // Year 1 (RHS): Fix nitrogen in soil
+  'brassicas',    // Year 2 (RHS): Heavy feeders use the nitrogen
+  'roots'         // Year 4 (RHS): Light feeders, break pest cycles
 ]
 
 /**
  * Extended rotation including all groups
+ * Extends RHS four-year rotation with additional groups (alliums, cucurbits)
  */
 export const EXTENDED_ROTATION: RotationGroup[][] = [
-  ['legumes'],
-  ['brassicas', 'solanaceae'],
-  ['roots', 'alliums'],
-  ['cucurbits']
+  ['legumes'],                    // Year 1 (RHS)
+  ['brassicas', 'solanaceae'],    // Year 2-3 (RHS brassicas, Year 3 potatoes)
+  ['roots', 'alliums'],           // Year 4 (RHS roots) + alliums
+  ['cucurbits']                   // Flexible (RHS) - can go anywhere
 ]
 
 /**
- * Standard 4-year rotation sequence
- * Each group should follow a specific pattern to maximize soil health
+ * Standard rotation sequence (extends RHS four-year rotation)
+ * RHS: Legumes → Brassicas → Potatoes → Roots → (repeat)
+ * Extended with alliums and cucurbits for comprehensive planning
  */
 export const ROTATION_SEQUENCE: Record<RotationGroup, RotationGroup> = {
-  'legumes': 'brassicas',      // Brassicas follow legumes (use nitrogen)
-  'brassicas': 'roots',        // Roots follow brassicas (break up soil)
-  'roots': 'solanaceae',       // Solanaceae follow roots
-  'solanaceae': 'alliums',     // Alliums follow solanaceae (clean up)
-  'alliums': 'legumes',        // Legumes follow alliums (rest and fix nitrogen)
-  'cucurbits': 'legumes',      // Cucurbits treated similarly to solanaceae
+  'legumes': 'brassicas',      // Year 1 → 2 (RHS): Brassicas use nitrogen fixed by legumes
+  'brassicas': 'solanaceae',   // Year 2 → 3 (RHS): Potatoes after brassicas
+  'solanaceae': 'roots',       // Year 3 → 4 (RHS): Roots after potatoes
+  'roots': 'alliums',          // Year 4 → Extended: Alliums clean soil
+  'alliums': 'legumes',        // Extended → Year 1: Back to legumes to fix nitrogen
+  'cucurbits': 'legumes',      // Flexible (RHS) - start fresh with legumes
   'permanent': 'permanent'     // Permanent plantings don't rotate
 }
 
@@ -100,15 +108,16 @@ export const ROTATION_ALTERNATIVES: Record<RotationGroup, RotationGroup[]> = {
 
 /**
  * Display names for rotation groups (text only)
+ * Aligned with RHS guidance
  */
 export const ROTATION_GROUP_NAMES: Record<RotationGroup, string> = {
-  'brassicas': 'Brassicas (Cabbage Family)',
+  'brassicas': 'Brassicas (Cabbage, Radish, Swede, Turnip)',
   'legumes': 'Legumes (Beans & Peas)',
-  'roots': 'Roots & Leafy Greens',
-  'solanaceae': 'Nightshades (Tomato Family)',
+  'roots': 'Roots (Carrot, Beetroot, Parsnip)',
+  'solanaceae': 'Potatoes (Tomato Family)',
   'alliums': 'Alliums (Onion Family)',
   'cucurbits': 'Cucurbits (Squash Family)',
-  'permanent': 'Perennial Herbs'
+  'permanent': 'Flexible/Permanent'
 }
 
 /**
@@ -125,13 +134,13 @@ export const ROTATION_GROUP_DISPLAY: Record<RotationGroup, { name: string; emoji
 }
 
 /**
- * Reasons for rotation choices
+ * Reasons for rotation choices (based on RHS guidance)
  */
 const ROTATION_REASONS: Record<string, string> = {
-  'legumes->brassicas': 'Brassicas are heavy feeders and benefit from nitrogen fixed by legumes',
-  'brassicas->roots': 'Root vegetables help break up soil compacted by brassicas',
-  'roots->solanaceae': 'Potatoes and tomatoes do well after root crops',
-  'solanaceae->alliums': 'Onion family helps clean soil of potato/tomato diseases',
+  'legumes->brassicas': 'Brassicas are heavy feeders and benefit from nitrogen fixed by legumes (RHS Year 1→2)',
+  'brassicas->solanaceae': 'Potatoes follow brassicas in standard rotation (RHS Year 2→3)',
+  'solanaceae->roots': 'Root vegetables after potatoes help break disease cycles (RHS Year 3→4)',
+  'roots->alliums': 'Onion family helps clean soil after roots',
   'alliums->legumes': 'Legumes rest the soil and fix nitrogen after alliums',
   'cucurbits->legumes': 'Legumes replenish nitrogen depleted by hungry squash family',
   'default': 'Standard crop rotation for soil health and disease prevention'
@@ -181,12 +190,12 @@ export function getRotationGroup(plantId: string): RotationGroup | undefined {
 export function getVegetablesForRotationGroup(group: RotationGroup): string[] {
   const categoryMap: Record<RotationGroup, string[]> = {
     'legumes': ['legumes'],
-    'brassicas': ['brassicas'],
-    'roots': ['root-vegetables', 'leafy-greens'],
+    'brassicas': ['brassicas'],                    // Now includes radish, swede, turnip per RHS
+    'roots': ['root-vegetables'],                  // Pure roots only (no leafy greens)
     'solanaceae': ['solanaceae'],
     'alliums': ['alliums'],
     'cucurbits': ['cucurbits'],
-    'permanent': ['herbs', 'berries', 'fruit-trees']
+    'permanent': ['herbs', 'berries', 'fruit-trees', 'leafy-greens', 'other']  // Flexible crops per RHS
   }
 
   const categories = categoryMap[group] || []

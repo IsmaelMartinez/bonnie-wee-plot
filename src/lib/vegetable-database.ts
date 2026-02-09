@@ -781,7 +781,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'swede',
     name: 'Swede (Neeps)',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Essential for Burns Night! Hardy Scottish favorite that loves cool weather.',
     planting: {
       sowIndoorsMonths: [],
@@ -819,7 +819,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'turnip',
     name: 'Turnip',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Fast-growing root with edible greens. Best harvested young.',
     planting: {
       sowIndoorsMonths: [],
@@ -852,7 +852,7 @@ export const vegetables: Vegetable[] = [
   {
     id: 'radish',
     name: 'Radish',
-    category: 'root-vegetables',
+    category: 'brassicas',
     description: 'Quick-growing root crop. Ready in weeks - ideal for Scottish summer.',
     planting: {
       sowIndoorsMonths: [],
