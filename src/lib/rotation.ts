@@ -64,6 +64,7 @@ export const ROTATION_GROUPS: Record<VegetableCategory, RotationGroup> = {
 export const ROTATION_ORDER: RotationGroup[] = [
   'legumes',      // Year 1 (RHS): Fix nitrogen in soil
   'brassicas',    // Year 2 (RHS): Heavy feeders use the nitrogen
+  'solanaceae',   // Year 3 (RHS): Potatoes
   'roots'         // Year 4 (RHS): Light feeders, break pest cycles
 ]
 

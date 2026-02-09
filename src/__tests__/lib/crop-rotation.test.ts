@@ -40,8 +40,8 @@ describe('ROTATION_GROUPS', () => {
 })
 
 describe('ROTATION_ORDER', () => {
-  it('should have legumes, brassicas, roots in correct order', () => {
-    expect(ROTATION_ORDER).toEqual(['legumes', 'brassicas', 'roots'])
+  it('should have legumes, brassicas, solanaceae, roots in correct order', () => {
+    expect(ROTATION_ORDER).toEqual(['legumes', 'brassicas', 'solanaceae', 'roots'])
   })
 })
 
@@ -76,12 +76,12 @@ describe('getSuggestedRotation', () => {
     expect(result).toBe('brassicas')
   })
 
-  it('should suggest roots after brassicas', () => {
+  it('should suggest solanaceae after brassicas', () => {
     const history: RotationHistory[] = [
       { plotId: 'plot-1', year: 2024, rotationGroup: 'brassicas', vegetables: ['broccoli'] }
     ]
     const result = getSuggestedRotation('plot-1', 2025, history)
-    expect(result).toBe('roots')
+    expect(result).toBe('solanaceae')
   })
 
   it('should cycle back to legumes after roots', () => {
