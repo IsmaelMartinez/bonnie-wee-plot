@@ -59,12 +59,13 @@ describe('Plant Data Integrity', () => {
   })
 
   describe('Three Sisters Relationships', () => {
-    it('sweetcorn should have beans as companion', () => {
+    it('sweetcorn should have climbing beans as companion for Three Sisters', () => {
       const sweetcorn = getVegetableById('sweetcorn')
       expect(sweetcorn).toBeDefined()
-      expect(sweetcorn?.enhancedCompanions.some(c =>
-        c.plantId.includes('bean')
-      )).toBe(true)
+      const hasClimbingBean = sweetcorn?.enhancedCompanions.some(
+        c => c.plantId === 'runner-beans' || c.plantId === 'climbing-french-beans'
+      )
+      expect(hasClimbingBean).toBe(true)
     })
 
     it('runner beans should have sweetcorn as companion', () => {

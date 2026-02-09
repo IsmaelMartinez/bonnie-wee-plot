@@ -4771,7 +4771,8 @@ export const vegetables: Vegetable[] = [
       ]
     },
     enhancedCompanions: [
-      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+      { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
+      { plantId: 'runner-beans', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters - beans climb corn stalks' }
     ],
     enhancedAvoid: [],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/sweetcorn/grow-your-own',

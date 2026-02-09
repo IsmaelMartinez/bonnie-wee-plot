@@ -50,14 +50,14 @@ export function checkCompanionCompatibility(
   if (!vegA || !vegB) return 'neutral'
 
   // Check if vegA avoids vegB or vice versa (bidirectional check)
-  const vegAAvoids = (vegA.enhancedAvoid || []).some(e => e.plantId === vegBId)
-  const vegBAvoids = (vegB.enhancedAvoid || []).some(e => e.plantId === vegAId)
+  const vegAAvoids = vegA.enhancedAvoid.some(e => e.plantId === vegBId)
+  const vegBAvoids = vegB.enhancedAvoid.some(e => e.plantId === vegAId)
 
   if (vegAAvoids || vegBAvoids) return 'bad'
 
   // Check if they are companions (bidirectional check)
-  const vegACompanion = (vegA.enhancedCompanions || []).some(e => e.plantId === vegBId)
-  const vegBCompanion = (vegB.enhancedCompanions || []).some(e => e.plantId === vegAId)
+  const vegACompanion = vegA.enhancedCompanions.some(e => e.plantId === vegBId)
+  const vegBCompanion = vegB.enhancedCompanions.some(e => e.plantId === vegAId)
 
   if (vegACompanion || vegBCompanion) return 'good'
 
@@ -124,7 +124,7 @@ export function validatePlacement(
     overallCompatibility = 'good'
     suggestions.push(`Great choice! ${vegetable.name} grows well with ${goodCompanions.join(', ')}`)
   } else if (adjacentCells.length === 0) {
-    const companionNames = (vegetable.enhancedCompanions || [])
+    const companionNames = vegetable.enhancedCompanions
       .slice(0, 3)
       .map(c => getVegetableById(c.plantId)?.name)
       .filter(Boolean)
@@ -150,7 +150,7 @@ export function getSuggestedCompanions(plantId: string): string[] {
   const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
 
-  return (vegetable.enhancedCompanions || []).map(c => c.plantId)
+  return vegetable.enhancedCompanions.map(c => c.plantId)
 }
 
 /**
@@ -161,7 +161,7 @@ export function getAvoidedPlants(plantId: string): string[] {
   const vegetable = getVegetableById(plantId)
   if (!vegetable) return []
 
-  return (vegetable.enhancedAvoid || []).map(c => c.plantId)
+  return vegetable.enhancedAvoid.map(c => c.plantId)
 }
 
 /**
