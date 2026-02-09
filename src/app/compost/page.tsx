@@ -390,13 +390,17 @@ export default function CompostPage() {
         {/* Empty State */}
         {activePiles.length === 0 && (
           <div className="zen-card p-8 text-center">
-            <Recycle className="w-12 h-12 text-zen-stone-300 mx-auto mb-4" />
+            <Recycle className="w-16 h-16 text-zen-stone-300 mx-auto mb-4" aria-hidden="true" />
             <h3 className="font-display text-zen-ink-700 mb-2">No compost piles yet</h3>
-            <p className="text-zen-stone-500 mb-4">Start tracking your composting journey</p>
+            <p className="text-zen-stone-500 mb-4">
+              Track your green and brown inputs, monitor C:N ratios, and know when your compost is ready to use.
+            </p>
             <button
               onClick={() => setShowAddPileDialog(true)}
-              className="zen-btn-primary"
+              className="zen-btn-primary flex items-center gap-2 mx-auto"
+              aria-label="Create your first compost pile"
             >
+              <Plus className="w-4 h-4" aria-hidden="true" />
               Create your first pile
             </button>
           </div>

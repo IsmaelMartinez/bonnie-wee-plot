@@ -40,18 +40,6 @@ export default function SettingsPage() {
     setTempToken(pastedText.trim())
   }
 
-  // Block direct typing - only allow paste, delete, and navigation
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End']
-    const isModifierKey = e.ctrlKey || e.metaKey
-
-    if (allowedKeys.includes(e.key) || isModifierKey) {
-      return
-    }
-
-    e.preventDefault()
-  }
-
   return (
     <main className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center justify-between mb-6">
@@ -93,8 +81,7 @@ export default function SettingsPage() {
                             value={tempToken}
                             onChange={(e) => setTempToken(e.target.value)}
                             onPaste={handlePaste}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Paste your API key here"
+                            placeholder="sk-..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
                             aria-describedby="token-help-text token-privacy-notice"
                             autoComplete="off"
