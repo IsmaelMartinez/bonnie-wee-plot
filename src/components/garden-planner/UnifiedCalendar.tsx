@@ -199,7 +199,8 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
         {hasAnyPersonalised && (
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 bg-green-400/50 rounded" />
-            Estimated (generic)
+            <span className="w-3 h-3 bg-amber-400/50 rounded" />
+            <span className="ml-1">Estimated (generic)</span>
           </span>
         )}
       </div>

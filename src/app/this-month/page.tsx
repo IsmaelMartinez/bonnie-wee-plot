@@ -118,15 +118,16 @@ function TipCard({
   )
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 // Format a date range for display (e.g., "mid-July to August")
 function formatDateRange(startDate?: string, endDate?: string): string | null {
   if (!startDate) return null
   const start = new Date(startDate)
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const startMonth = monthNames[start.getMonth()]
+  const startMonth = MONTH_NAMES[start.getMonth()]
   if (!endDate) return startMonth
   const end = new Date(endDate)
-  const endMonth = monthNames[end.getMonth()]
+  const endMonth = MONTH_NAMES[end.getMonth()]
   if (startMonth === endMonth) return startMonth
   return `${startMonth} to ${endMonth}`
 }
@@ -245,6 +246,7 @@ export default function ThisMonthPage() {
     if (!currentSeason || !allotmentData) return null
 
     interface PlantingInfo {
+      id: string
       areaId: string
       plantId: string
       vegetableName: string
@@ -269,6 +271,7 @@ export default function ThisMonthPage() {
           const sowIndoors = veg.planting?.sowIndoorsMonths || []
           const sowOutdoors = veg.planting?.sowOutdoorsMonths || []
           allPlantings.push({
+            id: planting.id,
             areaId: areaSeason.areaId,
             plantId: planting.plantId,
             vegetableName: veg.name,
@@ -302,14 +305,15 @@ export default function ThisMonthPage() {
       return month >= startMonth || month <= endMonth
     }
 
-    // "Harvest now" — plantings whose harvest window includes this month
-    const harvestNow = allPlantings.filter(p => {
+    const isHarvestableThisMonth = (p: PlantingInfo): boolean => {
       const hStart = p.actualHarvestStart || p.expectedHarvestStart
       const hEnd = p.actualHarvestEnd || p.expectedHarvestEnd
       if (hStart) return monthInRange(monthIndex, hStart, hEnd)
-      // Fall back to static database months
       return p.harvestMonths.includes(monthIndex)
-    })
+    }
+
+    // "Harvest now" — sown plantings whose harvest window includes this month
+    const harvestNow = allPlantings.filter(p => p.hasSowDate && isHarvestableThisMonth(p))
 
     // "Sow this month" — plantings without a sow date where the database says this is a sow window
     const sowThisMonth = allPlantings.filter(p => {
@@ -320,15 +324,7 @@ export default function ThisMonthPage() {
     // "Growing" — planted but not yet ready to harvest this month
     const growing = allPlantings.filter(p => {
       if (!p.hasSowDate) return false
-      const hStart = p.actualHarvestStart || p.expectedHarvestStart
-      const hEnd = p.actualHarvestEnd || p.expectedHarvestEnd
-      if (hStart) {
-        const inHarvestWindow = monthInRange(monthIndex, hStart, hEnd)
-        if (inHarvestWindow) return false
-      } else {
-        if (p.harvestMonths.includes(monthIndex)) return false
-      }
-      return true
+      return !isHarvestableThisMonth(p)
     })
 
     return {
@@ -462,9 +458,9 @@ export default function ThisMonthPage() {
                       Harvest now
                     </h4>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {personalizedData.harvestNow.map((p, i) => (
+                      {personalizedData.harvestNow.map((p) => (
                         <PersonalizedPlanting
-                          key={i}
+                          key={p.id}
                           bedId={p.areaId}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
@@ -487,9 +483,9 @@ export default function ThisMonthPage() {
                       Sow this month
                     </h4>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {personalizedData.sowThisMonth.map((p, i) => (
+                      {personalizedData.sowThisMonth.map((p) => (
                         <PersonalizedPlanting
-                          key={i}
+                          key={p.id}
                           bedId={p.areaId}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
@@ -509,9 +505,9 @@ export default function ThisMonthPage() {
                       Growing
                     </h4>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {personalizedData.growing.map((p, i) => (
+                      {personalizedData.growing.map((p) => (
                         <PersonalizedPlanting
-                          key={i}
+                          key={p.id}
                           bedId={p.areaId}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
