@@ -40,6 +40,14 @@ Settings page restructured into tabbed interface (AI & Location, Data, Help). Pl
 
 This Month page now uses actual planting dates instead of static database windows. The UnifiedCalendar shows personalised sow/harvest months at full opacity with generic fallback at 50%. "Your Garden" section restructured from stats row and flat list into task-oriented categories: Harvest now, Sow this month, and Growing, each showing contextual date info. Also fixed a flaky onboarding E2E test.
 
+### UX Accessibility Improvements (PR #171)
+
+Aria-label added to main navigation for screen readers. About page CTA links given descriptive aria-labels. Compost empty state improved with better explanatory copy and accessible button. API key input in Settings no longer blocks keyboard typing (was paste-only), placeholder changed to show expected format.
+
+### Plant Data: Botanical Names and External References (PR #172)
+
+Added `wikipediaUrl` optional field to Vegetable type. Populated `botanicalName` (Latin binomial) for 59 plant entries covering roots, greens, brassicas, legumes, solanaceae, cucurbits, alliums, herbs, berries, and fruit trees. RHS URLs were already populated (56 entries) from prior work.
+
 ---
 
 ## Next Steps
@@ -52,15 +60,15 @@ Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory),
 
 After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
 
-An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. The This Month page calendar and information hierarchy issues have been addressed in PR #169.
+An initial systematic review has been completed (PRs #151, #153, #169, #171) covering all sections. High and medium-priority issues are fixed including This Month calendar hierarchy, accessibility gaps, and settings usability.
 
 ### Plant Data Validation (Parallel Track)
 
-Scottish outdoor plant validation is complete. Companion name normalization is done (PR #153): plural-to-singular, semantic mappings for alternate names, category expansions using correct database names, and the Alliums resolution bug fixed. Remaining work documented in `docs/research/plant-data-validation-strategy.md`:
+Scottish outdoor plant validation is complete. Companion name normalization is done (PR #153). External reference links largely done: 56 RHS URLs and 59 botanical names populated, `wikipediaUrl` type added. Remaining work documented in `docs/research/plant-data-validation-strategy.md`:
 
-- External reference links (RHS URLs, Wikipedia, botanical names)
 - Companion data enhancement with confidence levels and mechanism types
 - Crop rotation alignment with RHS guidance
+- Wikipedia URL population for plant entries
 
 ### Future Phases (Contingent on User Adoption)
 
