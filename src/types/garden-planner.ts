@@ -116,6 +116,7 @@ export interface Vegetable {
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
   perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
   rhsUrl?: string                          // RHS grow-your-own guide URL
+  wikipediaUrl?: string                    // Wikipedia article URL
   botanicalName?: string                   // Scientific/Latin name
   enhancedCompanions?: EnhancedCompanion[] // Validated companion relationships with metadata
   enhancedAvoid?: EnhancedCompanion[]      // Validated avoid relationships with metadata
