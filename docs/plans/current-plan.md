@@ -48,6 +48,18 @@ Aria-label added to main navigation for screen readers. About page CTA links giv
 
 Added `wikipediaUrl` optional field to Vegetable type. Populated `botanicalName` (Latin binomial) for 59 plant entries covering roots, greens, brassicas, legumes, solanaceae, cucurbits, alliums, herbs, berries, and fruit trees. RHS URLs were already populated (56 entries) from prior work.
 
+### Crop Rotation Alignment with RHS Guidance (PR #174)
+
+Aligned `ROTATION_GROUPS` mapping and `ROTATION_ORDER` in `rotation.ts` with RHS four-year rotation guidance. Moved potatoes to solanaceae rotation group, extended rotation cycle from 3-year to 4-year (legumes → brassicas → solanaceae → roots). Reclassified leafy-greens and other categories as permanent (flexible, no rotation needed). Moved radish/swede/turnip into brassicas family per RHS.
+
+### Wikipedia URLs for All Plants (PR #175)
+
+Populated `wikipediaUrl` for all 192 plant entries in the vegetable database using species-level Wikipedia URLs.
+
+### Companion Data Gaps (PR #176)
+
+Added `enhancedAvoid` entries to 15 plants (brassicas avoiding potato, cucurbits avoiding potato, herbs avoiding fennel, berries cross-avoidance, apple-tree avoiding potato) and `enhancedCompanions` to 2 plants (ice-plant, horseradish). Bidirectional flags aligned with existing reverse entries for data consistency.
+
 ---
 
 ## Next Steps
@@ -62,13 +74,9 @@ After individual section reviews, cross-section integration should be tested via
 
 An initial systematic review has been completed (PRs #151, #153, #169, #171) covering all sections. High and medium-priority issues are fixed including This Month calendar hierarchy, accessibility gaps, and settings usability.
 
-### Plant Data Validation (Parallel Track)
+### Plant Data Validation (Complete)
 
-Scottish outdoor plant validation is complete. Companion name normalization is done (PR #153). External reference links largely done: 56 RHS URLs and 59 botanical names populated, `wikipediaUrl` type added. Remaining work documented in `docs/research/plant-data-validation-strategy.md`:
-
-- Companion data enhancement with confidence levels and mechanism types
-- Crop rotation alignment with RHS guidance
-- Wikipedia URL population for plant entries
+All plant data validation work is done. Scottish outdoor plant validation, companion name normalization (PR #153), external reference links (56 RHS URLs, 59 botanical names, 192 Wikipedia URLs), crop rotation alignment with RHS four-year guidance (PR #174), and companion data enhancement with confidence levels, mechanism types, and bidirectional consistency (PR #176).
 
 ### Future Phases (Contingent on User Adoption)
 
