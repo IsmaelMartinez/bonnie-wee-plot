@@ -2439,7 +2439,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own',
-    botanicalName: 'Cucurbita maxima'
+    botanicalName: 'Cucurbita pepo'
   },
   {
     id: 'patty-pan-squash',
@@ -3072,7 +3072,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'parsley', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/mint/grow-your-own',
-    botanicalName: 'Mentha spicata'
+    botanicalName: 'Mentha spp.'
   },
   {
     id: 'chives',
