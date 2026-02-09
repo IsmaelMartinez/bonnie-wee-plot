@@ -643,7 +643,7 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Winter Purslane'],
     avoidPlants: [],
     enhancedCompanions: [
-      { plantId: 'winter-purslane', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
+      { plantId: 'winter-purslane', confidence: 'traditional', mechanism: 'unknown', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mesembryanthemum_crystallinum'
   },
@@ -874,7 +874,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/turnips/grow-your-own',
     botanicalName: 'Brassica rapa',
@@ -1270,7 +1270,7 @@ export const vegetables: Vegetable[] = [
     companionPlants: ['Potato'],
     avoidPlants: [],
     enhancedCompanions: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Horseradish'
   },
@@ -1748,7 +1748,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rapini'
   },
@@ -2451,7 +2451,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own',
     botanicalName: 'Cucurbita pepo',
@@ -2489,7 +2489,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: true }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/squash/grow-your-own',
     botanicalName: 'Cucurbita maxima',
@@ -2526,7 +2526,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own',
     botanicalName: 'Cucurbita pepo',
@@ -2565,7 +2565,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pattypan_squash'
   },
@@ -2602,7 +2602,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Butternut_squash'
   },
@@ -2639,7 +2639,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Spaghetti_squash'
   },
@@ -2676,7 +2676,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Acorn_squash'
   },
@@ -3154,7 +3154,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'florence-fennel', confidence: 'traditional', mechanism: 'allelopathy', bidirectional: true }
+      { plantId: 'florence-fennel', confidence: 'traditional', mechanism: 'allelopathy', bidirectional: false }
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/coriander/grow-your-own',
     botanicalName: 'Coriandrum sativum',
@@ -3437,7 +3437,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Jerusalem_artichoke'
   },
@@ -3917,7 +3917,7 @@ export const vegetables: Vegetable[] = [
     ],
     enhancedAvoid: [
       { plantId: 'blackberry', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: true },
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'disease_suppression', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'disease_suppression', bidirectional: false }
     ],
     maintenance: {
       pruneMonths: [2, 8, 9],
@@ -4488,7 +4488,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'garlic', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'disease_suppression', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'disease_suppression', bidirectional: false }
     ],
     maintenance: {
       pruneMonths: [12, 1, 2],
@@ -5073,7 +5073,7 @@ export const vegetables: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     enhancedAvoid: [
-      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: true }
+      { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Helianthus_annuus'
   },
