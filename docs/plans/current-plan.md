@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-08
+Last updated: 2026-02-09
 
 ## What's Been Completed
 
@@ -36,6 +36,10 @@ Medium-priority UX fixes: Add Area button on desktop no longer requires edit mod
 
 Settings page restructured into tabbed interface (AI & Location, Data, Help). Plot overview toolbar simplified with clear unlock/lock toggle and inline Add Area. This Month view merges trees and perennials into a single unified section within "Your Garden". Tours no longer auto-start; user must initiate from help button. Dead SaveIndicator component removed. Documentation cleaned up: version references updated (Next.js 16, schema v16), project naming corrected, obsolete progressive disclosure content trimmed from roadmap doc, dead document links marked, pre-production checklist updated.
 
+### Personalised Planting Dates in This Month (PR #169)
+
+This Month page now uses actual planting dates instead of static database windows. The UnifiedCalendar shows personalised sow/harvest months at full opacity with generic fallback at 50%. "Your Garden" section restructured from stats row and flat list into task-oriented categories: Harvest now, Sow this month, and Growing, each showing contextual date info. Also fixed a flaky onboarding E2E test.
+
 ---
 
 ## Next Steps
@@ -48,7 +52,7 @@ Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory),
 
 After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
 
-An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. The This Month page has been updated to use personalised planting dates: the UnifiedCalendar now shows actual sow/harvest dates when available (with faded colours for generic fallback), and the "Your Garden" section is restructured into task-oriented categories (Harvest now, Sow this month, Growing) with expected dates shown.
+An initial systematic review has been completed (PRs #151 and #153) covering all sections. High and medium-priority issues are fixed. The This Month page calendar and information hierarchy issues have been addressed in PR #169.
 
 ### Plant Data Validation (Parallel Track)
 
