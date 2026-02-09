@@ -59,70 +59,29 @@ describe('Plant Data Integrity', () => {
   })
 
   describe('Three Sisters Relationships', () => {
-    it('sweetcorn should have beans as companion', () => {
+    it('sweetcorn should have climbing beans as companion for Three Sisters', () => {
       const sweetcorn = getVegetableById('sweetcorn')
       expect(sweetcorn).toBeDefined()
-      expect(sweetcorn?.companionPlants.some(c =>
-        c.toLowerCase().includes('bean')
-      )).toBe(true)
+      const hasClimbingBean = sweetcorn?.enhancedCompanions.some(
+        c => c.plantId === 'runner-beans' || c.plantId === 'climbing-french-beans'
+      )
+      expect(hasClimbingBean).toBe(true)
     })
 
     it('runner beans should have sweetcorn as companion', () => {
       const runnerBeans = getVegetableById('runner-beans')
       expect(runnerBeans).toBeDefined()
-      expect(runnerBeans?.companionPlants.some(c =>
-        c.toLowerCase().includes('sweetcorn') || c.toLowerCase().includes('corn')
+      expect(runnerBeans?.enhancedCompanions.some(c =>
+        c.plantId === 'sweetcorn'
       )).toBe(true)
     })
 
     it('squash should have sweetcorn as companion', () => {
       const squash = getVegetableById('squash')
       expect(squash).toBeDefined()
-      expect(squash?.companionPlants.some(c =>
-        c.toLowerCase().includes('sweetcorn') || c.toLowerCase().includes('corn')
+      expect(squash?.enhancedCompanions.some(c =>
+        c.plantId === 'sweetcorn'
       )).toBe(true)
-    })
-  })
-
-  describe('Companion Data Quality', () => {
-    const VAGUE_REFERENCES = [
-      'All vegetables',
-      'Climbing vegetables',
-      'Companion honeyberry varieties',
-      'Herbs',
-      'Most vegetables',
-      'Native hedgerow plants',
-      'Native plants',
-      'Nitrogen-loving plants nearby',
-      'Perennial vegetables',
-      'Shade vegetables',
-      'Vegetables',
-      'Vegetables (general)',
-      'Water-loving plants',
-      'Woodland plants',
-    ]
-
-    it('should not contain instruction strings in companion arrays', () => {
-      const instructions: Array<{ plant: string; value: string }> = []
-
-      for (const veg of vegetables) {
-        for (const companion of veg.companionPlants) {
-          if (companion.includes('should') || companion.includes('must')) {
-            instructions.push({ plant: veg.id, value: companion })
-          }
-        }
-      }
-
-      expect(instructions).toEqual([])
-    })
-
-    it('should track vague references (improvement metric)', () => {
-      const allCompanions = vegetables.flatMap(v => v.companionPlants)
-      const vagueCount = allCompanions.filter(c => VAGUE_REFERENCES.includes(c)).length
-
-      // This test documents current state; count should decrease over time
-      // After Phase 0, this should be < 20 (we removed 'Dill should be kept separate')
-      expect(vagueCount).toBeLessThan(50)
     })
   })
 

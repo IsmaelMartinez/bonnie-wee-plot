@@ -81,8 +81,8 @@ describe('getRecommendedSowMethodForVegetable', () => {
       difficulty: 'beginner',
       tips: []
     },
-    companionPlants: [],
-    avoidPlants: []
+    enhancedCompanions: [],
+    enhancedAvoid: []
   }
 
   it('recommends indoor for indoor-only months', () => {

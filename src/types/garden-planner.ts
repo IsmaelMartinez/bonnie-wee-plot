@@ -110,16 +110,14 @@ export interface Vegetable {
   description: string
   planting: PlantingInfo
   care: CareRequirements
-  companionPlants: string[]
-  avoidPlants: string[]
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
   perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
   rhsUrl?: string                          // RHS grow-your-own guide URL
   wikipediaUrl?: string                    // Wikipedia article URL
   botanicalName?: string                   // Scientific/Latin name
-  enhancedCompanions?: EnhancedCompanion[] // Validated companion relationships with metadata
-  enhancedAvoid?: EnhancedCompanion[]      // Validated avoid relationships with metadata
+  enhancedCompanions: EnhancedCompanion[]  // Companion relationships with metadata
+  enhancedAvoid: EnhancedCompanion[]       // Avoid relationships with metadata
 }
 
 // Maintenance info for perennials, trees, and shrubs

@@ -20,8 +20,8 @@ describe('vegetables database', () => {
       expect(veg.category).toBeDefined()
       expect(veg.planting).toBeDefined()
       expect(veg.care).toBeDefined()
-      expect(Array.isArray(veg.companionPlants)).toBe(true)
-      expect(Array.isArray(veg.avoidPlants)).toBe(true)
+      expect(Array.isArray(veg.enhancedCompanions)).toBe(true)
+      expect(Array.isArray(veg.enhancedAvoid)).toBe(true)
     }
   })
 })
