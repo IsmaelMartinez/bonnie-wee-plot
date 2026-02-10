@@ -81,12 +81,6 @@ export default function ReceivePage({ params }: PageProps) {
     setState(prev => ({ ...prev, status: 'importing' }))
 
     try {
-      // Validate data before import
-      const validation = validateAllotmentData(state.allotment)
-      if (!validation.valid) {
-        throw new Error(`Cannot import invalid data: ${validation.errors.join(', ')}`)
-      }
-
       // Create backup if there's existing data
       if (hasExistingData) {
         const backupResult = createPreImportBackup()
