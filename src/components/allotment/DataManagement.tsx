@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, BarChart2 } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
@@ -77,6 +77,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [importError, setImportError] = useState<ImportError | null>(null)
   const [importSuccess, setImportSuccess] = useState(false)
+  const [exportSuccess, setExportSuccess] = useState(false)
   const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -88,6 +89,17 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
   // Get storage statistics
   const stats = getStorageStats()
   const quota = checkStorageQuota()
+
+  // Clean up export success timer to prevent memory leaks
+  useEffect(() => {
+    if (exportSuccess) {
+      const timerId = setTimeout(() => {
+        setExportSuccess(false)
+      }, 3000)
+
+      return () => clearTimeout(timerId)
+    }
+  }, [exportSuccess])
 
   // Export data as JSON file (includes allotment, varieties, and compost)
   const handleExport = useCallback(() => {
@@ -131,6 +143,9 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      // Show success feedback
+      setExportSuccess(true)
     } catch (error) {
       console.error('Export failed:', error)
       throw new ExportError(
@@ -387,14 +402,22 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             <p className="text-sm text-gray-500 mb-3">
               Download your complete allotment data as a JSON file. Includes all seasons, plantings, seed varieties, and settings.
             </p>
-            <button
-              onClick={handleExport}
-              disabled={!data}
-              className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
-            >
-              <Download className="w-4 h-4" />
-              Export Backup
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExport}
+                disabled={!data}
+                className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                <Download className="w-4 h-4" />
+                Export Backup
+              </button>
+              {exportSuccess && (
+                <div className="flex items-center gap-2 text-zen-moss-600 text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Exported successfully!</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Import Section */}
