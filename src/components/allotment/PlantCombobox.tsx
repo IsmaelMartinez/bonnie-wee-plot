@@ -92,7 +92,7 @@ export default function PlantCombobox({
         <button
           type="button"
           onClick={() => onCategoryChange('all')}
-          className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+          className={`px-3 min-h-[44px] text-sm rounded-lg whitespace-nowrap transition flex items-center ${
             categoryFilter === 'all'
               ? 'bg-emerald-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -105,7 +105,7 @@ export default function PlantCombobox({
             key={info.id}
             type="button"
             onClick={() => onCategoryChange(info.id)}
-            className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
+            className={`px-3 min-h-[44px] text-sm rounded-lg whitespace-nowrap transition flex items-center ${
               categoryFilter === info.id
                 ? 'bg-emerald-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

@@ -91,14 +91,14 @@ export default function HarvestTracker({ areaId }: HarvestTrackerProps) {
           <div className="flex gap-2">
             <button
               onClick={handleAdd}
-              className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-moss-500 text-white rounded-zen hover:bg-zen-moss-600"
+              className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-moss-500 text-white rounded-zen hover:bg-zen-moss-600"
             >
               <Check className="w-3 h-3" />
               Save
             </button>
             <button
               onClick={() => setIsAdding(false)}
-              className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
+              className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
             >
               <X className="w-3 h-3" />
               Cancel
