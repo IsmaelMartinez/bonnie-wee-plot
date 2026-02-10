@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Loader2,
   TreeDeciduous,
-  Users
+  Users,
+  Sprout
 } from 'lucide-react'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
@@ -233,6 +234,13 @@ export default function AllotmentPage() {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto overflow-x-auto">
               <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
+              <Link
+                href="/seeds"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
+              >
+                <Sprout className="w-4 h-4" />
+                <span className="hidden sm:inline">Seeds</span>
+              </Link>
               <Link
                 href="/ai-advisor"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
