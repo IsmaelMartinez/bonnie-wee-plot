@@ -101,14 +101,14 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
             <button
               onClick={handleAdd}
               disabled={!selectedPlantId}
-              className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-water-500 text-white rounded-zen hover:bg-zen-water-600 disabled:opacity-50"
+              className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-water-500 text-white rounded-zen hover:bg-zen-water-600 disabled:opacity-50"
             >
               <Check className="w-3 h-3" />
               Add
             </button>
             <button
               onClick={() => setIsAdding(false)}
-              className="flex items-center gap-1 text-xs px-2 py-1 bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
+              className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
             >
               <X className="w-3 h-3" />
               Cancel
