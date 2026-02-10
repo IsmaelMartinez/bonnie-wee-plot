@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Download, AlertTriangle, CheckCircle, Loader2, Home, ArrowLeft } from 'lucide-react'
 import type { AllotmentData } from '@/types/unified-allotment'
-import { saveAllotmentData, migrateSchemaForImport, loadAllotmentData } from '@/services/allotment-storage'
+import { saveAllotmentData, migrateSchemaForImport, loadAllotmentData, validateAllotmentData } from '@/services/allotment-storage'
 import { createPreImportBackup } from '@/lib/storage-utils'
 
 interface PageProps {
@@ -39,6 +39,13 @@ export default function ReceivePage({ params }: PageProps) {
         }
 
         const data = await response.json()
+
+        // Validate received data
+        const validation = validateAllotmentData(data.allotment)
+        if (!validation.valid) {
+          throw new Error(`Invalid allotment data: ${validation.errors.join(', ')}`)
+        }
+
         setState({
           status: 'success',
           allotment: data.allotment,
@@ -74,6 +81,12 @@ export default function ReceivePage({ params }: PageProps) {
     setState(prev => ({ ...prev, status: 'importing' }))
 
     try {
+      // Validate data before import
+      const validation = validateAllotmentData(state.allotment)
+      if (!validation.valid) {
+        throw new Error(`Cannot import invalid data: ${validation.errors.join(', ')}`)
+      }
+
       // Create backup if there's existing data
       if (hasExistingData) {
         const backupResult = createPreImportBackup()
