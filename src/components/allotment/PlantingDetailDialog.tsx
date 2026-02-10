@@ -20,7 +20,7 @@ import { Planting, PlantingUpdate, SowMethod } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getPlantingPhase, getSowMethodLabel, getPhaseIcon, getPhaseColors, formatDate, formatDateForInput } from '@/lib/planting-utils'
-import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
+import { getCrossYearDisplayInfo, populateExpectedHarvest } from '@/lib/date-calculator'
 
 interface PlantingDetailDialogProps {
   planting: Planting | null
@@ -66,22 +66,54 @@ export default function PlantingDetailDialog({
     }
   }, [planting, localNotes, onUpdate])
 
+  /**
+   * Helper to update planting fields and recalculate harvest dates when needed
+   * Avoids code duplication between date and sow method change handlers
+   */
+  const handleUpdateAndRecalculate = useCallback(
+    (updates: PlantingUpdate) => {
+      // Check if we need to recalculate harvest dates
+      const needsRecalculation =
+        planting &&
+        veg &&
+        planting.sowDate &&
+        (updates.sowDate !== undefined ||
+          updates.transplantDate !== undefined ||
+          updates.sowMethod !== undefined)
+
+      if (needsRecalculation) {
+        const updatedPlanting = populateExpectedHarvest(
+          { ...planting, ...updates },
+          veg
+        )
+        onUpdate({
+          ...updates,
+          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
+          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
+        })
+      } else {
+        onUpdate(updates)
+      }
+    },
+    [onUpdate, planting, veg]
+  )
 
   const handleDateChange = useCallback(
     (field: keyof PlantingUpdate, value: string) => {
       if (field === 'sowDate') setLocalSowDate(value)
       else if (field === 'transplantDate') setLocalTransplantDate(value)
       else if (field === 'actualHarvestStart') setLocalHarvestDate(value)
-      onUpdate({ [field]: value || undefined })
+
+      handleUpdateAndRecalculate({ [field]: value || undefined })
     },
-    [onUpdate]
+    [handleUpdateAndRecalculate]
   )
 
   const handleSowMethodChange = useCallback(
     (method: SowMethod) => {
-      onUpdate({ sowMethod: method })
+      handleUpdateAndRecalculate({ sowMethod: method })
     },
-    [onUpdate]
+    [handleUpdateAndRecalculate]
   )
 
   const handleSuccessChange = useCallback(
