@@ -82,7 +82,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
           />
           <button
             onClick={removeImage}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
+            className="absolute -top-2 -right-2 bg-zen-kitsune-500 text-white rounded-full p-2 hover:bg-zen-kitsune-600 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
             title="Remove image"
             aria-label="Remove uploaded image"
           >
@@ -142,14 +142,14 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
         <div className="flex items-center justify-between text-sm">
           <div className="text-gray-500">
             {validationError ? null : selectedImage ? (
-              <span className="text-green-600">📷 Image ready for analysis</span>
+              <span className="text-zen-moss-600">📷 Image ready for analysis</span>
             ) : (
               <span>💡 Tip: Upload a plant photo for visual diagnosis</span>
             )}
           </div>
           
           {rateLimitInfo && rateLimitInfo.cooldownMs > 0 && (
-            <div className="flex items-center gap-1 text-amber-600">
+            <div className="flex items-center gap-1 text-zen-bamboo-600">
               <Clock className="w-4 h-4" aria-hidden="true" />
               <span>Wait {Math.ceil(rateLimitInfo.cooldownMs / 1000)}s</span>
             </div>

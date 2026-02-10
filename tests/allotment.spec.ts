@@ -543,8 +543,8 @@ test.describe('Allotment Bed Notes', () => {
     await expect(submitButton).toBeEnabled({ timeout: 3000 })
     await submitButton.click()
 
-    // Note should appear with warning styling (amber background)
-    const noteCard = page.locator('.bg-amber-50').filter({ hasText: 'Warning note' })
+    // Note should appear with warning styling (zen-bamboo background)
+    const noteCard = page.locator('.bg-zen-bamboo-50').filter({ hasText: 'Warning note' })
     await expect(noteCard).toBeVisible({ timeout: 5000 })
   })
 

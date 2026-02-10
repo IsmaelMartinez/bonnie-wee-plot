@@ -136,22 +136,26 @@ function formatDateRange(startDate?: string, endDate?: string): string | null {
 // Personalized planting card
 function PersonalizedPlanting({
   bedId,
+  plantingId,
   vegetableName,
   varietyName,
   context,
   dateInfo,
   sowMethodHint,
+  isClickable,
   hasSeeds
 }: {
   bedId: string
+  plantingId?: string
   vegetableName: string
   varietyName?: string
   context?: 'harvest' | 'growing' | 'sow'
   dateInfo?: string | null
   sowMethodHint?: string
+  isClickable?: boolean
   hasSeeds?: boolean
 }) {
-  return (
+  const content = (
     <div className="flex items-start gap-3 p-3 bg-white/80 rounded-zen border border-zen-moss-200">
       <div className="flex-1">
         <div className="flex items-center gap-2">
@@ -176,6 +180,19 @@ function PersonalizedPlanting({
       </div>
     </div>
   )
+
+  if (isClickable && plantingId) {
+    return (
+      <Link
+        href={`/allotment?bed=${bedId}&planting=${plantingId}`}
+        className="block hover:opacity-90 transition"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
 
 // Maintenance task card
@@ -275,14 +292,15 @@ export default function ThisMonthPage() {
 
     const allPlantings: PlantingInfo[] = []
 
-    // Helper: check if user has seeds for this planting
+    // Pre-calculate varieties with seeds for O(1) lookup
+    const varietiesWithSeeds = new Set(
+      allotmentData.varieties
+        ?.filter(v => v.seedsByYear?.[currentSeason.year] === 'have' && v.name)
+        .map(v => `${v.plantId}::${v.name.toLowerCase().trim()}`) ?? []
+    )
     const checkHasSeeds = (plantId: string, varietyName?: string): boolean => {
       if (!varietyName) return false
-      const variety = allotmentData.varieties.find(
-        v => v.plantId === plantId && v.name.toLowerCase().trim() === varietyName.toLowerCase().trim()
-      )
-      if (!variety) return false
-      return variety.seedsByYear?.[currentSeason.year] === 'have'
+      return varietiesWithSeeds.has(`${plantId}::${varietyName.toLowerCase().trim()}`)
     }
 
     for (const areaSeason of currentSeason.areas) {
@@ -344,11 +362,7 @@ export default function ThisMonthPage() {
         if (p.hasSowDate) return false
         return p.sowMonths.includes(monthIndex)
       })
-      .sort((a, b) => {
-        if (a.hasSeeds && !b.hasSeeds) return -1
-        if (!a.hasSeeds && b.hasSeeds) return 1
-        return 0
-      })
+      .sort((a, b) => Number(b.hasSeeds ?? false) - Number(a.hasSeeds ?? false))
 
     // "Growing" — planted but not yet ready to harvest this month
     const growing = allPlantings.filter(p => {
@@ -491,6 +505,7 @@ export default function ThisMonthPage() {
                         <PersonalizedPlanting
                           key={p.id}
                           bedId={p.areaId}
+                          plantingId={p.id}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
                           context="harvest"
@@ -498,6 +513,7 @@ export default function ThisMonthPage() {
                             p.actualHarvestStart || p.expectedHarvestStart,
                             p.actualHarvestEnd || p.expectedHarvestEnd
                           )}
+                          isClickable={true}
                         />
                       ))}
                     </div>
@@ -715,10 +731,10 @@ export default function ThisMonthPage() {
         </div>
 
         {/* Soil Care - Featured Section */}
-        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-zen-bamboo-200">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-zen-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <Layers className="w-6 h-6 text-amber-700" />
+            <div className="w-12 h-12 rounded-zen-lg bg-zen-bamboo-100 flex items-center justify-center flex-shrink-0">
+              <Layers className="w-6 h-6 text-zen-bamboo-700" />
             </div>
             <div>
               <h3 className="font-display text-zen-ink-800 mb-2">Soil Care</h3>
