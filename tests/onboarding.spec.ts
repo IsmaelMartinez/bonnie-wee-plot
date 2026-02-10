@@ -30,7 +30,12 @@ async function completeOnboardingWizard(page: Page) {
   await expect(page.getByText("Got it, let's go")).toBeVisible()
   await page.getByText("Got it, let's go").click()
   await expect(page.getByText('Start Exploring')).toBeVisible()
-  await page.getByText('Start Exploring').click()
+
+  // Wait for dialog to close when clicking "Start Exploring"
+  await Promise.all([
+    page.getByRole('dialog').waitFor({ state: 'hidden' }),
+    page.getByText('Start Exploring').click()
+  ])
 }
 
 /**
@@ -267,10 +272,15 @@ test.describe('Onboarding Wizard - Ask Path', () => {
 
     // Click "Start Exploring"
     await expect(page.getByText('Start Exploring')).toBeVisible()
-    await page.getByText('Start Exploring').click()
 
-    // Should navigate to AI advisor (extended timeout for slow CI runners)
-    await expect(page).toHaveURL(/ai-advisor/, { timeout: 30000 })
+    // Wait for dialog to close (which means onboarding completed)
+    await Promise.all([
+      page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 30000 }),
+      page.getByText('Start Exploring').click()
+    ])
+
+    // Verify we're back on homepage after /ai-advisor redirects to /
+    await expect(page).toHaveURL('/')
   })
 
   test('ask path shows correct guidance content', async ({ page }) => {
