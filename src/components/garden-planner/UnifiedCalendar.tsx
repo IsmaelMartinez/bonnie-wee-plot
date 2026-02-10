@@ -153,24 +153,21 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
                           ? personalisedHarvestMonths.includes(month)
                           : veg.planting.harvestMonths.includes(month)
 
-                        const isGenericFallback = (!hasPersonalisedSow && canSow) || (!hasPersonalisedHarvest && canHarvest)
-
                         let bgClass = 'bg-gray-100'
-                        if (canHarvest && isGenericFallback && !canSow) {
-                          bgClass = 'bg-amber-400/50'
-                        } else if (canHarvest) {
-                          bgClass = 'bg-amber-400'
-                        } else if (canSow && isGenericFallback) {
-                          bgClass = 'bg-green-400/50'
+                        let isGeneric = false
+                        if (canHarvest) {
+                          isGeneric = !hasPersonalisedHarvest
+                          bgClass = isGeneric ? 'bg-amber-400/50' : 'bg-amber-400'
                         } else if (canSow) {
-                          bgClass = 'bg-green-400'
+                          isGeneric = !hasPersonalisedSow
+                          bgClass = isGeneric ? 'bg-green-400/50' : 'bg-green-400'
                         }
 
                         return (
                           <div
                             key={i}
                             className={`h-4 rounded-sm ${bgClass} ${isCurrentMonth ? 'ring-2 ring-green-600 ring-offset-1' : ''}`}
-                            title={`${veg.name}: ${canSow ? 'Sow ' : ''}${canHarvest ? 'Harvest' : ''}${isGenericFallback ? ' (estimated)' : ''}`}
+                            title={`${veg.name}: ${canSow ? 'Sow ' : ''}${canHarvest ? 'Harvest' : ''}${isGeneric ? ' (estimated)' : ''}`}
                           />
                         )
                       })}
