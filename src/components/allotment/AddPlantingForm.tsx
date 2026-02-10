@@ -5,6 +5,7 @@ import { AlertTriangle, Check, Users, Package, Lightbulb } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
+import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
@@ -97,7 +98,8 @@ export default function AddPlantingForm({
     // Determine status based on dates
     const status: PlantingStatus = sowDate ? 'active' : 'planned'
 
-    onSubmit({
+    // Create base planting
+    let newPlanting: NewPlanting = {
       plantId,
       varietyName: varietyName || undefined,
       sowMethod, // Always include sow method (user intent even for planned)
@@ -105,7 +107,14 @@ export default function AddPlantingForm({
       transplantDate: transplantDate || undefined,
       notes: notes || undefined,
       status,
-    })
+    }
+
+    // Calculate and populate expected harvest dates
+    if (sowDate && selectedVegetable) {
+      newPlanting = populateExpectedHarvest(newPlanting, selectedVegetable)
+    }
+
+    onSubmit(newPlanting)
 
     // Reset form
     setVegetableId('')
