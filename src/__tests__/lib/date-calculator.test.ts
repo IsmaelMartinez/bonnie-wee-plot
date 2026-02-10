@@ -19,7 +19,7 @@ import {
   populateExpectedHarvest,
 } from '@/lib/date-calculator'
 import { Vegetable } from '@/types/garden-planner'
-import { Planting } from '@/types/unified-allotment'
+import { Planting, NewPlanting } from '@/types/unified-allotment'
 
 // Test vegetables with known data
 const testPeas: Vegetable = {
@@ -388,6 +388,63 @@ describe('populateExpectedHarvest', () => {
     expect(result.varietyName).toBe('Kelvedon Wonder')
     expect(result.notes).toBe('Test notes')
     expect(result.quantity).toBe(24)
+  })
+
+  it('works with NewPlanting type (without id)', () => {
+    const newPlanting: NewPlanting = {
+      plantId: 'tomato',
+      sowDate: '2025-03-01',
+      sowMethod: 'indoor',
+      transplantDate: '2025-05-15',
+      status: 'active',
+    }
+
+    const result = populateExpectedHarvest(newPlanting, testTomato)
+
+    expect(result.expectedHarvestStart).toBeDefined()
+    expect(result.expectedHarvestEnd).toBeDefined()
+    expect(result.plantId).toBe('tomato')
+    expect(result.sowDate).toBe('2025-03-01')
+  })
+
+  it('recalculates when sowDate changes', () => {
+    const original: Planting = {
+      id: 'test-5',
+      plantId: 'peas',
+      sowDate: '2025-04-15',
+      sowMethod: 'outdoor',
+      expectedHarvestStart: '2025-06-14',
+      expectedHarvestEnd: '2025-07-14',
+    }
+
+    // User changes sow date
+    const updated = { ...original, sowDate: '2025-05-01' }
+    const result = populateExpectedHarvest(updated, testPeas)
+
+    // Harvest dates should be later
+    expect(result.expectedHarvestStart).toBe('2025-06-30')
+    expect(result.expectedHarvestEnd).toBe('2025-07-30')
+  })
+
+  it('recalculates when sowMethod changes', () => {
+    const outdoor: Planting = {
+      id: 'test-6',
+      plantId: 'tomato',
+      sowDate: '2025-05-15',
+      sowMethod: 'outdoor',
+    }
+
+    const indoor: Planting = {
+      ...outdoor,
+      sowMethod: 'indoor',
+      transplantDate: '2025-05-15',
+    }
+
+    const outdoorResult = populateExpectedHarvest(outdoor, testTomato)
+    const indoorResult = populateExpectedHarvest(indoor, testTomato)
+
+    // Indoor should harvest earlier (germination already happened)
+    expect(new Date(indoorResult.expectedHarvestStart!) < new Date(outdoorResult.expectedHarvestStart!)).toBe(true)
   })
 })
 
