@@ -5,6 +5,7 @@ import { AlertTriangle, Check, Users, Package, Lightbulb } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
+import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
@@ -97,7 +98,8 @@ export default function AddPlantingForm({
     // Determine status based on dates
     const status: PlantingStatus = sowDate ? 'active' : 'planned'
 
-    onSubmit({
+    // Create base planting
+    let newPlanting: NewPlanting = {
       plantId,
       varietyName: varietyName || undefined,
       sowMethod, // Always include sow method (user intent even for planned)
@@ -105,7 +107,14 @@ export default function AddPlantingForm({
       transplantDate: transplantDate || undefined,
       notes: notes || undefined,
       status,
-    })
+    }
+
+    // Calculate and populate expected harvest dates
+    if (sowDate && selectedVegetable) {
+      newPlanting = populateExpectedHarvest(newPlanting, selectedVegetable)
+    }
+
+    onSubmit(newPlanting)
 
     // Reset form
     setVegetableId('')
@@ -177,26 +186,42 @@ export default function AddPlantingForm({
             const hasSeeds = hasSeedsForYear(v, selectedYear)
             return (
               <option key={v.id} value={v.name}>
-                {hasSeeds ? '● ' : '○ '}{v.name}
+                {hasSeeds ? '✓ ' : '○ '}{v.name}
               </option>
             )
           })}
         </datalist>
         {plantId && matchingVarieties.length > 0 && (
-          <>
-            <p className="text-xs text-zen-stone-500 mt-1">
-              ● Have seeds  |  ○ Need to order
-            </p>
+          <div className="mt-2 space-y-2">
+            <div className="text-xs text-zen-stone-500 flex items-center gap-3">
+              <span className="flex items-center gap-1">
+                <span className="text-zen-moss-600">✓</span> Have seeds
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="text-zen-stone-400">○</span> Need to order
+              </span>
+            </div>
             <a
               href={`/seeds?vegetable=${plantId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-1.5 text-xs text-zen-moss-600 hover:text-zen-moss-700"
+              className="inline-flex items-center gap-1.5 text-xs text-zen-moss-600 hover:text-zen-moss-700 font-medium"
             >
-              <Package className="w-3 h-3" />
-              View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'} →
+              <Package className="w-3.5 h-3.5" />
+              View your {matchingVarieties.length} {selectedVegetable?.name.toLowerCase()} {matchingVarieties.length === 1 ? 'variety' : 'varieties'}
             </a>
-          </>
+          </div>
+        )}
+        {plantId && matchingVarieties.length === 0 && (
+          <a
+            href={`/seeds?vegetable=${plantId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-2 text-xs text-zen-moss-600 hover:text-zen-moss-700 font-medium"
+          >
+            <Package className="w-3.5 h-3.5" />
+            Add {selectedVegetable?.name.toLowerCase()} varieties to seed library
+          </a>
         )}
       </div>
 

@@ -37,6 +37,7 @@ import {
   ListAreasArgs,
 } from '@/lib/ai-tools-schema'
 import { getVegetableById, searchVegetables } from '@/lib/vegetable-database'
+import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { trackEvent } from '@/lib/analytics'
 
 // ============ ERROR HELPERS ============
@@ -329,7 +330,7 @@ function executeAddPlanting(
   }
 
   // Create the new planting (use the actual plant ID from database, not user input)
-  const newPlanting: NewPlanting = {
+  let newPlanting: NewPlanting = {
     plantId: plant.id,
     varietyName: args.varietyName,
     sowDate: args.sowDate,
@@ -337,6 +338,11 @@ function executeAddPlanting(
     quantity: args.quantity,
     notes: args.notes,
     status: args.sowDate ? 'active' : 'planned',
+  }
+
+  // Calculate and populate expected harvest dates
+  if (args.sowDate) {
+    newPlanting = populateExpectedHarvest(newPlanting, plant)
   }
 
   // Use area.id (not args.areaId) since args.areaId might be a name
