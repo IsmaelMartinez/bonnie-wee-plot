@@ -17,7 +17,8 @@ import {
   Home,
   MapPin,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Package
 } from 'lucide-react'
 import UnifiedCalendar from '@/components/garden-planner/UnifiedCalendar'
 import { useAllotment } from '@/hooks/useAllotment'
@@ -139,7 +140,8 @@ function PersonalizedPlanting({
   varietyName,
   context,
   dateInfo,
-  sowMethodHint
+  sowMethodHint,
+  hasSeeds
 }: {
   bedId: string
   vegetableName: string
@@ -147,11 +149,19 @@ function PersonalizedPlanting({
   context?: 'harvest' | 'growing' | 'sow'
   dateInfo?: string | null
   sowMethodHint?: string
+  hasSeeds?: boolean
 }) {
   return (
     <div className="flex items-start gap-3 p-3 bg-white/80 rounded-zen border border-zen-moss-200">
       <div className="flex-1">
-        <div className="font-medium text-zen-ink-800">{vegetableName}</div>
+        <div className="flex items-center gap-2">
+          <div className="font-medium text-zen-ink-800">{vegetableName}</div>
+          {context === 'sow' && hasSeeds !== undefined && (
+            <span className={`text-xs px-1.5 py-0.5 rounded ${hasSeeds ? 'bg-zen-moss-100 text-zen-moss-700' : 'bg-zen-stone-100 text-zen-stone-600'}`}>
+              {hasSeeds ? '✓ Seeds' : 'No seeds'}
+            </span>
+          )}
+        </div>
         {varietyName && <div className="text-xs text-zen-stone-500">{varietyName}</div>}
         <div className="text-xs text-zen-moss-600 mt-1">Bed {bedId}</div>
         {context === 'harvest' && dateInfo && (
@@ -260,9 +270,20 @@ export default function ThisMonthPage() {
       sowMonths: number[]
       sowMethodHint?: string
       hasSowDate: boolean
+      hasSeeds?: boolean
     }
 
     const allPlantings: PlantingInfo[] = []
+
+    // Helper: check if user has seeds for this planting
+    const checkHasSeeds = (plantId: string, varietyName?: string): boolean => {
+      if (!varietyName) return false
+      const variety = allotmentData.varieties.find(
+        v => v.plantId === plantId && v.name.toLowerCase().trim() === varietyName.toLowerCase().trim()
+      )
+      if (!variety) return false
+      return variety.seedsByYear?.[currentSeason.year] === 'have'
+    }
 
     for (const areaSeason of currentSeason.areas) {
       for (const planting of areaSeason.plantings) {
@@ -286,7 +307,8 @@ export default function ThisMonthPage() {
             sowMethodHint: sowIndoors.length > 0 && sowOutdoors.length > 0
               ? 'Sow indoors or outdoors'
               : sowIndoors.length > 0 ? 'Sow indoors' : 'Sow outdoors',
-            hasSowDate: !!planting.sowDate
+            hasSowDate: !!planting.sowDate,
+            hasSeeds: checkHasSeeds(planting.plantId, planting.varietyName)
           })
         }
       }
@@ -316,10 +338,17 @@ export default function ThisMonthPage() {
     const harvestNow = allPlantings.filter(p => p.hasSowDate && isHarvestableThisMonth(p))
 
     // "Sow this month" — plantings without a sow date where the database says this is a sow window
-    const sowThisMonth = allPlantings.filter(p => {
-      if (p.hasSowDate) return false
-      return p.sowMonths.includes(monthIndex)
-    })
+    // Sort by seed availability: prioritize varieties with seeds
+    const sowThisMonth = allPlantings
+      .filter(p => {
+        if (p.hasSowDate) return false
+        return p.sowMonths.includes(monthIndex)
+      })
+      .sort((a, b) => {
+        if (a.hasSeeds && !b.hasSeeds) return -1
+        if (!a.hasSeeds && b.hasSeeds) return 1
+        return 0
+      })
 
     // "Growing" — planted but not yet ready to harvest this month
     const growing = allPlantings.filter(p => {
@@ -491,9 +520,19 @@ export default function ThisMonthPage() {
                           varietyName={p.varietyName}
                           context="sow"
                           sowMethodHint={p.sowMethodHint}
+                          hasSeeds={p.hasSeeds}
                         />
                       ))}
                     </div>
+                    {personalizedData.sowThisMonth.some(p => !p.hasSeeds && p.varietyName) && (
+                      <Link
+                        href="/seeds"
+                        className="inline-flex items-center gap-1.5 mt-3 text-sm text-zen-moss-600 hover:text-zen-moss-700"
+                      >
+                        <Package className="w-4 h-4" />
+                        Manage seed inventory →
+                      </Link>
+                    )}
                   </div>
                 )}
 
