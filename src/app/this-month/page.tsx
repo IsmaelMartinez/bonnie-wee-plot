@@ -275,14 +275,15 @@ export default function ThisMonthPage() {
 
     const allPlantings: PlantingInfo[] = []
 
-    // Helper: check if user has seeds for this planting
+    // Pre-calculate varieties with seeds for O(1) lookup
+    const varietiesWithSeeds = new Set(
+      allotmentData.varieties
+        ?.filter(v => v.seedsByYear?.[currentSeason.year] === 'have' && v.name)
+        .map(v => `${v.plantId}::${v.name.toLowerCase().trim()}`) ?? []
+    )
     const checkHasSeeds = (plantId: string, varietyName?: string): boolean => {
       if (!varietyName) return false
-      const variety = allotmentData.varieties.find(
-        v => v.plantId === plantId && v.name.toLowerCase().trim() === varietyName.toLowerCase().trim()
-      )
-      if (!variety) return false
-      return variety.seedsByYear?.[currentSeason.year] === 'have'
+      return varietiesWithSeeds.has(`${plantId}::${varietyName.toLowerCase().trim()}`)
     }
 
     for (const areaSeason of currentSeason.areas) {
@@ -344,11 +345,7 @@ export default function ThisMonthPage() {
         if (p.hasSowDate) return false
         return p.sowMonths.includes(monthIndex)
       })
-      .sort((a, b) => {
-        if (a.hasSeeds && !b.hasSeeds) return -1
-        if (!a.hasSeeds && b.hasSeeds) return 1
-        return 0
-      })
+      .sort((a, b) => Number(b.hasSeeds ?? false) - Number(a.hasSeeds ?? false))
 
     // "Growing" — planted but not yet ready to harvest this month
     const growing = allPlantings.filter(p => {
