@@ -66,6 +66,37 @@ export default function PlantingDetailDialog({
     }
   }, [planting, localNotes, onUpdate])
 
+  /**
+   * Helper to update planting fields and recalculate harvest dates when needed
+   * Avoids code duplication between date and sow method change handlers
+   */
+  const handleUpdateAndRecalculate = useCallback(
+    (updates: PlantingUpdate) => {
+      // Check if we need to recalculate harvest dates
+      const needsRecalculation =
+        planting &&
+        veg &&
+        planting.sowDate &&
+        (updates.sowDate !== undefined ||
+          updates.transplantDate !== undefined ||
+          updates.sowMethod !== undefined)
+
+      if (needsRecalculation) {
+        const updatedPlanting = populateExpectedHarvest(
+          { ...planting, ...updates },
+          veg
+        )
+        onUpdate({
+          ...updates,
+          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
+          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
+        })
+      } else {
+        onUpdate(updates)
+      }
+    },
+    [onUpdate, planting, veg]
+  )
 
   const handleDateChange = useCallback(
     (field: keyof PlantingUpdate, value: string) => {
@@ -73,42 +104,16 @@ export default function PlantingDetailDialog({
       else if (field === 'transplantDate') setLocalTransplantDate(value)
       else if (field === 'actualHarvestStart') setLocalHarvestDate(value)
 
-      // If changing sowDate or transplantDate, recalculate expected harvest dates
-      if ((field === 'sowDate' || field === 'transplantDate') && planting && veg && value) {
-        const updatedPlanting = populateExpectedHarvest(
-          { ...planting, [field]: value },
-          veg
-        )
-        onUpdate({
-          [field]: value || undefined,
-          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
-          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
-        })
-      } else {
-        onUpdate({ [field]: value || undefined })
-      }
+      handleUpdateAndRecalculate({ [field]: value || undefined })
     },
-    [onUpdate, planting, veg]
+    [handleUpdateAndRecalculate]
   )
 
   const handleSowMethodChange = useCallback(
     (method: SowMethod) => {
-      // Recalculate expected harvest dates when sow method changes
-      if (planting && veg && planting.sowDate) {
-        const updatedPlanting = populateExpectedHarvest(
-          { ...planting, sowMethod: method },
-          veg
-        )
-        onUpdate({
-          sowMethod: method,
-          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
-          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
-        })
-      } else {
-        onUpdate({ sowMethod: method })
-      }
+      handleUpdateAndRecalculate({ sowMethod: method })
     },
-    [onUpdate, planting, veg]
+    [handleUpdateAndRecalculate]
   )
 
   const handleSuccessChange = useCallback(

@@ -19,7 +19,7 @@ import {
   populateExpectedHarvest,
 } from '@/lib/date-calculator'
 import { Vegetable } from '@/types/garden-planner'
-import { Planting } from '@/types/unified-allotment'
+import { Planting, NewPlanting } from '@/types/unified-allotment'
 
 // Test vegetables with known data
 const testPeas: Vegetable = {
@@ -391,11 +391,12 @@ describe('populateExpectedHarvest', () => {
   })
 
   it('works with NewPlanting type (without id)', () => {
-    const newPlanting = {
+    const newPlanting: NewPlanting = {
       plantId: 'tomato',
       sowDate: '2025-03-01',
-      sowMethod: 'indoor' as const,
+      sowMethod: 'indoor',
       transplantDate: '2025-05-15',
+      status: 'active',
     }
 
     const result = populateExpectedHarvest(newPlanting, testTomato)
@@ -443,7 +444,7 @@ describe('populateExpectedHarvest', () => {
     const indoorResult = populateExpectedHarvest(indoor, testTomato)
 
     // Indoor should harvest earlier (germination already happened)
-    expect(new Date(indoorResult.expectedHarvestStart) < new Date(outdoorResult.expectedHarvestStart)).toBe(true)
+    expect(new Date(indoorResult.expectedHarvestStart!) < new Date(outdoorResult.expectedHarvestStart!)).toBe(true)
   })
 })
 

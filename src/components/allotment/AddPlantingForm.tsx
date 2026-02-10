@@ -111,7 +111,7 @@ export default function AddPlantingForm({
 
     // Calculate and populate expected harvest dates
     if (sowDate && selectedVegetable) {
-      newPlanting = populateExpectedHarvest(newPlanting, selectedVegetable) as NewPlanting
+      newPlanting = populateExpectedHarvest(newPlanting, selectedVegetable)
     }
 
     onSubmit(newPlanting)

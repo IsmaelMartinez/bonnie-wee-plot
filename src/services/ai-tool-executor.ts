@@ -342,7 +342,7 @@ function executeAddPlanting(
 
   // Calculate and populate expected harvest dates
   if (args.sowDate) {
-    newPlanting = populateExpectedHarvest(newPlanting, plant) as NewPlanting
+    newPlanting = populateExpectedHarvest(newPlanting, plant)
   }
 
   // Use area.id (not args.areaId) since args.areaId might be a name
