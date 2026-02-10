@@ -12,7 +12,7 @@
  */
 
 import { Vegetable, VegetableCategory } from '@/types/garden-planner'
-import { SowMethod, Planting } from '@/types/unified-allotment'
+import { SowMethod, Planting, NewPlanting } from '@/types/unified-allotment'
 
 // ============ CONSTANTS ============
 
@@ -421,12 +421,13 @@ export function validateSowDate(
 
 /**
  * Calculate and populate expected harvest dates for a planting
- * Returns a new Planting object with expectedHarvestStart/End filled in
+ * Returns a new planting object with expectedHarvestStart/End filled in
+ * Generic to support both Planting (with id) and NewPlanting (without id)
  */
-export function populateExpectedHarvest(
-  planting: Planting,
+export function populateExpectedHarvest<T extends Planting | NewPlanting>(
+  planting: T,
   vegetable: Vegetable
-): Planting {
+): T {
   // If no sow date or method, can't calculate
   if (!planting.sowDate) {
     return planting
@@ -446,7 +447,7 @@ export function populateExpectedHarvest(
       ...planting,
       expectedHarvestStart: calculated.expectedHarvestStart,
       expectedHarvestEnd: calculated.expectedHarvestEnd,
-    }
+    } as T
   } catch {
     // If calculation fails, return original planting
     return planting
