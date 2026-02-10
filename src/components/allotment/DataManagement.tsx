@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, BarChart2 } from 'lucide-react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
@@ -90,6 +90,17 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
   const stats = getStorageStats()
   const quota = checkStorageQuota()
 
+  // Clean up export success timer to prevent memory leaks
+  useEffect(() => {
+    if (exportSuccess) {
+      const timerId = setTimeout(() => {
+        setExportSuccess(false)
+      }, 3000)
+
+      return () => clearTimeout(timerId)
+    }
+  }, [exportSuccess])
+
   // Export data as JSON file (includes allotment, varieties, and compost)
   const handleExport = useCallback(() => {
     if (!data) return
@@ -135,7 +146,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
       // Show success feedback
       setExportSuccess(true)
-      setTimeout(() => setExportSuccess(false), 3000)
     } catch (error) {
       console.error('Export failed:', error)
       throw new ExportError(
