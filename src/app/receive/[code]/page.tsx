@@ -157,8 +157,8 @@ export default function ReceivePage({ params }: PageProps) {
         {/* Error State */}
         {state.status === 'error' && (
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="w-12 h-12 rounded-full bg-zen-kitsune-100 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-zen-kitsune-600" />
             </div>
             <h1 className="text-xl font-bold text-gray-800">Unable to Load</h1>
             <p className="text-center text-gray-600">{state.error}</p>
@@ -173,7 +173,7 @@ export default function ReceivePage({ params }: PageProps) {
               </button>
               <button
                 onClick={() => router.push('/receive')}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Try Another Code
@@ -225,11 +225,11 @@ export default function ReceivePage({ params }: PageProps) {
 
             {/* Warning if existing data */}
             {hasExistingData && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <div className="p-3 bg-zen-bamboo-50 border border-zen-bamboo-200 rounded-lg flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-amber-700">You have existing data</p>
-                  <p className="text-amber-600 mt-1">
+                  <p className="text-zen-bamboo-600 mt-1">
                     Importing will replace your current allotment. A backup will be created automatically.
                   </p>
                 </div>
@@ -246,7 +246,7 @@ export default function ReceivePage({ params }: PageProps) {
               </button>
               <button
                 onClick={handleImport}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition"
               >
                 <Download className="w-4 h-4" />
                 Import
@@ -266,7 +266,7 @@ export default function ReceivePage({ params }: PageProps) {
         {/* Imported State */}
         {state.status === 'imported' && (
           <div className="flex flex-col items-center gap-4 py-8">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-zen-moss-100 flex items-center justify-center">
               <CheckCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <h1 className="text-xl font-bold text-gray-800">Import Complete!</h1>

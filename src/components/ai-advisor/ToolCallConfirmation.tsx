@@ -100,7 +100,7 @@ export function ToolCallConfirmation({
 
   return (
     <div
-      className="bg-amber-50 border border-amber-200 rounded-lg p-4 my-3"
+      className="bg-zen-bamboo-50 border border-zen-bamboo-200 rounded-lg p-4 my-3"
       role="alertdialog"
       aria-labelledby="tool-confirm-title"
       aria-describedby="tool-confirm-desc"
@@ -108,12 +108,12 @@ export function ToolCallConfirmation({
       <div className="flex items-start gap-3 mb-3">
         {isExecuting ? (
           <Loader2
-            className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-spin"
+            className="w-5 h-5 text-zen-bamboo-600 flex-shrink-0 mt-0.5 animate-spin"
             aria-hidden="true"
           />
         ) : (
           <AlertCircle
-            className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-zen-bamboo-600 flex-shrink-0 mt-0.5"
             aria-hidden="true"
           />
         )}
@@ -159,7 +159,7 @@ export function ToolCallConfirmation({
         <button
           onClick={() => onConfirm(true)}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white hover:bg-zen-moss-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Approve changes"
         >
           {isExecuting ? (
@@ -293,7 +293,7 @@ function PlantDisambiguation({
 }) {
   return (
     <div
-      className="bg-blue-50 border border-blue-200 rounded-lg p-4 my-3"
+      className="bg-zen-water-50 border border-zen-water-200 rounded-lg p-4 my-3"
       role="dialog"
       aria-labelledby="disambig-title"
     >
@@ -311,7 +311,7 @@ function PlantDisambiguation({
               <button
                 key={plant.id}
                 onClick={() => onSelect(plant.id)}
-                className="w-full text-left px-3 py-2 bg-white border border-blue-100 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="w-full text-left px-3 py-2 bg-white border border-zen-water-100 rounded-lg hover:border-blue-300 hover:bg-zen-water-50 transition-colors"
               >
                 <span className="font-medium text-gray-800">{plant.name}</span>
                 <span className="text-gray-500 text-sm ml-2">({plant.id})</span>
@@ -345,18 +345,18 @@ export function ToolExecutionSuccess({
 }) {
   return (
     <div
-      className="bg-green-50 border border-green-200 rounded-lg p-3 my-3 flex items-start gap-3"
+      className="bg-zen-moss-50 border border-zen-moss-200 rounded-lg p-3 my-3 flex items-start gap-3"
       role="status"
       aria-live="polite"
     >
-      <Check className="w-5 h-5 text-green-600 flex-shrink-0" aria-hidden="true" />
-      <div className="flex-1 text-sm text-green-800">
+      <Check className="w-5 h-5 text-zen-moss-600 flex-shrink-0" aria-hidden="true" />
+      <div className="flex-1 text-sm text-zen-moss-800">
         {message}
       </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-green-600 hover:text-green-800"
+          className="text-zen-moss-600 hover:text-zen-moss-800"
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" aria-hidden="true" />
@@ -378,18 +378,18 @@ export function ToolExecutionError({
 }) {
   return (
     <div
-      className="bg-red-50 border border-red-200 rounded-lg p-3 my-3 flex items-start gap-3"
+      className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg p-3 my-3 flex items-start gap-3"
       role="alert"
       aria-live="assertive"
     >
-      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" aria-hidden="true" />
-      <div className="flex-1 text-sm text-red-800">
+      <AlertCircle className="w-5 h-5 text-zen-kitsune-600 flex-shrink-0" aria-hidden="true" />
+      <div className="flex-1 text-sm text-zen-kitsune-800">
         {message}
       </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-red-600 hover:text-red-800"
+          className="text-zen-kitsune-600 hover:text-zen-kitsune-800"
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" aria-hidden="true" />

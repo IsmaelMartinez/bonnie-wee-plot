@@ -341,7 +341,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
         <div className="space-y-6">
           {/* Storage Stats with Quota Warning */}
           {stats && (
-            <div className={`rounded-lg p-4 ${quota.percentageUsed > 80 ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
+            <div className={`rounded-lg p-4 ${quota.percentageUsed > 80 ? 'bg-zen-bamboo-50 border border-zen-bamboo-200' : 'bg-gray-50'}`}>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Storage Usage</h3>
               <div className="grid grid-cols-2 gap-4 mb-2">
                 <div>
@@ -362,9 +362,9 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full transition-all ${
-                      quota.percentageUsed > 90 ? 'bg-red-500' :
-                      quota.percentageUsed > 80 ? 'bg-amber-500' :
-                      'bg-emerald-500'
+                      quota.percentageUsed > 90 ? 'bg-zen-kitsune-500' :
+                      quota.percentageUsed > 80 ? 'bg-zen-bamboo-500' :
+                      'bg-zen-moss-500'
                     }`}
                     style={{ width: `${Math.min(quota.percentageUsed, 100)}%` }}
                   />
@@ -390,7 +390,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             <button
               onClick={handleExport}
               disabled={!data}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Export Backup
@@ -401,7 +401,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-sm font-medium text-gray-900 mb-2">Import Data</h3>
             <p className="text-sm text-gray-500 mb-3">
-              Restore from a backup file. <strong className="text-amber-600">This will overwrite all current data.</strong>
+              Restore from a backup file. <strong className="text-zen-bamboo-600">This will overwrite all current data.</strong>
             </p>
 
             <input
@@ -425,19 +425,19 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             {/* Import Status Messages */}
             {importError && (
               <div className="mt-3 space-y-3">
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-3 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg">
                   <div className="flex items-start gap-2 mb-2">
                     <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-red-700">{importError.message}</p>
-                      <p className="text-xs text-red-600 mt-1">Error Code: {importError.code}</p>
+                      <p className="text-sm font-medium text-zen-kitsune-700">{importError.message}</p>
+                      <p className="text-xs text-zen-kitsune-600 mt-1">Error Code: {importError.code}</p>
                     </div>
                   </div>
 
                   {importError.suggestions.length > 0 && (
                     <div className="mt-3 pl-6">
-                      <p className="text-xs font-medium text-red-700 mb-1">Recovery Steps:</p>
-                      <ul className="text-xs text-red-600 space-y-1">
+                      <p className="text-xs font-medium text-zen-kitsune-700 mb-1">Recovery Steps:</p>
+                      <ul className="text-xs text-zen-kitsune-600 space-y-1">
                         {importError.suggestions.map((suggestion, index) => (
                           <li key={index} className="flex items-start gap-1">
                             <span className="text-red-400 mt-0.5">•</span>
@@ -452,7 +452,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                 {lastBackupKey && importError.recoverable && (
                   <button
                     onClick={handleRestoreBackup}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition w-full justify-center"
+                    className="flex items-center gap-2 px-4 py-2 bg-zen-bamboo-600 text-white rounded-lg hover:bg-zen-bamboo-700 transition w-full justify-center"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Restore from Backup
@@ -462,9 +462,9 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             )}
 
             {importSuccess && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+              <div className="mt-3 p-3 bg-zen-moss-50 border border-zen-moss-200 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <p className="text-sm text-green-700">Data imported successfully! Reloading...</p>
+                <p className="text-sm text-zen-moss-700">Data imported successfully! Reloading...</p>
               </div>
             )}
           </div>
@@ -496,14 +496,14 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
           </div>
 
           {/* Danger Zone */}
-          <div className="bg-red-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-red-800 mb-2">Danger Zone</h3>
-            <p className="text-sm text-red-600 mb-3">
+          <div className="bg-zen-kitsune-50 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-zen-kitsune-800 mb-2">Danger Zone</h3>
+            <p className="text-sm text-zen-kitsune-600 mb-3">
               Clear all data and start fresh. This cannot be undone.
             </p>
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-zen-kitsune-600 text-white rounded-lg hover:bg-zen-kitsune-700 transition"
             >
               <Trash2 className="w-4 h-4" />
               Clear All Data

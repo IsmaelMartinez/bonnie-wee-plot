@@ -734,9 +734,9 @@ export default function ThisMonthPage() {
         </div>
 
         {/* Soil Care - Featured Section */}
-        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-zen-bamboo-200">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-zen-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-zen-lg bg-zen-bamboo-100 flex items-center justify-center flex-shrink-0">
               <Layers className="w-6 h-6 text-amber-700" />
             </div>
             <div>

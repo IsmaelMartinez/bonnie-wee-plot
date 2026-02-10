@@ -94,7 +94,7 @@ export default function PlantCombobox({
           onClick={() => onCategoryChange('all')}
           className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
             categoryFilter === 'all'
-              ? 'bg-emerald-600 text-white'
+              ? 'bg-zen-moss-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
@@ -107,7 +107,7 @@ export default function PlantCombobox({
             onClick={() => onCategoryChange(info.id)}
             className={`px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition ${
               categoryFilter === info.id
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-zen-moss-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >

@@ -133,7 +133,7 @@ export default function ReceiveIndexPage() {
               onClick={() => setMode('scan')}
               className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
             >
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-zen-moss-100 flex items-center justify-center shrink-0">
                 <QrCode className="w-5 h-5 text-emerald-600" />
               </div>
               <div className="flex-1">
@@ -147,7 +147,7 @@ export default function ReceiveIndexPage() {
               onClick={() => setMode('manual')}
               className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
             >
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-zen-water-100 flex items-center justify-center shrink-0">
                 <Keyboard className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1">
@@ -186,7 +186,7 @@ export default function ReceiveIndexPage() {
             </p>
 
             {scannerError && (
-              <p className="text-sm text-red-600 text-center">{scannerError}</p>
+              <p className="text-sm text-zen-kitsune-600 text-center">{scannerError}</p>
             )}
 
             <div className="flex gap-3">
@@ -233,13 +233,13 @@ export default function ReceiveIndexPage() {
                 }}
                 placeholder="ABC 123"
                 maxLength={7} // Allow space in middle
-                className="w-full px-4 py-3 text-2xl font-mono text-center tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent uppercase"
+                className="w-full px-4 py-3 text-2xl font-mono text-center tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent uppercase"
                 autoFocus
                 autoComplete="off"
                 autoCapitalize="characters"
               />
               {error && (
-                <p className="mt-2 text-sm text-red-600">{error}</p>
+                <p className="mt-2 text-sm text-zen-kitsune-600">{error}</p>
               )}
             </div>
 
@@ -262,7 +262,7 @@ export default function ReceiveIndexPage() {
               <button
                 type="submit"
                 disabled={code.replace(/\s/g, '').length < 6}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue
                 <ArrowRight className="w-4 h-4" />

@@ -27,21 +27,21 @@ const icons = {
 
 const styles = {
   success: {
-    bg: 'bg-green-50',
-    border: 'border-green-200',
-    text: 'text-green-800',
-    icon: 'text-green-600',
+    bg: 'bg-zen-moss-50',
+    border: 'border-zen-moss-200',
+    text: 'text-zen-moss-800',
+    icon: 'text-zen-moss-600',
   },
   error: {
-    bg: 'bg-red-50',
-    border: 'border-red-200',
-    text: 'text-red-800',
-    icon: 'text-red-600',
+    bg: 'bg-zen-kitsune-50',
+    border: 'border-zen-kitsune-200',
+    text: 'text-zen-kitsune-800',
+    icon: 'text-zen-kitsune-600',
   },
   info: {
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    text: 'text-blue-800',
+    bg: 'bg-zen-water-50',
+    border: 'border-zen-water-200',
+    text: 'text-zen-water-800',
     icon: 'text-blue-600',
   },
 }
