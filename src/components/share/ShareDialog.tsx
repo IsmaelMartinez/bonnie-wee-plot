@@ -5,6 +5,7 @@ import { Share2, Copy, CheckCircle, AlertTriangle, Loader2, Clock } from 'lucide
 import { QRCodeSVG } from 'qrcode.react'
 import Dialog from '@/components/ui/Dialog'
 import type { AllotmentData } from '@/types/unified-allotment'
+import { validateAllotmentData } from '@/services/allotment-storage'
 
 interface ShareDialogProps {
   data: AllotmentData | null
@@ -51,6 +52,16 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
       } catch {
         // Continue anyway
       }
+    }
+
+    // Validate data before uploading
+    const validation = validateAllotmentData(data)
+    if (!validation.valid) {
+      setShareState({
+        status: 'error',
+        error: `Invalid allotment data: ${validation.errors.join(', ')}`,
+      })
+      return
     }
 
     try {
