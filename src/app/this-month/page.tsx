@@ -136,22 +136,26 @@ function formatDateRange(startDate?: string, endDate?: string): string | null {
 // Personalized planting card
 function PersonalizedPlanting({
   bedId,
+  plantingId,
   vegetableName,
   varietyName,
   context,
   dateInfo,
   sowMethodHint,
+  isClickable,
   hasSeeds
 }: {
   bedId: string
+  plantingId?: string
   vegetableName: string
   varietyName?: string
   context?: 'harvest' | 'growing' | 'sow'
   dateInfo?: string | null
   sowMethodHint?: string
+  isClickable?: boolean
   hasSeeds?: boolean
 }) {
-  return (
+  const content = (
     <div className="flex items-start gap-3 p-3 bg-white/80 rounded-zen border border-zen-moss-200">
       <div className="flex-1">
         <div className="flex items-center gap-2">
@@ -176,6 +180,19 @@ function PersonalizedPlanting({
       </div>
     </div>
   )
+
+  if (isClickable && plantingId) {
+    return (
+      <Link
+        href={`/allotment?bed=${bedId}&planting=${plantingId}`}
+        className="block hover:opacity-90 transition"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
 
 // Maintenance task card
@@ -488,6 +505,7 @@ export default function ThisMonthPage() {
                         <PersonalizedPlanting
                           key={p.id}
                           bedId={p.areaId}
+                          plantingId={p.id}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
                           context="harvest"
@@ -495,6 +513,7 @@ export default function ThisMonthPage() {
                             p.actualHarvestStart || p.expectedHarvestStart,
                             p.actualHarvestEnd || p.expectedHarvestEnd
                           )}
+                          isClickable={true}
                         />
                       ))}
                     </div>

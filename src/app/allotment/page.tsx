@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   Map,
   AlertTriangle,
@@ -11,7 +12,8 @@ import {
   ChevronRight,
   Loader2,
   TreeDeciduous,
-  Users
+  Users,
+  Sprout
 } from 'lucide-react'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
@@ -42,7 +44,11 @@ function getPreviousYearRotationGroup(
   return lastYearArea?.rotationGroup || null
 }
 
-export default function AllotmentPage() {
+function AllotmentPageContent() {
+  const searchParams = useSearchParams()
+  const bedIdFromQuery = searchParams.get('bed')
+  // Future: plantingIdFromQuery could be used to highlight specific planting
+
   const {
     data,
     currentSeason,
@@ -102,6 +108,18 @@ export default function AllotmentPage() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Handle query parameters for deep linking from other pages
+  useEffect(() => {
+    if (bedIdFromQuery && !isLoading) {
+      // Select the area from the query parameter
+      selectItem({ type: 'area', id: bedIdFromQuery })
+      // On mobile, also open the sheet
+      if (isMobile) {
+        setShowMobileSheet(true)
+      }
+    }
+  }, [bedIdFromQuery, isLoading, selectItem, isMobile])
 
   // Get available years and add next/previous year options
   // Sort years in ascending order (oldest to newest) for left-to-right timeline
@@ -233,6 +251,13 @@ export default function AllotmentPage() {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto overflow-x-auto">
               <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
+              <Link
+                href="/seeds"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
+              >
+                <Sprout className="w-4 h-4" />
+                <span className="hidden sm:inline">Seeds</span>
+              </Link>
               <Link
                 href="/ai-advisor"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
@@ -652,5 +677,17 @@ export default function AllotmentPage() {
         )
       })()}
     </div>
+  )
+}
+
+export default function AllotmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-zen-moss-600 animate-spin" />
+      </div>
+    }>
+      <AllotmentPageContent />
+    </Suspense>
   )
 }
