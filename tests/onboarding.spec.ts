@@ -31,9 +31,9 @@ async function completeOnboardingWizard(page: Page) {
   await page.getByText("Got it, let's go").click()
   await expect(page.getByText('Start Exploring')).toBeVisible()
 
-  // Wait for dialog to close when clicking "Start Exploring"
+  // Wait for onboarding dialog to close when clicking "Start Exploring"
   await Promise.all([
-    page.getByRole('dialog').waitFor({ state: 'hidden' }),
+    page.getByRole('dialog', { name: "You're Ready!" }).waitFor({ state: 'hidden' }),
     page.getByText('Start Exploring').click()
   ])
 }
@@ -273,9 +273,10 @@ test.describe('Onboarding Wizard - Ask Path', () => {
     // Click "Start Exploring"
     await expect(page.getByText('Start Exploring')).toBeVisible()
 
-    // Wait for dialog to close (which means onboarding completed)
+    // Wait for onboarding dialog to close (specifically the "You're Ready!" dialog)
+    // Note: The AI chat dialog will open on /ai-advisor page before redirecting back
     await Promise.all([
-      page.getByRole('dialog').waitFor({ state: 'hidden', timeout: 30000 }),
+      page.getByRole('dialog', { name: "You're Ready!" }).waitFor({ state: 'hidden', timeout: 30000 }),
       page.getByText('Start Exploring').click()
     ])
 
@@ -423,6 +424,9 @@ test.describe('Onboarding Wizard - Completion State', () => {
     // Wait for navigation
     await expect(page).toHaveURL(/this-month/)
 
+    // Wait for debounced save to complete (500ms debounce + buffer)
+    await page.waitForTimeout(700)
+
     // Check localStorage for setupCompleted
     const setupCompleted = await page.evaluate(() => {
       const data = localStorage.getItem('allotment-unified-data')
@@ -452,14 +456,17 @@ test.describe('Onboarding Wizard - Completion State', () => {
     await completeOnboardingWizard(page)
     await expect(page).toHaveURL(/this-month/)
 
+    // Wait for debounced save to complete (500ms debounce + buffer)
+    await page.waitForTimeout(700)
+
     // Navigate back to homepage
     await page.goto('/')
 
     // Wait for page to load
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible()
 
-    // Wizard should NOT appear
-    await expect(page.getByRole('dialog')).not.toBeVisible()
+    // Onboarding wizard should NOT appear (be specific about which dialog)
+    await expect(page.getByRole('dialog', { name: /Welcome to Bonnie Wee Plot/i })).not.toBeVisible()
   })
 })
 
