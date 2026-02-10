@@ -340,7 +340,7 @@ export default function AddAreaForm({
             className="zen-input"
           />
           {errors.createdYear && (
-            <p className="text-sm text-red-600 mt-1">{errors.createdYear}</p>
+            <p className="text-sm text-zen-kitsune-600 mt-1">{errors.createdYear}</p>
           )}
           <p className="text-xs text-zen-stone-500 mt-1">
             {fields.createdYear

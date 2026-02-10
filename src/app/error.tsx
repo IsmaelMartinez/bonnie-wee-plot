@@ -22,8 +22,8 @@ export default function Error({ error, reset }: ErrorProps) {
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-8">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8 text-red-600" />
+        <div className="w-16 h-16 bg-zen-kitsune-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-8 h-8 text-zen-kitsune-600" />
         </div>
         
         <h2 className="text-2xl font-bold text-gray-800 mb-3">
@@ -40,7 +40,7 @@ export default function Error({ error, reset }: ErrorProps) {
             <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
               Error details (dev only)
             </summary>
-            <pre className="mt-2 p-3 bg-gray-100 rounded-lg text-xs text-red-600 overflow-auto max-h-40">
+            <pre className="mt-2 p-3 bg-gray-100 rounded-lg text-xs text-zen-kitsune-600 overflow-auto max-h-40">
               {error.message}
               {error.digest && `\nDigest: ${error.digest}`}
             </pre>

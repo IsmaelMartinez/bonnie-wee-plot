@@ -410,7 +410,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             <button
               onClick={handleReset}
               aria-label="Reset layout to default"
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 transition min-h-[44px]"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zen-kitsune-100 text-zen-kitsune-600 hover:bg-zen-kitsune-200 transition min-h-[44px]"
             >
               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Reset</span>
@@ -418,7 +418,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             <button
               onClick={() => setIsEditing(false)}
               aria-label="Lock layout"
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition min-h-[44px] ml-auto"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zen-bamboo-500 text-white hover:bg-zen-bamboo-600 transition min-h-[44px] ml-auto"
             >
               <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
               <span>Lock</span>
@@ -545,7 +545,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
                     w-full h-full
                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 focus:z-10
                     ${isClickable ? 'cursor-pointer' : 'cursor-default'}
-                    ${isBeingRepositioned ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
+                    ${isBeingRepositioned ? 'ring-2 ring-zen-water-500 ring-offset-2' : ''}
                   `}
                 >
                   <BedItem
@@ -558,7 +558,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
                   />
                   {/* Reposition indicator */}
                   {isBeingRepositioned && (
-                    <div className="absolute top-0 right-0 bg-blue-500 text-white p-1 rounded-bl text-xs flex items-center gap-1">
+                    <div className="absolute top-0 right-0 bg-zen-water-500 text-white p-1 rounded-bl text-xs flex items-center gap-1">
                       <Move className="w-3 h-3" aria-hidden="true" />
                       <span className="sr-only">Repositioning</span>
                     </div>

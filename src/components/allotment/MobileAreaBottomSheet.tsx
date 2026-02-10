@@ -327,7 +327,7 @@ export default function MobileAreaBottomSheet({
             {/* Remove Area Button */}
             <button
               onClick={() => setShowArchiveConfirm(true)}
-              className="flex items-center justify-center gap-2 w-full py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-zen transition"
+              className="flex items-center justify-center gap-2 w-full py-3 text-sm text-zen-kitsune-600 hover:text-zen-kitsune-700 hover:bg-zen-kitsune-50 rounded-zen transition"
             >
               <Trash2 className="w-4 h-4" />
               Remove Area

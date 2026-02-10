@@ -167,7 +167,7 @@ export default function VarietyEditDialog({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Kelvedon Wonder"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
         </div>
 
@@ -185,7 +185,7 @@ export default function VarietyEditDialog({
             onChange={(e) => setSupplier(e.target.value)}
             placeholder="e.g., Organic Gardening"
             list={datalistId}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
           {existingSuppliers.length > 0 && (
             <datalist id={datalistId}>
@@ -215,7 +215,7 @@ export default function VarietyEditDialog({
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
             />
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function VarietyEditDialog({
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="Any notes about this variety..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
         </div>
 
@@ -260,7 +260,7 @@ export default function VarietyEditDialog({
                 onClick={() => setSeedStatusForYear(seedStatusForYear === 'ordered' ? null : 'ordered')}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   seedStatusForYear === 'ordered'
-                    ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-500'
+                    ? 'bg-zen-water-100 text-zen-water-700 ring-2 ring-zen-water-500'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -272,7 +272,7 @@ export default function VarietyEditDialog({
                 onClick={() => setSeedStatusForYear(seedStatusForYear === 'have' ? null : 'have')}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   seedStatusForYear === 'have'
-                    ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-500'
+                    ? 'bg-zen-moss-100 text-zen-moss-700 ring-2 ring-zen-moss-500'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -311,7 +311,7 @@ export default function VarietyEditDialog({
           <button
             type="submit"
             disabled={!plantId}
-            className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="flex-1 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2"
           >
             {mode === 'add' ? 'Add Variety' : 'Save Changes'}
           </button>

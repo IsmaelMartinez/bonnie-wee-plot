@@ -2,10 +2,12 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import {
   Sprout,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   ExternalLink,
   Package,
   Check,
@@ -245,6 +247,17 @@ function SeedsPageContent() {
   return (
     <div className="min-h-screen bg-zen-stone-50 zen-texture">
       <div className="container mx-auto px-4 py-10 max-w-4xl">
+        {/* Back Link */}
+        <div className="mb-6">
+          <Link
+            href="/allotment"
+            className="flex items-center gap-1 text-sm text-zen-moss-600 hover:text-zen-moss-700 transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to Allotment
+          </Link>
+        </div>
+
         {/* Header */}
         <header className="mb-10">
           <div className="flex items-center justify-between gap-3 mb-2">
