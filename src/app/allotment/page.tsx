@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   Map,
   AlertTriangle,
@@ -43,7 +44,11 @@ function getPreviousYearRotationGroup(
   return lastYearArea?.rotationGroup || null
 }
 
-export default function AllotmentPage() {
+function AllotmentPageContent() {
+  const searchParams = useSearchParams()
+  const bedIdFromQuery = searchParams.get('bed')
+  // Future: plantingIdFromQuery could be used to highlight specific planting
+
   const {
     data,
     currentSeason,
@@ -103,6 +108,18 @@ export default function AllotmentPage() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Handle query parameters for deep linking from other pages
+  useEffect(() => {
+    if (bedIdFromQuery && !isLoading) {
+      // Select the area from the query parameter
+      selectItem({ type: 'area', id: bedIdFromQuery })
+      // On mobile, also open the sheet
+      if (isMobile) {
+        setShowMobileSheet(true)
+      }
+    }
+  }, [bedIdFromQuery, isLoading, selectItem, isMobile])
 
   // Get available years and add next/previous year options
   // Sort years in ascending order (oldest to newest) for left-to-right timeline
@@ -660,5 +677,17 @@ export default function AllotmentPage() {
         )
       })()}
     </div>
+  )
+}
+
+export default function AllotmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zen-stone-50 zen-texture flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-zen-moss-600 animate-spin" />
+      </div>
+    }>
+      <AllotmentPageContent />
+    </Suspense>
   )
 }
