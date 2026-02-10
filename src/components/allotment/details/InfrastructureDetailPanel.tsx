@@ -163,7 +163,7 @@ export default function InfrastructureDetailPanel({ area, onUpdateArea, onArchiv
       <div className="mt-6 pt-4 border-t border-zen-stone-100">
         <button
           onClick={() => setShowArchiveConfirm(true)}
-          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
+          className="flex items-center gap-2 text-sm text-zen-kitsune-600 hover:text-zen-kitsune-700 transition"
         >
           <Trash2 className="w-4 h-4" />
           <span>Remove this area</span>

@@ -101,7 +101,7 @@ export default function AnalyticsViewer({ onClearClick }: AnalyticsViewerProps) 
         <button
           onClick={onClearClick}
           disabled={summary.totalEvents === 0}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-zen-kitsune-600 hover:bg-zen-kitsune-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Trash2 className="w-3 h-3" />
           Clear

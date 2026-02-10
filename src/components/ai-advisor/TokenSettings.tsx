@@ -63,7 +63,7 @@ export default function TokenSettings({
               onPaste={handlePaste}
               onKeyDown={handleKeyDown}
               placeholder="Paste your API key here"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent select-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-water-500 focus:border-transparent select-none"
               aria-describedby="token-help-text token-privacy-notice"
               autoComplete="off"
             />
@@ -101,7 +101,7 @@ export default function TokenSettings({
         <div className="flex space-x-3" role="group" aria-label="Token actions">
           <button
             onClick={onSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-h-[44px]"
+            className="px-4 py-2 bg-zen-water-600 text-white rounded-md hover:bg-zen-water-700 focus:outline-none focus:ring-2 focus:ring-zen-water-500 focus:ring-offset-2 transition-colors min-h-[44px]"
           >
             Save Configuration
           </button>

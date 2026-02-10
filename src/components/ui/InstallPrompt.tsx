@@ -47,16 +47,16 @@ export default function InstallPrompt() {
                 </p>
                 <ol className="space-y-2 text-xs text-gray-600">
                   <li className="flex items-center gap-2">
-                    <span className="shrink-0 w-5 h-5 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                    <span className="shrink-0 w-5 h-5 bg-zen-water-500 rounded flex items-center justify-center text-white text-xs font-bold">
                       1
                     </span>
                     <span className="flex items-center gap-1">
                       Tap the Share button
-                      <Share className="w-4 h-4 text-blue-500" />
+                      <Share className="w-4 h-4 text-zen-water-500" />
                     </span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="shrink-0 w-5 h-5 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
+                    <span className="shrink-0 w-5 h-5 bg-zen-water-500 rounded flex items-center justify-center text-white text-xs font-bold">
                       2
                     </span>
                     <span className="flex items-center gap-1">

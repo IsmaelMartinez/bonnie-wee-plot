@@ -243,7 +243,7 @@ export default function Dialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -319,9 +319,9 @@ export function ConfirmDialog({
   }
 
   const variantClasses = {
-    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-    warning: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
-    info: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+    danger: 'bg-zen-kitsune-600 hover:bg-zen-kitsune-700 focus:ring-zen-kitsune-500',
+    warning: 'bg-zen-bamboo-600 hover:bg-zen-bamboo-700 focus:ring-zen-bamboo-500',
+    info: 'bg-zen-water-600 hover:bg-zen-water-700 focus:ring-zen-water-500',
   }
 
   return (

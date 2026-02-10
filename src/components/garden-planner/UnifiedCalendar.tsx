@@ -87,7 +87,7 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
             key={i}
             className={`text-center font-medium ${
               currentMonth === i + 1
-                ? 'text-green-700 bg-green-100 rounded'
+                ? 'text-zen-moss-700 bg-zen-moss-100 rounded'
                 : 'text-gray-500'
             }`}
           >
@@ -157,13 +157,13 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
 
                         let bgClass = 'bg-gray-100'
                         if (canHarvest && isGenericFallback && !canSow) {
-                          bgClass = 'bg-amber-400/50'
+                          bgClass = 'bg-zen-bamboo-400/50'
                         } else if (canHarvest) {
-                          bgClass = 'bg-amber-400'
+                          bgClass = 'bg-zen-bamboo-400'
                         } else if (canSow && isGenericFallback) {
-                          bgClass = 'bg-green-400/50'
+                          bgClass = 'bg-zen-moss-400/50'
                         } else if (canSow) {
-                          bgClass = 'bg-green-400'
+                          bgClass = 'bg-zen-moss-400'
                         }
 
                         return (
@@ -189,17 +189,17 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
       {/* Legend */}
       <div className="flex gap-4 mt-6 pt-4 border-t text-xs text-gray-500">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-green-400 rounded" />
+          <span className="w-3 h-3 bg-zen-moss-400 rounded" />
           Sow
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 bg-amber-400 rounded" />
+          <span className="w-3 h-3 bg-zen-bamboo-400 rounded" />
           Harvest
         </span>
         {hasAnyPersonalised && (
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 bg-green-400/50 rounded" />
-            <span className="w-3 h-3 bg-amber-400/50 rounded" />
+            <span className="w-3 h-3 bg-zen-moss-400/50 rounded" />
+            <span className="w-3 h-3 bg-zen-bamboo-400/50 rounded" />
             <span className="ml-1">Estimated (generic)</span>
           </span>
         )}
