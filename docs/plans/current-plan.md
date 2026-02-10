@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-09 (PR #178)
+Last updated: 2026-02-10 (PRs #180-188)
 
 ## What's Been Completed
 
@@ -64,19 +64,33 @@ Added `enhancedAvoid` entries to 15 plants (brassicas avoiding potato, cucurbits
 
 Completed migration from legacy string-based companion system to ID-based enhanced arrays. Removed `companionPlants` and `avoidPlants` string arrays from all 192 plant entries in the database. Deleted entire `companion-normalization.ts` module (95 lines). Refactored `companion-validation.ts` to use direct ID lookups on `enhancedCompanions` and `enhancedAvoid` arrays, simplifying from 270 to 195 lines. Made enhanced arrays required fields in the Vegetable type. Added runner-beans to sweetcorn for proper Three Sisters bidirectional relationship. Net reduction of 450 lines across the codebase with cleaner, more maintainable code.
 
+### Integration and UX Fixes (PRs #180-188)
+
+Comprehensive audit of cross-section integration and low-priority UX improvements identified and fixed critical issues and polish opportunities:
+
+**PR #180 - Harvest Date Calculation (Critical Fix):** Fixed missing harvest date calculation when adding plantings manually or via AI. Implemented automatic calculation using `populateExpectedHarvest()` in AddPlantingForm, AI tool executor, and PlantingDetailDialog. Made function generic to handle both Planting and NewPlanting types. Added date recalculation when sowDate or sowMethod changes. All 737 unit tests pass.
+
+**PR #181 - Cross-Section Navigation Links:** Added seamless navigation between related sections. Allotment page links to Seeds, Seeds page has back button, This Month "Harvest now" items link directly to specific plantings in Allotment with query parameter handling for deep linking. Improves discoverability and reduces friction in common workflows.
+
+**PR #182 - Share/Import Data Validation:** Added data validation before sharing and after receiving data via QR codes. Uses existing `validateAllotmentData()` function to prevent corrupted data from being shared or imported. Shows validation errors with option to cancel import.
+
+**PR #183 - Loading States and Feedback:** Added loading indicators and success feedback for async operations. ShareDialog shows spinner while generating QR codes, DataManagement displays "Exported successfully!" message that auto-dismisses after 3 seconds, ChatInput displays validation errors below upload button. Improved memory leak handling with proper useEffect cleanup for setTimeout.
+
+**PR #184 - Color Consistency to Zen Design System:** Standardized all colors across 33 files to use Zen design system. Replaced hardcoded Tailwind colors (red→zen-kitsune, amber→zen-bamboo, blue→zen-water, emerald→zen-moss). Fixed flaky E2E test in onboarding spec by adding specific dialog selectors and proper timeout for debounced save operations. All tests now stable with 100% pass rate.
+
+**PR #185 - Button Touch Targets for Accessibility:** Standardized all action buttons to minimum 44x44px for mobile accessibility. Updated 6 components (AnalyticsViewer, PlantCombobox, SeasonStatusWidget, CareLogSection, UnderplantingsList, HarvestTracker) with consistent `min-h-[44px]` styling. Applied Zen design system border radius (`rounded-zen`) throughout.
+
+**PR #186 - Seed Status Integration:** Connected seed inventory to planting recommendations. This Month page now prioritizes varieties with available seeds in "Sow this month" section using optimized Set-based lookup (O(1) performance). AddPlantingForm shows seed availability indicators in variety dropdown with contextual links to Seeds page. Added "Manage seed inventory" links throughout UI.
+
+**PR #188 - Disabled State Indicators:** Enhanced disabled button styling across 14 components for WCAG AA accessibility compliance. Added `disabled:bg-gray-400` for primary buttons, `disabled:bg-gray-300` for secondary, and `disabled:text-gray-400` for text-only buttons. Stronger visual distinction for vision-impaired users beyond the previous `disabled:opacity-50` alone.
+
 ---
 
 ## Next Steps
 
-### Step 2: Section-by-Section UX Review
+### Section-by-Section UX Review (Complete)
 
-The product roadmap (`docs/research/product-roadmap-quick-reference.md`) identifies this as the next milestone before adding more complexity. The goal is to ship a polished, coherent experience. That document contains a detailed breakdown of each section's components and the questions to answer during review.
-
-Sections to review: Today (Dashboard), This Month (Calendar), Seeds (Inventory), Allotment (Layout & Plantings), Compost, AI Advisor, Settings, Shared UI Components, Navigation, About.
-
-After individual section reviews, cross-section integration should be tested via user journeys like "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help".
-
-An initial systematic review has been completed (PRs #151, #153, #169, #171) covering all sections. High and medium-priority issues are fixed including This Month calendar hierarchy, accessibility gaps, and settings usability.
+Systematic UX review completed across all sections (PRs #151, #153, #169, #171, #180-188). High and medium-priority issues fixed including This Month calendar hierarchy, accessibility gaps, settings usability, cross-section integration, loading states, color consistency, touch targets, and disabled state indicators. Cross-section integration tested via user journeys: "Plan a new bed", "Track a harvest", "Check what to do", "Add seeds I bought", "Share with family", "Ask for help". All critical integration issues resolved.
 
 ### Plant Data Validation (Complete)
 
