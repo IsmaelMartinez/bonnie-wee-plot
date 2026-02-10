@@ -77,6 +77,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [importError, setImportError] = useState<ImportError | null>(null)
   const [importSuccess, setImportSuccess] = useState(false)
+  const [exportSuccess, setExportSuccess] = useState(false)
   const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -131,6 +132,10 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      // Show success feedback
+      setExportSuccess(true)
+      setTimeout(() => setExportSuccess(false), 3000)
     } catch (error) {
       console.error('Export failed:', error)
       throw new ExportError(
@@ -387,14 +392,22 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
             <p className="text-sm text-gray-500 mb-3">
               Download your complete allotment data as a JSON file. Includes all seasons, plantings, seed varieties, and settings.
             </p>
-            <button
-              onClick={handleExport}
-              disabled={!data}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" />
-              Export Backup
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExport}
+                disabled={!data}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" />
+                Export Backup
+              </button>
+              {exportSuccess && (
+                <div className="flex items-center gap-2 text-emerald-600 text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Exported successfully!</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Import Section */}
