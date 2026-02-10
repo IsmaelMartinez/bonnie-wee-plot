@@ -21,7 +21,7 @@ const NOTE_TYPE_CONFIG: Record<AreaNoteType, {
   warning: {
     bg: 'bg-zen-bamboo-50',
     border: 'border-zen-bamboo-200',
-    text: 'text-amber-700',
+    text: 'text-zen-bamboo-700',
     icon: AlertTriangle,
     label: 'Warning',
   },

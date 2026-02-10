@@ -55,7 +55,7 @@ export default function StorageWarningBanner() {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-medium text-red-900 text-sm mb-1">
+                <h3 className="font-medium text-zen-kitsune-900 text-sm mb-1">
                   Data Storage Unavailable
                 </h3>
                 <p className="text-sm text-zen-kitsune-800 mb-2">

@@ -134,7 +134,7 @@ export default function ReceiveIndexPage() {
               className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
             >
               <div className="w-10 h-10 rounded-full bg-zen-moss-100 flex items-center justify-center shrink-0">
-                <QrCode className="w-5 h-5 text-emerald-600" />
+                <QrCode className="w-5 h-5 text-zen-moss-600" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-gray-800">Scan QR Code</p>
@@ -148,7 +148,7 @@ export default function ReceiveIndexPage() {
               className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
             >
               <div className="w-10 h-10 rounded-full bg-zen-water-100 flex items-center justify-center shrink-0">
-                <Keyboard className="w-5 h-5 text-blue-600" />
+                <Keyboard className="w-5 h-5 text-zen-water-600" />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-gray-800">Enter Code</p>

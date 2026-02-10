@@ -427,7 +427,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
               <div className="mt-3 space-y-3">
                 <div className="p-3 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg">
                   <div className="flex items-start gap-2 mb-2">
-                    <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-zen-kitsune-500 shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-zen-kitsune-700">{importError.message}</p>
                       <p className="text-xs text-zen-kitsune-600 mt-1">Error Code: {importError.code}</p>
@@ -440,7 +440,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                       <ul className="text-xs text-zen-kitsune-600 space-y-1">
                         {importError.suggestions.map((suggestion, index) => (
                           <li key={index} className="flex items-start gap-1">
-                            <span className="text-red-400 mt-0.5">•</span>
+                            <span className="text-zen-kitsune-400 mt-0.5">•</span>
                             <span>{suggestion}</span>
                           </li>
                         ))}
@@ -463,7 +463,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
 
             {importSuccess && (
               <div className="mt-3 p-3 bg-zen-moss-50 border border-zen-moss-200 rounded-lg flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
+                <CheckCircle className="w-4 h-4 text-zen-moss-500" />
                 <p className="text-sm text-zen-moss-700">Data imported successfully! Reloading...</p>
               </div>
             )}

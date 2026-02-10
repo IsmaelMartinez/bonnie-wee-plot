@@ -19,7 +19,7 @@ export default function ApiFallbackWarning({ reason }: ApiFallbackWarningProps) 
       <div className="flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-zen-bamboo-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-amber-900 text-sm mb-1">
+          <h4 className="font-medium text-zen-bamboo-900 text-sm mb-1">
             Using Direct OpenAI Connection
           </h4>
           <p className="text-sm text-zen-bamboo-800 mb-2">

@@ -42,7 +42,7 @@ const styles = {
     bg: 'bg-zen-water-50',
     border: 'border-zen-water-200',
     text: 'text-zen-water-800',
-    icon: 'text-blue-600',
+    icon: 'text-zen-water-600',
   },
 }
 

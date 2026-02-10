@@ -145,8 +145,8 @@ export default function InlineAIPrompt({
         {/* Content */}
         <div className="p-4 overflow-y-auto flex-1">
           {/* Question preview */}
-          <div className="bg-zen-moss-50 border border-emerald-200 rounded-lg p-3 mb-4">
-            <p className="text-sm text-emerald-800">{contextQuestion}</p>
+          <div className="bg-zen-moss-50 border border-zen-moss-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-zen-moss-800">{contextQuestion}</p>
           </div>
 
           {/* States */}

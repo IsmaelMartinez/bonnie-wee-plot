@@ -230,7 +230,7 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
           {shareState.status === 'error' && (
             <div className="flex flex-col items-center gap-3 py-4 w-full">
               <div className="p-3 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg flex items-start gap-2 w-full">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-zen-kitsune-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-zen-kitsune-700">Unable to share</p>
                   <p className="text-sm text-zen-kitsune-600 mt-1">{shareState.error}</p>

@@ -32,7 +32,7 @@ const markdownComponents = {
     </blockquote>
   ),
   a: ({ href, children }: MarkdownComponentProps) => (
-    <a href={href} className="text-blue-600 hover:text-zen-water-800 underline" target="_blank" rel="noopener noreferrer">
+    <a href={href} className="text-zen-water-600 hover:text-zen-water-800 underline" target="_blank" rel="noopener noreferrer">
       {children}
     </a>
   ),

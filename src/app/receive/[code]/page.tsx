@@ -226,9 +226,9 @@ export default function ReceivePage({ params }: PageProps) {
             {/* Warning if existing data */}
             {hasExistingData && (
               <div className="p-3 bg-zen-bamboo-50 border border-zen-bamboo-200 rounded-lg flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-zen-bamboo-500 shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-amber-700">You have existing data</p>
+                  <p className="font-medium text-zen-bamboo-700">You have existing data</p>
                   <p className="text-zen-bamboo-600 mt-1">
                     Importing will replace your current allotment. A backup will be created automatically.
                   </p>
@@ -267,7 +267,7 @@ export default function ReceivePage({ params }: PageProps) {
         {state.status === 'imported' && (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="w-12 h-12 rounded-full bg-zen-moss-100 flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-emerald-600" />
+              <CheckCircle className="w-6 h-6 text-zen-moss-600" />
             </div>
             <h1 className="text-xl font-bold text-gray-800">Import Complete!</h1>
             <p className="text-gray-600">Redirecting to your allotment...</p>

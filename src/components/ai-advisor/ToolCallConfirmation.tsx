@@ -311,7 +311,7 @@ function PlantDisambiguation({
               <button
                 key={plant.id}
                 onClick={() => onSelect(plant.id)}
-                className="w-full text-left px-3 py-2 bg-white border border-zen-water-100 rounded-lg hover:border-blue-300 hover:bg-zen-water-50 transition-colors"
+                className="w-full text-left px-3 py-2 bg-white border border-zen-water-100 rounded-lg hover:border-zen-water-300 hover:bg-zen-water-50 transition-colors"
               >
                 <span className="font-medium text-gray-800">{plant.name}</span>
                 <span className="text-gray-500 text-sm ml-2">({plant.id})</span>

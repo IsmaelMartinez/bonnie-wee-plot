@@ -167,7 +167,7 @@ export default function VarietyEditDialog({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Kelvedon Wonder"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
         </div>
 
@@ -185,7 +185,7 @@ export default function VarietyEditDialog({
             onChange={(e) => setSupplier(e.target.value)}
             placeholder="e.g., Organic Gardening"
             list={datalistId}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
           {existingSuppliers.length > 0 && (
             <datalist id={datalistId}>
@@ -215,7 +215,7 @@ export default function VarietyEditDialog({
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-emerald-500"
+              className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
             />
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function VarietyEditDialog({
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="Any notes about this variety..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-emerald-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
         </div>
 
