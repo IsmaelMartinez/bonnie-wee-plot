@@ -41,7 +41,7 @@ export default function GuideCTA({
         </div>
         <Link 
           href="/ai-advisor" 
-          className="inline-flex items-center bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors"
+          className="inline-flex items-center bg-white text-zen-moss-600 px-6 py-3 rounded-lg font-semibold hover:bg-zen-moss-50 transition-colors"
         >
           {buttonText}
           <ArrowRight className="w-5 h-5 ml-2" />

@@ -19,8 +19,8 @@ const TASK_CONFIG: Record<MaintenanceTaskType, { icon: typeof Scissors; label: s
 }
 
 const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; label: string; color: string }> = {
-  'harvest': { icon: CheckCircle2, label: 'Harvest', color: 'text-green-600' },
-  'sow-indoors': { icon: Sprout, label: 'Sow Indoors', color: 'text-amber-600' },
+  'harvest': { icon: CheckCircle2, label: 'Harvest', color: 'text-zen-moss-600' },
+  'sow-indoors': { icon: Sprout, label: 'Sow Indoors', color: 'text-zen-bamboo-600' },
   'sow-outdoors': { icon: Leaf, label: 'Direct Sow', color: 'text-emerald-600' },
   'transplant': { icon: ArrowUpFromLine, label: 'Transplant', color: 'text-blue-600' },
   'prune': { icon: Scissors, label: 'Prune', color: 'text-violet-600' },
@@ -79,7 +79,7 @@ function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
     }
     // Fallback for high priority tasks without urgency
     if (task.priority === 'high') {
-      return { text: 'Ready', style: 'bg-green-100 text-green-700' }
+      return { text: 'Ready', style: 'bg-zen-moss-100 text-zen-moss-700' }
     }
     return null
   }

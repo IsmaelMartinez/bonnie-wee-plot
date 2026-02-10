@@ -145,15 +145,15 @@ export default function InlineAIPrompt({
         {/* Content */}
         <div className="p-4 overflow-y-auto flex-1">
           {/* Question preview */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
-            <p className="text-sm text-emerald-800">{contextQuestion}</p>
+          <div className="bg-zen-moss-50 border border-zen-moss-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-zen-moss-800">{contextQuestion}</p>
           </div>
 
           {/* States */}
           {state === 'idle' && (
             <button
               onClick={handleAsk}
-              className="w-full py-2.5 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 bg-zen-moss-600 text-white rounded-lg font-medium hover:bg-zen-moss-700 transition-colors flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               Get Advice from Aitor
@@ -181,17 +181,17 @@ export default function InlineAIPrompt({
 
           {state === 'error' && (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-zen-kitsune-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-red-800">Could not get advice</p>
-                  <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
+                  <p className="text-sm font-medium text-zen-kitsune-800">Could not get advice</p>
+                  <p className="text-sm text-zen-kitsune-600 mt-1">{errorMessage}</p>
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleAsk}
-                  className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                  className="flex-1 py-2 px-4 bg-zen-moss-600 text-white rounded-lg font-medium hover:bg-zen-moss-700 transition-colors"
                 >
                   Try Again
                 </button>
@@ -207,11 +207,11 @@ export default function InlineAIPrompt({
 
           {state === 'rate-limited' && (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 bg-zen-bamboo-50 border border-zen-bamboo-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-zen-bamboo-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-amber-800">Slow down, eager gardener!</p>
-                  <p className="text-sm text-amber-600 mt-1">
+                  <p className="text-sm font-medium text-zen-bamboo-800">Slow down, eager gardener!</p>
+                  <p className="text-sm text-zen-bamboo-600 mt-1">
                     Please wait {formatCooldown(cooldownMs)} before asking another question.
                   </p>
                 </div>

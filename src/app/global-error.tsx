@@ -17,8 +17,8 @@ export default function GlobalError({ reset }: GlobalErrorProps) {
       <body className="bg-gray-50">
         <div className="min-h-screen flex items-center justify-center p-8">
           <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertTriangle className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 bg-zen-kitsune-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-8 h-8 text-zen-kitsune-600" />
             </div>
             
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
@@ -32,7 +32,7 @@ export default function GlobalError({ reset }: GlobalErrorProps) {
 
             <button
               onClick={reset}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
               Refresh Page

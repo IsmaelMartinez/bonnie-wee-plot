@@ -172,7 +172,7 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
       <button
         onClick={() => setIsOpen(true)}
         disabled={!data}
-        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Share2 className="w-4 h-4" />
         Share My Allotment
@@ -197,7 +197,7 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
                   id="expiration-select"
                   value={expirationMinutes}
                   onChange={(e) => setExpirationMinutes(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
                 >
                   {EXPIRATION_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -213,7 +213,7 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
               </p>
               <button
                 onClick={handleShare}
-                className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+                className="w-full px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition font-medium"
               >
                 Create Share Link
               </button>
@@ -229,16 +229,16 @@ export function ShareDialog({ data, flushSave }: ShareDialogProps) {
 
           {shareState.status === 'error' && (
             <div className="flex flex-col items-center gap-3 py-4 w-full">
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 w-full">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div className="p-3 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-lg flex items-start gap-2 w-full">
+                <AlertTriangle className="w-5 h-5 text-zen-kitsune-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-red-700">Unable to share</p>
-                  <p className="text-sm text-red-600 mt-1">{shareState.error}</p>
+                  <p className="text-sm font-medium text-zen-kitsune-700">Unable to share</p>
+                  <p className="text-sm text-zen-kitsune-600 mt-1">{shareState.error}</p>
                 </div>
               </div>
               <button
                 onClick={handleShare}
-                className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                className="mt-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition"
               >
                 Try Again
               </button>
