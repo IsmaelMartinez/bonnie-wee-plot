@@ -92,46 +92,50 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
       )}
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about planting, pests, soil, weather, or any garden question..."
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            disabled={isLoading}
-            aria-label="Type your gardening question"
-          />
-          
-          {/* Image upload button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="bg-zen-moss-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-zen-moss-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 min-h-[44px]"
-            disabled={isLoading}
-            title="Upload plant photo"
-            aria-label="Upload a plant photo for visual diagnosis"
-          >
-            <Camera className="w-5 h-5" aria-hidden="true" />
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about planting, pests, soil, weather, or any garden question..."
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={isLoading}
+              aria-label="Type your gardening question"
+            />
 
-          <button
-            type="submit"
-            disabled={isLoading || (!input.trim() && !selectedImage)}
-            className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px]"
-            aria-label="Send message"
-          >
-            <Send className="w-5 h-5" aria-hidden="true" />
-          </button>
-        </div>
+            {/* Image upload button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-green-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 min-h-[44px]"
+              disabled={isLoading}
+              title="Upload plant photo"
+              aria-label="Upload a plant photo for visual diagnosis"
+            >
+              <Camera className="w-5 h-5" aria-hidden="true" />
+            </button>
 
-        {/* Validation error - announced to screen readers */}
-        <div
-          role="alert"
-          aria-live="polite"
-          className={`text-sm text-zen-kitsune-600 ${validationError ? 'block' : 'hidden'}`}
-        >
-          {validationError}
+            <button
+              type="submit"
+              disabled={isLoading || (!input.trim() && !selectedImage)}
+              className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px]"
+              aria-label="Send message"
+            >
+              <Send className="w-5 h-5" aria-hidden="true" />
+            </button>
+          </div>
+
+          {/* Validation error - displayed below upload button in red text */}
+          {validationError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="text-sm text-red-600"
+            >
+              {validationError}
+            </div>
+          )}
         </div>
 
         {/* Helper text and rate limit status */}
