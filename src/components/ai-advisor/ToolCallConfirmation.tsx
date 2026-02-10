@@ -150,7 +150,7 @@ export function ToolCallConfirmation({
         <button
           onClick={() => onConfirm(false)}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:bg-gray-100"
           aria-label="Decline changes"
         >
           <X className="w-4 h-4" aria-hidden="true" />
@@ -159,7 +159,7 @@ export function ToolCallConfirmation({
         <button
           onClick={() => onConfirm(true)}
           disabled={isExecuting}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
           aria-label="Approve changes"
         >
           {isExecuting ? (

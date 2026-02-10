@@ -132,7 +132,7 @@ export default function SettingsPage() {
                         <button
                           onClick={handleSaveToken}
                           disabled={!tempToken.trim()}
-                          className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
                         >
                           Save Token
                         </button>

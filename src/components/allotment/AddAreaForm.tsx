@@ -369,7 +369,7 @@ export default function AddAreaForm({
             isDuplicateShortId ||
             !!errors.createdYear
           }
-          className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
         >
           Add Area
         </button>
