@@ -496,7 +496,7 @@ export default function CompostPage() {
             <button
               type="submit"
               disabled={!newPileName.trim()}
-              className="zen-btn-primary flex-1 disabled:opacity-50"
+              className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               Create Pile
             </button>
@@ -549,7 +549,7 @@ export default function CompostPage() {
             <button
               type="submit"
               disabled={!inputMaterial.trim()}
-              className="zen-btn-primary flex-1 disabled:opacity-50"
+              className="zen-btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               Add
             </button>

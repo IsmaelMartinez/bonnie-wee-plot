@@ -108,7 +108,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="bg-green-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 min-h-[44px]"
+              className="bg-zen-moss-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-zen-moss-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 min-h-[44px] disabled:bg-gray-400"
               disabled={isLoading}
               title="Upload plant photo"
               aria-label="Upload a plant photo for visual diagnosis"
@@ -119,7 +119,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
             <button
               type="submit"
               disabled={isLoading || (!input.trim() && !selectedImage)}
-              className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px]"
+              className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px] disabled:bg-gray-400"
               aria-label="Send message"
             >
               <Send className="w-5 h-5" aria-hidden="true" />
@@ -147,7 +147,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
               <span>💡 Tip: Upload a plant photo for visual diagnosis</span>
             )}
           </div>
-          
+
           {rateLimitInfo && rateLimitInfo.cooldownMs > 0 && (
             <div className="flex items-center gap-1 text-zen-bamboo-600">
               <Clock className="w-4 h-4" aria-hidden="true" />

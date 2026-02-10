@@ -406,13 +406,13 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
               <button
                 onClick={handleExport}
                 disabled={!data}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
                 <Download className="w-4 h-4" />
                 Export Backup
               </button>
               {exportSuccess && (
-                <div className="flex items-center gap-2 text-emerald-600 text-sm">
+                <div className="flex items-center gap-2 text-zen-moss-600 text-sm">
                   <CheckCircle className="w-4 h-4" />
                   <span>Exported successfully!</span>
                 </div>

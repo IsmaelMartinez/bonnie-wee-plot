@@ -311,7 +311,7 @@ export default function VarietyEditDialog({
           <button
             type="submit"
             disabled={!plantId}
-            className="flex-1 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2"
+            className="flex-1 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2 disabled:bg-gray-400"
           >
             {mode === 'add' ? 'Add Variety' : 'Save Changes'}
           </button>

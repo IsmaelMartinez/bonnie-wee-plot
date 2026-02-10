@@ -149,7 +149,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
             <button
               onClick={handleAdd}
               disabled={!newContent.trim()}
-              className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               Add Note
             </button>
@@ -207,7 +207,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
                     <button
                       onClick={() => handleSaveEdit(note.id)}
                       disabled={!editContent.trim()}
-                      className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       Save
                     </button>
