@@ -262,7 +262,7 @@ export default function ReceiveIndexPage() {
               <button
                 type="submit"
                 disabled={code.replace(/\s/g, '').length < 6}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
                 Continue
                 <ArrowRight className="w-4 h-4" />
