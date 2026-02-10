@@ -36,7 +36,7 @@ export default function SeasonStatusWidget({
         <div className="flex items-center gap-3 text-sm">
           <Link
             href="/seeds"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
+            className="flex items-center gap-2 px-3 min-h-[44px] rounded-zen text-zen-ink-600 hover:bg-zen-stone-100 transition"
           >
             <Package className="w-4 h-4 text-zen-stone-400" />
             <span>{varietiesCount} varieties</span>
