@@ -20,7 +20,7 @@ import { Planting, PlantingUpdate, SowMethod } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getPlantingPhase, getSowMethodLabel, getPhaseIcon, getPhaseColors, formatDate, formatDateForInput } from '@/lib/planting-utils'
-import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
+import { getCrossYearDisplayInfo, populateExpectedHarvest } from '@/lib/date-calculator'
 
 interface PlantingDetailDialogProps {
   planting: Planting | null
@@ -72,16 +72,43 @@ export default function PlantingDetailDialog({
       if (field === 'sowDate') setLocalSowDate(value)
       else if (field === 'transplantDate') setLocalTransplantDate(value)
       else if (field === 'actualHarvestStart') setLocalHarvestDate(value)
-      onUpdate({ [field]: value || undefined })
+
+      // If changing sowDate or transplantDate, recalculate expected harvest dates
+      if ((field === 'sowDate' || field === 'transplantDate') && planting && veg && value) {
+        const updatedPlanting = populateExpectedHarvest(
+          { ...planting, [field]: value },
+          veg
+        )
+        onUpdate({
+          [field]: value || undefined,
+          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
+          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
+        })
+      } else {
+        onUpdate({ [field]: value || undefined })
+      }
     },
-    [onUpdate]
+    [onUpdate, planting, veg]
   )
 
   const handleSowMethodChange = useCallback(
     (method: SowMethod) => {
-      onUpdate({ sowMethod: method })
+      // Recalculate expected harvest dates when sow method changes
+      if (planting && veg && planting.sowDate) {
+        const updatedPlanting = populateExpectedHarvest(
+          { ...planting, sowMethod: method },
+          veg
+        )
+        onUpdate({
+          sowMethod: method,
+          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
+          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
+        })
+      } else {
+        onUpdate({ sowMethod: method })
+      }
     },
-    [onUpdate]
+    [onUpdate, planting, veg]
   )
 
   const handleSuccessChange = useCallback(
