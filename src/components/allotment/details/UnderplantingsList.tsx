@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { Plus, Layers, Leaf, X, Check } from 'lucide-react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { NewPlanting, Planting } from '@/types/unified-allotment'
-import { vegetableIndex, VegetableIndex } from '@/lib/vegetables'
+import { VegetableCategory } from '@/types/garden-planner'
+import { getVegetableIndexById } from '@/lib/vegetables/index'
+import PlantCombobox from '@/components/allotment/PlantCombobox'
 
 interface UnderplantingsListProps {
   parentAreaId: string
@@ -30,6 +32,7 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
   const [isAdding, setIsAdding] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState('')
   const [variety, setVariety] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
 
   const plantings = getPlantings(parentAreaId)
 
@@ -44,6 +47,7 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
 
     setSelectedPlantId('')
     setVariety('')
+    setCategoryFilter('all')
     setIsAdding(false)
   }
 
@@ -54,7 +58,7 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
   }
 
   const getPlantName = (plantId: string): string => {
-    const plant = vegetableIndex.find((v: VegetableIndex) => v.id === plantId)
+    const plant = getVegetableIndexById(plantId)
     return plant?.name || plantId
   }
 
@@ -80,22 +84,19 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
 
       {isAdding && (
         <div className="mb-3 p-2 bg-white rounded-zen border border-zen-water-200">
-          <select
+          <PlantCombobox
             value={selectedPlantId}
-            onChange={e => setSelectedPlantId(e.target.value)}
-            className="w-full text-xs px-2 py-1 border border-zen-stone-200 rounded-zen mb-2"
-          >
-            <option value="">Select plant...</option>
-            {vegetableIndex.map((v: VegetableIndex) => (
-              <option key={v.id} value={v.id}>{v.name}</option>
-            ))}
-          </select>
+            onChange={setSelectedPlantId}
+            categoryFilter={categoryFilter}
+            onCategoryChange={setCategoryFilter}
+            existingPlantings={plantings}
+          />
           <input
             type="text"
             placeholder="Variety (optional)"
             value={variety}
             onChange={e => setVariety(e.target.value)}
-            className="w-full text-xs px-2 py-1 border border-zen-stone-200 rounded-zen mb-2"
+            className="w-full text-xs px-2 py-1 border border-zen-stone-200 rounded-zen mb-2 mt-2"
           />
           <div className="flex gap-2">
             <button
@@ -107,7 +108,12 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
               Add
             </button>
             <button
-              onClick={() => setIsAdding(false)}
+              onClick={() => {
+                setIsAdding(false)
+                setSelectedPlantId('')
+                setVariety('')
+                setCategoryFilter('all')
+              }}
               className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
             >
               <X className="w-3 h-3" />

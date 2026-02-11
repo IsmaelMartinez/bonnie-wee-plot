@@ -127,7 +127,7 @@ export default function ItemDetailSwitcher({
       />
     )
   } else if (isPermanentPlanting) {
-    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
+    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} selectedYear={selectedYear} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
   } else if (isInfrastructure) {
     detailPanel = <InfrastructureDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
   } else {

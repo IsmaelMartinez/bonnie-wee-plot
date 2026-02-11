@@ -12,9 +12,10 @@ export interface Tab {
 interface TabsProps {
   tabs: Tab[]
   defaultTab?: string
+  contentClassName?: string
 }
 
-export default function Tabs({ tabs, defaultTab }: TabsProps) {
+export default function Tabs({ tabs, defaultTab, contentClassName }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
 
   const activeTabData = tabs.find(tab => tab.id === activeTab)
@@ -46,7 +47,7 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
 
       {/* Tab content */}
       <div
-        className="flex-1 pt-6 overflow-y-auto"
+        className={contentClassName || "flex-1 pt-6 overflow-y-auto"}
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
