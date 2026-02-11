@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { TreeDeciduous, Calendar, Leaf, ExternalLink, Scissors, Droplets, Layers, Pencil, TrendingUp, Trash2, Apple, Info } from 'lucide-react'
-import { Area, AreaKind } from '@/types/unified-allotment'
+import { Area, AreaKind, Planting, CareLogEntry, NewCareLogEntry, NewPlanting } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPerennialStatusFromPlant, getStatusLabel, getStatusColorClasses } from '@/lib/perennial-calculator'
 import Tabs, { Tab } from '@/components/ui/Tabs'
@@ -16,6 +16,14 @@ import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 interface PermanentDetailPanelProps {
   area: Area
   selectedYear: number
+  plantings: Planting[]
+  careLogs: CareLogEntry[]
+  harvestTotal: { quantity: number; unit: string } | null
+  onAddPlanting: (areaId: string, planting: NewPlanting) => void
+  onRemovePlanting: (areaId: string, plantingId: string) => void
+  onAddCareLog: (areaId: string, entry: NewCareLogEntry) => void
+  onRemoveCareLog: (areaId: string, entryId: string) => void
+  onLogHarvest: (areaId: string, quantity: number, unit: string, date: string) => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
   onArchiveArea: (areaId: string) => void
 }
@@ -30,7 +38,11 @@ const KIND_CONFIG: Partial<Record<AreaKind, { icon: typeof TreeDeciduous; label:
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea, onArchiveArea }: PermanentDetailPanelProps) {
+export default function PermanentDetailPanel({
+  area, selectedYear, plantings, careLogs, harvestTotal,
+  onAddPlanting, onRemovePlanting, onAddCareLog, onRemoveCareLog, onLogHarvest,
+  onUpdateArea, onArchiveArea,
+}: PermanentDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const config = KIND_CONFIG[area.kind] || { icon: Leaf, label: 'Area', color: 'zen-stone' }
@@ -68,7 +80,10 @@ export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea,
     setIsEditMode(false)
   }
 
-  // Build tab definitions
+  // Compute harvest log count from care logs
+  const harvestLogCount = careLogs.filter(l => l.type === 'harvest').length
+
+  // Build tab definitions — icon-only with tooltip titles
   const tabs: Tab[] = [
     {
       id: 'overview',
@@ -124,7 +139,7 @@ export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea,
               {/* Decline warning */}
               {perennialStatus.replacementWarning && (
                 <div className="mt-3 p-2 bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen">
-                  <p className="text-xs text-zen-kitsune-700">⚠️ {perennialStatus.replacementWarning}</p>
+                  <p className="text-xs text-zen-kitsune-700">{perennialStatus.replacementWarning}</p>
                 </div>
               )}
 
@@ -185,9 +200,25 @@ export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea,
       icon: <Apple className="w-4 h-4" />,
       content: (
         <div className="space-y-3">
-          <HarvestTracker areaId={area.id} />
-          <CareLogSection areaId={area.id} />
-          <UnderplantingsList parentAreaId={area.id} parentAreaName={area.name} />
+          <HarvestTracker
+            selectedYear={selectedYear}
+            harvestTotal={harvestTotal}
+            harvestLogCount={harvestLogCount}
+            onLogHarvest={(qty, unit, date) => onLogHarvest(area.id, qty, unit, date)}
+          />
+          <CareLogSection
+            selectedYear={selectedYear}
+            careLogs={careLogs}
+            onAddCareLog={(entry) => onAddCareLog(area.id, entry)}
+            onRemoveCareLog={(entryId) => onRemoveCareLog(area.id, entryId)}
+          />
+          <UnderplantingsList
+            parentAreaName={area.name}
+            selectedYear={selectedYear}
+            plantings={plantings}
+            onAddPlanting={(planting) => onAddPlanting(area.id, planting)}
+            onRemovePlanting={(plantingId) => onRemovePlanting(area.id, plantingId)}
+          />
         </div>
       ),
     },
@@ -278,7 +309,7 @@ export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea,
           {/* Harvest info */}
           {vegetableData.planting?.harvestMonths && vegetableData.planting.harvestMonths.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-zen-stone-600">
-              <span className="text-zen-kitsune-500">🍎 Harvest:</span>
+              <span className="text-zen-kitsune-500">Harvest:</span>
               <span>{vegetableData.planting.harvestMonths.map(m => MONTH_NAMES[m - 1]).join(', ')}</span>
             </div>
           )}
@@ -325,7 +356,7 @@ export default function PermanentDetailPanel({ area, selectedYear, onUpdateArea,
         </div>
 
         {/* Tabbed content */}
-        <Tabs tabs={tabs} defaultTab="overview" contentClassName="pt-6" />
+        <Tabs tabs={tabs} defaultTab="overview" contentClassName="pt-6" iconOnly />
 
         {/* Remove Area — always visible below tabs */}
         <div className="mt-6 pt-4 border-t border-zen-stone-100">

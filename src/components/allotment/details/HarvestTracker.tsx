@@ -2,29 +2,26 @@
 
 import { useState } from 'react'
 import { Apple, Plus, X, Check } from 'lucide-react'
-import { useAllotment } from '@/hooks/useAllotment'
 
 interface HarvestTrackerProps {
-  areaId: string
+  selectedYear: number
+  harvestTotal: { quantity: number; unit: string } | null
+  harvestLogCount: number
+  onLogHarvest: (quantity: number, unit: string, date: string) => void
 }
 
 const COMMON_UNITS = ['kg', 'lbs', 'count', 'bunches', 'baskets']
 
-export default function HarvestTracker({ areaId }: HarvestTrackerProps) {
-  const { getHarvestTotal, logHarvest, getCareLogs, selectedYear } = useAllotment()
+export default function HarvestTracker({ selectedYear, harvestTotal, harvestLogCount, onLogHarvest }: HarvestTrackerProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('kg')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
-  const harvestTotal = getHarvestTotal(areaId)
-  const careLogs = getCareLogs(areaId)
-  const harvestLogs = careLogs.filter(l => l.type === 'harvest')
-
   const handleAdd = () => {
     const qty = parseFloat(quantity)
     if (isNaN(qty) || qty <= 0) return
-    logHarvest(areaId, qty, unit, date)
+    onLogHarvest(qty, unit, date)
     setQuantity('')
     setIsAdding(false)
   }
@@ -107,9 +104,9 @@ export default function HarvestTracker({ areaId }: HarvestTrackerProps) {
         </div>
       )}
 
-      {harvestLogs.length > 0 && (
+      {harvestLogCount > 0 && (
         <div className="text-xs text-zen-moss-600">
-          {harvestLogs.length} harvest{harvestLogs.length !== 1 ? 's' : ''} recorded
+          {harvestLogCount} harvest{harvestLogCount !== 1 ? 's' : ''} recorded
         </div>
       )}
     </div>

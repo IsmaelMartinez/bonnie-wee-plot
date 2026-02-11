@@ -2,15 +2,17 @@
 
 import { useState } from 'react'
 import { Plus, Layers, Leaf, X, Check } from 'lucide-react'
-import { useAllotment } from '@/hooks/useAllotment'
 import { NewPlanting, Planting } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import { getVegetableIndexById } from '@/lib/vegetables/index'
 import PlantCombobox from '@/components/allotment/PlantCombobox'
 
 interface UnderplantingsListProps {
-  parentAreaId: string
   parentAreaName: string
+  selectedYear: number
+  plantings: Planting[]
+  onAddPlanting: (planting: NewPlanting) => void
+  onRemovePlanting: (plantingId: string) => void
 }
 
 /**
@@ -21,20 +23,11 @@ interface UnderplantingsListProps {
  * where you might plant things underneath (strawberries under apple tree,
  * herbs around berries, etc.)
  */
-export default function UnderplantingsList({ parentAreaId, parentAreaName }: UnderplantingsListProps) {
-  const {
-    getPlantings,
-    addPlanting,
-    removePlanting,
-    selectedYear,
-  } = useAllotment()
-
+export default function UnderplantingsList({ parentAreaName, selectedYear, plantings, onAddPlanting, onRemovePlanting }: UnderplantingsListProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState('')
   const [variety, setVariety] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
-
-  const plantings = getPlantings(parentAreaId)
 
   const handleAdd = () => {
     if (!selectedPlantId) return
@@ -43,7 +36,7 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
       plantId: selectedPlantId,
       varietyName: variety || undefined,
     }
-    addPlanting(parentAreaId, newPlanting)
+    onAddPlanting(newPlanting)
 
     setSelectedPlantId('')
     setVariety('')
@@ -53,7 +46,7 @@ export default function UnderplantingsList({ parentAreaId, parentAreaName }: Und
 
   const handleRemove = (plantingId: string) => {
     if (confirm('Remove this planting?')) {
-      removePlanting(parentAreaId, plantingId)
+      onRemovePlanting(plantingId)
     }
   }
 
