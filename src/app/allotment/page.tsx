@@ -481,7 +481,6 @@ function AllotmentPageContent() {
             <AddPlantingForm
               onSubmit={(planting) => {
                 handleAddPlanting(planting)
-                setShowAddDialog(false)
               }}
               onCancel={() => setShowAddDialog(false)}
               existingPlantings={selectedPlantings}
