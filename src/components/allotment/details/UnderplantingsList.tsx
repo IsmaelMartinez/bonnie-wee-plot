@@ -29,6 +29,13 @@ export default function UnderplantingsList({ parentAreaName, selectedYear, plant
   const [variety, setVariety] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>('all')
 
+  const resetForm = () => {
+    setIsAdding(false)
+    setSelectedPlantId('')
+    setVariety('')
+    setCategoryFilter('all')
+  }
+
   const handleAdd = () => {
     if (!selectedPlantId) return
 
@@ -37,11 +44,7 @@ export default function UnderplantingsList({ parentAreaName, selectedYear, plant
       varietyName: variety || undefined,
     }
     onAddPlanting(newPlanting)
-
-    setSelectedPlantId('')
-    setVariety('')
-    setCategoryFilter('all')
-    setIsAdding(false)
+    resetForm()
   }
 
   const handleRemove = (plantingId: string) => {
@@ -101,12 +104,7 @@ export default function UnderplantingsList({ parentAreaName, selectedYear, plant
               Add
             </button>
             <button
-              onClick={() => {
-                setIsAdding(false)
-                setSelectedPlantId('')
-                setVariety('')
-                setCategoryFilter('all')
-              }}
+              onClick={resetForm}
               className="flex items-center gap-1 text-xs px-3 min-h-[44px] bg-zen-stone-200 text-zen-stone-700 rounded-zen hover:bg-zen-stone-300"
             >
               <X className="w-3 h-3" />
