@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { Plus, Scissors, Droplets, Layers, Bug, Eye, Package, X, Check } from 'lucide-react'
-import { useAllotment } from '@/hooks/useAllotment'
-import { NewCareLogEntry, CareLogType } from '@/types/unified-allotment'
+import { CareLogEntry, NewCareLogEntry, CareLogType } from '@/types/unified-allotment'
 
 interface CareLogSectionProps {
-  areaId: string
+  selectedYear: number
+  careLogs: CareLogEntry[]
+  onAddCareLog: (entry: NewCareLogEntry) => void
+  onRemoveCareLog: (entryId: string) => void
 }
 
 const CARE_TYPE_CONFIG: Record<CareLogType, { icon: typeof Scissors; label: string; color: string }> = {
@@ -24,19 +26,16 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
-export default function CareLogSection({ areaId }: CareLogSectionProps) {
-  const { getCareLogs, addCareLog, removeCareLog, selectedYear } = useAllotment()
+export default function CareLogSection({ selectedYear, careLogs, onAddCareLog, onRemoveCareLog }: CareLogSectionProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [newEntry, setNewEntry] = useState<Partial<NewCareLogEntry>>({
     type: 'prune',
     date: new Date().toISOString().split('T')[0],
   })
 
-  const careLogs = getCareLogs(areaId)
-
   const handleAdd = () => {
     if (!newEntry.type || !newEntry.date) return
-    addCareLog(areaId, newEntry as NewCareLogEntry)
+    onAddCareLog(newEntry as NewCareLogEntry)
     setNewEntry({
       type: 'prune',
       date: new Date().toISOString().split('T')[0],
@@ -46,7 +45,7 @@ export default function CareLogSection({ areaId }: CareLogSectionProps) {
 
   const handleRemove = (entryId: string) => {
     if (confirm('Remove this care log entry?')) {
-      removeCareLog(areaId, entryId)
+      onRemoveCareLog(entryId)
     }
   }
 

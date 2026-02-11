@@ -14,10 +14,11 @@ import {
   Bird
 } from 'lucide-react'
 import { Area, AreaKind, InfrastructureSubtype } from '@/types/unified-allotment'
-import { RotationGroup } from '@/types/garden-planner'
+import { RotationGroup, VegetableCategory } from '@/types/garden-planner'
 import { ROTATION_GROUP_NAMES } from '@/lib/rotation'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFormState } from '@/hooks/useFormState'
+import { vegetableIndex } from '@/lib/vegetables/index'
 
 interface AddAreaFormProps {
   onSubmit: (area: Omit<Area, 'id'>) => void
@@ -33,6 +34,20 @@ type AddAreaFormFields = {
   rotationGroup: RotationGroup
   infrastructureSubtype: InfrastructureSubtype
   createdYear: number | undefined
+  primaryPlantId: string
+  primaryPlantVariety: string
+  primaryPlantedYear: number | undefined
+}
+
+// Area kinds that should have a primary/permanent plant
+const PRIMARY_PLANT_KINDS: AreaKind[] = ['tree', 'berry', 'herb', 'perennial-bed']
+
+// Map area kind to the vegetable category to filter by
+const KIND_TO_CATEGORY: Partial<Record<AreaKind, VegetableCategory>> = {
+  'tree': 'fruit-trees',
+  'berry': 'berries',
+  'herb': 'herbs',
+  // perennial-bed has no specific category - shows all plants
 }
 
 const AREA_KIND_OPTIONS: { kind: AreaKind; label: string; icon: typeof Leaf; description: string }[] = [
@@ -84,6 +99,9 @@ export default function AddAreaForm({
       rotationGroup: 'legumes' as RotationGroup,
       infrastructureSubtype: 'shed' as InfrastructureSubtype,
       createdYear: undefined,
+      primaryPlantId: '',
+      primaryPlantVariety: '',
+      primaryPlantedYear: undefined,
     },
     validators: {
       name: (value, allFields) => {
@@ -139,6 +157,14 @@ export default function AddAreaForm({
         },
         ...(values.kind === 'rotation-bed' && { rotationGroup: values.rotationGroup }),
         ...(values.kind === 'infrastructure' && { infrastructureSubtype: values.infrastructureSubtype }),
+        ...(PRIMARY_PLANT_KINDS.includes(values.kind) && values.primaryPlantId && {
+          primaryPlant: {
+            plantId: values.primaryPlantId,
+            variety: values.primaryPlantVariety.trim() || undefined,
+            plantedYear: values.primaryPlantedYear,
+            status: 'establishing' as const,
+          },
+        }),
         createdYear: values.createdYear,
       }
 
@@ -307,6 +333,71 @@ export default function AddAreaForm({
           </div>
         </>
       )}
+
+      {/* Primary Plant (for tree/berry/herb/perennial-bed) */}
+      {PRIMARY_PLANT_KINDS.includes(fields.kind) && (() => {
+        const category = KIND_TO_CATEGORY[fields.kind]
+        const plants = category
+          ? vegetableIndex.filter(v => v.category === category)
+          : vegetableIndex
+        return (
+          <div className="space-y-3 border border-zen-moss-200 rounded-zen p-3 bg-zen-moss-50/30">
+            <label className="block text-sm font-medium text-zen-ink-700">
+              Primary Plant
+            </label>
+            <div>
+              <select
+                id="primary-plant"
+                value={fields.primaryPlantId}
+                onChange={(e) => setField('primaryPlantId', e.target.value)}
+                className="zen-select"
+              >
+                <option value="">Select a plant...</option>
+                {plants.map((plant) => (
+                  <option key={plant.id} value={plant.id}>
+                    {plant.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {fields.primaryPlantId && (
+              <>
+                <div>
+                  <label htmlFor="primary-variety" className="block text-xs text-zen-stone-500 mb-1">
+                    Variety (optional)
+                  </label>
+                  <input
+                    id="primary-variety"
+                    type="text"
+                    value={fields.primaryPlantVariety}
+                    onChange={(e) => setField('primaryPlantVariety', e.target.value)}
+                    placeholder="e.g., Bramley, Glen Ample"
+                    className="zen-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="primary-planted-year" className="block text-xs text-zen-stone-500 mb-1">
+                    Year planted (optional)
+                  </label>
+                  <input
+                    id="primary-planted-year"
+                    type="number"
+                    min={1900}
+                    max={currentYear + 10}
+                    value={fields.primaryPlantedYear ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setField('primaryPlantedYear', val === '' ? undefined : parseInt(val, 10))
+                    }}
+                    placeholder="e.g., 2023"
+                    className="zen-input"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Description */}
       <div>

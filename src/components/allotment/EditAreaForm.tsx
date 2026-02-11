@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Area, InfrastructureSubtype } from '@/types/unified-allotment'
+import { Area, AreaKind, InfrastructureSubtype } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
+import { vegetableIndex, getVegetableIndexById } from '@/lib/vegetables/index'
+import { VegetableCategory } from '@/types/garden-planner'
 
 interface EditAreaFormProps {
   area: Area
@@ -12,6 +14,16 @@ interface EditAreaFormProps {
 
 const REASONABLE_YEAR_MIN = 1900
 const REASONABLE_YEAR_MAX = 2100
+
+// Area kinds that should have a primary/permanent plant
+const PRIMARY_PLANT_KINDS: AreaKind[] = ['tree', 'berry', 'herb', 'perennial-bed']
+
+// Map area kind to the vegetable category to filter by
+const KIND_TO_CATEGORY: Partial<Record<AreaKind, VegetableCategory>> = {
+  'tree': 'fruit-trees',
+  'berry': 'berries',
+  'herb': 'herbs',
+}
 
 const INFRASTRUCTURE_SUBTYPES: { value: InfrastructureSubtype; label: string }[] = [
   { value: 'shed', label: 'Shed' },
@@ -40,6 +52,9 @@ export default function EditAreaForm({
   const [infrastructureSubtype, setInfrastructureSubtype] = useState<InfrastructureSubtype>(
     area.kind === 'infrastructure' ? (area.infrastructureSubtype || 'other') : 'other'
   )
+  const [primaryPlantId, setPrimaryPlantId] = useState(area.primaryPlant?.plantId || '')
+  const [primaryPlantVariety, setPrimaryPlantVariety] = useState(area.primaryPlant?.variety || '')
+  const [primaryPlantedYear, setPrimaryPlantedYear] = useState(area.primaryPlant?.plantedYear?.toString() || '')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Check for duplicate shortId (excluding current area)
@@ -132,6 +147,22 @@ export default function EditAreaForm({
       updates.infrastructureSubtype = infrastructureSubtype
     }
 
+    // Include primary plant for tree/berry/herb/perennial-bed
+    if (PRIMARY_PLANT_KINDS.includes(area.kind)) {
+      if (primaryPlantId) {
+        const parsedPlantedYear = primaryPlantedYear ? parseInt(primaryPlantedYear, 10) : undefined
+        updates.primaryPlant = {
+          ...area.primaryPlant,
+          plantId: primaryPlantId,
+          variety: primaryPlantVariety.trim() || undefined,
+          plantedYear: parsedPlantedYear,
+          status: area.primaryPlant?.status || 'establishing',
+        }
+      } else {
+        updates.primaryPlant = undefined
+      }
+    }
+
     onSubmit(area.id, updates)
   }
 
@@ -219,6 +250,70 @@ export default function EditAreaForm({
           </select>
         </div>
       )}
+
+      {/* Primary Plant (for tree/berry/herb/perennial-bed) */}
+      {PRIMARY_PLANT_KINDS.includes(area.kind) && (() => {
+        const category = KIND_TO_CATEGORY[area.kind]
+        const plants = category
+          ? vegetableIndex.filter(v => v.category === category)
+          : vegetableIndex
+        const currentPlant = primaryPlantId ? getVegetableIndexById(primaryPlantId) : null
+        return (
+          <div className="space-y-3 border border-zen-moss-200 rounded-zen p-3 bg-zen-moss-50/30">
+            <label className="block text-sm font-medium text-zen-ink-700">
+              Primary Plant
+              {currentPlant && <span className="text-zen-stone-400 font-normal"> — {currentPlant.name}</span>}
+            </label>
+            <div>
+              <select
+                id="edit-primary-plant"
+                value={primaryPlantId}
+                onChange={(e) => setPrimaryPlantId(e.target.value)}
+                className="zen-select"
+              >
+                <option value="">No primary plant</option>
+                {plants.map((plant) => (
+                  <option key={plant.id} value={plant.id}>
+                    {plant.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {primaryPlantId && (
+              <>
+                <div>
+                  <label htmlFor="edit-primary-variety" className="block text-xs text-zen-stone-500 mb-1">
+                    Variety (optional)
+                  </label>
+                  <input
+                    id="edit-primary-variety"
+                    type="text"
+                    value={primaryPlantVariety}
+                    onChange={(e) => setPrimaryPlantVariety(e.target.value)}
+                    placeholder="e.g., Bramley, Glen Ample"
+                    className="zen-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-primary-planted-year" className="block text-xs text-zen-stone-500 mb-1">
+                    Year planted (optional)
+                  </label>
+                  <input
+                    id="edit-primary-planted-year"
+                    type="number"
+                    min={REASONABLE_YEAR_MIN}
+                    max={REASONABLE_YEAR_MAX}
+                    value={primaryPlantedYear}
+                    onChange={(e) => setPrimaryPlantedYear(e.target.value)}
+                    placeholder="e.g., 2023"
+                    className="zen-input"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Created Year */}
       <div>

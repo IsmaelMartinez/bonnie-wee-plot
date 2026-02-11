@@ -2,7 +2,7 @@
 
 import { Map } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
-import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate, NewPlanting, CareLogEntry, NewCareLogEntry } from '@/types/unified-allotment'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
 import InfrastructureDetailPanel from './InfrastructureDetailPanel'
@@ -21,10 +21,15 @@ interface ItemDetailSwitcherProps {
   getPlantings: (areaId: string) => Planting[]
   getAreaNotes: (areaId: string) => AreaNote[]
   getPreviousYearRotation: (areaId: string) => RotationGroup | null
+  // Care log / harvest getters (for permanent panels)
+  getCareLogs: (areaId: string) => CareLogEntry[]
+  getHarvestTotal: (areaId: string) => { quantity: number; unit: string } | null
   // Event handlers
   selectedYear: number
   onAddPlanting: () => void
+  onAddPlantingToArea: (areaId: string, planting: NewPlanting) => void
   onDeletePlanting: (plantingId: string) => void
+  onRemovePlantingFromArea: (areaId: string, plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
   onAddNote: (note: NewAreaNote) => void
   onUpdateNote: (noteId: string, updates: AreaNoteUpdate) => void
@@ -33,6 +38,9 @@ interface ItemDetailSwitcherProps {
   onAutoRotate: () => void
   onArchiveArea: (areaId: string) => void
   onUpdateArea: (areaId: string, updates: Partial<Omit<Area, 'id'>>) => void
+  onAddCareLog: (areaId: string, entry: NewCareLogEntry) => void
+  onRemoveCareLog: (areaId: string, entryId: string) => void
+  onLogHarvest: (areaId: string, quantity: number, unit: string, date: string) => void
   // Quick stats for empty state
   quickStats: QuickStats
 }
@@ -75,9 +83,13 @@ export default function ItemDetailSwitcher({
   getPlantings,
   getAreaNotes,
   getPreviousYearRotation,
+  getCareLogs,
+  getHarvestTotal,
   selectedYear,
   onAddPlanting,
+  onAddPlantingToArea,
   onDeletePlanting,
+  onRemovePlantingFromArea,
   onUpdatePlanting,
   onAddNote,
   onUpdateNote,
@@ -86,6 +98,9 @@ export default function ItemDetailSwitcher({
   onAutoRotate,
   onArchiveArea,
   onUpdateArea,
+  onAddCareLog,
+  onRemoveCareLog,
+  onLogHarvest,
   quickStats,
 }: ItemDetailSwitcherProps) {
   if (!selectedItemRef) {
@@ -127,7 +142,23 @@ export default function ItemDetailSwitcher({
       />
     )
   } else if (isPermanentPlanting) {
-    detailPanel = <PermanentDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
+    detailPanel = (
+      <PermanentDetailPanel
+        key={`${area.id}-${area.kind}`}
+        area={area}
+        selectedYear={selectedYear}
+        plantings={getPlantings(area.id)}
+        careLogs={getCareLogs(area.id)}
+        harvestTotal={getHarvestTotal(area.id)}
+        onAddPlanting={onAddPlantingToArea}
+        onRemovePlanting={onRemovePlantingFromArea}
+        onAddCareLog={onAddCareLog}
+        onRemoveCareLog={onRemoveCareLog}
+        onLogHarvest={onLogHarvest}
+        onUpdateArea={onUpdateArea}
+        onArchiveArea={onArchiveArea}
+      />
+    )
   } else if (isInfrastructure) {
     detailPanel = <InfrastructureDetailPanel key={`${area.id}-${area.kind}`} area={area} onUpdateArea={onUpdateArea} onArchiveArea={onArchiveArea} />
   } else {

@@ -89,6 +89,12 @@ function AllotmentPageContent() {
     getVarietiesForYear,
     // v14 per-year position updates
     updateAreaSeasonPosition,
+    // Care log / harvest operations (for permanent panels)
+    getCareLogs,
+    addCareLog,
+    removeCareLog,
+    logHarvest,
+    getHarvestTotal,
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -451,9 +457,13 @@ function AllotmentPageContent() {
               getPlantings={getPlantings}
               getAreaNotes={getAreaNotes}
               getPreviousYearRotation={getPreviousRotation}
+              getCareLogs={getCareLogs}
+              getHarvestTotal={getHarvestTotal}
               selectedYear={selectedYear}
               onAddPlanting={() => setShowAddDialog(true)}
+              onAddPlantingToArea={addPlanting}
               onDeletePlanting={handleDeletePlanting}
+              onRemovePlantingFromArea={removePlanting}
               onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
               onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
               onUpdateNote={(noteId, updates) => selectedBedId && updateAreaNote(selectedBedId, noteId, updates)}
@@ -462,6 +472,9 @@ function AllotmentPageContent() {
               onAutoRotate={() => setShowAutoRotateDialog(true)}
               onArchiveArea={handleArchiveArea}
               onUpdateArea={updateArea}
+              onAddCareLog={addCareLog}
+              onRemoveCareLog={removeCareLog}
+              onLogHarvest={logHarvest}
               quickStats={quickStats}
             />
           </div>

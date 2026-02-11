@@ -12,9 +12,11 @@ export interface Tab {
 interface TabsProps {
   tabs: Tab[]
   defaultTab?: string
+  contentClassName?: string
+  iconOnly?: boolean
 }
 
-export default function Tabs({ tabs, defaultTab }: TabsProps) {
+export default function Tabs({ tabs, defaultTab, contentClassName, iconOnly }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
 
   const activeTabData = tabs.find(tab => tab.id === activeTab)
@@ -31,6 +33,8 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
             id={`tab-${tab.id}`}
             aria-selected={activeTab === tab.id}
             aria-controls={`tabpanel-${tab.id}`}
+            aria-label={iconOnly ? tab.label : undefined}
+            title={iconOnly ? tab.label : undefined}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 min-h-[44px] text-sm font-medium whitespace-nowrap transition border-b-2 -mb-[1px] ${
               activeTab === tab.id
@@ -39,14 +43,14 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
             }`}
           >
             {tab.icon}
-            {tab.label}
+            {!iconOnly && tab.label}
           </button>
         ))}
       </div>
 
       {/* Tab content */}
       <div
-        className="flex-1 pt-6 overflow-y-auto"
+        className={contentClassName || "flex-1 pt-6 overflow-y-auto"}
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
