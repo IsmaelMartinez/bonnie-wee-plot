@@ -3249,7 +3249,7 @@ export function updateAreaHarvestTotal(
 export function wasAreaActiveInYear(area: Area, year: number): boolean {
   // Validate inputs
   if (!area || typeof area !== 'object') {
-    logger.error('wasAreaActiveInYear called with invalid area', { area: String(area) })
+    logger.error('wasAreaActiveInYear called with invalid area', { area })
     return false
   }
 
