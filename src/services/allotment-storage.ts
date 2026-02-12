@@ -216,7 +216,7 @@ function attemptDataRepair(data: unknown): AllotmentData | null {
     // Validate the repaired data
     const validation = validateAllotmentData(repaired)
     if (validation.valid) {
-      console.warn('Data was repaired with defaults')
+      logger.warn('Data was repaired with defaults')
       return repaired
     }
 
@@ -263,12 +263,12 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     const validation = validateAllotmentData(data)
     
     if (!validation.valid) {
-      console.warn('Schema validation failed:', validation.errors)
-      
+      logger.warn('Schema validation failed', { errors: validation.errors })
+
       // Attempt to repair
       const repaired = attemptDataRepair(data)
       if (repaired) {
-        console.log('Data repaired successfully')
+        logger.info('Data repaired successfully')
         saveAllotmentData(repaired)
         return { success: true, data: repaired }
       }
@@ -283,7 +283,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
 
     // Check for incomplete migration and resume if needed
     if (validData.meta.migrationState) {
-      console.log(`Detected incomplete migration to v${validData.meta.migrationState.targetVersion}, resuming...`)
+      logger.info('Detected incomplete migration, resuming', { targetVersion: validData.meta.migrationState.targetVersion })
       const migrated = migrateSchema(validData)
       const cleaned = clearMigrationState(migrated)
       saveAllotmentData(cleaned)
@@ -305,7 +305,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     const hasEmptyVarieties = !validData.varieties || validData.varieties.length === 0
 
     if (hasEmptyAreas && hasEmptyVarieties) {
-      console.log('Repairing: populating empty areas from default layout')
+      logger.info('Repairing: populating empty areas from default layout')
       // Re-run migration to populate areas
       const repaired = migrateSchema({ ...validData, version: 1 })
       saveAllotmentData(repaired)
@@ -315,7 +315,7 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
     // Auto-update currentYear if it's in the past
     const actualCurrentYear = new Date().getFullYear()
     if (validData.currentYear < actualCurrentYear) {
-      console.log(`Updating stale currentYear from ${validData.currentYear} to ${actualCurrentYear}`)
+      logger.info('Updating stale currentYear', { from: validData.currentYear, to: actualCurrentYear })
       const updatedData = ensureCurrentYearSeason(validData, actualCurrentYear)
       const saveResult = saveAllotmentData(updatedData)
       if (!saveResult.success) {
@@ -533,12 +533,12 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 1 -> 2: Add maintenance tasks array
   if (migrated.version < 2) {
     migrated.maintenanceTasks = migrated.maintenanceTasks || []
-    console.log('Migrated to schema v2: added maintenanceTasks')
+    logger.info('Schema migration complete', { from: 1, to: 2, change: 'added maintenanceTasks' })
   }
 
   // Version 2 -> 3: Add notes array to BedSeason (no action needed, notes is optional)
   if (migrated.version < 3) {
-    console.log('Migrated to schema v3: bed notes support added')
+    logger.info('Schema migration complete', { from: 2, to: 3, change: 'bed notes support added' })
   }
 
   // Version 3 -> 4: Migrate problemNotes from layout.beds to BedNotes for 2025
@@ -592,19 +592,19 @@ function migrateSchema(data: AllotmentData): AllotmentData {
       }
     }
 
-    console.log('Migrated to schema v4: problemNotes converted to BedNotes for 2025')
+    logger.info('Schema migration complete', { from: 3, to: 4, change: 'problemNotes converted to BedNotes for 2025' })
   }
 
   // Version 4 -> 5: Add gardenEvents array
   if (migrated.version < 5) {
     migrated.gardenEvents = migrated.gardenEvents || []
-    console.log('Migrated to schema v5: added gardenEvents')
+    logger.info('Schema migration complete', { from: 4, to: 5, change: 'added gardenEvents' })
   }
 
   // Version 5 -> 6: Add varieties array (consolidated from separate storage)
   if (migrated.version < 6) {
     migrated.varieties = migrated.varieties || []
-    console.log('Migrated to schema v6: added varieties')
+    logger.info('Schema migration complete', { from: 5, to: 6, change: 'added varieties' })
   }
 
   // Version 6 -> 7: Add plantId to permanent plantings for vegetable database lookup
@@ -635,7 +635,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
         const plantId = PERMANENT_TO_PLANT_ID[planting.id]
         return plantId ? { ...planting, plantId } : planting
       })
-      console.log('Migrated to schema v7: populated permanentPlantings from default layout')
+      logger.info('Schema migration complete', { from: 6, to: 7, change: 'populated permanentPlantings from default layout' })
     } else {
       // Add plantId to existing permanentPlantings
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -643,13 +643,13 @@ function migrateSchema(data: AllotmentData): AllotmentData {
         const plantId = PERMANENT_TO_PLANT_ID[planting.id]
         return plantId ? { ...planting, plantId } : planting
       })
-      console.log('Migrated to schema v7: added plantId to permanent plantings')
+      logger.info('Schema migration complete', { from: 6, to: 7, change: 'added plantId to permanent plantings' })
     }
 
     // If infrastructure is empty, populate from default layout
     if (!v7Layout.infrastructure || v7Layout.infrastructure.length === 0) {
       v7Layout.infrastructure = infrastructure
-      console.log('Migrated to schema v7: populated infrastructure from default layout')
+      logger.info('Schema migration complete', { from: 6, to: 7, change: 'populated infrastructure from default layout' })
     }
   }
 
@@ -659,7 +659,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
     // Continue to v10 migration
     const v10Data = migrateToV10(v9Data)
     v10Data.version = CURRENT_SCHEMA_VERSION
-    console.log('Migrated to schema v10: unified Area type with dynamic add/remove')
+    logger.info('Schema migration complete', { from: 8, to: 10, change: 'unified Area type with dynamic add/remove' })
     return v10Data
   }
 
@@ -667,7 +667,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 10) {
     const v10Data = migrateToV10(migrated)
     v10Data.version = 10
-    console.log('Migrated to schema v10: unified Area type with dynamic add/remove')
+    logger.info('Schema migration complete', { from: 9, to: 10, change: 'unified Area type with dynamic add/remove' })
     // Continue to v11 migration
     return migrateSchema(v10Data)
   }
@@ -676,7 +676,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 11) {
     const v11Data = migrateToV11(migrated)
     v11Data.version = 11
-    console.log('Migrated to schema v11: synchronized plant IDs')
+    logger.info('Schema migration complete', { from: 10, to: 11, change: 'synchronized plant IDs' })
     // Continue to v12 migration
     return migrateSchema(v11Data)
   }
@@ -685,7 +685,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 12) {
     const v12Data = migrateToV12(migrated)
     v12Data.version = 12
-    console.log('Migrated to schema v12: added SowMethod and calculated harvest fields')
+    logger.info('Schema migration complete', { from: 11, to: 12, change: 'added SowMethod and calculated harvest fields' })
     // Continue to v13 migration
     return migrateSchema(v12Data)
   }
@@ -694,7 +694,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 13) {
     const v13Data = migrateToV13(migrated)
     v13Data.version = 13
-    console.log('Migrated to schema v13: removed yearsUsed from StoredVariety')
+    logger.info('Schema migration complete', { from: 12, to: 13, change: 'removed yearsUsed from StoredVariety' })
     // Continue to v14 migration
     return migrateSchema(v13Data)
   }
@@ -703,7 +703,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 14) {
     const v14Data = migrateToV14(migrated)
     v14Data.version = 14
-    console.log('Migrated to schema v14: added per-year grid positions to AreaSeason')
+    logger.info('Schema migration complete', { from: 13, to: 14, change: 'added per-year grid positions to AreaSeason' })
     // Continue to v15 migration
     return migrateSchema(v14Data)
   }
@@ -712,7 +712,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 15) {
     const v15Data = migrateToV15(migrated)
     v15Data.version = 15
-    console.log('Migrated to schema v15: added PlantingStatus for lifecycle tracking')
+    logger.info('Schema migration complete', { from: 14, to: 15, change: 'added PlantingStatus for lifecycle tracking' })
     // Continue to v16 migration
     return migrateSchema(v15Data)
   }
@@ -721,7 +721,7 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   if (migrated.version < 16) {
     const v16Data = migrateToV16(migrated)
     v16Data.version = CURRENT_SCHEMA_VERSION
-    console.log('Migrated to schema v16: removed plannedYears from StoredVariety')
+    logger.info('Schema migration complete', { from: 15, to: 16, change: 'removed plannedYears from StoredVariety' })
     return v16Data
   }
 
@@ -1422,7 +1422,9 @@ export function addSeason(data: AllotmentData, input: NewSeasonInput): Allotment
           ? getNextRotationGroup(previousAreaSeason.rotationGroup)
           : area.rotationGroup || 'legumes'
 
-        console.log(`[AUTO-ROTATE] Area ${area.id} for ${input.year}:`, {
+        logger.debug('Auto-rotate area', {
+          areaId: area.id,
+          year: input.year,
           previousYear,
           previousRotation: previousAreaSeason?.rotationGroup,
           newRotation: rotationGroup,
@@ -2850,18 +2852,17 @@ export function addArea(
     const shouldExist = wasAreaActiveInYear(newArea, season.year)
 
     if (!shouldExist) {
-      console.log('addArea: Skipping season backfill', {
+      logger.debug('addArea: Skipping season backfill', {
         areaId: id,
         areaName: newArea.name,
         seasonYear: season.year,
         createdYear: newArea.createdYear,
         retiredYear: newArea.retiredYear,
-        reason: 'Area not active in this year'
       })
       return season
     }
 
-    console.log('addArea: Backfilling season', {
+    logger.debug('addArea: Backfilling season', {
       areaId: id,
       areaName: newArea.name,
       seasonYear: season.year
@@ -3248,13 +3249,13 @@ export function updateAreaHarvestTotal(
 export function wasAreaActiveInYear(area: Area, year: number): boolean {
   // Validate inputs
   if (!area || typeof area !== 'object') {
-    console.error('wasAreaActiveInYear called with invalid area', { area })
+    logger.error('wasAreaActiveInYear called with invalid area', { area: String(area) })
     return false
   }
 
   if (typeof year !== 'number' || !Number.isFinite(year) || !Number.isInteger(year)) {
-    console.error('wasAreaActiveInYear called with invalid year', {
-      year,
+    logger.error('wasAreaActiveInYear called with invalid year', {
+      year: String(year),
       areaId: area.id,
       areaName: area.name
     })
@@ -3298,7 +3299,7 @@ export function getAreasForYear(data: AllotmentData, year: number): Area[] {
 export function getAreaActiveRange(area: Area): { from: number; to: number | null } | null {
   // Validate area input
   if (!area || typeof area !== 'object') {
-    console.error('getAreaActiveRange called with invalid area', { area })
+    logger.error('getAreaActiveRange called with invalid area', { area: String(area) })
     return null
   }
 
@@ -3322,7 +3323,7 @@ export function validatePlantingForYear(
 ): { valid: boolean; error?: string } {
   const area = getAreaById(data, areaId)
   if (!area) {
-    console.error('validatePlantingForYear: Area not found', { areaId, year })
+    logger.error('validatePlantingForYear: Area not found', { areaId, year })
     return { valid: false, error: `Area ${areaId} does not exist` }
   }
 
@@ -3332,7 +3333,7 @@ export function validatePlantingForYear(
       ? `${range.from}-${range.to || 'present'}`
       : 'unknown (area has inconsistent temporal metadata)'
 
-    console.warn('validatePlantingForYear: Area not active in year', {
+    logger.warn('validatePlantingForYear: Area not active in year', {
       areaId,
       areaName: area.name,
       year,
@@ -3345,7 +3346,7 @@ export function validatePlantingForYear(
     }
   }
 
-  console.log('validatePlantingForYear: Validation passed', {
+  logger.debug('validatePlantingForYear: Validation passed', {
     areaId,
     areaName: area.name,
     year

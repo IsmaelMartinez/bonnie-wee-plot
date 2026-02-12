@@ -26,7 +26,6 @@ import type { StoredVariety } from './unified-allotment'
 export interface VarietyData {
   version: number
   varieties: StoredVariety[]
-  haveSeeds?: string[]  // DEPRECATED: Will be removed in v2 migration - kept for backward compatibility
   lastMigrationYear?: number  // Track when year migration last ran
   meta: { createdAt: string; updatedAt: string }
 }

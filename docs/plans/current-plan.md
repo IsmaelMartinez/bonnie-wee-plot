@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-10 (Ready for user testing)
+Last updated: 2026-02-12 (Ready for user testing)
 
 ## What's Been Completed
 
@@ -100,6 +100,24 @@ All planned development work is complete. The app now includes:
 
 The next phase is real-world usage to identify what works well and what needs improvement. Future development will be driven by actual usage patterns and user feedback rather than speculative planning.
 
+### Technical Debt Backlog (Do During User Testing)
+
+Identified in the February 2026 repository analysis (`docs/research/repo-analysis-and-improvements.md`):
+
+1. **Split `allotment-storage.ts`** (3,356 lines) into focused modules: validation, migrations, CRUD by domain, stats. The single largest maintainability concern.
+2. **Add component unit tests** for key forms/dialogs (AddPlantingForm, PlantingCard, VarietyEditDialog, DataManagement). Currently only ~2 component-level unit tests exist; E2E tests cover behavior but are slower and more brittle.
+3. **Replace `window.__disablePersistenceUntilReload`** global flag with a cleaner React pattern (ref/context) for signaling "import in progress" across components.
+4. **Add bundle analysis** (`@next/bundle-analyzer`) to understand what ships to client. Important for a PWA where bundle size = offline cache size.
+
+### Improvement Backlog (Do After User Feedback)
+
+5. **Add test coverage thresholds** — start at 50% lines in vitest.config.ts, ratchet up over time
+6. **Improve offline messaging** — core features work offline via localStorage, but no clear user-facing messaging beyond OfflineIndicator
+7. **Consider compost data integration** into AllotmentData for export/import consistency (currently separate storage)
+8. **Add global search** across plantings/varieties for power users
+9. **Evaluate vegetable-database.ts** (6,715 lines) — consider moving plant data to JSON if bundle analysis shows it's significant
+10. **Automatic backup prompts** — periodic reminders to export data, or auto-export to file
+
 ### Future Phases (Contingent on User Adoption)
 
 These are from the pre-production strategic plan (`docs/research/pre-production-strategic-plan.md`), phases 6-8:
@@ -114,6 +132,7 @@ Product roadmap phases 2-4 (Feature Discovery, Power Users, Community & Scale) a
 
 ## Key References
 
-- `docs/research/product-roadmap-quick-reference.md` - Product strategy, unlock conditions, UX review checklist
+- `docs/research/repo-analysis-and-improvements.md` - Full codebase analysis with prioritised improvement opportunities
+- `docs/research/product-roadmap-quick-reference.md` - Product strategy, UX review checklist (all steps complete)
 - `docs/research/pre-production-strategic-plan.md` - Infrastructure phases (0-5 done), future phases 6-8
 - `docs/research/plant-data-validation-strategy.md` - Plant database improvement plan

@@ -165,8 +165,8 @@ Several research documents reference completed or abandoned work:
 
 | Document | Status | Action |
 |----------|--------|--------|
-| `ai-inventory-integration-analysis.md` | Completed (PR #22) | Could be consolidated into ADR-022 |
-| `ai-inventory-management.md` | Completed (PR #22) | Could be consolidated into ADR-022 |
+| `ai-inventory-integration-analysis.md` | **Done** — Consolidated into ADR-022, deleted |
+| `ai-inventory-management.md` | **Done** — Consolidated into ADR-022, deleted |
 | `plant-data-validation-strategy.md` | Partially complete | Still relevant for future companion data enhancement |
 | `pre-production-strategic-plan.md` | Phases 0-5 complete | Keep as historical reference, mark completed sections more clearly |
 | `product-roadmap-quick-reference.md` | Active but stale header ("Step 2" never started) | Update status to reflect current "user testing" phase |

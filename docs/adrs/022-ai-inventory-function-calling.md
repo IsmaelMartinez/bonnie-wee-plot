@@ -130,9 +130,19 @@ Modified files:
 | Data corruption | Validate all inputs, run in transaction-like manner |
 | User confusion about what AI can do | Clear capability indicators in UI |
 
+## Implementation Status
+
+**Fully implemented** (merged into main). Key files:
+
+- `src/lib/ai-tools-schema.ts` — Tool definitions (add_planting, update_planting, remove_planting, list_areas)
+- `src/services/ai-tool-executor.ts` — Execute confirmed tool calls against allotment data
+- `src/components/ai-advisor/ToolCallConfirmation.tsx` — User confirmation UI
+- `src/app/api/ai-advisor/route.ts` — API route with tools parameter support
+
+Research documents (`docs/research/ai-inventory-*.md`) were consolidated into this ADR after implementation.
+
 ## References
 
 - ADR 004: AI Integration via Proxy API Pattern
 - ADR 011: Planting Assistant Integration
-- Acceleration Plan: docs/plans/2026-01-28-acceleration-plan.md
 - OpenAI Function Calling: https://platform.openai.com/docs/guides/function-calling
