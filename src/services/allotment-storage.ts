@@ -3255,7 +3255,7 @@ export function wasAreaActiveInYear(area: Area, year: number): boolean {
 
   if (typeof year !== 'number' || !Number.isFinite(year) || !Number.isInteger(year)) {
     logger.error('wasAreaActiveInYear called with invalid year', {
-      year: String(year),
+      year,
       areaId: area.id,
       areaName: area.name
     })
