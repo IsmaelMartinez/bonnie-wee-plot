@@ -1,6 +1,6 @@
 # Product Roadmap - Quick Reference
 
-**Status:** Active (trimmed Feb 2026)
+**Status:** Steps 1-3 Complete — App ready for user testing
 **Last Updated:** February 2026
 
 ---
@@ -19,9 +19,9 @@ The valuable part of this document is the UX review checklist below, which remai
 
 Completed in PR #68 and #69 (January 27, 2026). Bottom sheet dialog pattern for mobile-first UX, full inline editing of planting information, sow method selection, harvest date tracking, companion planting visibility, plant care information display, delete with confirmation, and full accessibility support.
 
-### Step 2: Section-by-Section UX Review
+### Step 2: Section-by-Section UX Review (COMPLETE)
 
-Review each section's components individually, then how they integrate within the section.
+Completed across PRs #151, #153, #167, #169, #171, #180-188. Each section reviewed individually and then for cross-section integration. Below is the original checklist (kept as reference for future reviews).
 
 #### 2.1 Today (Dashboard)
 **Components:** TodayDashboard, SeasonCard, TaskList, QuickActions, AIInsight, CompostAlerts
@@ -114,9 +114,9 @@ Review each section's components individually, then how they integrate within th
 - Do the quick action links help users discover features?
 **Intra-section integration:** Feature descriptions vs navigation links vs philosophy messaging
 
-### Step 3: Cross-Section Integration Review
+### Step 3: Cross-Section Integration Review (COMPLETE)
 
-After reviewing sections individually, map how they connect:
+Completed in PRs #180-188. User journeys tested and cross-section navigation links added.
 
 #### User Journeys to Test
 - "Plan a new bed" -> Allotment -> Add area -> Add plantings -> See in Today
@@ -139,9 +139,9 @@ After reviewing sections individually, map how they connect:
 ## Related Documentation
 
 - **ADR-020: Planting Detail Dialog** (`docs/adrs/020-planting-detail-dialog.md`) - Architecture decision record documenting the bottom sheet dialog pattern and UI decisions
-- **AI Inventory Management** (`docs/research/ai-inventory-management.md`) - Research on enabling Aitor to insert/edit/update plantings through natural language chat
+- **AI Inventory Function Calling** (`docs/adrs/022-ai-inventory-function-calling.md`) - ADR documenting the AI tool calling architecture (fully implemented)
 
 ---
 
-**Status:** Step 1 Complete | Ready for Step 2
-**Next:** Section-by-Section UX Review (Step 2)
+**Status:** All Steps Complete | Ready for User Testing
+**Next:** Gather user feedback to inform future development priorities

@@ -461,7 +461,7 @@ Total estimated timeline: 15 weeks for full implementation. Phases 0-5 can proce
 ### Existing Research Documents
 - Product Roadmap Quick Reference: docs/research/product-roadmap-quick-reference.md
 - Plant Dialog UX Research: docs/research/plant-dialog-ux-research.md (not yet created)
-- AI Inventory Management: docs/research/ai-inventory-management.md
+- AI Inventory Function Calling: docs/adrs/022-ai-inventory-function-calling.md (implemented)
 - Plant Data Validation Strategy: docs/research/plant-data-validation-strategy.md
 - Clerk User Management: docs/research/clerk-user-management.md (not yet created)
 - Supabase Data Storage: docs/research/supabase-data-storage.md (not yet created)
