@@ -213,7 +213,7 @@ export default function AddAreaForm({
         <label className="block text-sm font-medium text-zen-ink-700 mb-2">
           Area Type *
         </label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {AREA_KIND_OPTIONS.map((option) => {
             const Icon = option.icon
             const isSelected = fields.kind === option.kind
