@@ -39,7 +39,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.34.0",
+    "@sentry/nextjs": "^10.36.0",
     "@serwist/next": "^9.5.0",
     "@upstash/redis": "^1.36.1",
     "driver.js": "^1.4.0",
