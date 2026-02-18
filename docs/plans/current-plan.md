@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-12 (Ready for user testing)
+Last updated: 2026-02-18
 
 ## What's Been Completed
 
@@ -99,6 +99,10 @@ All planned development work is complete. The app now includes:
 - Mobile-first responsive design with proper touch targets
 
 The next phase is real-world usage to identify what works well and what needs improvement. Future development will be driven by actual usage patterns and user feedback rather than speculative planning.
+
+### Dependency Management and ESLint Modernisation (PR #199)
+
+Updated all npm dependencies within semver ranges and bumped `eslint-config-next` to v16, `lucide-react` to 0.574, `@types/node` to v25, and `jsdom` to v28. Migrated `eslint.config.mjs` to native flat config (removed `FlatCompat` shim and `@eslint/eslintrc`), added `eslint-config-next/typescript` config. React Compiler rules from react-hooks v7 disabled for now (TODO: address incrementally). Replaced custom `update-deps.yml` GitHub Actions workflow with Renovate bot (`renovate.json`) configured with 10 logical dependency groups and auto-merge for dev dependency minor/patch updates.
 
 ### Technical Debt Backlog (Do During User Testing)
 

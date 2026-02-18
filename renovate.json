@@ -1,0 +1,86 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 9am on Monday"],
+  "timezone": "Europe/London",
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "React ecosystem",
+      "groupName": "react",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ]
+    },
+    {
+      "description": "Next.js ecosystem",
+      "groupName": "nextjs",
+      "matchPackageNames": [
+        "next",
+        "eslint-config-next",
+        "@next/*"
+      ]
+    },
+    {
+      "description": "Sentry monitoring",
+      "groupName": "sentry",
+      "matchPackageNames": ["@sentry/*"]
+    },
+    {
+      "description": "PWA / Serwist",
+      "groupName": "serwist",
+      "matchPackageNames": ["serwist", "@serwist/*"]
+    },
+    {
+      "description": "Testing: Playwright",
+      "groupName": "playwright",
+      "matchPackageNames": ["@playwright/test", "@axe-core/playwright"]
+    },
+    {
+      "description": "Testing: Vitest",
+      "groupName": "vitest",
+      "matchPackageNames": ["vitest", "@vitest/*"]
+    },
+    {
+      "description": "Testing: Testing Library",
+      "groupName": "testing-library",
+      "matchPackageNames": ["@testing-library/*"]
+    },
+    {
+      "description": "Linting and formatting",
+      "groupName": "linting",
+      "matchPackageNames": [
+        "eslint",
+        "husky",
+        "lint-staged"
+      ]
+    },
+    {
+      "description": "Build tooling",
+      "groupName": "build-tools",
+      "matchPackageNames": [
+        "typescript",
+        "postcss",
+        "autoprefixer",
+        "tailwindcss"
+      ]
+    },
+    {
+      "description": "TypeScript type definitions (non-React)",
+      "groupName": "type-definitions",
+      "matchPackageNames": [
+        "@types/node",
+        "@types/react-grid-layout"
+      ]
+    },
+    {
+      "description": "Auto-merge minor and patch updates for dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    }
+  ]
+}

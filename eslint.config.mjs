@@ -1,29 +1,32 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
+import { defineConfig, globalIgnores } from 'eslint/config'
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
-
-const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
-    ignores: [
-      'node_modules/',
-      '.next/',
-      'out/',
-      'coverage/',
-      'playwright-report/',
-      'test-results/',
-      'next-env.d.ts',
-      'public/sw*',
-      'public/swe-worker*',
-    ],
+    // React Compiler rules introduced by eslint-config-next@16 / react-hooks v7.
+    // TODO: address these incrementally and re-enable.
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/refs': 'off',
+    },
   },
-]
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'coverage/**',
+    'playwright-report/**',
+    'test-results/**',
+    'next-env.d.ts',
+    'public/sw*',
+    'public/swe-worker*',
+  ]),
+])
 
 export default eslintConfig
