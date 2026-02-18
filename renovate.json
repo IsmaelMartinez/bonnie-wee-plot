@@ -11,8 +11,10 @@
       "matchPackageNames": [
         "react",
         "react-dom",
+        "react-grid-layout",
         "@types/react",
-        "@types/react-dom"
+        "@types/react-dom",
+        "@types/react-grid-layout"
       ]
     },
     {
@@ -42,7 +44,7 @@
     {
       "description": "Testing: Vitest",
       "groupName": "vitest",
-      "matchPackageNames": ["vitest", "@vitest/*"]
+      "matchPackageNames": ["vitest", "@vitest/*", "jsdom"]
     },
     {
       "description": "Testing: Testing Library",
@@ -72,8 +74,7 @@
       "description": "TypeScript type definitions (non-React)",
       "groupName": "type-definitions",
       "matchPackageNames": [
-        "@types/node",
-        "@types/react-grid-layout"
+        "@types/node"
       ]
     },
     {
