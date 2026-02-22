@@ -9,23 +9,29 @@
  * - Current month and plantings in the allotment
  * - Vegetable database planting/harvesting schedules
  * - Maintenance info for perennial areas (trees, berries)
+ * - Seed varieties the user has but hasn't planted yet
  */
 
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { generateTasksForMonth, GeneratedTask } from '@/lib/task-generator'
 import { MaintenanceTask, Planting, AreaSeason } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
+import { loadDismissedTaskIds, dismissTask, restoreTask } from '@/lib/dismissed-tasks'
 
 export interface TodayData {
   currentMonth: number
+  currentYear: number
   seasonalPhase: SeasonalPhase
   maintenanceTasks: MaintenanceTask[]
   generatedTasks: GeneratedTask[]
+  dismissedTasks: GeneratedTask[]
   isLoading: boolean
+  onDismissTask: (taskId: string) => void
+  onRestoreTask: (taskId: string) => void
 }
 
 /**
@@ -45,6 +51,7 @@ export function useTodayData(): TodayData {
 
   // Current month (1-12 for January-December, matching vegetable database)
   const currentMonth = useMemo(() => new Date().getMonth() + 1, [])
+  const currentYear = useMemo(() => new Date().getFullYear(), [])
 
   // Seasonal phase uses 0-indexed month
   const seasonalPhase = useMemo(() => getSeasonalPhase(currentMonth - 1), [currentMonth])
@@ -79,22 +86,54 @@ export function useTodayData(): TodayData {
     return result
   }, [currentSeason, data, allAreas])
 
-  // Generate automatic tasks based on plantings and month
-  // Task generator now handles status filtering internally
-  const generatedTasks = useMemo(() => {
+  // Dismissed task IDs — stored in state so React re-renders on change
+  const [dismissedIds, setDismissedIds] = useState(
+    () => loadDismissedTaskIds(currentMonth, currentYear)
+  )
+
+  const onDismissTask = useCallback((taskId: string) => {
+    dismissTask(taskId, currentMonth, currentYear)
+    setDismissedIds(loadDismissedTaskIds(currentMonth, currentYear))
+  }, [currentMonth, currentYear])
+
+  const onRestoreTask = useCallback((taskId: string) => {
+    restoreTask(taskId, currentMonth, currentYear)
+    setDismissedIds(loadDismissedTaskIds(currentMonth, currentYear))
+  }, [currentMonth, currentYear])
+
+  // Generate automatic tasks based on plantings, varieties, and month
+  const allGeneratedTasks = useMemo(() => {
     if (!data) return []
     return generateTasksForMonth(
       currentMonth as Month,
       plantingsWithContext,
-      allAreas
+      allAreas,
+      new Date(),
+      data.varieties || [],
+      currentYear
     )
-  }, [currentMonth, plantingsWithContext, allAreas, data])
+  }, [currentMonth, plantingsWithContext, allAreas, data, currentYear])
+
+  // Split into active and dismissed
+  const generatedTasks = useMemo(() =>
+    allGeneratedTasks.filter((t: GeneratedTask) => !dismissedIds.has(t.id)),
+    [allGeneratedTasks, dismissedIds]
+  )
+
+  const dismissedTasks = useMemo(() =>
+    allGeneratedTasks.filter((t: GeneratedTask) => dismissedIds.has(t.id)),
+    [allGeneratedTasks, dismissedIds]
+  )
 
   return {
     currentMonth,
+    currentYear,
     seasonalPhase,
     maintenanceTasks,
     generatedTasks,
+    dismissedTasks,
     isLoading,
+    onDismissTask,
+    onRestoreTask,
   }
 }
