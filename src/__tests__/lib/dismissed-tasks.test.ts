@@ -51,7 +51,7 @@ describe('dismissed-tasks', () => {
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('allotment-dismissed-tasks')
     })
 
-    it('should return empty set for different year', () => {
+    it('should return empty set and clear storage for different year', () => {
       localStorageMock.setItem('allotment-dismissed-tasks', JSON.stringify({
         month: 2,
         year: 2024,
@@ -60,6 +60,7 @@ describe('dismissed-tasks', () => {
 
       const ids = loadDismissedTaskIds(2, 2025)
       expect(ids.size).toBe(0)
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('allotment-dismissed-tasks')
     })
 
     it('should handle corrupted data gracefully', () => {

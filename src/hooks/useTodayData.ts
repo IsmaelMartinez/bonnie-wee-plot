@@ -92,13 +92,11 @@ export function useTodayData(): TodayData {
   )
 
   const onDismissTask = useCallback((taskId: string) => {
-    dismissTask(taskId, currentMonth, currentYear)
-    setDismissedIds(loadDismissedTaskIds(currentMonth, currentYear))
+    setDismissedIds(dismissTask(taskId, currentMonth, currentYear))
   }, [currentMonth, currentYear])
 
   const onRestoreTask = useCallback((taskId: string) => {
-    restoreTask(taskId, currentMonth, currentYear)
-    setDismissedIds(loadDismissedTaskIds(currentMonth, currentYear))
+    setDismissedIds(restoreTask(taskId, currentMonth, currentYear))
   }, [currentMonth, currentYear])
 
   // Generate automatic tasks based on plantings, varieties, and month

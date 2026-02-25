@@ -39,34 +39,33 @@ export function loadDismissedTaskIds(currentMonth: number, currentYear: number):
   }
 }
 
-/**
- * Dismiss a task by ID for the current month.
- */
-export function dismissTask(taskId: string, currentMonth: number, currentYear: number): void {
-  const existing = loadDismissedTaskIds(currentMonth, currentYear)
-  existing.add(taskId)
-  const data: DismissedTasksData = {
-    month: currentMonth,
-    year: currentYear,
-    taskIds: Array.from(existing),
-  }
-  localStorage.setItem(STORAGE_KEY_DISMISSED_TASKS, JSON.stringify(data))
-}
+function updateDismissedTasks(currentMonth: number, currentYear: number, updateFn: (ids: Set<string>) => void): Set<string> {
+  const ids = loadDismissedTaskIds(currentMonth, currentYear)
+  updateFn(ids)
 
-/**
- * Restore a previously dismissed task.
- */
-export function restoreTask(taskId: string, currentMonth: number, currentYear: number): void {
-  const existing = loadDismissedTaskIds(currentMonth, currentYear)
-  existing.delete(taskId)
-  if (existing.size === 0) {
+  if (ids.size === 0) {
     localStorage.removeItem(STORAGE_KEY_DISMISSED_TASKS)
   } else {
     const data: DismissedTasksData = {
       month: currentMonth,
       year: currentYear,
-      taskIds: Array.from(existing),
+      taskIds: Array.from(ids),
     }
     localStorage.setItem(STORAGE_KEY_DISMISSED_TASKS, JSON.stringify(data))
   }
+  return ids
+}
+
+/**
+ * Dismiss a task by ID for the current month.
+ */
+export function dismissTask(taskId: string, currentMonth: number, currentYear: number): Set<string> {
+  return updateDismissedTasks(currentMonth, currentYear, (ids) => ids.add(taskId))
+}
+
+/**
+ * Restore a previously dismissed task.
+ */
+export function restoreTask(taskId: string, currentMonth: number, currentYear: number): Set<string> {
+  return updateDismissedTasks(currentMonth, currentYear, (ids) => { ids.delete(taskId) })
 }
