@@ -39,7 +39,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.34.0",
+    "@sentry/nextjs": "^10.40.0",
     "@serwist/next": "^9.5.0",
     "@upstash/redis": "^1.36.1",
     "driver.js": "^1.4.0",
@@ -77,6 +77,10 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "vitest": "^4.0.16"
+  },
+  "overrides": {
+    "rollup": "^4.59.0",
+    "minimatch": "^9.0.8"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
