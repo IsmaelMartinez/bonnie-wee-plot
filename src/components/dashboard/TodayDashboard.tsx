@@ -40,7 +40,10 @@ export default function TodayDashboard() {
     seasonalPhase,
     maintenanceTasks,
     generatedTasks,
+    dismissedTasks,
     isLoading,
+    onDismissTask,
+    onRestoreTask,
   } = useTodayData()
 
   const { data, updateMeta, isLoading: allotmentLoading } = useAllotment()
@@ -99,7 +102,14 @@ export default function TodayDashboard() {
           <QuickActions />
 
           {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
-          <TaskList tasks={maintenanceTasks} generatedTasks={generatedTasks} theme={theme} />
+          <TaskList
+            tasks={maintenanceTasks}
+            generatedTasks={generatedTasks}
+            dismissedTasks={dismissedTasks}
+            theme={theme}
+            onDismissTask={onDismissTask}
+            onRestoreTask={onRestoreTask}
+          />
 
           {/* Compost Alerts */}
           <CompostAlerts />

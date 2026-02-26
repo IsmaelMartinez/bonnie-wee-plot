@@ -1,4 +1,5 @@
-import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw, Check, Undo2, ChevronDown, ChevronUp } from 'lucide-react'
 import { MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
 import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
@@ -6,7 +7,10 @@ import { SeasonalTheme } from '@/lib/seasonal-theme'
 interface TaskListProps {
   tasks: MaintenanceTask[]
   generatedTasks?: GeneratedTask[]
+  dismissedTasks?: GeneratedTask[]
   theme: SeasonalTheme
+  onDismissTask?: (taskId: string) => void
+  onRestoreTask?: (taskId: string) => void
 }
 
 const TASK_CONFIG: Record<MaintenanceTaskType, { icon: typeof Scissors; label: string }> = {
@@ -56,7 +60,7 @@ function TaskItem({ task }: { task: MaintenanceTask }) {
   )
 }
 
-function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
+function GeneratedTaskItem({ task, onDismiss }: { task: GeneratedTask; onDismiss?: (taskId: string) => void }) {
   const config = GENERATED_TASK_CONFIG[task.generatedType] || GENERATED_TASK_CONFIG['harvest']
   const Icon = config.icon
 
@@ -87,7 +91,7 @@ function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
   const badge = getBadge()
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0 group">
       <div className="flex-shrink-0 mt-0.5">
         <Icon className={`w-4 h-4 ${config.color}`} />
       </div>
@@ -97,26 +101,64 @@ function GeneratedTaskItem({ task }: { task: GeneratedTask }) {
           <p className="text-xs text-zen-stone-500 mt-1">{task.notes}</p>
         )}
       </div>
-      {badge && (
-        <span className={`flex-shrink-0 text-xs px-1.5 py-0.5 rounded ${badge.style}`}>
-          {badge.text}
-        </span>
-      )}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {badge && (
+          <span className={`text-xs px-1.5 py-0.5 rounded ${badge.style}`}>
+            {badge.text}
+          </span>
+        )}
+        {onDismiss && (
+          <button
+            onClick={() => onDismiss(task.id)}
+            className="p-1 rounded-full text-zen-stone-300 hover:text-zen-moss-600 hover:bg-zen-moss-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            title="Mark as done"
+            aria-label={`Mark "${task.description}" as done`}
+          >
+            <Check className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
 
-export default function TaskList({ tasks, generatedTasks = [] }: TaskListProps) {
+function DismissedTaskItem({ task, onRestore }: { task: GeneratedTask; onRestore: (taskId: string) => void }) {
+  const config = GENERATED_TASK_CONFIG[task.generatedType] || GENERATED_TASK_CONFIG['harvest']
+  const Icon = config.icon
+
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-zen-stone-100 last:border-0 opacity-50 group">
+      <div className="flex-shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-zen-stone-300" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-zen-stone-400 leading-relaxed line-through">{task.description}</p>
+      </div>
+      <button
+        onClick={() => onRestore(task.id)}
+        className="flex-shrink-0 p-1 rounded-full text-zen-stone-300 hover:text-zen-water-600 hover:bg-zen-water-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+        title="Undo"
+        aria-label={`Undo "${task.description}"`}
+      >
+        <Undo2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )
+}
+
+export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = [], onDismissTask, onRestoreTask }: TaskListProps) {
+  const [showDismissed, setShowDismissed] = useState(false)
   const totalTasks = tasks.length + generatedTasks.length
   const hasManualTasks = tasks.length > 0
   const hasGeneratedTasks = generatedTasks.length > 0
+  const hasDismissedTasks = dismissedTasks.length > 0
 
-  if (totalTasks === 0) {
+  if (totalTasks === 0 && !hasDismissedTasks) {
     return (
       <div className="zen-card p-6">
         <h3 className="text-lg text-zen-ink-700 mb-4">Tasks</h3>
         <div className="text-center py-8">
-          <span className="text-3xl block mb-3">☕</span>
+          <span className="text-3xl block mb-3">&#9749;</span>
           <p className="text-zen-stone-500 text-sm">No tasks this month</p>
           <p className="text-zen-stone-400 text-xs mt-1">Time for a quiet moment</p>
         </div>
@@ -137,13 +179,14 @@ export default function TaskList({ tasks, generatedTasks = [] }: TaskListProps) 
         <h3 className="text-lg text-zen-ink-700">Tasks</h3>
         <span className="text-xs text-zen-stone-500">
           {totalTasks} {totalTasks === 1 ? 'item' : 'items'}
+          {hasDismissedTasks && ` · ${dismissedTasks.length} done`}
         </span>
       </div>
 
       <div>
         {/* Generated tasks (auto-generated from plantings) */}
         {displayGeneratedTasks.map((task) => (
-          <GeneratedTaskItem key={task.id} task={task} />
+          <GeneratedTaskItem key={task.id} task={task} onDismiss={onDismissTask} />
         ))}
 
         {/* Manual maintenance tasks (user-created) */}
@@ -160,6 +203,26 @@ export default function TaskList({ tasks, generatedTasks = [] }: TaskListProps) 
           <p className="text-xs text-zen-stone-400 text-center pt-3">
             +{hiddenCount} more
           </p>
+        )}
+
+        {/* Dismissed tasks section */}
+        {hasDismissedTasks && onRestoreTask && (
+          <div className="mt-3 pt-3 border-t border-zen-stone-100">
+            <button
+              onClick={() => setShowDismissed(!showDismissed)}
+              className="flex items-center gap-1 text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors w-full"
+            >
+              {showDismissed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {dismissedTasks.length} completed
+            </button>
+            {showDismissed && (
+              <div className="mt-1">
+                {dismissedTasks.map((task) => (
+                  <DismissedTaskItem key={task.id} task={task} onRestore={onRestoreTask} />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

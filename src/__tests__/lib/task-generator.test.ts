@@ -3,9 +3,10 @@ import {
   generateTasksForMonth,
   generateDateBasedTasks,
   generateSuccessionReminders,
+  generateVarietyTasks,
   getUrgency
 } from '@/lib/task-generator'
-import { Area, Planting } from '@/types/unified-allotment'
+import { Area, Planting, StoredVariety } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
 
 // Mock the vegetable database
@@ -590,6 +591,255 @@ describe('task-generator', () => {
       const harvestTasks = tasks.filter(t => t.generatedType === 'harvest')
       expect(harvestTasks).toHaveLength(1)
       expect(harvestTasks[0].calculatedFrom).toBe('calendar-month')
+    })
+
+    it('should include variety-based tasks when varieties are provided', () => {
+      const today = new Date('2025-03-15')
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateTasksForMonth(
+        3 as Month,
+        [],
+        [],
+        today,
+        [variety],
+        2025
+      )
+
+      const sowTasks = tasks.filter(t => t.generatedType === 'sow-indoors')
+      expect(sowTasks).toHaveLength(1)
+      expect(sowTasks[0].description).toBe('Sow Tomato (Moneymaker) indoors')
+      expect(sowTasks[0].notes).toContain('seeds ready')
+    })
+  })
+
+  describe('generateVarietyTasks', () => {
+    it('should generate sow-indoors task for variety with seeds in sowing month', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(3 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].generatedType).toBe('sow-indoors')
+      expect(tasks[0].description).toBe('Sow Tomato (Moneymaker) indoors')
+      expect(tasks[0].notes).toContain('seeds ready')
+    })
+
+    it('should generate sow-outdoors task when only outdoor sowing is possible', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'radish',
+        name: 'French Breakfast',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'radish',
+        name: 'Radish',
+        planting: {
+          harvestMonths: [5, 6, 7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [4, 5, 6, 7],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateVarietyTasks(5 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].generatedType).toBe('sow-outdoors')
+      expect(tasks[0].description).toContain('Direct sow Radish')
+    })
+
+    it('should not generate task when variety already has a planting', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'tomato',
+        varietyName: 'Moneymaker',
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(
+        3 as Month,
+        [variety],
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        2025
+      )
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should not generate task when seeds status is not have or ordered', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'none' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(3 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should include ordered seeds with appropriate note', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Gardeners Delight',
+        seedsByYear: { 2025: 'ordered' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(3 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].notes).toContain('seeds ordered')
+    })
+
+    it('should not generate task outside sowing months', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(7 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should skip archived varieties', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'tomato',
+        name: 'Moneymaker',
+        seedsByYear: { 2025: 'have' },
+        isArchived: true,
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateVarietyTasks(3 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(0)
+    })
+
+    it('should prefer indoor sowing over outdoor when both available', () => {
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'lettuce',
+        name: 'Little Gem',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'lettuce',
+        name: 'Lettuce',
+        planting: {
+          harvestMonths: [5, 6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5, 6],
+          transplantMonths: []
+        }
+      })
+
+      // Month 4 has both indoor and outdoor
+      const tasks = generateVarietyTasks(4 as Month, [variety], [], 2025)
+
+      expect(tasks).toHaveLength(1)
+      expect(tasks[0].generatedType).toBe('sow-indoors')
     })
   })
 })

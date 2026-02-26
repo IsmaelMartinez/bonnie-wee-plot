@@ -5,9 +5,10 @@
  * 1. Current month and what's planted in the allotment
  * 2. Vegetable database planting/harvesting schedules
  * 3. Maintenance info for perennials (pruning, feeding)
+ * 4. Seed varieties the user has but hasn't planted yet
  */
 
-import { MaintenanceTask, MaintenanceTaskType, Planting, Area } from '@/types/unified-allotment'
+import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
 import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
@@ -328,6 +329,80 @@ function mergeAndDeduplicateTasks(
 }
 
 /**
+ * Generate tasks from seed varieties the user has but hasn't planted yet
+ * Creates sow-indoors/sow-outdoors tasks for varieties with 'have' or 'ordered' seeds
+ * when the current month is in the plant's sowing window
+ */
+export function generateVarietyTasks(
+  currentMonth: Month,
+  varieties: StoredVariety[],
+  plantings: PlantingWithContext[],
+  currentYear: number
+): GeneratedTask[] {
+  const tasks: GeneratedTask[] = []
+
+  // Build a set of (plantId, normalizedVarietyName) that already have plantings
+  const existingPlantings = new Set<string>()
+  for (const { planting } of plantings) {
+    const key = `${planting.plantId}::${(planting.varietyName || '').trim().toLowerCase()}`
+    existingPlantings.add(key)
+  }
+
+  for (const variety of varieties) {
+    if (variety.isArchived) continue
+
+    // Check if user has seeds for the current year
+    const seedStatus = variety.seedsByYear?.[currentYear]
+    if (seedStatus !== 'have' && seedStatus !== 'ordered') continue
+
+    // Check if there's already a planting for this variety
+    const key = `${variety.plantId}::${variety.name.trim().toLowerCase()}`
+    if (existingPlantings.has(key)) continue
+
+    const vegetable = getVegetableById(variety.plantId)
+    if (!vegetable) continue
+
+    const canSowIndoors = vegetable.planting.sowIndoorsMonths.includes(currentMonth)
+    const canSowOutdoors = vegetable.planting.sowOutdoorsMonths.includes(currentMonth)
+
+    if (!canSowIndoors && !canSowOutdoors) continue
+
+    const seedLabel = seedStatus === 'ordered' ? 'seeds ordered' : 'seeds ready'
+
+    // Prefer indoor if both are possible (indoor gets a head start)
+    if (canSowIndoors) {
+      tasks.push({
+        id: `variety-sow-indoors-${variety.id}-${currentMonth}`,
+        type: 'other',
+        generatedType: 'sow-indoors',
+        description: `Sow ${vegetable.name} (${variety.name}) indoors`,
+        plantId: vegetable.id,
+        plantName: vegetable.name,
+        month: currentMonth,
+        priority: 'medium',
+        calculatedFrom: 'calendar-month',
+        notes: `You have ${seedLabel} — time to start indoors`,
+      })
+    } else if (canSowOutdoors) {
+      tasks.push({
+        id: `variety-sow-outdoors-${variety.id}-${currentMonth}`,
+        type: 'other',
+        generatedType: 'sow-outdoors',
+        description: `Direct sow ${vegetable.name} (${variety.name}) outdoors`,
+        plantId: vegetable.id,
+        plantName: vegetable.name,
+        month: currentMonth,
+        priority: 'medium',
+        calculatedFrom: 'calendar-month',
+        notes: `You have ${seedLabel} — can be sown directly outdoors`,
+      })
+    }
+  }
+
+  return tasks
+}
+
+/**
  * Generate tasks for a specific month based on what's planted
  * Combines date-based (priority) and month-based (fallback) approaches
  */
@@ -335,7 +410,9 @@ export function generateTasksForMonth(
   currentMonth: Month,
   plantings: PlantingWithContext[],
   areas: Area[],
-  today: Date = new Date()
+  today: Date = new Date(),
+  varieties: StoredVariety[] = [],
+  currentYear: number = today.getFullYear()
 ): GeneratedTask[] {
   // Get date-based tasks (high priority, personalized)
   const dateBasedTasks = generateDateBasedTasks(plantings, today)
@@ -346,9 +423,13 @@ export function generateTasksForMonth(
   // Get month-based tasks (fallback for plantings without dates)
   const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas)
 
+  // Get variety-based tasks (seeds user has but hasn't planted)
+  const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear)
+
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks]
-  const mergedTasks = mergeAndDeduplicateTasks(allDateBased, monthBasedTasks)
+  const allMonthBased = [...monthBasedTasks, ...varietyTasks]
+  const mergedTasks = mergeAndDeduplicateTasks(allDateBased, allMonthBased)
 
   // Deduplicate any remaining duplicates
   const dedupedTasks = deduplicateTasks(mergedTasks)
