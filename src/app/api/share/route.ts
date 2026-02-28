@@ -122,10 +122,21 @@ export async function POST(request: NextRequest) {
       expiresInSeconds: expirySeconds,
     })
   } catch (error) {
-    logger.error('Share API error', { error: error instanceof Error ? error.message : 'Unknown error' })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Share API error', { error: message })
+
+    // Provide a more helpful error when Redis connection fails
+    const isConnectionError = message.includes('fetch failed') ||
+      message.includes('ECONNREFUSED') ||
+      message.includes('Unauthorized') ||
+      message.includes('invalid') ||
+      message.includes('WRONGPASS')
+
     return NextResponse.json(
-      { error: 'Failed to share allotment' },
-      { status: 500 }
+      { error: isConnectionError
+          ? 'Share service unavailable. Please check server configuration.'
+          : 'Failed to share allotment' },
+      { status: isConnectionError ? 503 : 500 }
     )
   }
 }
