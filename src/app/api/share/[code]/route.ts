@@ -63,10 +63,20 @@ export async function GET(
       sharedAt: shareData.sharedAt,
     })
   } catch (error) {
-    logger.error('Share retrieval error', { error: error instanceof Error ? error.message : 'Unknown error' })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Share retrieval error', { error: message })
+
+    const isConnectionError = message.includes('fetch failed') ||
+      message.includes('ECONNREFUSED') ||
+      message.includes('Unauthorized') ||
+      message.includes('invalid') ||
+      message.includes('WRONGPASS')
+
     return NextResponse.json(
-      { error: 'Failed to retrieve shared allotment' },
-      { status: 500 }
+      { error: isConnectionError
+          ? 'Share service unavailable. Please check server configuration.'
+          : 'Failed to retrieve shared allotment' },
+      { status: isConnectionError ? 503 : 500 }
     )
   }
 }
