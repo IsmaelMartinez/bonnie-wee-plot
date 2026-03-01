@@ -58,7 +58,7 @@ test.describe('Data Management - Export/Import', () => {
     await page.getByRole('tab', { name: 'Data' }).click()
 
     // Should show storage stats
-    await expect(page.getByText('Storage')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Storage' })).toBeVisible()
     await expect(page.getByText('Allotment Data', { exact: true })).toBeVisible()
     await expect(page.getByText('Total localStorage')).toBeVisible()
   })
