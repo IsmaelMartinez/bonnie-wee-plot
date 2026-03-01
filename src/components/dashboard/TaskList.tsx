@@ -248,6 +248,18 @@ export default function TaskList({
   const activeCustomTasks = customTasks.filter(t => !t.completed)
   const completedCustomTasks = customTasks.filter(t => t.completed)
   const totalTasks = activeCustomTasks.length + tasks.length + generatedTasks.length
+
+  const renderCustomTasks = (items: CustomTask[]) => {
+    if (!onToggleCustomTask || !onRemoveCustomTask) return null
+    return items.map((task) => (
+      <CustomTaskItem
+        key={task.id}
+        task={task}
+        onToggle={onToggleCustomTask}
+        onRemove={onRemoveCustomTask}
+      />
+    ))
+  }
   const hasManualTasks = tasks.length > 0
   const hasGeneratedTasks = generatedTasks.length > 0
   const hasDismissedTasks = dismissedTasks.length > 0
@@ -294,16 +306,7 @@ export default function TaskList({
 
       <div>
         {/* Custom tasks (user-created, persistent) - always at top */}
-        {activeCustomTasks.map((task) => (
-          onToggleCustomTask && onRemoveCustomTask ? (
-            <CustomTaskItem
-              key={task.id}
-              task={task}
-              onToggle={onToggleCustomTask}
-              onRemove={onRemoveCustomTask}
-            />
-          ) : null
-        ))}
+        {renderCustomTasks(activeCustomTasks)}
 
         {/* Add task input */}
         {onAddCustomTask && (
@@ -346,16 +349,7 @@ export default function TaskList({
             {showDismissed && (
               <div className="mt-1">
                 {/* Completed custom tasks */}
-                {completedCustomTasks.map((task) => (
-                  onToggleCustomTask && onRemoveCustomTask ? (
-                    <CustomTaskItem
-                      key={task.id}
-                      task={task}
-                      onToggle={onToggleCustomTask}
-                      onRemove={onRemoveCustomTask}
-                    />
-                  ) : null
-                ))}
+                {renderCustomTasks(completedCustomTasks)}
                 {/* Dismissed generated tasks */}
                 {onRestoreTask && dismissedTasks.map((task) => (
                   <DismissedTaskItem key={task.id} task={task} onRestore={onRestoreTask} />
