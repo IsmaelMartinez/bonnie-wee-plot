@@ -9,7 +9,28 @@ import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/l
 import { ImportError, ExportError } from '@/types/errors'
 
 /**
- * Validate import data structure before import
+ * Validate that an object has the required allotment data fields (version, meta, seasons)
+ * and that the version is not newer than the current schema.
+ */
+function validateAllotmentFields(obj: Record<string, unknown>): { valid: boolean; error?: string } {
+  if (typeof obj.version !== 'number') {
+    return { valid: false, error: 'Invalid backup: missing or invalid version' }
+  }
+  if (!obj.meta || typeof obj.meta !== 'object') {
+    return { valid: false, error: 'Invalid backup: missing metadata' }
+  }
+  if (!Array.isArray(obj.seasons)) {
+    return { valid: false, error: 'Invalid backup: missing seasons data' }
+  }
+  if (obj.version > CURRENT_SCHEMA_VERSION) {
+    return { valid: false, error: `Backup is from a newer version (v${obj.version}). Please update the app first.` }
+  }
+  return { valid: true }
+}
+
+/**
+ * Validate import data structure before import.
+ * Supports both CompleteExport (allotment + varieties) and legacy AllotmentData formats.
  */
 export function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
   if (!parsed || typeof parsed !== 'object') {
@@ -18,42 +39,15 @@ export function validateImportData(parsed: unknown): { valid: boolean; error?: s
 
   const obj = parsed as Record<string, unknown>
 
-  // Check for CompleteExport format (new format with allotment + varieties)
+  // CompleteExport format: validate the nested allotment object
   if (obj.allotment && obj.varieties) {
-    const allotment = obj.allotment as Record<string, unknown>
-
-    if (typeof allotment.version !== 'number') {
-      return { valid: false, error: 'Invalid backup: missing or invalid version' }
-    }
-
-    if (!allotment.meta || typeof allotment.meta !== 'object') {
-      return { valid: false, error: 'Invalid backup: missing metadata' }
-    }
-
-    if (!Array.isArray(allotment.seasons)) {
-      return { valid: false, error: 'Invalid backup: missing seasons data' }
-    }
-
-    if (allotment.version > CURRENT_SCHEMA_VERSION) {
-      return {
-        valid: false,
-        error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
-      }
-    }
-
-    return { valid: true }
+    return validateAllotmentFields(obj.allotment as Record<string, unknown>)
   }
 
-  // Check for old format (just AllotmentData)
-  if (typeof obj.version === 'number' && obj.meta && Array.isArray(obj.seasons)) {
-    if (obj.version > CURRENT_SCHEMA_VERSION) {
-      return {
-        valid: false,
-        error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
-      }
-    }
-
-    return { valid: true }
+  // Legacy AllotmentData format: validate the top-level object
+  const result = validateAllotmentFields(obj)
+  if (result.valid || result.error !== 'Invalid backup: missing or invalid version') {
+    return result
   }
 
   return { valid: false, error: 'Invalid backup file: unrecognized format' }
