@@ -23,7 +23,6 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
-import DataManagement from '@/components/allotment/DataManagement'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
@@ -71,8 +70,6 @@ function AllotmentPageContent() {
     getRotationBeds,
     getPerennialBeds,
     clearSaveError,
-    reload,
-    flushSave,
     getAreaNotes,
     addAreaNote,
     updateAreaNote,
@@ -256,7 +253,6 @@ function AllotmentPageContent() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto overflow-x-auto">
-              <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
               <Link
                 href="/seeds"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"

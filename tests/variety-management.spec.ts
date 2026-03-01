@@ -8,6 +8,13 @@ async function disableTours(page: import('@playwright/test').Page) {
   });
 }
 
+// Helper to navigate to settings and open the Data tab
+async function openDataTab(page: Page) {
+  await page.goto('/settings')
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('tab', { name: 'Data' }).click()
+}
+
 // Helper to wait for import to complete
 // Import now does an immediate page reload, so we race between success message and navigation
 async function waitForImportComplete(page: Page) {
@@ -53,7 +60,7 @@ async function waitForImportComplete(page: Page) {
   // Wait briefly for page to stabilize after navigation/reload
   await page.waitForTimeout(500)
 
-  // Verify we're back on the allotment page
+  // Verify we're on a page with a heading
   await expect(page.locator('h1')).toBeVisible({ timeout: 10000 })
 
   // Wait for data to be available in localStorage after import and reload
@@ -128,6 +135,16 @@ function createExportData(varieties: unknown[] = [], areas: unknown[] = []) {
   }
 }
 
+// Helper to import a file via the settings Data tab
+async function importFileViaSettings(page: Page, filePath: string) {
+  await openDataTab(page)
+
+  const fileChooserPromise = page.waitForEvent('filechooser')
+  await page.getByText('Select Backup File').click()
+  const fileChooser = await fileChooserPromise
+  await fileChooser.setFiles(filePath)
+}
+
 /**
  * Variety Management E2E Tests
  *
@@ -140,7 +157,7 @@ function createExportData(varieties: unknown[] = [], areas: unknown[] = []) {
  */
 test.describe('Variety Management E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/allotment', { waitUntil: 'load', timeout: 60000 })
+    await page.goto('/settings', { waitUntil: 'load', timeout: 60000 })
     await page.evaluate(() => localStorage.clear())
     await disableTours(page)
     await page.reload({ waitUntil: 'load', timeout: 60000 })
@@ -160,20 +177,14 @@ test.describe('Variety Management E2E', () => {
       const tempFilePath = path.join(__dirname, 'test-export-import.json')
       fs.writeFileSync(tempFilePath, JSON.stringify(exportData))
 
-      // 2. Import the data
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(tempFilePath)
+      // 2. Import the data via settings Data tab
+      await importFileViaSettings(page, tempFilePath)
 
       // Wait for import to complete
       await waitForImportComplete(page)
 
       // 3. Export the data
-      await dataManagementButton.click()
+      await openDataTab(page)
 
       const downloadPromise = page.waitForEvent('download')
       await page.getByRole('button', { name: /Export Backup/i }).click()
@@ -200,7 +211,8 @@ test.describe('Variety Management E2E', () => {
       await page.getByRole('button', { name: 'Delete Everything' }).click()
       await page.waitForTimeout(1000)
 
-      await dataManagementButton.click()
+      // Re-open Data tab after clear
+      await openDataTab(page)
       const fileChooserPromise2 = page.waitForEvent('filechooser')
       await page.getByText('Select Backup File').click()
       const fileChooser2 = await fileChooserPromise2
@@ -237,13 +249,7 @@ test.describe('Variety Management E2E', () => {
 
       // Rapidly import all 3 files
       for (let i = 0; i < 3; i++) {
-        const dataManagementButton = page.locator('button[aria-label="Data management"]')
-        await dataManagementButton.click()
-
-        const fileChooserPromise = page.waitForEvent('filechooser')
-        await page.getByText('Select Backup File').click()
-        const fileChooser = await fileChooserPromise
-        await fileChooser.setFiles(tempFiles[i])
+        await importFileViaSettings(page, tempFiles[i])
 
         // Wait for import to complete before next one
         await waitForImportComplete(page)
@@ -283,13 +289,7 @@ test.describe('Variety Management E2E', () => {
       const tempFile = path.join(__dirname, 'test-storage-sync.json')
       fs.writeFileSync(tempFile, JSON.stringify(exportData))
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(tempFile)
+      await importFileViaSettings(page, tempFile)
 
       await waitForImportComplete(page)
 
@@ -319,13 +319,7 @@ test.describe('Variety Management E2E', () => {
       const tempFile = path.join(__dirname, 'test-updates.json')
       fs.writeFileSync(tempFile, JSON.stringify(exportData))
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(tempFile)
+      await importFileViaSettings(page, tempFile)
 
       await waitForImportComplete(page)
 
@@ -363,13 +357,7 @@ test.describe('Variety Management E2E', () => {
       // Measure import time
       const startImport = Date.now()
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(tempFile)
+      await importFileViaSettings(page, tempFile)
 
       await waitForImportComplete(page)
 
@@ -388,7 +376,7 @@ test.describe('Variety Management E2E', () => {
       expect(data.varieties).toHaveLength(100)
 
       // Measure export time
-      await dataManagementButton.click()
+      await openDataTab(page)
 
       const startExport = Date.now()
       const downloadPromise = page.waitForEvent('download')
@@ -415,8 +403,7 @@ test.describe('Variety Management E2E', () => {
       const tempFile = path.join(__dirname, 'test-corrupt.json')
       fs.writeFileSync(tempFile, '{"invalid": json without closing brace')
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
+      await openDataTab(page)
 
       const fileChooserPromise = page.waitForEvent('filechooser')
       await page.getByText('Select Backup File').click()
@@ -425,9 +412,6 @@ test.describe('Variety Management E2E', () => {
 
       // Should show error message
       await expect(page.getByText(/Invalid JSON file/i)).toBeVisible({ timeout: 10000 })
-
-      // App should not crash
-      await expect(page.locator('button[aria-label="Data management"]')).toBeVisible()
 
       // Cleanup
       fs.unlinkSync(tempFile)
@@ -443,8 +427,7 @@ test.describe('Variety Management E2E', () => {
       const tempFile = path.join(__dirname, 'test-invalid-structure.json')
       fs.writeFileSync(tempFile, JSON.stringify(invalidData))
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
+      await openDataTab(page)
 
       const fileChooserPromise = page.waitForEvent('filechooser')
       await page.getByText('Select Backup File').click()
@@ -474,13 +457,7 @@ test.describe('Variety Management E2E', () => {
       const initialFile = path.join(__dirname, 'test-initial.json')
       fs.writeFileSync(initialFile, JSON.stringify(initialData))
 
-      let dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      let fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      let fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(initialFile)
+      await importFileViaSettings(page, initialFile)
 
       await waitForImportComplete(page)
 
@@ -491,13 +468,11 @@ test.describe('Variety Management E2E', () => {
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(2000)
 
-      dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.waitFor({ state: 'visible', timeout: 10000 })
-      await dataManagementButton.click()
+      await openDataTab(page)
 
-      fileChooserPromise = page.waitForEvent('filechooser')
+      const fileChooserPromise = page.waitForEvent('filechooser')
       await page.getByText('Select Backup File').click()
-      fileChooser = await fileChooserPromise
+      const fileChooser = await fileChooserPromise
       await fileChooser.setFiles(invalidFile)
 
       // Should show error
@@ -544,13 +519,7 @@ test.describe('Variety Management E2E', () => {
       // Count varieties before import
       const expectedVarieties = backupData.allotment?.varieties?.length || 0
 
-      const dataManagementButton = page.locator('button[aria-label="Data management"]')
-      await dataManagementButton.click()
-
-      const fileChooserPromise = page.waitForEvent('filechooser')
-      await page.getByText('Select Backup File').click()
-      const fileChooser = await fileChooserPromise
-      await fileChooser.setFiles(userBackupPath)
+      await importFileViaSettings(page, userBackupPath)
 
       await waitForImportComplete(page)
 
@@ -583,12 +552,7 @@ test.describe('Variety Management E2E', () => {
       // Only verify export if we successfully imported varieties
       if (data.varieties && data.varieties.length > 0) {
         // Export and verify roundtrip
-        await page.goto('/allotment')
-        await page.waitForLoadState('networkidle')
-        await page.waitForTimeout(1000)
-
-        const dataManagementButton2 = page.locator('button[aria-label="Data management"]')
-        await dataManagementButton2.click()
+        await openDataTab(page)
 
         const downloadPromise = page.waitForEvent('download')
         await page.getByRole('button', { name: /Export Backup/i }).click()

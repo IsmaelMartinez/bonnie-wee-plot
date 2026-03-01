@@ -273,7 +273,7 @@ describe('usePersistedStorage - Race Condition Handling', () => {
       result.current.setData(updatedData)
     })
 
-    // Flush before import (this is what DataManagement does)
+    // Flush before import (this is what useDataTransfer does)
     let flushResult: boolean = false
     await act(async () => {
       flushResult = await result.current.flushSave()

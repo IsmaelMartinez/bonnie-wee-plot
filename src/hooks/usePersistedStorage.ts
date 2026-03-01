@@ -19,7 +19,7 @@ export type { SaveStatus, StorageResult } from '@/types/storage'
 const SAVE_DEBOUNCE_MS = 500
 
 // Global flag to prevent saves during import/reload
-// This is set by DataManagement before triggering reload to prevent
+// This is set by useDataTransfer before triggering reload to prevent
 // the hook from overwriting just-imported data with stale in-memory state
 declare global {
   interface Window {

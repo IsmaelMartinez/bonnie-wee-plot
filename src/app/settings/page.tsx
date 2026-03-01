@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShareDialog } from '@/components/share/ShareDialog'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import Link from 'next/link'
-import { Download, ArrowRight, Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
+import { Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
-import DataManagement from '@/components/allotment/DataManagement'
+import DataTab from '@/components/settings/DataTab'
 import PageTour from '@/components/onboarding/PageTour'
 import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
@@ -168,46 +166,7 @@ export default function SettingsPage() {
               id: 'data',
               label: 'Data',
               icon: <Database className="w-4 h-4" />,
-              content: (
-                <div className="space-y-8">
-                  {/* Data Management Section */}
-                  <section data-tour="data-management">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Database className="w-5 h-5 text-zen-stone-600" />
-                      <h2 className="text-lg font-medium text-zen-ink-700">Data Management</h2>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Export your data for backup or import from a previous backup.
-                    </p>
-                    <DataManagement data={data} onDataImported={reload} flushSave={flushSave} />
-                  </section>
-
-                  {/* Share Section */}
-                  <section className="pt-6 border-t border-zen-stone-200" data-tour="share-settings">
-                    <h2 className="text-lg font-medium text-zen-ink-700 mb-4">Share Allotment</h2>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Share your allotment data with friends, family, or another device. Choose how long the share link stays active (up to 7 days).
-                    </p>
-                    <ShareDialog data={data} flushSave={flushSave} />
-                  </section>
-
-                  {/* Receive Section */}
-                  <section className="pt-6 border-t border-zen-stone-200">
-                    <h2 className="text-lg font-medium text-zen-ink-700 mb-4">Receive Allotment</h2>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Import allotment data shared from another device by scanning a QR code or entering a code.
-                    </p>
-                    <Link
-                      href="/receive"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition min-h-[44px]"
-                    >
-                      <Download className="w-4 h-4" />
-                      Receive Data
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </section>
-                </div>
-              ),
+              content: <DataTab data={data} flushSave={flushSave} reload={reload} />,
             },
             {
               id: 'help',
