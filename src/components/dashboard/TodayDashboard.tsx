@@ -38,10 +38,15 @@ export default function TodayDashboard() {
   const {
     currentMonth,
     seasonalPhase,
+    customTasks,
     maintenanceTasks,
     generatedTasks,
     dismissedTasks,
     isLoading,
+    onAddCustomTask,
+    onToggleCustomTask,
+    onUpdateCustomTask,
+    onRemoveCustomTask,
     onDismissTask,
     onRestoreTask,
   } = useTodayData()
@@ -103,10 +108,15 @@ export default function TodayDashboard() {
 
           {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
           <TaskList
+            customTasks={customTasks}
             tasks={maintenanceTasks}
             generatedTasks={generatedTasks}
             dismissedTasks={dismissedTasks}
             theme={theme}
+            onAddCustomTask={onAddCustomTask}
+            onToggleCustomTask={onToggleCustomTask}
+            onUpdateCustomTask={onUpdateCustomTask}
+            onRemoveCustomTask={onRemoveCustomTask}
             onDismissTask={onDismissTask}
             onRestoreTask={onRestoreTask}
           />

@@ -159,6 +159,7 @@ export interface AllotmentData {
   layout: AllotmentLayoutData
   seasons: SeasonRecord[]            // All historical + current seasons
   currentYear: number                // Which year is "active"
+  customTasks?: CustomTask[]           // Free-form user tasks for Today dashboard
   maintenanceTasks?: MaintenanceTask[] // Perennial plant care tasks
   gardenEvents?: GardenEvent[]       // Log of garden events (pruning, feeding, etc.)
   varieties: StoredVariety[]         // Seed varieties (consolidated from separate storage)
@@ -311,6 +312,25 @@ export type NewPlanting = Omit<Planting, 'id'>
  */
 export type PlantingUpdate = Partial<Omit<Planting, 'id'>>
 
+// ============ CUSTOM TASKS ============
+
+/**
+ * A free-form user task shown on the Today dashboard.
+ * These persist across months and sit above auto-generated tasks.
+ */
+export interface CustomTask {
+  id: string
+  description: string
+  completed: boolean
+  createdAt: string              // ISO date string
+  completedAt?: string           // ISO date string when marked done
+}
+
+/**
+ * Input for creating a new custom task
+ */
+export type NewCustomTask = Pick<CustomTask, 'description'>
+
 // ============ MAINTENANCE TASKS ============
 
 /**
@@ -441,7 +461,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 16 // Removed plannedYears from StoredVariety (use seedsByYear instead)
+export const CURRENT_SCHEMA_VERSION = 17 // Added customTasks for free-form user tasks on Today dashboard
 
 // ============ HELPER TYPES ============
 

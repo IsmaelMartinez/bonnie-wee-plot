@@ -18,6 +18,8 @@ import {
   Planting,
   NewPlanting,
   PlantingUpdate,
+  CustomTask,
+  NewCustomTask,
   MaintenanceTask,
   NewMaintenanceTask,
   AreaNote,
@@ -46,6 +48,7 @@ import { useAllotmentAreas } from './allotment/useAllotmentAreas'
 import { useAllotmentVarieties } from './allotment/useAllotmentVarieties'
 import { useAllotmentPlantings } from './allotment/useAllotmentPlantings'
 import { useAllotmentMaintenance } from './allotment/useAllotmentMaintenance'
+import { useAllotmentCustomTasks } from './allotment/useAllotmentCustomTasks'
 import { useAllotmentNotes } from './allotment/useAllotmentNotes'
 import { useAllotmentCareLogs } from './allotment/useAllotmentCareLogs'
 
@@ -107,6 +110,13 @@ export interface UseAllotmentActions {
   // Rotation history
   getRotationHistory: (areaId: string) => Array<{ year: number; group: RotationGroup }>
   getRecentRotation: (areaId: string, years?: number) => RotationGroup[]
+
+  // Custom tasks (free-form user tasks for Today dashboard)
+  getCustomTasks: () => CustomTask[]
+  addCustomTask: (task: NewCustomTask) => void
+  toggleCustomTask: (taskId: string) => void
+  updateCustomTask: (taskId: string, description: string) => void
+  removeCustomTask: (taskId: string) => void
 
   // Maintenance tasks
   getMaintenanceTasks: () => MaintenanceTask[]
@@ -271,7 +281,16 @@ export function useAllotment(): UseAllotmentReturn {
     getRecentRotation,
   } = plantingsHook
 
-  // Phase 4: Maintenance, Notes, CareLogs (parallel)
+  // Phase 4: Custom Tasks, Maintenance, Notes, CareLogs (parallel)
+  const customTasksHook = useAllotmentCustomTasks({ data, setData })
+  const {
+    getCustomTasks,
+    addCustomTask,
+    toggleCustomTask,
+    updateCustomTask: updateCustomTaskDesc,
+    removeCustomTask,
+  } = customTasksHook
+
   const maintenanceHook = useAllotmentMaintenance({ data, setData })
   const {
     getMaintenanceTasks,
@@ -357,6 +376,13 @@ export function useAllotment(): UseAllotmentReturn {
     // Rotation history
     getRotationHistory,
     getRecentRotation,
+
+    // Custom tasks
+    getCustomTasks,
+    addCustomTask,
+    toggleCustomTask,
+    updateCustomTask: updateCustomTaskDesc,
+    removeCustomTask,
 
     // Maintenance tasks
     getMaintenanceTasks,
