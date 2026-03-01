@@ -8,8 +8,18 @@ async function disableTours(page: import('@playwright/test').Page) {
   });
 }
 
-// Helper function to enable edit mode and add an area
+// Helper function to navigate to settings and open the Data tab
+async function openDataTab(page: import('@playwright/test').Page) {
+  await page.goto('/settings')
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('tab', { name: 'Data' }).click()
+}
+
+// Helper function to enable edit mode and add an area on the allotment page
 async function addAreaInEditMode(page: import('@playwright/test').Page, areaName: string) {
+  await page.goto('/allotment')
+  await page.waitForLoadState('networkidle')
+
   // Click Unlock button to enter edit mode
   const lockButton = page.locator('button').filter({ hasText: /lock/i })
   await expect(lockButton).toBeVisible({ timeout: 5000 })
@@ -30,40 +40,31 @@ async function addAreaInEditMode(page: import('@playwright/test').Page, areaName
 
 test.describe('Data Management - Export/Import', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/allotment')
+    await page.goto('/settings')
     await page.evaluate(() => localStorage.clear())
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
   })
 
-  test('should open data management dialog', async ({ page }) => {
-    // Find and click the data management button (Download icon)
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await expect(dataManagementButton).toBeVisible()
-    await dataManagementButton.click()
+  test('should show data tab with transfer section', async ({ page }) => {
+    await page.getByRole('tab', { name: 'Data' }).click()
 
-    // Dialog should open
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toBeVisible()
-    await expect(dialog.getByText('Data Management')).toBeVisible()
+    // Data tab content should be visible
+    await expect(page.getByText('Transfer Data')).toBeVisible()
   })
 
   test('should show storage statistics', async ({ page }) => {
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Should show storage stats
-    await expect(page.getByText('Storage Usage')).toBeVisible()
+    await expect(page.getByText('Storage')).toBeVisible()
     await expect(page.getByText('Allotment Data', { exact: true })).toBeVisible()
     await expect(page.getByText('Total localStorage')).toBeVisible()
   })
 
   test('should export data as JSON file', async ({ page }) => {
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Start waiting for the download before clicking
     const downloadPromise = page.waitForEvent('download')
@@ -135,9 +136,8 @@ test.describe('Data Management - Export/Import', () => {
     }
     fs.writeFileSync(tempFilePath, JSON.stringify(importData))
 
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Open Data tab
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Use file chooser for import
     const fileChooserPromise = page.waitForEvent('filechooser')
@@ -161,7 +161,7 @@ test.describe('Data Management - Export/Import', () => {
   })
 
   test('should create pre-import backup before importing', async ({ page }) => {
-    // Add some initial data
+    // Add some initial data on allotment page
     await addAreaInEditMode(page, 'Initial Area')
     await page.waitForTimeout(700)
 
@@ -204,9 +204,8 @@ test.describe('Data Management - Export/Import', () => {
       return Object.keys(localStorage).filter(k => k.includes('pre-import')).length
     })
 
-    // Import the file
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Navigate to settings and open Data tab
+    await openDataTab(page)
 
     const fileChooserPromise = page.waitForEvent('filechooser')
     await page.getByText('Select Backup File').click()
@@ -233,9 +232,8 @@ test.describe('Data Management - Export/Import', () => {
     const tempFilePath = path.join(__dirname, 'invalid.json')
     fs.writeFileSync(tempFilePath, 'not valid json {{{')
 
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Open Data tab
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Try to import invalid file
     const fileChooserPromise = page.waitForEvent('filechooser')
@@ -285,9 +283,8 @@ test.describe('Data Management - Export/Import', () => {
     }
     fs.writeFileSync(tempFilePath, JSON.stringify(futureData))
 
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Open Data tab
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Try to import
     const fileChooserPromise = page.waitForEvent('filechooser')
@@ -325,9 +322,8 @@ test.describe('Data Management - Export/Import', () => {
     }
     fs.writeFileSync(tempFilePath, JSON.stringify(oldFormatData))
 
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Open Data tab
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Import old format file
     const fileChooserPromise = page.waitForEvent('filechooser')
@@ -350,9 +346,8 @@ test.describe('Data Management - Export/Import', () => {
   })
 
   test('should show clear confirmation dialog', async ({ page }) => {
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Open Data tab
+    await page.getByRole('tab', { name: 'Data' }).click()
 
     // Click clear button
     await page.getByRole('button', { name: /Clear All Data/i }).click()
@@ -364,14 +359,13 @@ test.describe('Data Management - Export/Import', () => {
   })
 
   test('should cancel clear when clicking Keep Data', async ({ page }) => {
-    // Add an area first
+    // Add an area first on the allotment page
     const areaName = `Keep Me ${Date.now()}`
     await addAreaInEditMode(page, areaName)
     await page.waitForTimeout(700)
 
-    // Open data management dialog
-    const dataManagementButton = page.locator('button[aria-label="Data management"]')
-    await dataManagementButton.click()
+    // Navigate to settings and open Data tab
+    await openDataTab(page)
 
     // Click clear button
     await page.getByRole('button', { name: /Clear All Data/i }).click()
@@ -382,10 +376,9 @@ test.describe('Data Management - Export/Import', () => {
     // Dialog should close
     await expect(page.getByText('Clear All Data?')).not.toBeVisible()
 
-    // Close data management dialog
-    await page.getByRole('button', { name: 'Close', exact: true }).click()
-
-    // Data should still be there
+    // Navigate to allotment to verify data is still there
+    await page.goto('/allotment')
+    await page.waitForLoadState('networkidle')
     await expect(page.locator('[class*="react-grid-item"]').filter({ hasText: areaName })).toBeVisible()
   })
 })
