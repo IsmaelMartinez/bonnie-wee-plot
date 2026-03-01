@@ -61,7 +61,7 @@ interface UseDataTransferOptions {
 
 /**
  * Hook encapsulating export/import/clear logic for allotment data.
- * Used by both DataManagement (dialog on allotment page) and settings page (inline).
+ * Used by the DataTab in the settings page.
  */
 export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTransferOptions) {
   const [importError, setImportError] = useState<ImportError | null>(null)
