@@ -14,6 +14,8 @@ import {
   PlantingUpdate,
   NewSeasonInput,
   StorageResult,
+  CustomTask,
+  NewCustomTask,
   MaintenanceTask,
   NewMaintenanceTask,
   AreaNote,
@@ -720,9 +722,18 @@ function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 15 -> 16: Remove plannedYears from StoredVariety (use seedsByYear instead)
   if (migrated.version < 16) {
     const v16Data = migrateToV16(migrated)
-    v16Data.version = CURRENT_SCHEMA_VERSION
+    v16Data.version = 16
     logger.info('Schema migration complete', { from: 15, to: 16, change: 'removed plannedYears from StoredVariety' })
-    return v16Data
+    // Continue to v17 migration
+    return migrateSchema(v16Data)
+  }
+
+  // Version 16 -> 17: Add customTasks array
+  if (migrated.version < 17) {
+    const v17Data = migrateToV17(migrated)
+    v17Data.version = CURRENT_SCHEMA_VERSION
+    logger.info('Schema migration complete', { from: 16, to: 17, change: 'added customTasks for free-form user tasks' })
+    return v17Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -1271,6 +1282,16 @@ function migrateToV16(data: AllotmentData): AllotmentData {
   })
 
   logger.info('v16 migration: removed plannedYears from StoredVariety, migrated to seedsByYear')
+  return migrated
+}
+
+/**
+ * Migrate from v16 to v17: Add customTasks array
+ */
+function migrateToV17(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+  migrated.customTasks = migrated.customTasks || []
+  logger.info('v17 migration: added customTasks array')
   return migrated
 }
 
@@ -2405,6 +2426,85 @@ export function getRecentRotation(
   return getRotationHistory(data, areaId)
     .slice(0, years)
     .map(h => h.group)
+}
+
+// ============ CUSTOM TASK OPERATIONS ============
+
+/**
+ * Get all custom tasks (newest first)
+ */
+export function getCustomTasks(data: AllotmentData): CustomTask[] {
+  return data.customTasks || []
+}
+
+/**
+ * Add a new custom task
+ */
+export function addCustomTask(
+  data: AllotmentData,
+  task: NewCustomTask
+): AllotmentData {
+  const newTask: CustomTask = {
+    id: generateId('custom-task'),
+    description: task.description,
+    completed: false,
+    createdAt: new Date().toISOString(),
+  }
+
+  return {
+    ...data,
+    customTasks: [newTask, ...(data.customTasks || [])],
+  }
+}
+
+/**
+ * Toggle a custom task's completed status
+ */
+export function toggleCustomTask(
+  data: AllotmentData,
+  taskId: string
+): AllotmentData {
+  return {
+    ...data,
+    customTasks: (data.customTasks || []).map(task =>
+      task.id === taskId
+        ? {
+            ...task,
+            completed: !task.completed,
+            completedAt: !task.completed ? new Date().toISOString() : undefined,
+          }
+        : task
+    ),
+  }
+}
+
+/**
+ * Update a custom task's description
+ */
+export function updateCustomTask(
+  data: AllotmentData,
+  taskId: string,
+  description: string
+): AllotmentData {
+  return {
+    ...data,
+    customTasks: (data.customTasks || []).map(task =>
+      task.id === taskId ? { ...task, description } : task
+    ),
+  }
+}
+
+/**
+ * Remove a custom task
+ */
+export function removeCustomTask(
+  data: AllotmentData,
+  taskId: string
+): AllotmentData {
+  return {
+    ...data,
+    customTasks: (data.customTasks || []).filter(t => t.id !== taskId),
+  }
 }
 
 // ============ MAINTENANCE TASK OPERATIONS ============

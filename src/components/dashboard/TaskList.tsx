@@ -1,14 +1,19 @@
-import { useState } from 'react'
-import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw, Check, Undo2, ChevronDown, ChevronUp } from 'lucide-react'
-import { MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
+import { useState, useRef, KeyboardEvent } from 'react'
+import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw, Check, Undo2, ChevronDown, ChevronUp, Plus, X, Square, CheckSquare } from 'lucide-react'
+import { CustomTask, NewCustomTask, MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
 import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
 
 interface TaskListProps {
+  customTasks?: CustomTask[]
   tasks: MaintenanceTask[]
   generatedTasks?: GeneratedTask[]
   dismissedTasks?: GeneratedTask[]
   theme: SeasonalTheme
+  onAddCustomTask?: (task: NewCustomTask) => void
+  onToggleCustomTask?: (taskId: string) => void
+  onUpdateCustomTask?: (taskId: string, description: string) => void
+  onRemoveCustomTask?: (taskId: string) => void
   onDismissTask?: (taskId: string) => void
   onRestoreTask?: (taskId: string) => void
 }
@@ -41,7 +46,88 @@ const URGENCY_STYLES: Record<TaskUrgency, string> = {
   'later': 'bg-zen-stone-100 text-zen-stone-600',
 }
 
-function TaskItem({ task }: { task: MaintenanceTask }) {
+function CustomTaskItem({
+  task,
+  onToggle,
+  onRemove,
+}: {
+  task: CustomTask
+  onToggle: (taskId: string) => void
+  onRemove: (taskId: string) => void
+}) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0 group">
+      <button
+        onClick={() => onToggle(task.id)}
+        className="flex-shrink-0 mt-0.5 text-zen-stone-400 hover:text-zen-moss-600 transition-colors"
+        aria-label={task.completed ? `Mark "${task.description}" as not done` : `Mark "${task.description}" as done`}
+      >
+        {task.completed ? (
+          <CheckSquare className="w-4 h-4 text-zen-moss-500" />
+        ) : (
+          <Square className="w-4 h-4" />
+        )}
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm leading-relaxed ${task.completed ? 'text-zen-stone-400 line-through' : 'text-zen-ink-700'}`}>
+          {task.description}
+        </p>
+      </div>
+      <button
+        onClick={() => onRemove(task.id)}
+        className="flex-shrink-0 p-1 rounded-full text-zen-stone-300 hover:text-zen-ume-600 hover:bg-zen-ume-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+        title="Remove task"
+        aria-label={`Remove "${task.description}"`}
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )
+}
+
+function AddTaskInput({ onAdd }: { onAdd: (task: NewCustomTask) => void }) {
+  const [value, setValue] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSubmit = () => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    onAdd({ description: trimmed })
+    setValue('')
+    inputRef.current?.focus()
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSubmit()
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2 py-2">
+      <Plus className="w-4 h-4 text-zen-stone-300 flex-shrink-0" />
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Add a task..."
+        className="flex-1 text-sm bg-transparent border-none outline-none placeholder:text-zen-stone-300 text-zen-ink-700"
+      />
+      {value.trim() && (
+        <button
+          onClick={handleSubmit}
+          className="text-xs text-zen-moss-600 hover:text-zen-moss-700 px-2 py-1 rounded hover:bg-zen-moss-50 transition-colors"
+        >
+          Add
+        </button>
+      )}
+    </div>
+  )
+}
+
+function MaintenanceTaskItem({ task }: { task: MaintenanceTask }) {
   const config = TASK_CONFIG[task.type] || TASK_CONFIG.other
   const Icon = config.icon
 
@@ -146,17 +232,40 @@ function DismissedTaskItem({ task, onRestore }: { task: GeneratedTask; onRestore
   )
 }
 
-export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = [], onDismissTask, onRestoreTask }: TaskListProps) {
+export default function TaskList({
+  customTasks = [],
+  tasks,
+  generatedTasks = [],
+  dismissedTasks = [],
+  onAddCustomTask,
+  onToggleCustomTask,
+  onRemoveCustomTask,
+  onDismissTask,
+  onRestoreTask,
+}: TaskListProps) {
   const [showDismissed, setShowDismissed] = useState(false)
-  const totalTasks = tasks.length + generatedTasks.length
+
+  const activeCustomTasks = customTasks.filter(t => !t.completed)
+  const completedCustomTasks = customTasks.filter(t => t.completed)
+  const totalTasks = activeCustomTasks.length + tasks.length + generatedTasks.length
   const hasManualTasks = tasks.length > 0
   const hasGeneratedTasks = generatedTasks.length > 0
   const hasDismissedTasks = dismissedTasks.length > 0
+  const hasCompletedCustomTasks = completedCustomTasks.length > 0
+  const totalCompleted = dismissedTasks.length + completedCustomTasks.length
 
-  if (totalTasks === 0 && !hasDismissedTasks) {
+  if (totalTasks === 0 && !hasDismissedTasks && !hasCompletedCustomTasks) {
     return (
-      <div className="zen-card p-6">
+      <div className="zen-card p-6" data-tour="task-list">
         <h3 className="text-lg text-zen-ink-700 mb-4">Tasks</h3>
+
+        {/* Add task input always visible */}
+        {onAddCustomTask && (
+          <div className="mb-4 border-b border-zen-stone-100">
+            <AddTaskInput onAdd={onAddCustomTask} />
+          </div>
+        )}
+
         <div className="text-center py-8">
           <span className="text-3xl block mb-3">&#9749;</span>
           <p className="text-zen-stone-500 text-sm">No tasks this month</p>
@@ -166,12 +275,12 @@ export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = 
     )
   }
 
-  // Combine and limit tasks for display
+  // Combine and limit generated + maintenance tasks for display
   const maxDisplay = 8
   const displayGeneratedTasks = generatedTasks.slice(0, maxDisplay)
   const remainingSlots = Math.max(0, maxDisplay - displayGeneratedTasks.length)
   const displayManualTasks = tasks.slice(0, remainingSlots)
-  const hiddenCount = totalTasks - displayGeneratedTasks.length - displayManualTasks.length
+  const hiddenCount = (tasks.length + generatedTasks.length) - displayGeneratedTasks.length - displayManualTasks.length
 
   return (
     <div className="zen-card p-6" data-tour="task-list">
@@ -179,11 +288,30 @@ export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = 
         <h3 className="text-lg text-zen-ink-700">Tasks</h3>
         <span className="text-xs text-zen-stone-500">
           {totalTasks} {totalTasks === 1 ? 'item' : 'items'}
-          {hasDismissedTasks && ` · ${dismissedTasks.length} done`}
+          {totalCompleted > 0 && ` \u00b7 ${totalCompleted} done`}
         </span>
       </div>
 
       <div>
+        {/* Custom tasks (user-created, persistent) - always at top */}
+        {activeCustomTasks.map((task) => (
+          onToggleCustomTask && onRemoveCustomTask ? (
+            <CustomTaskItem
+              key={task.id}
+              task={task}
+              onToggle={onToggleCustomTask}
+              onRemove={onRemoveCustomTask}
+            />
+          ) : null
+        ))}
+
+        {/* Add task input */}
+        {onAddCustomTask && (
+          <div className={activeCustomTasks.length > 0 || (hasGeneratedTasks || hasManualTasks) ? 'border-b border-zen-stone-100' : ''}>
+            <AddTaskInput onAdd={onAddCustomTask} />
+          </div>
+        )}
+
         {/* Generated tasks (auto-generated from plantings) */}
         {displayGeneratedTasks.map((task) => (
           <GeneratedTaskItem key={task.id} task={task} onDismiss={onDismissTask} />
@@ -192,11 +320,11 @@ export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = 
         {/* Manual maintenance tasks (user-created) */}
         {hasManualTasks && hasGeneratedTasks && displayManualTasks.length > 0 && (
           <div className="text-xs text-zen-stone-400 py-2 border-b border-zen-stone-100">
-            Your tasks
+            Maintenance
           </div>
         )}
         {displayManualTasks.map((task) => (
-          <TaskItem key={task.id} task={task} />
+          <MaintenanceTaskItem key={task.id} task={task} />
         ))}
 
         {hiddenCount > 0 && (
@@ -205,19 +333,31 @@ export default function TaskList({ tasks, generatedTasks = [], dismissedTasks = 
           </p>
         )}
 
-        {/* Dismissed tasks section */}
-        {hasDismissedTasks && onRestoreTask && (
+        {/* Completed section (dismissed generated + completed custom tasks) */}
+        {totalCompleted > 0 && (
           <div className="mt-3 pt-3 border-t border-zen-stone-100">
             <button
               onClick={() => setShowDismissed(!showDismissed)}
               className="flex items-center gap-1 text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors w-full"
             >
               {showDismissed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              {dismissedTasks.length} completed
+              {totalCompleted} completed
             </button>
             {showDismissed && (
               <div className="mt-1">
-                {dismissedTasks.map((task) => (
+                {/* Completed custom tasks */}
+                {completedCustomTasks.map((task) => (
+                  onToggleCustomTask && onRemoveCustomTask ? (
+                    <CustomTaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={onToggleCustomTask}
+                      onRemove={onRemoveCustomTask}
+                    />
+                  ) : null
+                ))}
+                {/* Dismissed generated tasks */}
+                {onRestoreTask && dismissedTasks.map((task) => (
                   <DismissedTaskItem key={task.id} task={task} onRestore={onRestoreTask} />
                 ))}
               </div>

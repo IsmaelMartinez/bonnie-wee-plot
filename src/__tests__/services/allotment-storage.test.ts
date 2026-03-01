@@ -468,7 +468,7 @@ describe('v11 to v12 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
+    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
     const planting = result.data?.seasons[0].areas[0].plantings[0]
     expect(planting?.actualHarvestStart).toBe('2025-07-15')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -596,7 +596,7 @@ describe('v12 to v13 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
+    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
     const variety = result.data?.varieties[0]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((variety as any)?.yearsUsed).toBeUndefined()
@@ -644,7 +644,7 @@ describe('v12 to v13 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(16)  // Now migrates all the way to v16
+    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
     expect(result.data?.varieties).toEqual([])
   })
 
@@ -730,7 +730,7 @@ describe('v15 to v16 migration', () => {
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(16)
+    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.data?.varieties[0] as any)?.plannedYears).toBeUndefined()
   })

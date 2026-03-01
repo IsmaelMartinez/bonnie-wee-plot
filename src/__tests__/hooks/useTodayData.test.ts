@@ -30,14 +30,21 @@ describe('useTodayData', () => {
     vi.useRealTimers()
   })
 
+  const defaultMock = {
+    data: null,
+    currentSeason: null,
+    isLoading: false,
+    getCustomTasks: () => [],
+    addCustomTask: vi.fn(),
+    toggleCustomTask: vi.fn(),
+    updateCustomTask: vi.fn(),
+    removeCustomTask: vi.fn(),
+    getTasksForMonth: () => [],
+    getAllAreas: () => [],
+  }
+
   it('should return current month based on system date', () => {
-    mockUseAllotment.mockReturnValue({
-      data: null,
-      currentSeason: null,
-      isLoading: false,
-      getTasksForMonth: () => [],
-      getAllAreas: () => [],
-    })
+    mockUseAllotment.mockReturnValue(defaultMock)
 
     const { result } = renderHook(() => useTodayData())
 
@@ -45,13 +52,7 @@ describe('useTodayData', () => {
   })
 
   it('should return correct seasonal phase for current month', () => {
-    mockUseAllotment.mockReturnValue({
-      data: null,
-      currentSeason: null,
-      isLoading: false,
-      getTasksForMonth: () => [],
-      getAllAreas: () => [],
-    })
+    mockUseAllotment.mockReturnValue(defaultMock)
 
     const { result } = renderHook(() => useTodayData())
 
@@ -66,11 +67,10 @@ describe('useTodayData', () => {
     ]
 
     mockUseAllotment.mockReturnValue({
+      ...defaultMock,
       data: { layout: { areas: [] } },
       currentSeason: { areas: [] },
-      isLoading: false,
       getTasksForMonth: vi.fn().mockReturnValue(mockTasks),
-      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
@@ -80,11 +80,8 @@ describe('useTodayData', () => {
 
   it('should return isLoading state from useAllotment', () => {
     mockUseAllotment.mockReturnValue({
-      data: null,
-      currentSeason: null,
+      ...defaultMock,
       isLoading: true,
-      getTasksForMonth: () => [],
-      getAllAreas: () => [],
     })
 
     const { result } = renderHook(() => useTodayData())
