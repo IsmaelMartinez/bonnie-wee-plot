@@ -1,16 +1,12 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Download, Upload, Trash2, AlertTriangle, CheckCircle, RefreshCw, BarChart2 } from 'lucide-react'
-import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
-import { VarietyData } from '@/types/variety-data'
-import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
-import { loadCompostData, saveCompostData } from '@/services/compost-storage'
-import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
-import { ImportError, ExportError } from '@/types/errors'
+import { AllotmentData } from '@/types/unified-allotment'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import { clearAnalytics } from '@/lib/analytics'
 import AnalyticsViewer from './AnalyticsViewer'
+import { useDataTransfer } from '@/hooks/useDataTransfer'
 
 interface DataManagementProps {
   data: AllotmentData | null
@@ -19,313 +15,28 @@ interface DataManagementProps {
 }
 
 /**
- * Validate import data structure before preview
- */
-function validateImportData(parsed: unknown): { valid: boolean; error?: string } {
-  if (!parsed || typeof parsed !== 'object') {
-    return { valid: false, error: 'Invalid backup file: not a valid JSON object' }
-  }
-
-  const obj = parsed as Record<string, unknown>
-
-  // Check for CompleteExport format (new format with allotment + varieties)
-  if (obj.allotment && obj.varieties) {
-    const allotment = obj.allotment as Record<string, unknown>
-
-    if (typeof allotment.version !== 'number') {
-      return { valid: false, error: 'Invalid backup: missing or invalid version' }
-    }
-
-    if (!allotment.meta || typeof allotment.meta !== 'object') {
-      return { valid: false, error: 'Invalid backup: missing metadata' }
-    }
-
-    if (!Array.isArray(allotment.seasons)) {
-      return { valid: false, error: 'Invalid backup: missing seasons data' }
-    }
-
-    if (allotment.version > CURRENT_SCHEMA_VERSION) {
-      return {
-        valid: false,
-        error: `Backup is from a newer version (v${allotment.version}). Please update the app first.`
-      }
-    }
-
-    return { valid: true }
-  }
-
-  // Check for old format (just AllotmentData)
-  if (typeof obj.version === 'number' && obj.meta && Array.isArray(obj.seasons)) {
-    if (obj.version > CURRENT_SCHEMA_VERSION) {
-      return {
-        valid: false,
-        error: `Backup is from a newer version (v${obj.version}). Please update the app first.`
-      }
-    }
-
-    return { valid: true }
-  }
-
-  return { valid: false, error: 'Invalid backup file: unrecognized format' }
-}
-
-/**
- * Component for managing allotment data - export, import, and clear
+ * Component for managing allotment data - export, import, and clear.
+ * Used as a compact dialog trigger on the allotment page.
  */
 export default function DataManagement({ data, onDataImported, flushSave }: DataManagementProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [showClearConfirm, setShowClearConfirm] = useState(false)
-  const [importError, setImportError] = useState<ImportError | null>(null)
-  const [importSuccess, setImportSuccess] = useState(false)
-  const [exportSuccess, setExportSuccess] = useState(false)
-  const [lastBackupKey, setLastBackupKey] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Analytics state
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showClearAnalyticsConfirm, setShowClearAnalyticsConfirm] = useState(false)
   const [analyticsKey, setAnalyticsKey] = useState(0)
 
-  // Get storage statistics
-  const stats = getStorageStats()
-  const quota = checkStorageQuota()
+  const {
+    handleExport, exportSuccess,
+    handleImport, importError, fileInputRef, lastBackupKey, handleRestoreBackup,
+    handleClear, showClearConfirm, setShowClearConfirm,
+    stats, quota,
+  } = useDataTransfer({ data, onDataImported, flushSave })
 
-  // Clean up export success timer to prevent memory leaks
-  useEffect(() => {
-    if (exportSuccess) {
-      const timerId = setTimeout(() => {
-        setExportSuccess(false)
-      }, 3000)
-
-      return () => clearTimeout(timerId)
-    }
-  }, [exportSuccess])
-
-  // Export data as JSON file (includes allotment, varieties, and compost)
-  const handleExport = useCallback(() => {
-    if (!data) return
-
-    try {
-      const currentQuota = checkStorageQuota()
-      if (currentQuota.percentageUsed > 80) {
-        console.warn(`Storage usage is at ${currentQuota.percentageUsed.toFixed(1)}% - consider clearing old data`)
-      }
-
-      const varieties: VarietyData = {
-        version: 2,
-        varieties: data.varieties || [],
-        meta: {
-          createdAt: data.meta.createdAt,
-          updatedAt: data.meta.updatedAt
-        }
-      }
-
-      const compostResult = loadCompostData()
-      const compost = compostResult.success && compostResult.data ? compostResult.data : undefined
-
-      const exportData: CompleteExport = {
-        allotment: data,
-        varieties,
-        compost,
-        exportedAt: new Date().toISOString(),
-        exportVersion: CURRENT_SCHEMA_VERSION,
-      }
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json'
-      })
-      const url = URL.createObjectURL(blob)
-
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `allotment-backup-${new Date().toISOString().split('T')[0]}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      // Show success feedback
-      setExportSuccess(true)
-    } catch (error) {
-      console.error('Export failed:', error)
-      throw new ExportError(
-        'Failed to export data',
-        'EXPORT_FAILED',
-        true,
-        ['Try again', 'Check browser console for details']
-      )
-    }
-  }, [data])
-
-  // Import data from JSON file (supports both old and new formats)
-  const handleImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    setImportError(null)
-    setImportSuccess(false)
-    setLastBackupKey(null)
-
-    if (flushSave) {
-      try {
-        await flushSave()
-      } catch {
-        // Continue anyway - import has its own verification
-      }
-    }
-
-    const reader = new FileReader()
-
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result as string
-
-        let parsed: unknown
-        try {
-          parsed = JSON.parse(content)
-        } catch {
-          setImportError(new ImportError(
-            'Invalid JSON file',
-            'INVALID_JSON',
-            true,
-            ['Ensure the file is a valid JSON export from this application', 'Try exporting a new backup']
-          ))
-          return
-        }
-
-        const validation = validateImportData(parsed)
-        if (!validation.valid) {
-          const errorMsg = validation.error || 'Invalid backup file'
-          const code = errorMsg.includes('newer version') ? 'VERSION_MISMATCH' : 'INVALID_FORMAT'
-          const recoverable = !errorMsg.includes('newer version')
-          const suggestions = errorMsg.includes('newer version')
-            ? ['Update the application to the latest version', 'Use an older backup file']
-            : ['Check that the file is a valid backup', 'Try exporting a new backup']
-
-          setImportError(new ImportError(errorMsg, code, recoverable, suggestions))
-          return
-        }
-
-        const backupResult = createPreImportBackup()
-        if (!backupResult.success) {
-          setImportError(new ImportError(
-            backupResult.error || 'Failed to create safety backup',
-            'BACKUP_FAILED',
-            false,
-            ['Free up storage space', 'Clear browser cache', 'Try a different browser']
-          ))
-          return
-        }
-
-        setLastBackupKey(backupResult.backupKey || null)
-
-        let allotmentData: AllotmentData
-        let varietyData: VarietyData | null = null
-        let compostData = null
-
-        if ((parsed as Record<string, unknown>).allotment && (parsed as Record<string, unknown>).varieties) {
-          const complete = parsed as CompleteExport
-          allotmentData = complete.allotment
-          varietyData = complete.varieties
-          compostData = complete.compost || null
-
-          if (varietyData && varietyData.varieties) {
-            allotmentData.varieties = varietyData.varieties
-          }
-        } else {
-          allotmentData = parsed as AllotmentData
-        }
-
-        const timestampedData: AllotmentData = {
-          ...allotmentData,
-          meta: {
-            ...allotmentData.meta,
-            updatedAt: new Date().toISOString(),
-          }
-        }
-
-        const migratedData = migrateSchemaForImport(timestampedData)
-        const allotmentResult = saveAllotmentData(migratedData)
-
-        if (!allotmentResult.success) {
-          const errorMsg = allotmentResult.error || 'Failed to save allotment data'
-          const isQuotaError = errorMsg.toLowerCase().includes('quota')
-
-          setImportError(new ImportError(
-            errorMsg,
-            isQuotaError ? 'QUOTA_EXCEEDED' : 'SAVE_FAILED',
-            true,
-            isQuotaError
-              ? ['Free up storage space by deleting old backups', 'Clear browser cache', 'Export and save your data externally']
-              : ['Try again', 'Refresh the page', 'Check browser console for details']
-          ))
-          return
-        }
-
-        if (compostData) {
-          const compostResult = saveCompostData(compostData)
-          if (!compostResult.success) {
-            console.warn('Failed to import compost data:', compostResult.error)
-          }
-        }
-
-        window.__disablePersistenceUntilReload = true
-        window.location.reload()
-      } catch (error) {
-        console.error('Import failed:', error)
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        setImportError(new ImportError(
-          `Unexpected error during import: ${errorMsg}`,
-          'UNEXPECTED_ERROR',
-          true,
-          ['Use "Restore from backup" button below', 'Try again with a different backup file', 'Check browser console for details']
-        ))
-      }
-    }
-
-    reader.onerror = () => {
-      setImportError(new ImportError(
-        'Failed to read the backup file',
-        'FILE_READ_ERROR',
-        true,
-        ['Try selecting the file again', 'Check that the file is not corrupted', 'Try a different backup file']
-      ))
-    }
-
-    reader.readAsText(file)
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }, [flushSave])
-
-  const handleRestoreBackup = useCallback(() => {
-    if (!lastBackupKey) return
-
-    const result = restoreFromBackup(lastBackupKey)
-    if (result.success) {
-      setImportError(null)
-      setLastBackupKey(null)
-      setImportSuccess(false)
-      onDataImported()
-    } else {
-      setImportError(new ImportError(
-        result.error || 'Failed to restore backup',
-        'RESTORE_FAILED',
-        false,
-        ['Refresh the page', 'Contact support if you lost important data']
-      ))
-    }
-  }, [lastBackupKey, onDataImported])
-
-  const handleClear = useCallback(() => {
-    const result = clearAllotmentData()
-    if (result.success) {
-      setShowClearConfirm(false)
-      setIsOpen(false)
-      onDataImported()
-    }
-  }, [onDataImported])
+  const handleClearWithClose = useCallback(() => {
+    handleClear()
+    setIsOpen(false)
+  }, [handleClear])
 
   const handleClearAnalytics = useCallback(() => {
     clearAnalytics()
@@ -483,13 +194,6 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
                 )}
               </div>
             )}
-
-            {importSuccess && (
-              <div className="mt-3 p-3 bg-zen-moss-50 border border-zen-moss-200 rounded-lg flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-zen-moss-500" />
-                <p className="text-sm text-zen-moss-700">Data imported successfully! Reloading...</p>
-              </div>
-            )}
           </div>
 
           {/* Analytics Section */}
@@ -549,7 +253,7 @@ export default function DataManagement({ data, onDataImported, flushSave }: Data
       <ConfirmDialog
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
-        onConfirm={handleClear}
+        onConfirm={handleClearWithClose}
         title="Clear All Data?"
         message="This will permanently delete all your allotment data including all seasons, plantings, and settings. This action cannot be undone. Consider exporting a backup first."
         confirmText="Delete Everything"
