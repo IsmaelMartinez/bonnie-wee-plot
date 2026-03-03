@@ -104,6 +104,10 @@ The next phase is real-world usage to identify what works well and what needs im
 
 Updated all npm dependencies within semver ranges and bumped `eslint-config-next` to v16, `lucide-react` to 0.574, `@types/node` to v25, and `jsdom` to v28. Migrated `eslint.config.mjs` to native flat config (removed `FlatCompat` shim and `@eslint/eslintrc`), added `eslint-config-next/typescript` config. React Compiler rules from react-hooks v7 disabled for now (TODO: address incrementally). Replaced custom `update-deps.yml` GitHub Actions workflow with Renovate bot (`renovate.json`) configured with 10 logical dependency groups and auto-merge for dev dependency minor/patch updates.
 
+### Share Infrastructure Fix (PR #TBD)
+
+Previous Upstash Redis instance was evicted due to 30-day free tier inactivity. Replaced with new instance and updated Vercel env vars. Added Redis keep-alive ping to `/api/health` endpoint — any uptime monitor hitting this endpoint will prevent future inactivity eviction. Also fixed CSP blocking `api.bigdatacloud.net` for reverse geocoding. This is a temporary measure; share storage will move to a proper database when phases 6-7 are implemented.
+
 ### Technical Debt Backlog (Do During User Testing)
 
 Identified in the February 2026 repository analysis (`docs/research/repo-analysis-and-improvements.md`):

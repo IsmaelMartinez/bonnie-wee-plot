@@ -16,7 +16,7 @@ const cspDirectives = {
   'default-src': ["'self'"],
   'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],  // Next.js requires eval in dev
   'style-src': ["'self'", "'unsafe-inline'"],  // Tailwind CSS requirement
-  'connect-src': ["'self'", 'https://api.openai.com'],
+  'connect-src': ["'self'", 'https://api.openai.com', 'https://api.bigdatacloud.net'],
   'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com'],
   'font-src': ["'self'"],
   'frame-ancestors': ["'none'"],
