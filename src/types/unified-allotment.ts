@@ -13,6 +13,7 @@ import type {
   RotationGroup,
   PlantingSuccess,
 } from './garden-planner'
+import type { CompostPile } from './compost'
 
 // ============ UNIFIED AREA SYSTEM (v10) ============
 
@@ -163,6 +164,7 @@ export interface AllotmentData {
   maintenanceTasks?: MaintenanceTask[] // Perennial plant care tasks
   gardenEvents?: GardenEvent[]       // Log of garden events (pruning, feeding, etc.)
   varieties: StoredVariety[]         // Seed varieties (consolidated from separate storage)
+  compost?: CompostPile[]            // Compost piles (consolidated from separate storage in v18)
 }
 
 /**
@@ -461,7 +463,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 17 // Added customTasks for free-form user tasks on Today dashboard
+export const CURRENT_SCHEMA_VERSION = 18 // Integrated compost data into AllotmentData
 
 // ============ HELPER TYPES ============
 

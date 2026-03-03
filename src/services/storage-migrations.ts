@@ -317,9 +317,17 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 16 -> 17: Add customTasks array
   if (migrated.version < 17) {
     const v17Data = migrateToV17(migrated)
-    v17Data.version = CURRENT_SCHEMA_VERSION
+    v17Data.version = 17
     logger.info('Schema migration complete', { from: 16, to: 17, change: 'added customTasks for free-form user tasks' })
-    return v17Data
+    return migrateSchema(v17Data)
+  }
+
+  // Version 17 -> 18: Integrate compost data into AllotmentData
+  if (migrated.version < 18) {
+    const v18Data = migrateToV18(migrated)
+    v18Data.version = CURRENT_SCHEMA_VERSION
+    logger.info('Schema migration complete', { from: 17, to: 18, change: 'integrated compost data into AllotmentData' })
+    return v18Data
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
@@ -881,6 +889,36 @@ function migrateToV17(data: AllotmentData): AllotmentData {
   return migrated
 }
 
+/**
+ * Migrate from v17 to v18: Integrate compost data into AllotmentData
+ * Reads from the old separate `compost-data` localStorage key, extracts
+ * the piles array, and stores it in `data.compost`. Removes the old key.
+ */
+function migrateToV18(data: AllotmentData): AllotmentData {
+  const migrated = { ...data }
+  migrated.compost = migrated.compost || []
+
+  // Pull in compost piles from the old separate localStorage key
+  if (typeof window !== 'undefined') {
+    try {
+      const oldCompostRaw = localStorage.getItem('compost-data')
+      if (oldCompostRaw) {
+        const oldCompost = JSON.parse(oldCompostRaw)
+        if (oldCompost && Array.isArray(oldCompost.piles) && oldCompost.piles.length > 0) {
+          migrated.compost = oldCompost.piles
+        }
+        localStorage.removeItem('compost-data')
+        logger.info('v18 migration: migrated compost piles from separate storage', { pileCount: (migrated.compost || []).length })
+      }
+    } catch (e) {
+      logger.warn('v18 migration: failed to read old compost-data', { error: String(e) })
+    }
+  }
+
+  logger.info('v18 migration: integrated compost data into AllotmentData')
+  return migrated
+}
+
 // ============ LEGACY DATA MIGRATION ============
 
 /**
@@ -927,6 +965,7 @@ export function migrateFromLegacyData(): AllotmentData {
     varieties: [], // Empty - users add via Seeds page
     maintenanceTasks: [], // Empty - no perennials yet
     gardenEvents: [], // Empty - users add as needed
+    compost: [], // Empty - users add via Compost page
   }
 
   return v10Data

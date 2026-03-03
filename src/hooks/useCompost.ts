@@ -2,23 +2,19 @@
  * useCompost Hook
  *
  * State management for compost pile tracking.
- * Follows the same patterns as useAllotment.
+ * Reads/writes through useAllotment since compost data is part of AllotmentData (v18).
  */
 
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
-  CompostData,
   CompostPile,
   NewCompostPile,
   NewCompostInput,
   NewCompostEvent,
-  COMPOST_STORAGE_KEY,
 } from '@/types/compost'
 import {
-  initializeCompostStorage,
-  saveCompostData,
   addPile as storageAddPile,
   updatePile as storageUpdatePile,
   removePile as storageRemovePile,
@@ -30,7 +26,10 @@ import {
   getPilesByStatus,
   getActivePiles,
 } from '@/services/compost-storage'
-import { usePersistedStorage, StorageResult, SaveStatus } from './usePersistedStorage'
+import type { CompostData } from '@/types/compost'
+import type { AllotmentData } from '@/types/unified-allotment'
+import { useAllotmentData } from './allotment/useAllotmentData'
+import type { SaveStatus } from './usePersistedStorage'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from './usePersistedStorage'
@@ -71,116 +70,113 @@ export interface UseCompostActions {
 
 export type UseCompostReturn = UseCompostState & UseCompostActions
 
-// ============ STORAGE OPTIONS ============
-
-const loadCompost = (): StorageResult<CompostData> => {
-  return initializeCompostStorage()
-}
-
-const saveCompost = (data: CompostData): StorageResult<void> => {
-  return saveCompostData(data)
-}
-
-const validateCompost = (parsed: unknown): StorageResult<CompostData> => {
-  if (!parsed || typeof parsed !== 'object') {
-    return { success: false, error: 'Invalid data format' }
+/**
+ * Build a CompostData wrapper from AllotmentData for use with the existing
+ * compost-storage pure functions (which operate on CompostData).
+ */
+function toCompostData(allotmentData: AllotmentData): CompostData {
+  return {
+    version: 1,
+    piles: allotmentData.compost || [],
+    createdAt: allotmentData.meta.createdAt,
+    updatedAt: allotmentData.meta.updatedAt,
   }
-  const obj = parsed as Record<string, unknown>
-  if (typeof obj.version !== 'number' || !Array.isArray(obj.piles)) {
-    return { success: false, error: 'Invalid data schema' }
-  }
-  return { success: true, data: parsed as CompostData }
 }
 
 // ============ HOOK IMPLEMENTATION ============
 
 export function useCompost(): UseCompostReturn {
   const {
-    data,
+    data: allotmentData,
     setData,
     isLoading,
     error,
     saveError,
     saveStatus,
     lastSavedAt,
-    reload: baseReload,
-    flushSave,
+    reload,
+    flushSave: baseFlushSave,
     clearSaveError,
-  } = usePersistedStorage<CompostData>({
-    storageKey: COMPOST_STORAGE_KEY,
-    load: loadCompost,
-    save: saveCompost,
-    validate: validateCompost,
-  })
+  } = useAllotmentData()
+
+  // Derive CompostData view from AllotmentData
+  const compostData = useMemo(() => {
+    if (!allotmentData) return null
+    return toCompostData(allotmentData)
+  }, [allotmentData])
+
+  // Helper: apply a compost-storage mutation and write back to AllotmentData
+  const applyCompostMutation = useCallback(
+    (mutate: (cd: CompostData) => CompostData) => {
+      if (!allotmentData) return
+      const cd = toCompostData(allotmentData)
+      const updated = mutate(cd)
+      setData({ ...allotmentData, compost: updated.piles })
+    },
+    [allotmentData, setData],
+  )
 
   // ============ PILE OPERATIONS ============
 
   const addPile = useCallback((pile: NewCompostPile) => {
-    if (!data) return
-    setData(storageAddPile(data, pile))
-  }, [data, setData])
+    applyCompostMutation(cd => storageAddPile(cd, pile))
+  }, [applyCompostMutation])
 
   const updatePile = useCallback((
     pileId: string,
     updates: Partial<Omit<CompostPile, 'id' | 'inputs' | 'events' | 'createdAt'>>
   ) => {
-    if (!data) return
-    setData(storageUpdatePile(data, pileId, updates))
-  }, [data, setData])
+    applyCompostMutation(cd => storageUpdatePile(cd, pileId, updates))
+  }, [applyCompostMutation])
 
   const removePile = useCallback((pileId: string) => {
-    if (!data) return
-    setData(storageRemovePile(data, pileId))
-  }, [data, setData])
+    applyCompostMutation(cd => storageRemovePile(cd, pileId))
+  }, [applyCompostMutation])
 
   const getPile = useCallback((pileId: string) => {
-    if (!data) return undefined
-    return getPileById(data, pileId)
-  }, [data])
+    if (!compostData) return undefined
+    return getPileById(compostData, pileId)
+  }, [compostData])
 
   const getPilesByStatusData = useCallback((status: CompostPile['status']) => {
-    if (!data) return []
-    return getPilesByStatus(data, status)
-  }, [data])
+    if (!compostData) return []
+    return getPilesByStatus(compostData, status)
+  }, [compostData])
 
   const getActivePilesData = useCallback(() => {
-    if (!data) return []
-    return getActivePiles(data)
-  }, [data])
+    if (!compostData) return []
+    return getActivePiles(compostData)
+  }, [compostData])
 
   // ============ INPUT OPERATIONS ============
 
   const addInput = useCallback((pileId: string, input: NewCompostInput) => {
-    if (!data) return
-    setData(storageAddInput(data, pileId, input))
-  }, [data, setData])
+    applyCompostMutation(cd => storageAddInput(cd, pileId, input))
+  }, [applyCompostMutation])
 
   const removeInput = useCallback((pileId: string, inputId: string) => {
-    if (!data) return
-    setData(storageRemoveInput(data, pileId, inputId))
-  }, [data, setData])
+    applyCompostMutation(cd => storageRemoveInput(cd, pileId, inputId))
+  }, [applyCompostMutation])
 
   // ============ EVENT OPERATIONS ============
 
   const addEvent = useCallback((pileId: string, event: NewCompostEvent) => {
-    if (!data) return
-    setData(storageAddEvent(data, pileId, event))
-  }, [data, setData])
+    applyCompostMutation(cd => storageAddEvent(cd, pileId, event))
+  }, [applyCompostMutation])
 
   const removeEvent = useCallback((pileId: string, eventId: string) => {
-    if (!data) return
-    setData(storageRemoveEvent(data, pileId, eventId))
-  }, [data, setData])
+    applyCompostMutation(cd => storageRemoveEvent(cd, pileId, eventId))
+  }, [applyCompostMutation])
 
   // ============ DATA OPERATIONS ============
 
-  const reload = useCallback(() => {
-    baseReload()
-  }, [baseReload])
+  const flushSave = useCallback(() => {
+    baseFlushSave()
+  }, [baseFlushSave])
 
   return {
     // State
-    data,
+    data: compostData,
     isLoading,
     error,
     saveError,
