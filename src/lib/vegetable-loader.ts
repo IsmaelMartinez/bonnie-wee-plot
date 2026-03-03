@@ -2,6 +2,10 @@
  * Vegetable Loader
  * Provides lazy-loading and caching for the vegetable database
  * Reduces initial bundle size by loading detailed data on demand
+ *
+ * Supports two loading strategies:
+ * 1. Full database load (for pages that need all data)
+ * 2. Per-category load (for pages that only need one category)
  */
 
 import { Vegetable, VegetableCategory } from '@/types/garden-planner'
@@ -11,6 +15,27 @@ import { vegetableIndex, VegetableIndex } from './vegetables/index'
 const vegetableCache = new Map<string, Vegetable>()
 const categoryCache = new Map<VegetableCategory, Vegetable[]>()
 let fullDatabaseLoaded = false
+
+// Per-category dynamic import map
+const categoryImports: Record<VegetableCategory, () => Promise<{ [key: string]: Vegetable[] }>> = {
+  'leafy-greens': () => import('./vegetables/data/leafy-greens'),
+  'root-vegetables': () => import('./vegetables/data/root-vegetables'),
+  'brassicas': () => import('./vegetables/data/brassicas'),
+  'legumes': () => import('./vegetables/data/legumes'),
+  'solanaceae': () => import('./vegetables/data/solanaceae'),
+  'cucurbits': () => import('./vegetables/data/cucurbits'),
+  'alliums': () => import('./vegetables/data/alliums'),
+  'herbs': () => import('./vegetables/data/herbs'),
+  'berries': () => import('./vegetables/data/berries'),
+  'fruit-trees': () => import('./vegetables/data/fruit-trees'),
+  'annual-flowers': () => import('./vegetables/data/annual-flowers'),
+  'perennial-flowers': () => import('./vegetables/data/perennial-flowers'),
+  'bulbs': () => import('./vegetables/data/bulbs'),
+  'climbers': () => import('./vegetables/data/climbers'),
+  'green-manures': () => import('./vegetables/data/green-manures'),
+  'mushrooms': () => import('./vegetables/data/mushrooms'),
+  'other': () => import('./vegetables/data/other'),
+}
 
 /**
  * Dynamic import of the full vegetable database
@@ -22,22 +47,46 @@ async function loadFullDatabase(): Promise<Vegetable[]> {
 }
 
 /**
+ * Load a single category and populate caches
+ */
+async function loadCategory(category: VegetableCategory): Promise<Vegetable[]> {
+  if (categoryCache.has(category)) {
+    return categoryCache.get(category)!
+  }
+
+  const importFn = categoryImports[category]
+  if (!importFn) return []
+
+  const mod = await importFn()
+  // The module exports a single named array; get the first array export
+  const vegetables = Object.values(mod).find(v => Array.isArray(v)) as Vegetable[] | undefined
+  if (!vegetables) return []
+
+  categoryCache.set(category, vegetables)
+  for (const veg of vegetables) {
+    vegetableCache.set(veg.id, veg)
+  }
+
+  return vegetables
+}
+
+/**
  * Ensure the full database is loaded and cached
  */
 async function ensureLoaded(): Promise<void> {
   if (fullDatabaseLoaded) return
-  
+
   const vegetables = await loadFullDatabase()
-  
+
   // Populate caches
   for (const veg of vegetables) {
     vegetableCache.set(veg.id, veg)
-    
+
     const categoryList = categoryCache.get(veg.category) || []
     categoryList.push(veg)
     categoryCache.set(veg.category, categoryList)
   }
-  
+
   fullDatabaseLoaded = true
 }
 
@@ -50,26 +99,25 @@ export async function getVegetableByIdAsync(id: string): Promise<Vegetable | und
   if (vegetableCache.has(id)) {
     return vegetableCache.get(id)
   }
-  
+
   // Load full database if not already loaded
   await ensureLoaded()
-  
+
   return vegetableCache.get(id)
 }
 
 /**
  * Get vegetables by category (async)
+ * Loads only the requested category, not the full database
  */
 export async function getVegetablesByCategoryAsync(category: VegetableCategory): Promise<Vegetable[]> {
   // Check cache first
   if (categoryCache.has(category)) {
     return categoryCache.get(category) || []
   }
-  
-  // Load full database if not already loaded
-  await ensureLoaded()
-  
-  return categoryCache.get(category) || []
+
+  // Load just this category
+  return loadCategory(category)
 }
 
 /**
@@ -107,7 +155,7 @@ export function getVegetableIndex(): VegetableIndex[] {
  */
 export function searchVegetables(query: string): VegetableIndex[] {
   const lowerQuery = query.toLowerCase()
-  return vegetableIndex.filter(v => 
+  return vegetableIndex.filter(v =>
     v.name.toLowerCase().includes(lowerQuery)
   )
 }
@@ -141,7 +189,3 @@ export function getVegetableByIdCached(id: string): Vegetable | undefined {
 // NOTE: Full database exports removed to enable proper lazy loading
 // Files needing full iteration should import directly from './vegetable-database'
 // Files needing single lookups should use getVegetableByIdAsync() or getVegetableName()
-
-
-
-
