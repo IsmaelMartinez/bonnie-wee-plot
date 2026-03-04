@@ -1060,4 +1060,56 @@ describe('task-generator', () => {
       expect(getTaskLabel('care-tip')).toBe('Care Tip')
     })
   })
+
+  describe('care tip integration', () => {
+    it('should generate care tips alongside maintenance tasks for same area', () => {
+      const area: Area = {
+        id: 'apple-north',
+        name: 'Apple Tree (North)',
+        kind: 'tree',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'apple-tree',
+          variety: 'Bramley',
+          plantedYear: 2020,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'apple-tree',
+        name: 'Apple Tree',
+        planting: {
+          harvestMonths: [8, 9, 10],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        maintenance: {
+          pruneMonths: [1, 2],
+          feedMonths: [3],
+          notes: ['Winter prune when dormant']
+        },
+        careTips: [
+          { months: [1, 2], tip: 'Winter prune while dormant — remove crossing branches', category: 'care' },
+          { months: [4], tip: 'Check for woolly aphid on bark crevices', category: 'protect' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 3, max: 5 },
+          productiveYears: { min: 30, max: 50 }
+        }
+      })
+
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      // January: expect both prune maintenance task AND care tip
+      const tasks = generateTasksForMonth(1 as Month, [], [area], new Date('2026-01-15'), [], 2026)
+
+      const pruneTasks = tasks.filter(t => t.generatedType === 'prune')
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+
+      expect(pruneTasks).toHaveLength(1)
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Winter prune while dormant — remove crossing branches')
+    })
+  })
 })
