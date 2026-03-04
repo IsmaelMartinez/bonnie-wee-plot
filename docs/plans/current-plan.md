@@ -131,12 +131,24 @@ Add `@next/bundle-analyzer` as dev dependency. Configure in `next.config.mjs` (o
 
 Added lifecycle-aware seasonal care tips for perennial plants. Extended the `Vegetable` type with a `careTips` array where each tip is tagged with months, an optional lifecycle stage (establishing/productive/declining), and a category (care/harvest/propagate/protect/plant). The task generator reads these alongside existing maintenance data and emits them as care-tip tasks on the Today dashboard. Stage filtering uses `calculatePerennialStatus` so a first-year raspberry gets different advice from an established one. Initial data covers 4 plants: raspberry, strawberry, rhubarb, and apple tree (6 tips each). See ADR 025.
 
+### Test Coverage Thresholds (PR #216)
+
+Added Vitest coverage thresholds: 64% statements, 54% branches, 55% functions, 65% lines. Expanded exclusion list for coverage reporting. Uses `@vitest/coverage-v8`.
+
+### Offline Messaging Improvements (PR #217)
+
+Extended `useNetworkStatus` hook with `justReconnected` state that shows a green "back online" banner for 3 seconds after reconnecting. Fixed animation classes to use existing `animate-fade-in` from globals.css instead of missing `tailwindcss-animate` classes. Updated offline copy to "your data is saved locally and safe". Added unit tests for both the hook and `OfflineIndicator` component.
+
+### Plant Info Pages (PR #218)
+
+Created `/plants` index page with search and category filtering using the lightweight vegetable index. Created `/plants/[id]` detail pages (statically generated at build time for all 192+ plants) showing planting calendar, care requirements, perennial lifecycle info, maintenance schedule, seasonal care tips, companion planting with cross-links, and external links to RHS and Wikipedia. Added "Plant Guide" link to the secondary navigation dropdown.
+
+### Component Unit Tests (PR #219)
+
+Added 67 component unit tests across 3 new test files: `TaskList.test.tsx` (29 tests covering generated tasks, custom tasks, dismiss/restore, add-task input, maintenance tasks, completed section), `AddPlantingForm.test.tsx` (19 tests covering plant selection, form submission, variety auto-selection, sow methods, add-another flow), and `AddAreaForm.test.tsx` (19 tests covering area types, conditional fields, duplicate detection, infrastructure defaults, temporal metadata).
+
 ### Remaining Backlog
 
-- Add component unit tests for key forms/dialogs
-- Add test coverage thresholds
-- Improve offline messaging
-- Individual plant info pages with tips/tricks/links (replaces global search idea)
 - Automatic backup prompts
 
 ### Future Phases (Contingent on User Adoption)
