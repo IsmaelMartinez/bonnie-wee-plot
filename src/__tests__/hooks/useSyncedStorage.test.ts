@@ -3,13 +3,13 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { useSyncedStorage } from '@/hooks/useSyncedStorage'
 import type { AllotmentData } from '@/types/unified-allotment'
 
-// Mock Clerk auth — use mutable variables so tests can override
+// Mock auth — use mutable variables so tests can override
 let mockUserId: string | null = 'user-123'
-let mockIsSignedIn = true
+let mockIsSignedIn: boolean | false = true
 const mockGetToken = vi.fn()
 
-vi.mock('@clerk/nextjs', () => ({
-  useAuth: () => ({
+vi.mock('@/hooks/useOptionalAuth', () => ({
+  useOptionalAuth: () => ({
     getToken: mockGetToken,
     userId: mockUserId,
     isSignedIn: mockIsSignedIn,

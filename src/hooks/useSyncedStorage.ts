@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { useAuth } from '@clerk/nextjs'
+import { useOptionalAuth } from './useOptionalAuth'
 import { usePersistedStorage, UsePersistedStorageOptions, UsePersistedStorageReturn } from './usePersistedStorage'
 import { useNetworkStatus } from './useNetworkStatus'
 import { fetchRemote, pushToRemote } from '@/lib/supabase/sync'
@@ -28,7 +28,7 @@ export function useSyncedStorage(
   options: UsePersistedStorageOptions<AllotmentData>
 ): UseSyncedStorageReturn<AllotmentData> {
   const local = usePersistedStorage<AllotmentData>(options)
-  const { getToken, userId, isSignedIn } = useAuth()
+  const { getToken, userId, isSignedIn } = useOptionalAuth()
   const { isOnline, justReconnected } = useNetworkStatus()
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('disabled')

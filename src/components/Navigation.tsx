@@ -4,7 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Pencil, LogIn } from 'lucide-react'
-import { useAuth, UserButton } from '@clerk/nextjs'
+import { UserButton } from '@clerk/nextjs'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
@@ -34,7 +35,7 @@ export default function Navigation() {
   const [nameInput, setNameInput] = useState('')
   const pathname = usePathname()
   const { data, updateMeta, syncStatus, syncError } = useAllotment()
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useOptionalAuth()
 
   const handleStartEditName = () => {
     setNameInput(data?.meta.name || 'My Allotment')

@@ -5,7 +5,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
 import { Shield, MapPin, Leaf, Database, HelpCircle, User } from 'lucide-react'
-import { useAuth } from '@clerk/nextjs'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
 import AccountTab from '@/components/settings/AccountTab'
@@ -14,7 +14,7 @@ import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
 
 export default function SettingsPage() {
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useOptionalAuth()
   const { data, flushSave, reload } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()

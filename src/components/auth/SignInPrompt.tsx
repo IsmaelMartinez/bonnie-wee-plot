@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useAuth } from '@clerk/nextjs'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import { Cloud } from 'lucide-react'
 
 export default function SignInPrompt() {
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useOptionalAuth()
 
   if (isSignedIn) return null
 

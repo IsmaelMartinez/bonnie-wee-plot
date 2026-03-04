@@ -2,28 +2,35 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
-// CSP directives — extend for Clerk and Supabase domains
-const cspDirectives = {
-  'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-  'style-src': ["'self'", "'unsafe-inline'"],
-  'connect-src': [
-    "'self'",
-    'https://api.openai.com',
-    'https://api.bigdatacloud.net',
-    'https://*.clerk.accounts.dev',
-    'https://*.supabase.co',
-  ],
-  'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://img.clerk.com'],
-  'font-src': ["'self'"],
-  'frame-src': ["'self'", 'https://*.clerk.accounts.dev'],
-  'frame-ancestors': ["'none'"],
-  'base-uri': ["'self'"],
-  'form-action': ["'self'"],
-}
+const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 function buildCspHeader(): string {
-  return Object.entries(cspDirectives)
+  const clerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  const directives: Record<string, string[]> = {
+    'default-src': ["'self'"],
+    'script-src': [
+      "'self'", "'unsafe-eval'", "'unsafe-inline'",
+      ...(clerkConfigured ? ['https://*.clerk.accounts.dev'] : []),
+    ],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'connect-src': [
+      "'self'",
+      'https://api.openai.com',
+      'https://api.bigdatacloud.net',
+      ...(clerkConfigured ? ['https://*.clerk.accounts.dev', 'https://*.supabase.co'] : []),
+    ],
+    'img-src': [
+      "'self'", 'data:', 'blob:', 'https://images.unsplash.com',
+      ...(clerkConfigured ? ['https://img.clerk.com'] : []),
+    ],
+    'font-src': ["'self'"],
+    'frame-src': ["'self'", ...(clerkConfigured ? ['https://*.clerk.accounts.dev'] : [])],
+    'frame-ancestors': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+  }
+
+  return Object.entries(directives)
     .map(([directive, values]) => `${directive} ${values.join(' ')}`)
     .join('; ')
 }
@@ -36,8 +43,7 @@ function addSecurityHeaders(response: NextResponse) {
   response.headers.set('X-XSS-Protection', '1; mode=block')
 }
 
-// All routes are public — Clerk is used for opt-in auth only.
-export default clerkMiddleware(async (_auth, request: NextRequest) => {
+function handleRequest(request: NextRequest): NextResponse {
   const response = NextResponse.next()
 
   addSecurityHeaders(response)
@@ -53,7 +59,13 @@ export default clerkMiddleware(async (_auth, request: NextRequest) => {
   }
 
   return response
-})
+}
+
+// When Clerk is configured, wrap with clerkMiddleware for auth.
+// Without Clerk keys, run security headers only (anonymous-only mode).
+export default isClerkConfigured
+  ? clerkMiddleware(async (_auth, request: NextRequest) => handleRequest(request))
+  : (request: NextRequest) => handleRequest(request)
 
 export const config = {
   matcher: [
