@@ -6,10 +6,12 @@ describe('useNetworkStatus', () => {
   const originalNavigator = window.navigator
 
   beforeEach(() => {
+    vi.useFakeTimers()
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     Object.defineProperty(window, 'navigator', {
       value: originalNavigator,
       writable: true,
@@ -26,6 +28,7 @@ describe('useNetworkStatus', () => {
 
     expect(result.current.isOnline).toBe(true)
     expect(result.current.isOffline).toBe(false)
+    expect(result.current.justReconnected).toBe(false)
   })
 
   it('should return offline status when navigator.onLine is false', () => {
@@ -72,6 +75,63 @@ describe('useNetworkStatus', () => {
 
     expect(result.current.isOnline).toBe(true)
     expect(result.current.isOffline).toBe(false)
+  })
+
+  it('should set justReconnected after going offline then online', () => {
+    Object.defineProperty(window, 'navigator', {
+      value: { onLine: true },
+      writable: true,
+    })
+
+    const { result } = renderHook(() => useNetworkStatus())
+
+    act(() => {
+      window.dispatchEvent(new Event('offline'))
+    })
+    expect(result.current.isOffline).toBe(true)
+    expect(result.current.justReconnected).toBe(false)
+
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(result.current.isOnline).toBe(true)
+    expect(result.current.justReconnected).toBe(true)
+  })
+
+  it('should clear justReconnected after 3 seconds', () => {
+    Object.defineProperty(window, 'navigator', {
+      value: { onLine: true },
+      writable: true,
+    })
+
+    const { result } = renderHook(() => useNetworkStatus())
+
+    act(() => {
+      window.dispatchEvent(new Event('offline'))
+    })
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(result.current.justReconnected).toBe(true)
+
+    act(() => {
+      vi.advanceTimersByTime(3000)
+    })
+    expect(result.current.justReconnected).toBe(false)
+  })
+
+  it('should not set justReconnected on initial online event without prior offline', () => {
+    Object.defineProperty(window, 'navigator', {
+      value: { onLine: true },
+      writable: true,
+    })
+
+    const { result } = renderHook(() => useNetworkStatus())
+
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(result.current.justReconnected).toBe(false)
   })
 
   it('should clean up event listeners on unmount', () => {
