@@ -506,38 +506,6 @@ export const brassicas: Vegetable[] = [
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rapini'
   },
   {
-    id: 'sea-kale',
-    name: 'Sea Kale',
-    category: 'brassicas',
-    description: 'Native coastal perennial. Blanch shoots for asparagus-like stems.',
-    planting: {
-      sowIndoorsMonths: [],
-      sowOutdoorsMonths: [],
-      transplantMonths: [3, 4, 10],
-      harvestMonths: [3, 4, 5],
-      daysToHarvest: { min: 730, max: 1095 }
-    },
-    care: {
-      sun: 'full-sun',
-      water: 'low',
-      spacing: { between: 60, rows: 90 },
-      depth: 10,
-      difficulty: 'intermediate',
-      tips: [
-        'Native British coastal plant - very hardy',
-        'Perennial - lasts many years',
-        'Force shoots in spring with terracotta pot',
-        'Blanched shoots harvested like asparagus'
-      ]
-    },
-    enhancedCompanions: [
-      { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
-      { plantId: 'rhubarb', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
-    ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima',
-    enhancedAvoid: []
-  },
-  {
     id: 'mibuna',
     name: 'Mibuna',
     category: 'brassicas',

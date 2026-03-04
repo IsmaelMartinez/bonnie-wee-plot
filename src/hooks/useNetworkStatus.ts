@@ -21,7 +21,7 @@ export function useNetworkStatus(): NetworkStatus {
   })
   const [justReconnected, setJustReconnected] = useState(false)
   const wasOfflineRef = useRef(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const handleOnline = () => {
