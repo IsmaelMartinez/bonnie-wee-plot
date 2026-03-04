@@ -155,6 +155,28 @@ The app supports sharing allotment data between devices via a simple share/recei
 
 See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
+### Authentication (Clerk)
+
+Opt-in user authentication via `@clerk/nextjs`. `ClerkProvider` wraps the app in `src/app/layout.tsx`. The middleware (`src/middleware.ts`) uses `clerkMiddleware` with CSP headers allowing Clerk and Supabase domains. All routes remain public — auth is opt-in for cloud sync.
+
+Sign-in/sign-up pages at `/sign-in` and `/sign-up` use Clerk's pre-built components with catch-all routes. Navigation shows `UserButton` when signed in, "Sign in" link when not. Settings gains an "Account" tab for signed-in users.
+
+Environment: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`.
+
+### Cloud Persistence (Supabase)
+
+Supabase stores AllotmentData as a JSONB document per user in the `allotments` table (schema in `sql/001-allotments.sql`). Row Level Security restricts access via Clerk JWT `sub` claim.
+
+The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated: initial load reconciles with LWW on `meta.updatedAt`, saves push asynchronously to Supabase, and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
+
+The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonClient()`, `createAuthClient(token)`, and `isSupabaseConfigured()`. The sync service (`src/lib/supabase/sync.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()`.
+
+Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be configured to map the user ID to the `sub` claim.
+
+### GDPR Compliance
+
+`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Account tab provides UI for export and account deletion.
+
 ### AI Advisor
 
 `src/app/api/ai-advisor/route.ts` is a Next.js API route that:
