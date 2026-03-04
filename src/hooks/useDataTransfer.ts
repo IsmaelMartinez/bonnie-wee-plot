@@ -6,6 +6,7 @@ import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
 import { loadCompostData, saveCompostData } from '@/services/compost-storage'
 import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
+import { setImportInProgress } from '@/lib/persistence-signal'
 import { ImportError, ExportError } from '@/types/errors'
 
 /**
@@ -249,7 +250,7 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
           }
         }
 
-        window.__disablePersistenceUntilReload = true
+        setImportInProgress(true)
         window.location.reload()
       } catch (error) {
         console.error('Import failed:', error)
