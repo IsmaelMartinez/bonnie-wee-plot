@@ -162,6 +162,7 @@ export function attemptDataRepair(data: unknown): AllotmentData | null {
       },
       seasons: Array.isArray(obj.seasons) ? obj.seasons as AllotmentData['seasons'] : [],
       varieties: Array.isArray(obj.varieties) ? obj.varieties as AllotmentData['varieties'] : [],
+      compost: Array.isArray(obj.compost) ? obj.compost as AllotmentData['compost'] : [],
     }
 
     // Validate the repaired data

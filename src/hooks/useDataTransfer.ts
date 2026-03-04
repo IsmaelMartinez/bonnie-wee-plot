@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { AllotmentData, CURRENT_SCHEMA_VERSION, CompleteExport } from '@/types/unified-allotment'
 import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
-import { loadCompostData, saveCompostData } from '@/services/compost-storage'
 import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
 import { setImportInProgress } from '@/lib/persistence-signal'
 import { ImportError, ExportError } from '@/types/errors'
@@ -102,13 +101,9 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
         }
       }
 
-      const compostResult = loadCompostData()
-      const compost = compostResult.success && compostResult.data ? compostResult.data : undefined
-
       const exportData: CompleteExport = {
         allotment: data,
         varieties,
-        compost,
         exportedAt: new Date().toISOString(),
         exportVersion: CURRENT_SCHEMA_VERSION,
       }
@@ -202,16 +197,22 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
 
         let allotmentData: AllotmentData
         let varietyData: VarietyData | null = null
-        let compostData = null
 
         if ((parsed as Record<string, unknown>).allotment && (parsed as Record<string, unknown>).varieties) {
           const complete = parsed as CompleteExport
           allotmentData = complete.allotment
           varietyData = complete.varieties
-          compostData = complete.compost || null
 
           if (varietyData && varietyData.varieties) {
             allotmentData.varieties = varietyData.varieties
+          }
+
+          // Backward compat: merge separate compost from old exports into AllotmentData
+          if (complete.compost && !allotmentData.compost?.length) {
+            const piles = 'piles' in complete.compost ? (complete.compost as { piles: unknown[] }).piles : complete.compost
+            if (Array.isArray(piles)) {
+              allotmentData.compost = piles as AllotmentData['compost']
+            }
           }
         } else {
           allotmentData = parsed as AllotmentData
@@ -241,13 +242,6 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
               : ['Try again', 'Refresh the page', 'Check browser console for details']
           ))
           return
-        }
-
-        if (compostData) {
-          const compostResult = saveCompostData(compostData)
-          if (!compostResult.success) {
-            console.warn('Failed to import compost data:', compostResult.error)
-          }
         }
 
         setImportInProgress(true)
