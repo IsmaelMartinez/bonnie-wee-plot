@@ -9,6 +9,7 @@ import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
+import SyncStatusIcon from './auth/SyncStatusIcon'
 
 // Primary navigation - always visible
 const primaryNavLinks = [
@@ -32,7 +33,7 @@ export default function Navigation() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const pathname = usePathname()
-  const { data, updateMeta } = useAllotment()
+  const { data, updateMeta, syncStatus, syncError } = useAllotment()
   const { isSignedIn } = useAuth()
 
   const handleStartEditName = () => {
@@ -140,7 +141,10 @@ export default function Navigation() {
 
             {/* Auth */}
             {isSignedIn ? (
-              <UserButton />
+              <div className="flex items-center gap-2">
+                <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+                <UserButton />
+              </div>
             ) : (
               <Link
                 href="/sign-in"
@@ -193,7 +197,8 @@ export default function Navigation() {
             {/* Auth */}
             <div className="pt-3 border-t border-zen-stone-100">
               {isSignedIn ? (
-                <div className="px-3 py-2">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
                   <UserButton />
                 </div>
               ) : (
