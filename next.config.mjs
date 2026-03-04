@@ -1,6 +1,11 @@
 import { spawnSync } from "node:child_process";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import withSerwistInit from "@serwist/next";
 import { withSentryConfig } from "@sentry/nextjs";
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const isGitHubPages = process.env.GITHUB_PAGES === "true";
 const basePath = isGitHubPages ? "/bonnie-wee-plot" : "";
@@ -93,4 +98,4 @@ const finalConfig = process.env.SENTRY_DSN && !isGitHubPages
   ? withSentryConfig(configWithSerwist, sentryConfig)
   : configWithSerwist;
 
-export default finalConfig;
+export default withAnalyzer(finalConfig);
