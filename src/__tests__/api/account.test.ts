@@ -16,13 +16,16 @@ vi.mock('@/lib/supabase/client', () => ({
   isSupabaseConfigured: vi.fn(() => true),
 }))
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Clerk auth() return type is complex; partial mock is sufficient for tests
+type AuthReturn = any
+
 describe('GET /api/account (export)', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 401 when not authenticated', async () => {
     vi.resetModules()
     const { auth } = await import('@clerk/nextjs/server')
-    vi.mocked(auth).mockResolvedValue({ userId: null } as any)
+    vi.mocked(auth).mockResolvedValue({ userId: null } as AuthReturn)
 
     const { GET } = await import('@/app/api/account/route')
     const response = await GET()
@@ -35,11 +38,11 @@ describe('GET /api/account (export)', () => {
     vi.mocked(auth).mockResolvedValue({
       userId: 'user-123',
       getToken: vi.fn().mockResolvedValue('test-token'),
-    } as any)
+    } as AuthReturn)
 
     const { fetchRemote } = await import('@/lib/supabase/sync')
     vi.mocked(fetchRemote).mockResolvedValue({
-      data: { version: 16, meta: { name: 'Test' } } as any,
+      data: { version: 16, meta: { name: 'Test' } } as unknown as import('@/types/unified-allotment').AllotmentData,
       updatedAt: '2026-03-04T12:00:00Z',
     })
 
@@ -57,7 +60,7 @@ describe('DELETE /api/account', () => {
   it('returns 401 when not authenticated', async () => {
     vi.resetModules()
     const { auth } = await import('@clerk/nextjs/server')
-    vi.mocked(auth).mockResolvedValue({ userId: null } as any)
+    vi.mocked(auth).mockResolvedValue({ userId: null } as AuthReturn)
 
     const { DELETE } = await import('@/app/api/account/route')
     const response = await DELETE()
@@ -70,7 +73,7 @@ describe('DELETE /api/account', () => {
     vi.mocked(auth).mockResolvedValue({
       userId: 'user-123',
       getToken: vi.fn().mockResolvedValue('test-token'),
-    } as any)
+    } as AuthReturn)
 
     const { deleteRemote } = await import('@/lib/supabase/sync')
     vi.mocked(deleteRemote).mockResolvedValue(undefined)

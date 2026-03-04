@@ -83,7 +83,7 @@ describe('pushToRemote', () => {
     })
     mockFrom.mockReturnValueOnce({
       upsert: mockUpsertFn,
-    } as any)
+    } as unknown)
 
     await pushToRemote('token', 'user-123', mockData)
     expect(mockFrom).toHaveBeenCalledWith('allotments')
