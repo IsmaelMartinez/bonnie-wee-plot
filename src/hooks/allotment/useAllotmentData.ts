@@ -65,6 +65,7 @@ export interface UseAllotmentDataReturn {
   reload: () => void
   flushSave: () => Promise<boolean>
   clearSaveError: () => void
+  cancelPendingSave: () => void
   updateMeta: (updates: Partial<AllotmentData['meta']>) => void
 }
 
@@ -90,6 +91,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     reload: baseReload,
     flushSave,
     clearSaveError,
+    cancelPendingSave,
   } = usePersistedStorage<AllotmentData>({
     storageKey: STORAGE_KEY,
     load: loadAllotment,
@@ -169,6 +171,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     reload,
     flushSave,
     clearSaveError,
+    cancelPendingSave,
     updateMeta,
   }
 }

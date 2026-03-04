@@ -37,6 +37,9 @@ export interface TodayData {
   onRemoveCustomTask: (taskId: string) => void
   onDismissTask: (taskId: string) => void
   onRestoreTask: (taskId: string) => void
+  // Onboarding support - exposed to avoid duplicate useAllotment() calls
+  showOnboarding: boolean
+  completeOnboarding: () => void
 }
 
 /**
@@ -57,6 +60,7 @@ export function useTodayData(): TodayData {
     removeCustomTask,
     getTasksForMonth,
     getAllAreas,
+    updateMeta,
   } = useAllotment()
 
   // Current month (1-12 for January-December, matching vegetable database)
@@ -152,6 +156,21 @@ export function useTodayData(): TodayData {
     [allGeneratedTasks, dismissedIds]
   )
 
+  // Onboarding: show wizard only on first visit.
+  // Uses a separate localStorage key to avoid race conditions with debounced saves.
+  const [setupDone, setSetupDone] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return localStorage.getItem('bonnie-wee-plot-setup-completed') === 'true'
+  })
+  const showOnboarding = !isLoading && !!data && !setupDone && !data.meta?.setupCompleted
+
+  const completeOnboarding = useCallback(() => {
+    localStorage.setItem('bonnie-wee-plot-setup-completed', 'true')
+    setSetupDone(true)
+    // Also update allotment meta for backward compatibility
+    updateMeta({ setupCompleted: true })
+  }, [updateMeta])
+
   return {
     currentMonth,
     currentYear,
@@ -167,5 +186,7 @@ export function useTodayData(): TodayData {
     onRemoveCustomTask,
     onDismissTask,
     onRestoreTask,
+    showOnboarding,
+    completeOnboarding,
   }
 }

@@ -179,6 +179,7 @@ export interface UseAllotmentActions {
   reload: () => void
   flushSave: () => Promise<boolean>  // Force immediate save of pending data, returns true if successful
   clearSaveError: () => void  // Clear any save error
+  cancelPendingSave: () => void  // Cancel pending debounced save (use before direct localStorage writes)
 
   // Metadata operations
   updateMeta: (updates: Partial<AllotmentData['meta']>) => void
@@ -207,6 +208,7 @@ export function useAllotment(): UseAllotmentReturn {
     reload,
     flushSave,
     clearSaveError,
+    cancelPendingSave,
     updateMeta,
   } = dataHook
 
@@ -445,6 +447,7 @@ export function useAllotment(): UseAllotmentReturn {
     reload,
     flushSave,
     clearSaveError,
+    cancelPendingSave,
 
     // Metadata operations
     updateMeta,

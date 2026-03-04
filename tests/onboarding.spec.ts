@@ -69,6 +69,7 @@ async function skipOnboarding(page: Page) {
       currentYear: new Date().getFullYear(),
       varieties: []
     }))
+    localStorage.setItem('bonnie-wee-plot-setup-completed', 'true')
     localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
   })
 }
@@ -413,31 +414,24 @@ test.describe('Onboarding Wizard - Completion State', () => {
     const newUserData = createNewUserData()
 
     await page.addInitScript((data) => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      if (!localStorage.getItem('allotment-unified-data')) {
+        localStorage.setItem('allotment-unified-data', JSON.stringify(data))
+      }
       localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
     }, newUserData)
     await page.goto('/')
-
-    // Complete the wizard step by step, waiting for each screen
     await completeOnboardingWizard(page)
 
-    // Wait for navigation
     await expect(page).toHaveURL(/this-month/)
 
-    // Wait for debounced save to complete (500ms debounce + buffer)
-    await page.waitForTimeout(700)
-
-    // Check localStorage for setupCompleted
-    const setupCompleted = await page.evaluate(() => {
-      const data = localStorage.getItem('allotment-unified-data')
-      if (data) {
-        const parsed = JSON.parse(data)
-        return parsed.meta.setupCompleted
-      }
-      return false
-    })
-
-    expect(setupCompleted).toBe(true)
+    // The setup-completed flag is stored in a separate key to avoid
+    // race conditions with the debounced allotment data save pipeline
+    await expect(async () => {
+      const flag = await page.evaluate(() =>
+        localStorage.getItem('bonnie-wee-plot-setup-completed')
+      )
+      expect(flag).toBe('true')
+    }).toPass({ timeout: 3000 })
   })
 
   test('wizard does NOT appear after completing the flow', async ({ page }) => {
@@ -456,8 +450,13 @@ test.describe('Onboarding Wizard - Completion State', () => {
     await completeOnboardingWizard(page)
     await expect(page).toHaveURL(/this-month/)
 
-    // Wait for debounced save to complete (500ms debounce + buffer)
-    await page.waitForTimeout(700)
+    // Wait for setup-completed flag to be set
+    await expect(async () => {
+      const flag = await page.evaluate(() =>
+        localStorage.getItem('bonnie-wee-plot-setup-completed')
+      )
+      expect(flag).toBe('true')
+    }).toPass({ timeout: 3000 })
 
     // Navigate back to homepage
     await page.goto('/')
