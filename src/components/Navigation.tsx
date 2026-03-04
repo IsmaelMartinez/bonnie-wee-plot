@@ -20,6 +20,7 @@ const primaryNavLinks = [
 
 // Secondary links shown in "More" dropdown
 export const secondaryLinks = [
+  { href: '/plants', label: 'Plant Guide', description: 'Growing info & tips' },
   { href: '/settings', label: 'Settings', description: 'Sync & preferences' },
   { href: '/about', label: 'About', description: 'Learn more' },
 ]
