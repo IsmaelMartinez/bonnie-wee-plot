@@ -27,3 +27,6 @@ This directory contains Architecture Decision Records documenting significant te
 | [019](019-per-year-grid-positions.md) | Per-Year Grid Positions | Accepted |
 | [020](020-vercel-deployment-security.md) | Vercel Deployment with Security Scanning | Accepted |
 | [021](021-planting-detail-dialog.md) | Planting Detail Dialog | Accepted |
+| [022](022-ai-inventory-function-calling.md) | AI Inventory Function Calling | Accepted |
+| [024](024-p2p-sync-architecture.md) | P2P Sync Architecture | Accepted |
+| [025](025-perennial-care-tips.md) | Perennial Care Tips | Accepted |

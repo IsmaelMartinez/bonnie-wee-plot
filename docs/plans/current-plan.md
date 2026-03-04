@@ -127,6 +127,10 @@ Create `src/lib/persistence-signal.ts` with a `usePersistenceSignal()` hook usin
 **Task E: Add bundle analysis**
 Add `@next/bundle-analyzer` as dev dependency. Configure in `next.config.mjs` (outermost wrapper, enabled via `ANALYZE=true`). Add `npm run analyze` script.
 
+### Perennial Care Tips Spike (PR #215)
+
+Added lifecycle-aware seasonal care tips for perennial plants. Extended the `Vegetable` type with a `careTips` array where each tip is tagged with months, an optional lifecycle stage (establishing/productive/declining), and a category (care/harvest/propagate/protect/plant). The task generator reads these alongside existing maintenance data and emits them as care-tip tasks on the Today dashboard. Stage filtering uses `calculatePerennialStatus` so a first-year raspberry gets different advice from an established one. Initial data covers 4 plants: raspberry, strawberry, rhubarb, and apple tree (6 tips each). See ADR 025.
+
 ### Remaining Backlog
 
 - Add component unit tests for key forms/dialogs
