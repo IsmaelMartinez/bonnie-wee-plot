@@ -147,12 +147,11 @@ Created `/plants` index page with search and category filtering using the lightw
 
 Added 67 component unit tests across 3 new test files: `TaskList.test.tsx` (29 tests covering generated tasks, custom tasks, dismiss/restore, add-task input, maintenance tasks, completed section), `AddPlantingForm.test.tsx` (19 tests covering plant selection, form submission, variety auto-selection, sow methods, add-another flow), and `AddAreaForm.test.tsx` (19 tests covering area types, conditional fields, duplicate detection, infrastructure defaults, temporal metadata).
 
-### Authentication & Cloud Persistence (Phases 6-7, PR #TBD)
+### Authentication & Cloud Persistence (Phases 6-7, PR #221)
 
 Implemented opt-in Clerk authentication and Supabase cloud persistence as a single body of work. Anonymous users keep localStorage only; signed-in users get continuous bidirectional sync with last-write-wins conflict resolution on `meta.updatedAt`. All existing pages remain public — auth is opt-in for cloud sync across devices.
 
-Key additions: `useSyncedStorage` hook wrapping `usePersistedStorage` with cloud sync layer, Supabase client module with RLS via Clerk JWT, GDPR-compliant data export and account deletion endpoints, sign-in/sign-up pages, navigation auth UI with sync status indicator, Settings Account tab, and sign-in prompt on Today dashboard. 845 unit tests pass, build succeeds without env vars (graceful degradation), all E2E tests pass.
-
+Key additions: `useSyncedStorage` hook wrapping `usePersistedStorage` with cloud sync layer, Supabase client module with RLS via Clerk JWT, GDPR-compliant data export and account deletion endpoints, sign-in/sign-up pages, navigation auth UI with sync status indicator, Settings Account tab, and sign-in prompt on Today dashboard. 851 unit tests pass, build succeeds without env vars (graceful degradation), all E2E tests pass.
 ### Remaining Backlog
 
 - Automatic backup prompts
