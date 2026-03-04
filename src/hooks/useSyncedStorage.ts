@@ -34,6 +34,7 @@ export function useSyncedStorage(
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('disabled')
   const [syncError, setSyncError] = useState<string | null>(null)
   const syncInProgressRef = useRef(false)
+  const isPullingRef = useRef(false)
   const lastPushedRef = useRef<string | null>(null)
 
   const canSync = isSignedIn && isSupabaseConfigured() && isOnline
@@ -71,6 +72,7 @@ export function useSyncedStorage(
 
         if (remoteTime > localTime) {
           // Cloud is newer — update local
+          isPullingRef.current = true
           local.setData(remote.data)
           lastPushedRef.current = JSON.stringify(remote.data)
         } else if (localTime > remoteTime) {
@@ -88,6 +90,8 @@ export function useSyncedStorage(
         console.error('[useSyncedStorage] Initial sync failed:', err)
         setSyncStatus('error')
         setSyncError(err instanceof Error ? err.message : 'Sync failed')
+      } finally {
+        syncInProgressRef.current = false
       }
     }
 
@@ -99,6 +103,12 @@ export function useSyncedStorage(
   useEffect(() => {
     if (!canSync || !userId || !local.data) return
     if (local.saveStatus !== 'saved') return
+
+    // Skip push if this save was triggered by pulling cloud data
+    if (isPullingRef.current) {
+      isPullingRef.current = false
+      return
+    }
 
     const serialized = JSON.stringify(local.data)
     if (serialized === lastPushedRef.current) return
@@ -143,6 +153,7 @@ export function useSyncedStorage(
           const remoteTime = new Date(remote.updatedAt).getTime()
 
           if (remoteTime > localTime) {
+            isPullingRef.current = true
             local.setData(remote.data)
             lastPushedRef.current = JSON.stringify(remote.data)
           } else {

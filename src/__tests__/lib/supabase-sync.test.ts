@@ -75,27 +75,37 @@ describe('fetchRemote', () => {
 describe('pushToRemote', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('upserts data with user_id and updated_at', async () => {
-    const mockUpsertChain = {
+  it('upserts data with user_id and onConflict', async () => {
+    const mockUpsertFn = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({ error: null }),
       }),
-    }
+    })
     mockFrom.mockReturnValueOnce({
-      upsert: vi.fn().mockReturnValue(mockUpsertChain),
+      upsert: mockUpsertFn,
     } as any)
 
     await pushToRemote('token', 'user-123', mockData)
     expect(mockFrom).toHaveBeenCalledWith('allotments')
+    expect(mockUpsertFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'user-123',
+        data: mockData,
+        updated_at: expect.any(String),
+      }),
+      { onConflict: 'user_id' }
+    )
   })
 })
 
 describe('deleteRemote', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('deletes the row for the given user', async () => {
+  it('deletes the row for the given user_id', async () => {
     mockEq.mockResolvedValue({ error: null })
     await deleteRemote('token', 'user-123')
     expect(mockFrom).toHaveBeenCalledWith('allotments')
+    expect(mockDelete).toHaveBeenCalled()
+    expect(mockEq).toHaveBeenCalledWith('user_id', 'user-123')
   })
 })

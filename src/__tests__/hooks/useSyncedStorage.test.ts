@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { useSyncedStorage } from '@/hooks/useSyncedStorage'
+import type { AllotmentData } from '@/types/unified-allotment'
 
 // Mock Clerk auth — use mutable variables so tests can override
 let mockUserId: string | null = 'user-123'
@@ -16,9 +17,11 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 // Mock Supabase sync
+const mockFetchRemote = vi.fn()
+const mockPushToRemote = vi.fn()
 vi.mock('@/lib/supabase/sync', () => ({
-  fetchRemote: vi.fn(),
-  pushToRemote: vi.fn(),
+  fetchRemote: (...args: unknown[]) => mockFetchRemote(...args),
+  pushToRemote: (...args: unknown[]) => mockPushToRemote(...args),
 }))
 
 // Mock Supabase client
@@ -27,21 +30,26 @@ vi.mock('@/lib/supabase/client', () => ({
 }))
 
 // Mock network status
+let mockIsOnline = true
+let mockJustReconnected = false
 vi.mock('@/hooks/useNetworkStatus', () => ({
-  useNetworkStatus: () => ({ isOnline: true, isOffline: false, justReconnected: false }),
+  useNetworkStatus: () => ({ isOnline: mockIsOnline, isOffline: !mockIsOnline, justReconnected: mockJustReconnected }),
 }))
 
-// Mock usePersistedStorage
+// Mock usePersistedStorage — use mutable return values
+let mockLocalData: AllotmentData | null = null
+let mockIsLoading = false
+let mockSaveStatus = 'idle'
 const mockSetData = vi.fn()
 const mockFlushSave = vi.fn().mockResolvedValue(true)
 vi.mock('@/hooks/usePersistedStorage', () => ({
   usePersistedStorage: vi.fn(() => ({
-    data: null,
+    data: mockLocalData,
     setData: mockSetData,
-    isLoading: false,
+    isLoading: mockIsLoading,
     error: null,
     saveError: null,
-    saveStatus: 'idle',
+    saveStatus: mockSaveStatus,
     lastSavedAt: null,
     isSyncedFromOtherTab: false,
     reload: vi.fn(),
@@ -52,22 +60,37 @@ vi.mock('@/hooks/usePersistedStorage', () => ({
   })),
 }))
 
+const makeTestData = (updatedAt: string): AllotmentData =>
+  ({
+    version: 16,
+    meta: { name: 'Test', updatedAt },
+    layout: { areas: [] },
+    seasons: [],
+    currentYear: 2026,
+    varieties: [],
+  }) as unknown as AllotmentData
+
+const hookOptions = {
+  storageKey: 'test',
+  load: vi.fn(() => ({ success: true as const, data: undefined })),
+  save: vi.fn(() => ({ success: true as const })),
+}
+
 describe('useSyncedStorage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetToken.mockResolvedValue('test-token')
     mockUserId = 'user-123'
     mockIsSignedIn = true
+    mockIsOnline = true
+    mockJustReconnected = false
+    mockLocalData = null
+    mockIsLoading = false
+    mockSaveStatus = 'idle'
   })
 
   it('exposes the same interface as usePersistedStorage plus syncStatus', () => {
-    const { result } = renderHook(() =>
-      useSyncedStorage({
-        storageKey: 'test',
-        load: vi.fn(() => ({ success: true, data: undefined })),
-        save: vi.fn(() => ({ success: true })),
-      })
-    )
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
 
     expect(result.current).toHaveProperty('data')
     expect(result.current).toHaveProperty('setData')
@@ -81,14 +104,79 @@ describe('useSyncedStorage', () => {
     mockUserId = null
     mockIsSignedIn = false
 
-    const { result } = renderHook(() =>
-      useSyncedStorage({
-        storageKey: 'test',
-        load: vi.fn(() => ({ success: true, data: undefined })),
-        save: vi.fn(() => ({ success: true })),
-      })
-    )
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
 
     expect(result.current.syncStatus).toBe('disabled')
+  })
+
+  it('pushes local data to cloud when no remote data exists', async () => {
+    const localData = makeTestData('2026-03-04T12:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue(null)
+    mockPushToRemote.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+  })
+
+  it('updates local data when cloud is newer (LWW)', async () => {
+    const localData = makeTestData('2026-03-04T10:00:00Z')
+    const remoteData = makeTestData('2026-03-04T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T14:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(mockPushToRemote).not.toHaveBeenCalled()
+  })
+
+  it('pushes to cloud when local is newer (LWW)', async () => {
+    const localData = makeTestData('2026-03-04T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: makeTestData('2026-03-04T10:00:00Z'),
+      updatedAt: '2026-03-04T10:00:00Z',
+    })
+    mockPushToRemote.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockSetData).not.toHaveBeenCalled()
+  })
+
+  it('sets error status on sync failure', async () => {
+    mockLocalData = makeTestData('2026-03-04T12:00:00Z')
+    mockFetchRemote.mockRejectedValue(new Error('Network error'))
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('error')
+    })
+    expect(result.current.syncError).toBe('Network error')
+  })
+
+  it('shows offline status when not connected', () => {
+    mockIsOnline = false
+    mockLocalData = makeTestData('2026-03-04T12:00:00Z')
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    expect(result.current.syncStatus).toBe('offline')
   })
 })

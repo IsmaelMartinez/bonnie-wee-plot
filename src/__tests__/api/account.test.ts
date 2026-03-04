@@ -63,4 +63,23 @@ describe('DELETE /api/account', () => {
     const response = await DELETE()
     expect(response.status).toBe(401)
   })
+
+  it('deletes user data and returns success', async () => {
+    vi.resetModules()
+    const { auth } = await import('@clerk/nextjs/server')
+    vi.mocked(auth).mockResolvedValue({
+      userId: 'user-123',
+      getToken: vi.fn().mockResolvedValue('test-token'),
+    } as any)
+
+    const { deleteRemote } = await import('@/lib/supabase/sync')
+    vi.mocked(deleteRemote).mockResolvedValue(undefined)
+
+    const { DELETE } = await import('@/app/api/account/route')
+    const response = await DELETE()
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(body.success).toBe(true)
+    expect(deleteRemote).toHaveBeenCalledWith('test-token', 'user-123')
+  })
 })
