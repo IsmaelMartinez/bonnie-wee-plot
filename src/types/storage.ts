@@ -4,6 +4,8 @@
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
+export type SyncStatus = 'disabled' | 'syncing' | 'synced' | 'error' | 'offline'
+
 export interface StorageResult<T> {
   success: boolean
   data?: T
