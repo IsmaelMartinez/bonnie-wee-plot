@@ -12,20 +12,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { SaveStatus, StorageResult } from '@/types/storage'
+import { isImportInProgress } from '@/lib/persistence-signal'
 
 // Re-export for convenience
 export type { SaveStatus, StorageResult } from '@/types/storage'
 
 const SAVE_DEBOUNCE_MS = 500
-
-// Global flag to prevent saves during import/reload
-// This is set by useDataTransfer before triggering reload to prevent
-// the hook from overwriting just-imported data with stale in-memory state
-declare global {
-  interface Window {
-    __disablePersistenceUntilReload?: boolean
-  }
-}
 
 export interface UsePersistedStorageOptions<T> {
   storageKey: string
@@ -157,7 +149,7 @@ export function usePersistedStorage<T>(
   const debouncedSave = useCallback(
     (dataToSave: T) => {
       // Check if saves are disabled (e.g., during import before reload)
-      if (typeof window !== 'undefined' && window.__disablePersistenceUntilReload) {
+      if (isImportInProgress()) {
         console.log('[usePersistedStorage] Saves disabled - skipping debouncedSave')
         return
       }
@@ -172,7 +164,7 @@ export function usePersistedStorage<T>(
 
       saveTimeoutRef.current = setTimeout(() => {
         // Double-check the flag inside the timeout in case it was set after scheduling
-        if (typeof window !== 'undefined' && window.__disablePersistenceUntilReload) {
+        if (isImportInProgress()) {
           console.log('[usePersistedStorage] Saves disabled - skipping scheduled save')
           pendingDataRef.current = null
           saveTimeoutRef.current = null

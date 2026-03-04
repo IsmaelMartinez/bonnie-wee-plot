@@ -6,6 +6,7 @@ import { Download, AlertTriangle, CheckCircle, Loader2, Home, ArrowLeft } from '
 import type { AllotmentData } from '@/types/unified-allotment'
 import { saveAllotmentData, migrateSchemaForImport, loadAllotmentData, validateAllotmentData } from '@/services/allotment-storage'
 import { createPreImportBackup } from '@/lib/storage-utils'
+import { setImportInProgress } from '@/lib/persistence-signal'
 
 interface PageProps {
   params: Promise<{ code: string }>
@@ -109,9 +110,7 @@ export default function ReceivePage({ params }: PageProps) {
       // Redirect after short delay
       setTimeout(() => {
         // Set flag to prevent stale data from overwriting
-        if (typeof window !== 'undefined') {
-          (window as Window & { __disablePersistenceUntilReload?: boolean }).__disablePersistenceUntilReload = true
-        }
+        setImportInProgress(true)
         window.location.href = '/'
       }, 1500)
     } catch (error) {
