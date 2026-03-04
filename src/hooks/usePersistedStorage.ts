@@ -39,6 +39,7 @@ export interface UsePersistedStorageReturn<T> {
   reload: () => void
   flushSave: () => Promise<boolean>
   clearSaveError: () => void
+  cancelPendingSave: () => void
   retrySave: () => void
 }
 
@@ -317,6 +318,16 @@ export function usePersistedStorage<T>(
     }
   }, [data, save])
 
+  // Cancel any pending debounced save without writing to localStorage.
+  // Use before a direct save to prevent stale pending data from overwriting.
+  const cancelPendingSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = null
+    }
+    pendingDataRef.current = null
+  }, [])
+
   return {
     data,
     setData,
@@ -330,5 +341,6 @@ export function usePersistedStorage<T>(
     flushSave,
     clearSaveError,
     retrySave,
+    cancelPendingSave,
   }
 }

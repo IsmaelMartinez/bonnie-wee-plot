@@ -116,8 +116,9 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
 
     if (hasEmptyAreas && hasEmptyVarieties) {
       logger.info('Repairing: populating empty areas from default layout')
-      // Re-run migration to populate areas
+      // Re-run migration to populate areas, preserving existing meta
       const repaired = migrateSchema({ ...validData, version: 1 })
+      repaired.meta = { ...repaired.meta, ...validData.meta }
       saveAllotmentData(repaired)
       return { success: true, data: repaired }
     }

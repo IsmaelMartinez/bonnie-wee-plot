@@ -1,7 +1,6 @@
 'use client'
 
 import { useTodayData } from '@/hooks/useTodayData'
-import { useAllotment } from '@/hooks/useAllotment'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
@@ -43,6 +42,8 @@ export default function TodayDashboard() {
     generatedTasks,
     dismissedTasks,
     isLoading,
+    showOnboarding,
+    completeOnboarding,
     onAddCustomTask,
     onToggleCustomTask,
     onUpdateCustomTask,
@@ -51,17 +52,12 @@ export default function TodayDashboard() {
     onRestoreTask,
   } = useTodayData()
 
-  const { data, updateMeta, isLoading: allotmentLoading } = useAllotment()
-
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
   const seasonName = SEASON_NAMES[season]
 
-  // Check if onboarding should be shown (only on first visit)
-  const showOnboarding = !allotmentLoading && !!data && !data.meta.setupCompleted
-
   const handleOnboardingComplete = () => {
-    updateMeta({ setupCompleted: true })
+    completeOnboarding()
     trackEvent('onboarding', 'completed', 'wizard')
   }
 
