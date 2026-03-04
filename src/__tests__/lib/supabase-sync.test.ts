@@ -81,9 +81,8 @@ describe('pushToRemote', () => {
         single: vi.fn().mockResolvedValue({ error: null }),
       }),
     })
-    mockFrom.mockReturnValueOnce({
-      upsert: mockUpsertFn,
-    } as unknown)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockFrom.mockReturnValueOnce({ upsert: mockUpsertFn } as any)
 
     await pushToRemote('token', 'user-123', mockData)
     expect(mockFrom).toHaveBeenCalledWith('allotments')
