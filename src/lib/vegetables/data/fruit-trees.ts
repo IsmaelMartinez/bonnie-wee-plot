@@ -49,6 +49,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
     },
+    careTips: [
+      { months: [1, 2], tip: 'Winter prune while dormant — remove crossing branches', category: 'care' },
+      { months: [4], tip: 'Check for woolly aphid on bark crevices', category: 'protect' },
+      { months: [6], tip: 'Thin fruitlets to one per cluster for better size', category: 'care', stage: 'productive' },
+      { months: [8, 9], tip: 'Pick fruit when it twists off easily', category: 'harvest', stage: 'productive' },
+      { months: [11], tip: 'Clear fallen leaves to reduce scab spores', category: 'protect' },
+      { months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], tip: 'Stake securely and check ties quarterly', category: 'care', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/apples/grow-your-own',
     botanicalName: 'Malus domestica',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Malus_domestica'

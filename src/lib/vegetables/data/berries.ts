@@ -44,6 +44,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 1, max: 1 },
       productiveYears: { min: 3, max: 4 }
     },
+    careTips: [
+      { months: [3, 4], tip: 'Remove straw or mulch from crowns as growth starts', category: 'care' },
+      { months: [5], tip: 'Tuck straw under developing fruit to keep clean', category: 'care', stage: 'productive' },
+      { months: [6, 7], tip: 'Pick regularly — every other day in peak season', category: 'harvest', stage: 'productive' },
+      { months: [7, 8], tip: 'Peg down runners to propagate new plants', category: 'propagate' },
+      { months: [9], tip: 'Cut back old foliage after fruiting finishes', category: 'care' },
+      { months: [4, 5, 6], tip: 'Remove flowers in first year to build strong roots', category: 'care', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/strawberries/grow-your-own',
     botanicalName: 'Fragaria × ananassa',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Fragaria_%C3%97_ananassa'
@@ -92,6 +100,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
     },
+    careTips: [
+      { months: [1, 2], tip: 'Check support wires and tighten before new growth', category: 'care' },
+      { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
+      { months: [5, 6], tip: 'Tie in new canes as they grow', category: 'care' },
+      { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
+      { months: [8, 9], tip: 'Cut spent summer-fruiting canes to ground after harvest', category: 'care', stage: 'productive' },
+      { months: [11, 12, 1, 2, 3], tip: 'Plant new bare-root canes during dormant season', category: 'plant', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/raspberries/grow-your-own',
     botanicalName: 'Rubus idaeus',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rubus_idaeus'
