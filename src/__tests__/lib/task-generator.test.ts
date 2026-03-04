@@ -4,7 +4,8 @@ import {
   generateDateBasedTasks,
   generateSuccessionReminders,
   generateVarietyTasks,
-  getUrgency
+  getUrgency,
+  getTaskLabel
 } from '@/lib/task-generator'
 import { Area, Planting, StoredVariety } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
@@ -19,6 +20,13 @@ vi.mock('@/lib/date-calculator', () => ({
   getGerminationDays: vi.fn().mockReturnValue({ min: 7, max: 14 })
 }))
 
+vi.mock('@/lib/perennial-calculator', () => ({
+  calculatePerennialStatus: vi.fn()
+}))
+
+import { calculatePerennialStatus } from '@/lib/perennial-calculator'
+const mockCalculatePerennialStatus = calculatePerennialStatus as ReturnType<typeof vi.fn>
+
 import { getVegetableById } from '@/lib/vegetable-database'
 
 const mockGetVegetableById = getVegetableById as ReturnType<typeof vi.fn>
@@ -26,6 +34,7 @@ const mockGetVegetableById = getVegetableById as ReturnType<typeof vi.fn>
 describe('task-generator', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
   })
 
   describe('generateTasksForMonth', () => {
@@ -276,6 +285,209 @@ describe('task-generator', () => {
       const tasks = generateTasksForMonth(7 as Month, plantingsWithContext, [])
 
       expect(tasks).toHaveLength(0)
+    })
+
+    it('should generate care-tip tasks for perennial areas with careTips', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+          plantedYear: 2022,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
+          { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 2 },
+          productiveYears: { min: 10, max: 15 }
+        }
+      })
+
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      const tasks = generateTasksForMonth(3 as Month, [], [area])
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Cut back autumn-fruiting canes to ground level')
+      expect(careTipTasks[0].areaName).toBe('Raspberry Patch')
+      expect(careTipTasks[0].priority).toBe('medium')
+    })
+
+    it('should filter care tips by perennial lifecycle stage', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+          plantedYear: 2024,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
+          { months: [6, 7, 8], tip: 'Keep well-watered during establishment', category: 'care', stage: 'establishing' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 2 },
+          productiveYears: { min: 10, max: 15 }
+        }
+      })
+
+      // Mock: plant is productive
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      const today = new Date('2026-07-15')
+      const tasks = generateTasksForMonth(7 as Month, [], [area], today, [], 2026)
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Net fruit to protect from birds')
+    })
+
+    it('should show establishing tips for newly planted perennials', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+          plantedYear: 2025,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
+          { months: [6, 7, 8], tip: 'Keep well-watered during establishment', category: 'care', stage: 'establishing' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 2 },
+          productiveYears: { min: 10, max: 15 }
+        }
+      })
+
+      // Mock: plant is establishing
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'establishing' })
+
+      const today = new Date('2026-07-15')
+      const tasks = generateTasksForMonth(7 as Month, [], [area], today, [], 2026)
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Keep well-watered during establishment')
+    })
+
+    it('should show all-stage care tips regardless of lifecycle stage', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+          plantedYear: 2020,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 2 },
+          productiveYears: { min: 10, max: 15 }
+        }
+      })
+
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      const tasks = generateTasksForMonth(3 as Month, [], [area])
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Cut back autumn-fruiting canes to ground level')
+    })
+
+    it('should not generate stage-specific care tips when area has no plantedYear', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
+          { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 2 },
+          productiveYears: { min: 10, max: 15 }
+        }
+      })
+
+      const tasks = generateTasksForMonth(3 as Month, [], [area])
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      // stage-less tips still show, stage-specific tips skipped (no plantedYear)
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Cut back autumn-fruiting canes to ground level')
     })
   })
 
@@ -840,6 +1052,64 @@ describe('task-generator', () => {
 
       expect(tasks).toHaveLength(1)
       expect(tasks[0].generatedType).toBe('sow-indoors')
+    })
+  })
+
+  describe('getTaskLabel', () => {
+    it('should return Care Tip for care-tip type', () => {
+      expect(getTaskLabel('care-tip')).toBe('Care Tip')
+    })
+  })
+
+  describe('care tip integration', () => {
+    it('should generate care tips alongside maintenance tasks for same area', () => {
+      const area: Area = {
+        id: 'apple-north',
+        name: 'Apple Tree (North)',
+        kind: 'tree',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'apple-tree',
+          variety: 'Bramley',
+          plantedYear: 2020,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'apple-tree',
+        name: 'Apple Tree',
+        planting: {
+          harvestMonths: [8, 9, 10],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        maintenance: {
+          pruneMonths: [1, 2],
+          feedMonths: [3],
+          notes: ['Winter prune when dormant']
+        },
+        careTips: [
+          { months: [1, 2], tip: 'Winter prune while dormant — remove crossing branches', category: 'care' },
+          { months: [4], tip: 'Check for woolly aphid on bark crevices', category: 'protect' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 3, max: 5 },
+          productiveYears: { min: 30, max: 50 }
+        }
+      })
+
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      // January: expect both prune maintenance task AND care tip
+      const tasks = generateTasksForMonth(1 as Month, [], [area], new Date('2026-01-15'), [], 2026)
+
+      const pruneTasks = tasks.filter(t => t.generatedType === 'prune')
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+
+      expect(pruneTasks).toHaveLength(1)
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].description).toBe('Winter prune while dormant — remove crossing branches')
     })
   })
 })
