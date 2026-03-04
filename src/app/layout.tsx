@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { ClerkProvider } from '@clerk/nextjs'
 import Navigation from '@/components/Navigation'
 import ErrorBoundaryProvider from '@/components/ErrorBoundaryProvider'
 import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
@@ -35,6 +36,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+        >
         <AitorChatProvider>
           <TourProvider>
             <a
@@ -63,6 +68,7 @@ export default function RootLayout({
           <TourKeyboardShortcut />
           </TourProvider>
         </AitorChatProvider>
+        </ClerkProvider>
       </body>
     </html>
   )
