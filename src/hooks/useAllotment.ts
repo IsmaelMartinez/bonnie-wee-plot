@@ -41,6 +41,7 @@ import {
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PhysicalBed, AllotmentItemRef, AllotmentItemType, PermanentPlanting, InfrastructureItem } from '@/types/garden-planner'
 import { SaveStatus } from './usePersistedStorage'
+import type { SyncStatus } from '@/types/storage'
 
 // Import sub-hooks
 import { useAllotmentData } from './allotment/useAllotmentData'
@@ -69,6 +70,8 @@ export interface UseAllotmentState {
   isSyncedFromOtherTab: boolean  // True if data was just synced from another tab
   saveStatus: SaveStatus  // Current save status (idle, saving, saved, error)
   lastSavedAt: Date | null  // Timestamp of last successful save
+  syncStatus: SyncStatus  // Cloud sync status
+  syncError: string | null  // Cloud sync error message
 }
 
 export interface UseAllotmentActions {
@@ -203,6 +206,8 @@ export function useAllotment(): UseAllotmentReturn {
     saveStatus,
     lastSavedAt,
     isSyncedFromOtherTab,
+    syncStatus,
+    syncError,
     selectYear: baseSelectYear,
     getYears,
     reload,
@@ -339,6 +344,8 @@ export function useAllotment(): UseAllotmentReturn {
     isSyncedFromOtherTab,
     saveStatus,
     lastSavedAt,
+    syncStatus,
+    syncError,
 
     // Year navigation
     selectYear,

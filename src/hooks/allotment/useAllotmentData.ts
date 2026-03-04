@@ -21,7 +21,9 @@ import {
   getAvailableYears,
   setCurrentYear,
 } from '@/services/allotment-storage'
-import { usePersistedStorage, StorageResult, SaveStatus } from '../usePersistedStorage'
+import { StorageResult, SaveStatus } from '../usePersistedStorage'
+import { useSyncedStorage } from '../useSyncedStorage'
+import type { SyncStatus } from '@/types/storage'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from '../usePersistedStorage'
@@ -58,6 +60,8 @@ export interface UseAllotmentDataReturn {
   saveStatus: SaveStatus
   lastSavedAt: Date | null
   isSyncedFromOtherTab: boolean
+  syncStatus: SyncStatus
+  syncError: string | null
 
   // Actions
   selectYear: (year: number) => void
@@ -92,7 +96,9 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     flushSave,
     clearSaveError,
     cancelPendingSave,
-  } = usePersistedStorage<AllotmentData>({
+    syncStatus,
+    syncError,
+  } = useSyncedStorage({
     storageKey: STORAGE_KEY,
     load: loadAllotment,
     save: saveAllotment,
@@ -164,6 +170,8 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     saveStatus,
     lastSavedAt,
     isSyncedFromOtherTab,
+    syncStatus,
+    syncError,
 
     // Actions
     selectYear,

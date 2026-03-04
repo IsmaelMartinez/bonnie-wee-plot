@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Pencil } from 'lucide-react'
+import { Menu, X, Pencil, LogIn } from 'lucide-react'
+import { UserButton } from '@clerk/nextjs'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
+import SyncStatusIcon from './auth/SyncStatusIcon'
 
 // Primary navigation - always visible
 const primaryNavLinks = [
@@ -31,7 +34,8 @@ export default function Navigation() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const pathname = usePathname()
-  const { data, updateMeta } = useAllotment()
+  const { data, updateMeta, syncStatus, syncError } = useAllotment()
+  const { isSignedIn } = useOptionalAuth()
 
   const handleStartEditName = () => {
     setNameInput(data?.meta.name || 'My Allotment')
@@ -135,6 +139,22 @@ export default function Navigation() {
               setIsMoreOpen={setIsMoreOpen}
               isActive={isActive}
             />
+
+            {/* Auth */}
+            {isSignedIn ? (
+              <div className="flex items-center gap-2">
+                <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+                <UserButton />
+              </div>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign in
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -173,6 +193,25 @@ export default function Navigation() {
                 isActive={isActive}
                 closeMobileMenu={closeMobileMenu}
               />
+            </div>
+
+            {/* Auth */}
+            <div className="pt-3 border-t border-zen-stone-100">
+              {isSignedIn ? (
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+                  <UserButton />
+                </div>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:bg-zen-stone-50 transition-colors"
+                  onClick={closeMobileMenu}
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign in
+                </Link>
+              )}
             </div>
           </div>
         )}

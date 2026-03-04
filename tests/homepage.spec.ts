@@ -91,6 +91,7 @@ test.describe('Homepage and Navigation', () => {
       !error.includes('GeolocationPositionError') // Expected when geolocation is unavailable/denied
     );
 
+    if (criticalErrors.length > 0) console.log('Critical errors found:', JSON.stringify(criticalErrors));
     expect(criticalErrors).toHaveLength(0);
   });
 

@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import { Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
+import { Shield, MapPin, Leaf, Database, HelpCircle, User } from 'lucide-react'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
+import AccountTab from '@/components/settings/AccountTab'
 import PageTour from '@/components/onboarding/PageTour'
 import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
 
 export default function SettingsPage() {
+  const { isSignedIn } = useOptionalAuth()
   const { data, flushSave, reload } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
@@ -185,6 +188,12 @@ export default function SettingsPage() {
                 </section>
               ),
             },
+            ...(isSignedIn ? [{
+              id: 'account',
+              label: 'Account',
+              icon: <User className="w-4 h-4" />,
+              content: <AccountTab />,
+            }] : []),
           ]}
         />
       </div>

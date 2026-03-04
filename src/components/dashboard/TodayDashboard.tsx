@@ -9,6 +9,7 @@ import AIInsight from './AIInsight'
 import CompostAlerts from './CompostAlerts'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
+import SignInPrompt from '@/components/auth/SignInPrompt'
 import { trackEvent } from '@/lib/analytics'
 
 function LoadingSkeleton() {
@@ -128,6 +129,9 @@ export default function TodayDashboard() {
               maintenanceTasks,
             }}
           />
+
+          {/* Sign-in prompt for anonymous users */}
+          <SignInPrompt />
         </div>
 
         {/* Footer */}
