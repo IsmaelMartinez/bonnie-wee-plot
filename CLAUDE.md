@@ -49,6 +49,7 @@ The app uses a unified data model stored in localStorage under `allotment-unifie
 - `maintenanceTasks` - care tasks for perennial plants
 - `gardenEvents` - log of garden events (pruning, feeding, etc.)
 - `varieties` - seed varieties with inventory tracking (single source of truth)
+- `compost` - compost pile tracking (integrated from separate storage in v18)
 
 Each `SeasonRecord` contains `AreaSeason` entries that track `Planting` items per area per year.
 
@@ -75,14 +76,19 @@ Query functions in `src/lib/variety-queries.ts`:
 
 ### Storage Service
 
-`src/services/allotment-storage.ts` handles all localStorage operations:
-- Schema validation and migration (current version: 16)
-- Legacy data migration from hardcoded historical plans
-- Immutable update functions (return new data, don't mutate)
-- Promise-based `flushSave()` for reliable import/export coordination
-- Automatic backup creation before imports
+`src/services/allotment-storage.ts` is a barrel file re-exporting from focused modules:
+- `storage-core.ts` — localStorage read/write, initialization
+- `storage-validation.ts` — schema validation and data repair
+- `storage-migrations.ts` — schema migrations (current version: 18), backup/restore, legacy migration
+- `season-operations.ts` — season CRUD and year management
+- `planting-operations.ts` — planting CRUD, area season helpers, notes, garden events
+- `area-queries.ts` — area lookups, filtering by kind, legacy compatibility wrappers
+- `area-mutations.ts` — area CRUD, care logs, harvest tracking
+- `variety-operations.ts` — variety CRUD, seed inventory, supplier queries
+- `task-operations.ts` — custom tasks and maintenance tasks
+- `generic-storage.ts` — raw localStorage utilities
 
-Schema v14 moved grid positions from a separate localStorage key into `AreaSeason.gridPosition`, enabling per-year layouts and ensuring positions are included in export/import. Users on older schemas automatically migrate on next app load with automatic backup creation.
+All existing imports from `@/services/allotment-storage` continue to work unchanged via the barrel file. Immutable update patterns, Promise-based `flushSave()`, and automatic backup creation before imports are preserved.
 
 ### Date Calculator
 
@@ -94,10 +100,11 @@ Schema v14 moved grid positions from a separate localStorage key into `AreaSeaso
 
 ### Vegetable Database
 
-Split into index and full data for performance:
+Split into index, per-category data files, and lazy loader for performance:
 - `src/lib/vegetables/index.ts` - lightweight index for dropdowns/search
-- `src/lib/vegetable-database.ts` - full vegetable definitions
-- `src/lib/vegetable-loader.ts` - lazy loading by category
+- `src/lib/vegetables/data/*.ts` - 17 per-category files (leafy-greens, root-vegetables, brassicas, etc.)
+- `src/lib/vegetable-database.ts` - combines all category files into single array
+- `src/lib/vegetable-loader.ts` - per-category dynamic imports for code splitting
 
 ### Key Type Definitions
 
@@ -182,10 +189,12 @@ See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
 ## Migration and Backward Compatibility
 
-The app supports automatic schema migration for users on older data versions. Current schema is v16. Users on older schemas (v1-v15) automatically migrate on next app load with automatic backup creation.
+The app supports automatic schema migration for users on older data versions. Current schema is v18. Users on older schemas (v1-v17) automatically migrate on next app load with automatic backup creation.
 
 ### Key Schema Milestones
 
+- **v18** (2026-03-04): Integrated compost data into AllotmentData (migrates from separate localStorage key)
+- **v17**: Added compost field to AllotmentData schema
 - **v16** (2026-01-28): Removed `plannedYears` from `StoredVariety`, simplified to use `seedsByYear` as single source of truth for year tracking
 - **v15**: Added `PlantingStatus` for lifecycle tracking
 - **v14** (2026-01-23): Moved grid positions to `AreaSeason.gridPosition` for per-year layouts

@@ -108,23 +108,32 @@ Updated all npm dependencies within semver ranges and bumped `eslint-config-next
 
 Previous Upstash Redis instance was evicted due to 30-day free tier inactivity. Replaced with new instance and updated Vercel env vars. Added Redis keep-alive ping to `/api/health` endpoint — any uptime monitor hitting this endpoint will prevent future inactivity eviction. Also fixed CSP blocking `api.bigdatacloud.net` for reverse geocoding. This is a temporary measure; share storage will move to a proper database when phases 6-7 are implemented.
 
-### Technical Debt Backlog (Do During User Testing)
+### Tech Debt Sprint (March 2026)
 
-Identified in the February 2026 repository analysis (`docs/research/repo-analysis-and-improvements.md`):
+Parallel execution of tech debt and improvements to prepare for the database migration (phases 6-7). All tasks structured to make the future Supabase migration easier.
 
-1. **Split `allotment-storage.ts`** (3,356 lines) into focused modules: validation, migrations, CRUD by domain, stats. The single largest maintainability concern.
-2. **Add component unit tests** for key forms/dialogs (AddPlantingForm, PlantingCard, VarietyEditDialog, DataManagement). Currently only ~2 component-level unit tests exist; E2E tests cover behavior but are slower and more brittle.
-3. **Replace `window.__disablePersistenceUntilReload`** global flag with a cleaner React pattern (ref/context) for signaling "import in progress" across components.
-4. **Add bundle analysis** (`@next/bundle-analyzer`) to understand what ships to client. Important for a PWA where bundle size = offline cache size.
+**Task A: Split `allotment-storage.ts`** (3,458 lines → ~8 modules)
+Split into: storage-core (load/save/clear), storage-validation, storage-migrations (largest, ~800 lines), season-operations, planting-operations (includes garden events), area-queries (includes legacy compat wrappers), variety-operations, area-mutations (CRUD + care logs + temporal filtering). Also includes custom-task-operations and maintenance-task-operations. Re-export everything from a barrel `index.ts` for backward compatibility. Structure modules so each maps to a future database service layer.
 
-### Improvement Backlog (Do After User Feedback)
+**Task B: Compost data integration into AllotmentData**
+Move compost from separate `compost-data` localStorage key into `AllotmentData.compost`. Schema migration v17 reads old key and merges. Update `useCompost` to work through `useAllotment`. Fixes the gap where QR share silently excluded compost data. Remove separate `compost-storage.ts` service once migrated.
 
-5. **Add test coverage thresholds** — start at 50% lines in vitest.config.ts, ratchet up over time
-6. **Improve offline messaging** — core features work offline via localStorage, but no clear user-facing messaging beyond OfflineIndicator
-7. **Consider compost data integration** into AllotmentData for export/import consistency (currently separate storage)
-8. **Add global search** across plantings/varieties for power users
-9. **Evaluate vegetable-database.ts** (6,715 lines) — consider moving plant data to JSON if bundle analysis shows it's significant
-10. **Automatic backup prompts** — periodic reminders to export data, or auto-export to file
+**Task C: Vegetable database restructuring**
+Split `vegetable-database.ts` (6,716 lines) into per-category data files under `src/lib/vegetables/data/`. Fix synchronous imports in `rotation.ts`, `companion-validation.ts`, `planting-utils.ts`, `task-generator.ts`, and `ai-tool-executor.ts` to use the async loader. Move helper functions into `vegetable-loader.ts`. This makes the data DB-ready (each category file maps to a future database query).
+
+**Task D: Replace `window.__disablePersistenceUntilReload`**
+Create `src/lib/persistence-signal.ts` with a `usePersistenceSignal()` hook using a module-scoped ref. Update `usePersistedStorage.ts` to check the hook instead of `window`. Update the two write sites (`useDataTransfer.ts`, `receive/[code]/page.tsx`).
+
+**Task E: Add bundle analysis**
+Add `@next/bundle-analyzer` as dev dependency. Configure in `next.config.mjs` (outermost wrapper, enabled via `ANALYZE=true`). Add `npm run analyze` script.
+
+### Remaining Backlog
+
+- Add component unit tests for key forms/dialogs
+- Add test coverage thresholds
+- Improve offline messaging
+- Individual plant info pages with tips/tricks/links (replaces global search idea)
+- Automatic backup prompts
 
 ### Future Phases (Contingent on User Adoption)
 
