@@ -1,3 +1,5 @@
+import type { PerennialStatus } from '@/types/unified-allotment'
+
 /**
  * Type definitions for the Vegetable Garden Planner feature
  *
@@ -112,6 +114,7 @@ export interface Vegetable {
   care: CareRequirements
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
+  careTips?: CareTip[]                     // Seasonal care tips for perennial plants
   perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
   rhsUrl?: string                          // RHS grow-your-own guide URL
   wikipediaUrl?: string                    // Wikipedia article URL
@@ -126,6 +129,20 @@ export interface MaintenanceInfo {
   feedMonths?: Month[]     // Months when feeding is recommended
   mulchMonths?: Month[]    // Months when mulching is recommended
   notes?: string[]         // Additional maintenance tips
+}
+
+// Care tip categories for perennial plant advice
+export type CareTipCategory = 'care' | 'harvest' | 'propagate' | 'protect' | 'plant'
+
+/**
+ * Seasonal care tip for perennial plants
+ * Each tip is tagged with months and an optional lifecycle stage
+ */
+export interface CareTip {
+  months: Month[]
+  tip: string
+  stage?: PerennialStatus   // 'establishing' | 'productive' | 'declining' (omit = all stages)
+  category: CareTipCategory
 }
 
 /**

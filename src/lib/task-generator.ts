@@ -13,7 +13,7 @@ import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
 
-export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'mulch' | 'succession'
+export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'mulch' | 'succession' | 'care-tip'
 export type TaskUrgency = 'overdue' | 'today' | 'this-week' | 'upcoming' | 'later'
 
 export interface GeneratedTask {
@@ -663,7 +663,8 @@ export function getTaskLabel(type: GeneratedTaskType): string {
     'prune': 'Prune',
     'feed': 'Feed',
     'mulch': 'Mulch',
-    'succession': 'Succession Sow'
+    'succession': 'Succession Sow',
+    'care-tip': 'Care Tip'
   }
   return labels[type] || 'Task'
 }

@@ -4,7 +4,8 @@ import {
   generateDateBasedTasks,
   generateSuccessionReminders,
   generateVarietyTasks,
-  getUrgency
+  getUrgency,
+  getTaskLabel
 } from '@/lib/task-generator'
 import { Area, Planting, StoredVariety } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
@@ -840,6 +841,12 @@ describe('task-generator', () => {
 
       expect(tasks).toHaveLength(1)
       expect(tasks[0].generatedType).toBe('sow-indoors')
+    })
+  })
+
+  describe('getTaskLabel', () => {
+    it('should return Care Tip for care-tip type', () => {
+      expect(getTaskLabel('care-tip')).toBe('Care Tip')
     })
   })
 })
