@@ -12,6 +12,7 @@ import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } f
 import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
+import { calculatePerennialStatus } from '@/lib/perennial-calculator'
 
 export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'mulch' | 'succession' | 'care-tip'
 export type TaskUrgency = 'overdue' | 'today' | 'this-week' | 'upcoming' | 'later'
@@ -230,12 +231,69 @@ export function generateSuccessionReminders(
 }
 
 /**
+ * Generate care tip tasks for perennial areas
+ * Filters by current month and the plant's lifecycle stage
+ */
+function generateCareTipTasks(
+  currentMonth: Month,
+  areas: Area[],
+  currentYear: number
+): GeneratedTask[] {
+  const tasks: GeneratedTask[] = []
+
+  for (const area of areas) {
+    if (!area.primaryPlant?.plantId) continue
+
+    const vegetable = getVegetableById(area.primaryPlant.plantId)
+    if (!vegetable?.careTips) continue
+
+    // Calculate lifecycle stage if we have plantedYear and perennialInfo
+    let lifecycleStatus: string | undefined
+    if (area.primaryPlant.plantedYear && vegetable.perennialInfo) {
+      const result = calculatePerennialStatus(
+        area.primaryPlant.plantedYear,
+        vegetable.perennialInfo,
+        currentYear
+      )
+      lifecycleStatus = result.status
+    }
+
+    for (const tip of vegetable.careTips) {
+      if (!tip.months.includes(currentMonth)) continue
+
+      // Stage filtering: if tip has a stage, only show when lifecycle matches
+      if (tip.stage) {
+        if (!lifecycleStatus) continue  // Can't determine stage without plantedYear
+        if (tip.stage !== lifecycleStatus) continue
+      }
+
+      tasks.push({
+        id: `care-tip-${area.id}-${tip.tip.slice(0, 20).replace(/\s+/g, '-').toLowerCase()}-${currentMonth}`,
+        type: 'other',
+        generatedType: 'care-tip',
+        description: tip.tip,
+        plantId: vegetable.id,
+        plantName: vegetable.name,
+        areaId: area.id,
+        areaName: area.name,
+        month: currentMonth,
+        priority: 'medium',
+        calculatedFrom: 'calendar-month',
+      })
+    }
+  }
+
+  return tasks
+}
+
+/**
  * Generate month-based tasks (fallback when no dates available)
  */
 function generateMonthBasedTasks(
   currentMonth: Month,
   plantings: PlantingWithContext[],
-  areas: Area[]
+  areas: Area[],
+  currentYear: number
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
 
@@ -298,6 +356,9 @@ function generateMonthBasedTasks(
       tasks.push({ ...createMulchTask(vegetable, area, currentMonth), calculatedFrom: 'calendar-month' })
     }
   }
+
+  // Generate care tip tasks for perennial areas
+  tasks.push(...generateCareTipTasks(currentMonth, areas, currentYear))
 
   return tasks
 }
@@ -421,7 +482,7 @@ export function generateTasksForMonth(
   const successionTasks = generateSuccessionReminders(plantings, today)
 
   // Get month-based tasks (fallback for plantings without dates)
-  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas)
+  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear)
 
   // Get variety-based tasks (seeds user has but hasn't planted)
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear)
