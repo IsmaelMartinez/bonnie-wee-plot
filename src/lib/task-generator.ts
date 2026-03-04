@@ -258,7 +258,8 @@ function generateCareTipTasks(
       lifecycleStatus = result.status
     }
 
-    for (const tip of vegetable.careTips) {
+    for (let tipIdx = 0; tipIdx < vegetable.careTips.length; tipIdx++) {
+      const tip = vegetable.careTips[tipIdx]
       if (!tip.months.includes(currentMonth)) continue
 
       // Stage filtering: if tip has a stage, only show when lifecycle matches
@@ -268,7 +269,7 @@ function generateCareTipTasks(
       }
 
       tasks.push({
-        id: `care-tip-${area.id}-${tip.tip.slice(0, 20).replace(/\s+/g, '-').toLowerCase()}-${currentMonth}`,
+        id: `care-tip-${area.id}-${vegetable.id}-${tipIdx}-${currentMonth}`,
         type: 'other',
         generatedType: 'care-tip',
         description: tip.tip,

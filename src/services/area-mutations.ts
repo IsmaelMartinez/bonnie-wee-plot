@@ -26,13 +26,14 @@ export function addArea(
   data: AllotmentData,
   area: Omit<Area, 'id'>
 ): { data: AllotmentData; areaId: string } {
+  const now = new Date().toISOString()
   // Generate ID from the area name (e.g., "Bed A" -> "bed-a")
   const existingIds = new Set(data.layout.areas?.map(a => a.id) || [])
   const id = generateSlugId(area.name, existingIds)
   const newArea: Area = {
     ...area,
     id,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
     // Keep createdYear as undefined if not specified - means area exists in all years
     createdYear: area.createdYear
   }
@@ -71,7 +72,7 @@ export function addArea(
     return {
       ...season,
       areas: [...(season.areas || []), newAreaSeason],
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     }
   })
 
@@ -83,7 +84,7 @@ export function addArea(
         areas: [...areas, newArea],
       },
       seasons: updatedSeasons,
-      meta: { ...data.meta, updatedAt: new Date().toISOString() },
+      meta: { ...data.meta, updatedAt: now },
     },
     areaId: id,
   }
@@ -173,6 +174,7 @@ export function addCareLogEntry(
   areaId: string,
   entry: NewCareLogEntry
 ): { data: AllotmentData; entryId: string } {
+  const now = new Date().toISOString()
   const seasonIndex = data.seasons.findIndex(s => s.year === year)
 
   if (seasonIndex === -1) {
@@ -211,14 +213,14 @@ export function addCareLogEntry(
   updatedSeasons[seasonIndex] = {
     ...season,
     areas: updatedAreas,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   }
 
   return {
     data: {
       ...data,
       seasons: updatedSeasons,
-      meta: { ...data.meta, updatedAt: new Date().toISOString() },
+      meta: { ...data.meta, updatedAt: now },
     },
     entryId: id,
   }
@@ -234,6 +236,7 @@ export function updateCareLogEntry(
   entryId: string,
   updates: Partial<Omit<CareLogEntry, 'id'>>
 ): AllotmentData {
+  const now = new Date().toISOString()
   const seasonIndex = data.seasons.findIndex(s => s.year === year)
 
   if (seasonIndex === -1) {
@@ -268,13 +271,13 @@ export function updateCareLogEntry(
   updatedSeasons[seasonIndex] = {
     ...season,
     areas: updatedAreas,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   }
 
   return {
     ...data,
     seasons: updatedSeasons,
-    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+    meta: { ...data.meta, updatedAt: now },
   }
 }
 
@@ -287,6 +290,7 @@ export function removeCareLogEntry(
   areaId: string,
   entryId: string
 ): AllotmentData {
+  const now = new Date().toISOString()
   const seasonIndex = data.seasons.findIndex(s => s.year === year)
 
   if (seasonIndex === -1) {
@@ -311,13 +315,13 @@ export function removeCareLogEntry(
   updatedSeasons[seasonIndex] = {
     ...season,
     areas: updatedAreas,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   }
 
   return {
     ...data,
     seasons: updatedSeasons,
-    meta: { ...data.meta, updatedAt: new Date().toISOString() },
+    meta: { ...data.meta, updatedAt: now },
   }
 }
 
@@ -406,6 +410,7 @@ export function updateAreaHarvestTotal(
   quantity: number,
   unit: string
 ): AllotmentData {
+  const now = new Date().toISOString()
   const seasonIndex = data.seasons.findIndex(s => s.year === year)
   if (seasonIndex === -1) return data
 
@@ -422,9 +427,9 @@ export function updateAreaHarvestTotal(
   }
 
   const updatedSeasons = [...data.seasons]
-  updatedSeasons[seasonIndex] = { ...season, areas: updatedAreas, updatedAt: new Date().toISOString() }
+  updatedSeasons[seasonIndex] = { ...season, areas: updatedAreas, updatedAt: now }
 
-  return { ...data, seasons: updatedSeasons, meta: { ...data.meta, updatedAt: new Date().toISOString() } }
+  return { ...data, seasons: updatedSeasons, meta: { ...data.meta, updatedAt: now } }
 }
 
 // ============ AREA TEMPORAL FILTERING ============
