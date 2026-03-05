@@ -143,8 +143,7 @@ describe('Data Repair', () => {
 
     const result = loadAllotmentData()
 
-    // Repaired version defaults to 1 which is below minimum supported version
-    // Validation repair adds version, but migration rejects it
+    // When version is missing, repair defaults to CURRENT_SCHEMA_VERSION (above minimum)
     expect(result.success).toBe(true)
     expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
   })
