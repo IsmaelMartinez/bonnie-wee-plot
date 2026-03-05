@@ -118,12 +118,24 @@ describe('server-rate-limiter', () => {
   })
 
   describe('getClientIp', () => {
-    it('extracts IP from x-forwarded-for header', () => {
+    it('extracts rightmost IP from x-forwarded-for header', () => {
       const request = new Request('https://example.com', {
         headers: { 'x-forwarded-for': '203.0.113.50, 70.41.3.18' },
       })
 
-      expect(getClientIp(request)).toBe('203.0.113.50')
+      // Rightmost IP is the one added by the trusted reverse proxy
+      expect(getClientIp(request)).toBe('70.41.3.18')
+    })
+
+    it('prefers x-real-ip over x-forwarded-for', () => {
+      const request = new Request('https://example.com', {
+        headers: {
+          'x-real-ip': '192.168.1.1',
+          'x-forwarded-for': '203.0.113.50, 70.41.3.18',
+        },
+      })
+
+      expect(getClientIp(request)).toBe('192.168.1.1')
     })
 
     it('returns single IP from x-forwarded-for', () => {

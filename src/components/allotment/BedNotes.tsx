@@ -96,7 +96,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
         {!isAdding && !hasNote && (
           <button
             onClick={() => setIsAdding(true)}
-            className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+            className="text-sm text-zen-moss-600 hover:text-zen-moss-700 flex items-center gap-1"
           >
             <Plus className="w-4 h-4" />
             Add note
@@ -131,7 +131,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
             placeholder="Enter your note..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
             rows={2}
             autoFocus
           />
@@ -149,7 +149,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
             <button
               onClick={handleAdd}
               disabled={!newContent.trim()}
-              className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
+              className="px-4 py-2.5 min-h-[44px] text-sm bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               Add Note
             </button>
@@ -193,7 +193,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
                     rows={2}
                     autoFocus
                   />
@@ -207,7 +207,7 @@ export default function AreaNotes({ notes, onAdd, onUpdate, onRemove }: AreaNote
                     <button
                       onClick={() => handleSaveEdit(note.id)}
                       disabled={!editContent.trim()}
-                      className="px-4 py-2.5 min-h-[44px] text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
+                      className="px-4 py-2.5 min-h-[44px] text-sm bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       Save
                     </button>

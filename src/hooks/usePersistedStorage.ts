@@ -262,13 +262,11 @@ export function usePersistedStorage<T>(
         return false
       }
 
-      // Verify write succeeded by re-loading
+      // Verify write succeeded by re-loading and checking it was persisted
+      // Note: we only check that data loads successfully, not string equality,
+      // because migrations may normalize fields during load (changing serialization)
       const verification = load()
-      const verified = verification.success &&
-                       verification.data &&
-                       JSON.stringify(verification.data) === serialized
-
-      if (verified) {
+      if (verification.success && verification.data) {
         pendingDataRef.current = null
         setSaveError(null)
         setSaveStatus('saved')

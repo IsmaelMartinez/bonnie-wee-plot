@@ -114,19 +114,6 @@ module.exports = {
             900: '#2f4354',
           },
         },
-        // Keep primary as alias for backward compatibility during transition
-        primary: {
-          50: '#f6f7f4',
-          100: '#e8ebe3',
-          200: '#d4dbc9',
-          300: '#b5c2a4',
-          400: '#94a67d',
-          500: '#768a5e',
-          600: '#5c6e49',
-          700: '#48573b',
-          800: '#3b4732',
-          900: '#333d2c',
-        },
       },
       fontFamily: {
         // Refined serif for headings - organic, literary feel

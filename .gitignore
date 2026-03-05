@@ -46,6 +46,9 @@ playwright/.cache/
 .DS_Store
 Thumbs.db
 
+# Personal data backups
+allotment-backup*.json
+
 # Worktrees
 .worktrees/
 

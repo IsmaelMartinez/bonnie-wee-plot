@@ -54,7 +54,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     >
       <div className={`max-w-3xl p-4 rounded-lg ${
         isUser
-          ? 'bg-primary-600 text-white'
+          ? 'bg-zen-moss-600 text-white'
           : 'bg-gray-100 text-gray-800'
       }`}>
         {/* Screen reader only role indicator */}

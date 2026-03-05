@@ -21,9 +21,11 @@ const redis = new Redis({
 // Generate a 6-character alphanumeric code (uppercase for readability)
 function generateShareCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // Avoid ambiguous chars like 0/O, 1/I/L
+  const bytes = new Uint8Array(6)
+  crypto.getRandomValues(bytes)
   let code = ''
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
+    code += chars.charAt(bytes[i] % chars.length)
   }
   return code
 }
