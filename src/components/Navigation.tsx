@@ -11,6 +11,35 @@ import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
 import SyncStatusIcon from './auth/SyncStatusIcon'
+import type { SyncStatus } from '@/types/storage'
+
+function NavAuthSection({
+  isSignedIn,
+  syncStatus,
+  syncError,
+  onNavigate,
+}: {
+  isSignedIn: boolean
+  syncStatus: SyncStatus
+  syncError: string | null
+  onNavigate?: () => void
+}) {
+  return isSignedIn ? (
+    <div className="flex items-center gap-2">
+      <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+      <UserButton />
+    </div>
+  ) : (
+    <Link
+      href="/sign-in"
+      className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
+      onClick={onNavigate}
+    >
+      <LogIn className="w-4 h-4" />
+      Sign in
+    </Link>
+  )
+}
 
 // Primary navigation - always visible
 const primaryNavLinks = [
@@ -141,20 +170,7 @@ export default function Navigation() {
             />
 
             {/* Auth */}
-            {isSignedIn ? (
-              <div className="flex items-center gap-2">
-                <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                <UserButton />
-              </div>
-            ) : (
-              <Link
-                href="/sign-in"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign in
-              </Link>
-            )}
+            <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} />
           </div>
 
           {/* Mobile Menu Button */}
@@ -197,21 +213,7 @@ export default function Navigation() {
 
             {/* Auth */}
             <div className="pt-3 border-t border-zen-stone-100">
-              {isSignedIn ? (
-                <div className="flex items-center gap-2 px-3 py-2">
-                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                  <UserButton />
-                </div>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:bg-zen-stone-50 transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign in
-                </Link>
-              )}
+              <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} onNavigate={closeMobileMenu} />
             </div>
           </div>
         )}
