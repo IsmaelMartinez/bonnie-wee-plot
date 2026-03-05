@@ -39,20 +39,14 @@ export function useSyncedStorage(
 
   const canSync = isSignedIn && isSupabaseConfigured() && isOnline
 
-  // Helper to get Supabase JWT — catches the common "No JWT found" Clerk error
+  // Get Clerk session token for Supabase auth.
+  // Uses the default session token (Third-Party Auth) — no JWT template needed.
   const getSupabaseToken = async (): Promise<string | null> => {
     try {
-      return await getToken({ template: 'supabase' })
+      return await getToken()
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      if (message.includes('No JWT found')) {
-        console.warn(
-          '[useSyncedStorage] Clerk JWT template "supabase" not configured. ' +
-          'Create it in your Clerk dashboard (JWT Templates > Supabase) to enable cloud sync.'
-        )
-        return null
-      }
-      throw err
+      console.error('[useSyncedStorage] Failed to get auth token:', err)
+      return null
     }
   }
 
