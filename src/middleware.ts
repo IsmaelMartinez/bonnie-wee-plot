@@ -10,18 +10,24 @@ const clerkAvailable = hasClerkKeys || isKeylessMode
 function buildCspHeader(): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'", 'https://*.clerk.accounts.dev'],
+    'script-src': [
+      "'self'", "'unsafe-eval'", "'unsafe-inline'",
+      'https://*.clerk.accounts.dev',
+      'https://challenges.cloudflare.com',
+    ],
     'style-src': ["'self'", "'unsafe-inline'"],
     'connect-src': [
       "'self'",
       'https://api.openai.com',
       'https://api.bigdatacloud.net',
+      'https://api-bdc.io',
       'https://*.clerk.accounts.dev',
       'https://*.supabase.co',
     ],
     'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://img.clerk.com'],
     'font-src': ["'self'"],
-    'frame-src': ["'self'", 'https://*.clerk.accounts.dev'],
+    'worker-src': ["'self'", 'blob:'], // blob: required by Clerk for CAPTCHA web workers
+    'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://challenges.cloudflare.com'],
     'frame-ancestors': ["'none'"],
     'base-uri': ["'self'"],
     'form-action': ["'self'"],
