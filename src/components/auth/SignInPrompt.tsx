@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useOptionalAuth, isClerkConfigured } from '@/hooks/useOptionalAuth'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import { Cloud } from 'lucide-react'
 
 export default function SignInPrompt() {
   const { isSignedIn } = useOptionalAuth()
 
-  if (!isClerkConfigured || isSignedIn) return null
+  if (isSignedIn) return null
 
   return (
     <div className="zen-card p-4 flex items-center gap-3">

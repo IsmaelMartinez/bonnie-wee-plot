@@ -27,6 +27,9 @@ dist
 # Vercel
 .vercel
 
+# Clerk (keyless mode local keys)
+.clerk/
+
 # Playwright
 test-results/
 playwright-report/
