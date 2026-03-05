@@ -39,9 +39,9 @@ const nextConfig = {
   // Asset prefix for GitHub Pages
   assetPrefix: isGitHubPages ? "/bonnie-wee-plot/" : "",
 
-  // Image configuration
+  // Image configuration — only disable optimization for static export (GitHub Pages)
   images: {
-    unoptimized: true,
+    unoptimized: isGitHubPages,
     remotePatterns: [
       {
         protocol: "https",
@@ -50,8 +50,8 @@ const nextConfig = {
     ],
   },
 
-  // Trailing slash for better compatibility with static hosting
-  trailingSlash: true,
+  // Trailing slash for static hosting compatibility (GitHub Pages)
+  trailingSlash: isGitHubPages,
 
   // Enable Turbopack (Next.js 16+ default) - empty config silences webpack warning
   turbopack: {},

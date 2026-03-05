@@ -106,7 +106,7 @@ test.describe('Data Management - Export/Import', () => {
     const testAreaName = `Import Test ${Date.now()}`
     const importData = {
       allotment: {
-        version: 11,
+        version: 18,
         meta: {
           name: 'Imported Garden',
           createdAt: new Date().toISOString(),
@@ -132,7 +132,7 @@ test.describe('Data Management - Export/Import', () => {
         }
       },
       exportedAt: new Date().toISOString(),
-      exportVersion: 11
+      exportVersion: 18
     }
     fs.writeFileSync(tempFilePath, JSON.stringify(importData))
 
@@ -169,7 +169,7 @@ test.describe('Data Management - Export/Import', () => {
     const tempFilePath = path.join(__dirname, 'temp-import.json')
     const importData = {
       allotment: {
-        version: 11,
+        version: 18,
         meta: {
           name: 'Imported Garden',
           createdAt: new Date().toISOString(),
@@ -195,7 +195,7 @@ test.describe('Data Management - Export/Import', () => {
         }
       },
       exportedAt: new Date().toISOString(),
-      exportVersion: 11
+      exportVersion: 18
     }
     fs.writeFileSync(tempFilePath, JSON.stringify(importData))
 
@@ -303,7 +303,7 @@ test.describe('Data Management - Export/Import', () => {
     // Create an old-format export (just AllotmentData, no wrapper)
     const tempFilePath = path.join(__dirname, 'old-format.json')
     const oldFormatData = {
-      version: 11,
+      version: 18,
       meta: {
         name: 'Old Format Garden',
         createdAt: new Date().toISOString(),

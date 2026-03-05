@@ -75,12 +75,17 @@ export async function checkRateLimit(
 
 /**
  * Extract client IP from a request.
- * Vercel sets x-forwarded-for; falls back to a default.
+ * Prefers x-real-ip (set by Vercel and cannot be spoofed).
+ * Falls back to the rightmost x-forwarded-for entry (platform-appended).
  */
 export function getClientIp(request: Request): string {
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp) return realIp.trim()
+
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
-    return forwarded.split(',')[0].trim()
+    const parts = forwarded.split(',')
+    return parts[parts.length - 1].trim()
   }
   return 'unknown'
 }

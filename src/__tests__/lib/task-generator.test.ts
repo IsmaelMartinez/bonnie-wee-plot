@@ -193,7 +193,34 @@ describe('task-generator', () => {
       expect(tasks).toHaveLength(0)
     })
 
-    it('should deduplicate tasks for the same plant', () => {
+    it('should deduplicate tasks for the same plant in the same area', () => {
+      const planting1: Planting = { id: 'p1', plantId: 'peas' }
+      const planting2: Planting = { id: 'p2', plantId: 'peas' }
+
+      const plantingsWithContext = [
+        { planting: planting1, areaId: 'bed-a', areaName: 'Bed A' },
+        { planting: planting2, areaId: 'bed-a', areaName: 'Bed A' }
+      ]
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'peas',
+        name: 'Peas',
+        planting: {
+          harvestMonths: [7],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        }
+      })
+
+      const tasks = generateTasksForMonth(7 as Month, plantingsWithContext, [])
+
+      // Same plant in same area should deduplicate to one task
+      const harvestTasks = tasks.filter(t => t.generatedType === 'harvest')
+      expect(harvestTasks).toHaveLength(1)
+    })
+
+    it('should generate separate tasks for the same plant in different areas', () => {
       const planting1: Planting = { id: 'p1', plantId: 'peas' }
       const planting2: Planting = { id: 'p2', plantId: 'peas' }
 
@@ -215,9 +242,9 @@ describe('task-generator', () => {
 
       const tasks = generateTasksForMonth(7 as Month, plantingsWithContext, [])
 
-      // Should only have one harvest task despite two plantings
+      // Same plant in different areas should generate separate tasks
       const harvestTasks = tasks.filter(t => t.generatedType === 'harvest')
-      expect(harvestTasks).toHaveLength(1)
+      expect(harvestTasks).toHaveLength(2)
     })
 
     it('should sort tasks by priority (high first)', () => {

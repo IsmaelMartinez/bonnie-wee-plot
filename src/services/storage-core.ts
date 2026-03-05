@@ -15,7 +15,7 @@ import { isLocalStorageAvailable, getStorageUnavailableMessage } from '@/lib/sto
 import { isQuotaExceededError } from '@/lib/storage-ops'
 import { logger } from '@/lib/logger'
 import { validateAllotmentData, attemptDataRepair } from './storage-validation'
-import { migrateSchema, clearMigrationState, migrateFromLegacyData } from './storage-migrations'
+import { migrateSchema, migrateFromLegacyData, MINIMUM_SUPPORTED_VERSION } from './storage-migrations'
 import { ensureCurrentYearSeason } from './season-operations'
 
 /**
@@ -91,36 +91,19 @@ export function loadAllotmentData(): StorageResult<AllotmentData> {
 
     const validData = data as AllotmentData
 
-    // Check for incomplete migration and resume if needed
-    if (validData.meta.migrationState) {
-      logger.info('Detected incomplete migration, resuming', { targetVersion: validData.meta.migrationState.targetVersion })
-      const migrated = migrateSchema(validData)
-      const cleaned = clearMigrationState(migrated)
-      saveAllotmentData(cleaned)
-      return { success: true, data: cleaned }
+    // Reject data that's too old for our supported migration path
+    if (validData.version < MINIMUM_SUPPORTED_VERSION) {
+      return {
+        success: false,
+        error: `Data schema version ${validData.version} is too old. Minimum supported is v${MINIMUM_SUPPORTED_VERSION}. Please export and start fresh.`
+      }
     }
 
     // Check version and migrate if needed
     if (validData.version !== CURRENT_SCHEMA_VERSION) {
       const migrated = migrateSchema(validData)
-      const cleaned = clearMigrationState(migrated)
-      saveAllotmentData(cleaned)
-      return { success: true, data: cleaned }
-    }
-
-    // Ensure areas is populated (v10 unified system)
-    // BUT: Only do this repair if varieties are empty or if we're on legacy data
-    // This prevents losing imported varieties when they exist but areas are empty
-    const hasEmptyAreas = !validData.layout.areas || validData.layout.areas.length === 0
-    const hasEmptyVarieties = !validData.varieties || validData.varieties.length === 0
-
-    if (hasEmptyAreas && hasEmptyVarieties) {
-      logger.info('Repairing: populating empty areas from default layout')
-      // Re-run migration to populate areas, preserving existing meta
-      const repaired = migrateSchema({ ...validData, version: 1 })
-      repaired.meta = { ...repaired.meta, ...validData.meta }
-      saveAllotmentData(repaired)
-      return { success: true, data: repaired }
+      saveAllotmentData(migrated)
+      return { success: true, data: migrated }
     }
 
     // Auto-update currentYear if it's in the past

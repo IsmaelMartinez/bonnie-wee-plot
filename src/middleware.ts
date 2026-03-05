@@ -23,6 +23,7 @@ function buildCspHeader(): string {
       'https://api-bdc.io',
       'https://*.clerk.accounts.dev',
       'https://*.supabase.co',
+      'https://*.ingest.sentry.io',
     ],
     'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://img.clerk.com'],
     'font-src': ["'self'"],
@@ -43,7 +44,7 @@ function addSecurityHeaders(response: NextResponse) {
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()')
 }
 
 function handleRequest(request: NextRequest): NextResponse {

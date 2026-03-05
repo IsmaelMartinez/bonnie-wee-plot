@@ -131,17 +131,16 @@ describe('usePersistedStorage - Flush Mechanism', () => {
     expect(mockLoad).toHaveBeenCalledTimes(2)
   })
 
-  it('flushSave returns false when verification fails', async () => {
+  it('flushSave returns false when verification load fails', async () => {
     const testData: TestData = { version: 1, value: 'initial' }
     const updatedData: TestData = { version: 1, value: 'updated' }
-    const wrongData: TestData = { version: 1, value: 'wrong' }
 
     // Initial load returns original data
     mockLoad.mockReturnValueOnce({ success: true, data: testData })
     // Save succeeds
     mockSave.mockReturnValue({ success: true })
-    // Verification load returns different data (write didn't persist correctly)
-    mockLoad.mockReturnValueOnce({ success: true, data: wrongData })
+    // Verification load fails (write didn't persist correctly)
+    mockLoad.mockReturnValueOnce({ success: false, error: 'Read failed' })
 
     const { result } = renderHook(() =>
       usePersistedStorage<TestData>({

@@ -21,6 +21,7 @@ export {
 
 // Schema migrations, backup/restore, legacy migration
 export {
+  MINIMUM_SUPPORTED_VERSION,
   restoreFromBackup,
   getAvailableBackups,
   migrateSchemaForImport,

@@ -105,7 +105,7 @@ function createExportData(varieties: unknown[] = [], areas: unknown[] = []) {
   const currentYear = new Date().getFullYear()
   return {
     allotment: {
-      version: 13,
+      version: 18,
       meta: {
         name: 'Test Garden',
         createdAt: new Date().toISOString(),
@@ -131,7 +131,7 @@ function createExportData(varieties: unknown[] = [], areas: unknown[] = []) {
       }
     },
     exportedAt: new Date().toISOString(),
-    exportVersion: 13
+    exportVersion: 18
   }
 }
 

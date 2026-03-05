@@ -40,18 +40,19 @@ const localStorageMock = (() => {
   }
 })()
 
-// Mock data
+// Mock data — use current year so loadAllotmentData() doesn't auto-bump it
+const thisYear = new Date().getFullYear()
 const mockAllotmentData: AllotmentData = {
   version: CURRENT_SCHEMA_VERSION,
   meta: {
     name: 'Test Allotment',
     location: 'Test Location',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+    createdAt: `${thisYear}-01-01T00:00:00.000Z`,
+    updatedAt: `${thisYear}-01-01T00:00:00.000Z`,
   },
   layout: { areas: [] },
   seasons: [],
-  currentYear: 2024,
+  currentYear: thisYear,
   maintenanceTasks: [],
   varieties: [],
 }
@@ -156,7 +157,7 @@ describe('Backup/Restore Functionality', () => {
     localStorageMock.setItem(backupKey, JSON.stringify(mockAllotmentData))
 
     // Set different current data
-    const modifiedData = { ...mockAllotmentData, currentYear: 2025 }
+    const modifiedData = { ...mockAllotmentData, currentYear: thisYear + 1 }
     localStorageMock.setItem(STORAGE_KEY, JSON.stringify(modifiedData))
 
     const result = restoreFromBackup(backupKey)
@@ -165,7 +166,7 @@ describe('Backup/Restore Functionality', () => {
 
     // Verify data was restored
     const restoredData = JSON.parse(localStorageMock.getItem(STORAGE_KEY)!)
-    expect(restoredData.currentYear).toBe(2024) // Original year
+    expect(restoredData.currentYear).toBe(thisYear) // Original year
   })
 
   it('fails to restore when backup does not exist', () => {

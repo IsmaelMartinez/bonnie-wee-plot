@@ -99,7 +99,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about planting, pests, soil, weather, or any garden question..."
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-zen-moss-500"
               disabled={isLoading}
               aria-label="Type your gardening question"
             />
@@ -119,7 +119,7 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatIn
             <button
               type="submit"
               disabled={isLoading || (!input.trim() && !selectedImage)}
-              className="bg-primary-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px] disabled:bg-gray-400"
+              className="bg-zen-moss-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-zen-moss-700 disabled:opacity-50 disabled:cursor-not-allowed transition min-h-[44px] disabled:bg-gray-400"
               aria-label="Send message"
             >
               <Send className="w-5 h-5" aria-hidden="true" />

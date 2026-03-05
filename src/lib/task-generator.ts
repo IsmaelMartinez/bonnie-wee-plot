@@ -677,15 +677,14 @@ function createMulchTask(
 }
 
 /**
- * Remove duplicate tasks (same plant + same action type)
+ * Remove duplicate tasks (same plant + same action type + same area)
  * Keeps the one with the most context (area info)
  */
 function deduplicateTasks(tasks: GeneratedTask[]): GeneratedTask[] {
   const taskMap = new Map<string, GeneratedTask>()
 
   for (const task of tasks) {
-    // Create a key based on plant + task type (not area-specific)
-    const key = `${task.generatedType}-${task.plantId}`
+    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'no-area'}`
     const existing = taskMap.get(key)
 
     if (!existing) {

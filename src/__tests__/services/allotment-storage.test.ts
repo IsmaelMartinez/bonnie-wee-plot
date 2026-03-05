@@ -143,13 +143,14 @@ describe('Data Repair', () => {
 
     const result = loadAllotmentData()
 
+    // When version is missing, repair defaults to CURRENT_SCHEMA_VERSION (above minimum)
     expect(result.success).toBe(true)
     expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
   })
 
   it('repairs missing meta.name with default', () => {
     const dataWithoutMetaName = {
-      version: 1,
+      version: CURRENT_SCHEMA_VERSION,
       currentYear: TEST_CURRENT_YEAR,
       meta: { location: 'Test' },
       layout: { areas: [] },
@@ -165,7 +166,7 @@ describe('Data Repair', () => {
 
   it('repairs missing layout.areas with empty array', () => {
     const dataWithPartialLayout = {
-      version: 1,
+      version: CURRENT_SCHEMA_VERSION,
       currentYear: TEST_CURRENT_YEAR,
       meta: { name: 'Test' },
       layout: {}, // Missing areas
@@ -181,7 +182,7 @@ describe('Data Repair', () => {
 
   it('repairs invalid seasons array with empty array', () => {
     const dataWithInvalidSeasons = {
-      version: 1,
+      version: CURRENT_SCHEMA_VERSION,
       currentYear: TEST_CURRENT_YEAR,
       meta: { name: 'Test' },
       layout: { areas: [] },
@@ -193,6 +194,16 @@ describe('Data Repair', () => {
 
     expect(result.success).toBe(true)
     expect(result.data?.seasons).toEqual([])
+  })
+
+  it('rejects data with version below minimum supported', () => {
+    const oldData = createValidAllotmentData({ version: 10 })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(oldData))
+
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain('too old')
   })
 })
 
@@ -437,375 +448,33 @@ describe('addArea() temporal backfilling', () => {
   })
 })
 
-describe('v11 to v12 migration', () => {
+describe('v16 to v18 migration', () => {
   beforeEach(() => {
     vi.mocked(localStorage.getItem).mockClear()
     vi.mocked(localStorage.setItem).mockClear()
   })
 
-  it('should rename harvestDate to actualHarvestStart', () => {
-    const v11Data = createValidAllotmentData({
-      version: 11,
-      seasons: [{
-        year: TEST_CURRENT_YEAR,
-        status: 'current',
-        areas: [{
-          areaId: 'bed-a',
-          rotationGroup: 'legumes',
-          plantings: [{
-            id: 'p1',
-            plantId: 'peas',
-            harvestDate: '2025-07-15'  // Old field name
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any]
-        }],
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      }]
-    })
+  it('should migrate v16 data through v17 and v18', () => {
+    const v16Data = createValidAllotmentData({ version: 16 })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v16Data))
 
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
     expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
-    const planting = result.data?.seasons[0].areas[0].plantings[0]
-    expect(planting?.actualHarvestStart).toBe('2025-07-15')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((planting as any).harvestDate).toBeUndefined()
+    expect(result.data?.customTasks).toEqual([])
+    expect(result.data?.compost).toEqual([])
   })
 
-  it('should default sowMethod to outdoor when sowDate exists', () => {
-    const v11Data = createValidAllotmentData({
-      version: 11,
-      seasons: [{
-        year: TEST_CURRENT_YEAR,
-        status: 'current',
-        areas: [{
-          areaId: 'bed-a',
-          rotationGroup: 'legumes',
-          plantings: [{
-            id: 'p1',
-            plantId: 'peas',
-            sowDate: '2025-04-15'
-          }]
-        }],
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      }]
-    })
+  it('should migrate v17 data to v18', () => {
+    const v17Data = createValidAllotmentData({ version: 17, customTasks: [] })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v17Data))
 
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    const planting = result.data?.seasons[0].areas[0].plantings[0]
-    expect(planting?.sowMethod).toBe('outdoor')
-  })
-
-  it('should not set sowMethod when sowDate is missing', () => {
-    const v11Data = createValidAllotmentData({
-      version: 11,
-      seasons: [{
-        year: TEST_CURRENT_YEAR,
-        status: 'current',
-        areas: [{
-          areaId: 'bed-a',
-          rotationGroup: 'legumes',
-          plantings: [{
-            id: 'p1',
-            plantId: 'peas'
-            // No sowDate
-          }]
-        }],
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      }]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    const planting = result.data?.seasons[0].areas[0].plantings[0]
-    expect(planting?.sowMethod).toBeUndefined()
-  })
-
-  it('should preserve all other planting fields', () => {
-    const v11Data = createValidAllotmentData({
-      version: 11,
-      seasons: [{
-        year: TEST_CURRENT_YEAR,
-        status: 'current',
-        areas: [{
-          areaId: 'bed-a',
-          rotationGroup: 'legumes',
-          plantings: [{
-            id: 'p1',
-            plantId: 'peas',
-            varietyName: 'Kelvedon Wonder',
-            sowDate: '2025-04-15',
-            transplantDate: '2025-05-20',
-            success: 'good',
-            notes: 'Test notes',
-            quantity: 24
-          }]
-        }],
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      }]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v11Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    const planting = result.data?.seasons[0].areas[0].plantings[0]
-    expect(planting?.varietyName).toBe('Kelvedon Wonder')
-    expect(planting?.sowDate).toBe('2025-04-15')
-    expect(planting?.transplantDate).toBe('2025-05-20')
-    expect(planting?.success).toBe('good')
-    expect(planting?.notes).toBe('Test notes')
-    expect(planting?.quantity).toBe(24)
-    expect(planting?.sowMethod).toBe('outdoor')
-  })
-})
-
-describe('v12 to v13 migration', () => {
-  beforeEach(() => {
-    vi.mocked(localStorage.getItem).mockClear()
-    vi.mocked(localStorage.setItem).mockClear()
-  })
-
-  it('should remove yearsUsed from varieties', () => {
-    const v12Data = createValidAllotmentData({
-      version: 12,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          yearsUsed: [2023, 2024],
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
     const result = loadAllotmentData()
 
     expect(result.success).toBe(true)
     expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
-    const variety = result.data?.varieties[0]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((variety as any)?.yearsUsed).toBeUndefined()
-  })
-
-  it('should preserve all other variety fields', () => {
-    const v12Data = createValidAllotmentData({
-      version: 12,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          supplier: 'Test Supplier',
-          price: 2.99,
-          notes: 'Test notes',
-          yearsUsed: [2024],
-          seedsByYear: { 2026: 'have' },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    const variety = result.data?.varieties[0]
-    expect(variety?.id).toBe('v1')
-    expect(variety?.plantId).toBe('peas')
-    expect(variety?.name).toBe('Kelvedon Wonder')
-    expect(variety?.supplier).toBe('Test Supplier')
-    expect(variety?.price).toBe(2.99)
-    expect(variety?.notes).toBe('Test notes')
-    expect(variety?.seedsByYear).toEqual({ 2026: 'have' })
-  })
-
-  it('should handle empty varieties array', () => {
-    const v12Data = createValidAllotmentData({
-      version: 12,
-      varieties: []
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
-    expect(result.data?.varieties).toEqual([])
-  })
-
-  it('should handle multiple varieties', () => {
-    const v12Data = createValidAllotmentData({
-      version: 12,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          yearsUsed: [2023, 2024],
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        {
-          id: 'v2',
-          plantId: 'tomato',
-          name: 'San Marzano',
-          yearsUsed: [2024],
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.varieties.length).toBe(2)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.data?.varieties[0] as any)?.yearsUsed).toBeUndefined()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.data?.varieties[1] as any)?.yearsUsed).toBeUndefined()
-  })
-
-  it('initializes isArchived to false for varieties during v12 -> v13 migration', () => {
-    const v12Data = {
-      ...createValidAllotmentData(),
-      version: 12,
-      varieties: [
-        {
-          id: 'var-1',
-          plantId: 'peas',
-          name: 'Alderman',
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    }
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v12Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.varieties[0].isArchived).toBe(false)
-  })
-})
-
-describe('v15 to v16 migration', () => {
-  beforeEach(() => {
-    vi.mocked(localStorage.getItem).mockClear()
-    vi.mocked(localStorage.setItem).mockClear()
-  })
-
-  it('should remove plannedYears from varieties', () => {
-    const v15Data = createValidAllotmentData({
-      version: 15,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          plannedYears: [2024, 2025],
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.version).toBe(CURRENT_SCHEMA_VERSION)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.data?.varieties[0] as any)?.plannedYears).toBeUndefined()
-  })
-
-  it('should migrate plannedYears to seedsByYear with none status', () => {
-    const v15Data = createValidAllotmentData({
-      version: 15,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          plannedYears: [2024, 2025],
-          seedsByYear: {},
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.varieties[0].seedsByYear).toEqual({
-      2024: 'none',
-      2025: 'none'
-    })
-  })
-
-  it('should preserve existing seedsByYear values during migration', () => {
-    const v15Data = createValidAllotmentData({
-      version: 15,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          plannedYears: [2024, 2025, 2026],
-          seedsByYear: { 2024: 'have', 2025: 'ordered' },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    // Existing values preserved, only 2026 added as 'none'
-    expect(result.data?.varieties[0].seedsByYear).toEqual({
-      2024: 'have',
-      2025: 'ordered',
-      2026: 'none'
-    })
-  })
-
-  it('should handle varieties with no plannedYears', () => {
-    const v15Data = createValidAllotmentData({
-      version: 15,
-      varieties: [
-        {
-          id: 'v1',
-          plantId: 'peas',
-          name: 'Kelvedon Wonder',
-          seedsByYear: { 2024: 'have' },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any
-      ]
-    })
-
-    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v15Data))
-    const result = loadAllotmentData()
-
-    expect(result.success).toBe(true)
-    expect(result.data?.varieties[0].seedsByYear).toEqual({ 2024: 'have' })
+    expect(result.data?.compost).toEqual([])
   })
 })
 

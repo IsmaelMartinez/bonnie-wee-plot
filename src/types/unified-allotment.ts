@@ -175,17 +175,7 @@ export interface AllotmentMeta {
   location?: string                  // "Edinburgh, Scotland"
   createdAt: string                  // ISO date string
   updatedAt: string                  // ISO date string
-  migrationState?: MigrationState    // Track incomplete migrations for recovery
   setupCompleted?: boolean           // Whether the setup wizard has been completed
-}
-
-/**
- * Tracks migration progress for interrupted migration recovery
- */
-export interface MigrationState {
-  targetVersion: number              // Version we're migrating to
-  startedAt: string                  // ISO date when migration started
-  step: string                       // Current step for debugging
 }
 
 /**
@@ -488,99 +478,6 @@ export type NewAreaNote = Omit<AreaNote, 'id' | 'createdAt' | 'updatedAt'>
  * Input for updating an area note (partial, without ID)
  */
 export type AreaNoteUpdate = Partial<Omit<AreaNote, 'id' | 'createdAt'>>
-
-// ============ LEGACY TYPES (for v9 migration compatibility) ============
-
-/**
- * @deprecated Use AreaSeason instead. Kept for v9 migration.
- */
-export interface BedSeason {
-  bedId: string                      // Now string, was PhysicalBedId
-  rotationGroup: RotationGroup
-  plantings: Planting[]
-  notes?: AreaNote[]
-}
-
-/**
- * @deprecated v9 area types - kept for migration compatibility
- */
-export type AreaType = 'bed' | 'permanent' | 'infrastructure'
-
-/**
- * @deprecated Use Area with kind='rotation-bed' or 'perennial-bed'
- */
-export interface BedArea {
-  id: string
-  type: 'bed'
-  name: string
-  description?: string
-  status: 'rotation' | 'perennial'
-  rotationGroup?: RotationGroup
-  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
-}
-
-/**
- * @deprecated Use Area with kind='tree', 'berry', 'herb', or 'perennial-bed'
- */
-export interface PermanentArea {
-  id: string
-  type: 'permanent'
-  name: string
-  description?: string
-  plantingType: 'fruit-tree' | 'berry' | 'perennial-veg' | 'herb'
-  plantId?: string
-  variety?: string
-  plantedYear?: number
-  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
-}
-
-/**
- * @deprecated Use Area with kind='infrastructure'
- */
-export interface InfrastructureArea {
-  id: string
-  type: 'infrastructure'
-  name: string
-  description?: string
-  infrastructureType: InfrastructureSubtype
-  gridPosition?: { startRow: number; startCol: number; endRow: number; endCol: number }
-}
-
-/**
- * @deprecated v9 discriminated union - use Area instead
- */
-export type LegacyArea = BedArea | PermanentArea | InfrastructureArea
-
-/**
- * @deprecated v9 permanent underplanting - now just use Planting in any area
- */
-export interface PermanentUnderplanting {
-  id: string
-  parentAreaId: string
-  plantId: string
-  variety?: string
-  plantedYear?: number
-  notes?: string
-}
-
-/**
- * @deprecated v9 seasonal underplanting - now just use Planting in any area
- */
-export interface SeasonalUnderplanting extends Planting {
-  parentAreaId: string
-}
-
-/**
- * @deprecated v9 permanent season - now merged into AreaSeason
- */
-export interface PermanentSeason {
-  areaId: string
-  careLogs: CareLogEntry[]
-  seasonNotes?: string
-  harvestTotal?: number
-  harvestUnit?: string
-  underplantings: SeasonalUnderplanting[]
-}
 
 // ============ UNIFIED ITEM SELECTION TYPES ============
 
