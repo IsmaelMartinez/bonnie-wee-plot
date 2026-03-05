@@ -6,7 +6,7 @@ async function seedTestData(page: import('@playwright/test').Page) {
     const now = new Date().toISOString()
     const currentYear = new Date().getFullYear()
     const testData = {
-      version: 12,
+      version: 18,
       meta: {
         name: 'My Allotment',
         location: 'Edinburgh, Scotland',
