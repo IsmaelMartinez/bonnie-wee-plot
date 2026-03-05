@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Pencil, LogIn } from 'lucide-react'
 import { UserButton } from '@clerk/nextjs'
-import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { useOptionalAuth, clerkAvailable } from '@/hooks/useOptionalAuth'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
@@ -170,7 +170,9 @@ export default function Navigation() {
             />
 
             {/* Auth */}
-            <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} />
+            {clerkAvailable && (
+              <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} />
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -212,9 +214,11 @@ export default function Navigation() {
             </div>
 
             {/* Auth */}
-            <div className="pt-3 border-t border-zen-stone-100">
-              <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} onNavigate={closeMobileMenu} />
-            </div>
+            {clerkAvailable && (
+              <div className="pt-3 border-t border-zen-stone-100">
+                <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} onNavigate={closeMobileMenu} />
+              </div>
+            )}
           </div>
         )}
       </div>

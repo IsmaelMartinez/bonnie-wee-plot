@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
+// Clerk is available via explicit keys or keyless mode (dev only)
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+const isKeylessMode = !hasClerkKeys && process.env.NODE_ENV === 'development'
+const clerkAvailable = hasClerkKeys || isKeylessMode
+
 function buildCspHeader(): string {
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
@@ -53,7 +58,9 @@ function handleRequest(request: NextRequest): NextResponse {
   return response
 }
 
-export default clerkMiddleware(async (_auth, request: NextRequest) => handleRequest(request))
+export default clerkAvailable
+  ? clerkMiddleware(async (_auth, request: NextRequest) => handleRequest(request))
+  : (request: NextRequest) => handleRequest(request)
 
 export const config = {
   matcher: [
