@@ -1,10 +1,13 @@
 import { redirect } from 'next/navigation'
 import { SignIn } from '@clerk/nextjs'
 
-const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+// Clerk is available via explicit keys or keyless mode (dev only)
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+const isKeylessMode = !hasClerkKeys && process.env.NODE_ENV === 'development'
+const clerkAvailable = hasClerkKeys || isKeylessMode
 
 export default function SignInPage() {
-  if (!isClerkConfigured) {
+  if (!clerkAvailable) {
     redirect('/')
   }
 

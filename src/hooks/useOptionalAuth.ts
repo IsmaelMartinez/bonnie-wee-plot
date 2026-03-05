@@ -2,13 +2,10 @@
 
 import { useAuth } from '@clerk/nextjs'
 
-/**
- * Safe wrapper around Clerk's useAuth that returns anonymous defaults
- * when Clerk is not configured. Prevents runtime errors when
- * ClerkProvider is absent (anonymous-only mode).
- */
-
-export const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+// Clerk is available via explicit keys or keyless mode (dev only)
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+const isKeylessMode = !hasClerkKeys && process.env.NODE_ENV === 'development'
+export const clerkAvailable = hasClerkKeys || isKeylessMode
 
 interface AuthReturn {
   isSignedIn: boolean
@@ -17,7 +14,7 @@ interface AuthReturn {
 }
 
 export function useOptionalAuth(): AuthReturn {
-  if (!isClerkConfigured) {
+  if (!clerkAvailable) {
     return { isSignedIn: false, userId: null, getToken: async () => null }
   }
 

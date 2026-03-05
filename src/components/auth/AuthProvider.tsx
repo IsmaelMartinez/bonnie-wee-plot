@@ -2,14 +2,13 @@
 
 import { ClerkProvider } from '@clerk/nextjs'
 
-const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+// Clerk is available via explicit keys or keyless mode (dev only)
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+const isKeylessMode = !hasClerkKeys && process.env.NODE_ENV === 'development'
+const clerkAvailable = hasClerkKeys || isKeylessMode
 
-/**
- * Conditionally wraps children with ClerkProvider when Clerk is configured.
- * Without Clerk env vars, children render without auth (anonymous-only mode).
- */
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  if (!isClerkConfigured) {
+  if (!clerkAvailable) {
     return <>{children}</>
   }
 

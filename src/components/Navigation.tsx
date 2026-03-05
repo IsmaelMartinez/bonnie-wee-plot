@@ -5,12 +5,41 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Pencil, LogIn } from 'lucide-react'
 import { UserButton } from '@clerk/nextjs'
-import { useOptionalAuth, isClerkConfigured } from '@/hooks/useOptionalAuth'
+import { useOptionalAuth, clerkAvailable } from '@/hooks/useOptionalAuth'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
 import SyncStatusIcon from './auth/SyncStatusIcon'
+import type { SyncStatus } from '@/types/storage'
+
+function NavAuthSection({
+  isSignedIn,
+  syncStatus,
+  syncError,
+  onNavigate,
+}: {
+  isSignedIn: boolean
+  syncStatus: SyncStatus
+  syncError: string | null
+  onNavigate?: () => void
+}) {
+  return isSignedIn ? (
+    <div className="flex items-center gap-2">
+      <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+      <UserButton />
+    </div>
+  ) : (
+    <Link
+      href="/sign-in"
+      className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
+      onClick={onNavigate}
+    >
+      <LogIn className="w-4 h-4" />
+      Sign in
+    </Link>
+  )
+}
 
 // Primary navigation - always visible
 const primaryNavLinks = [
@@ -141,21 +170,8 @@ export default function Navigation() {
             />
 
             {/* Auth */}
-            {isClerkConfigured && (
-              isSignedIn ? (
-                <div className="flex items-center gap-2">
-                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                  <UserButton />
-                </div>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign in
-                </Link>
-              )
+            {clerkAvailable && (
+              <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} />
             )}
           </div>
 
@@ -198,23 +214,9 @@ export default function Navigation() {
             </div>
 
             {/* Auth */}
-            {isClerkConfigured && (
+            {clerkAvailable && (
               <div className="pt-3 border-t border-zen-stone-100">
-                {isSignedIn ? (
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                    <UserButton />
-                  </div>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:bg-zen-stone-50 transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Sign in
-                  </Link>
-                )}
+                <NavAuthSection isSignedIn={isSignedIn} syncStatus={syncStatus} syncError={syncError} onNavigate={closeMobileMenu} />
               </div>
             )}
           </div>
