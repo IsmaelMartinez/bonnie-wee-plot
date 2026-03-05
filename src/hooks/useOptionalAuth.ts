@@ -8,7 +8,7 @@ import { useAuth } from '@clerk/nextjs'
  * ClerkProvider is absent (anonymous-only mode).
  */
 
-const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+export const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
 interface AuthReturn {
   isSignedIn: boolean

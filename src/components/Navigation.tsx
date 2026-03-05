@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Pencil, LogIn } from 'lucide-react'
 import { UserButton } from '@clerk/nextjs'
-import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { useOptionalAuth, isClerkConfigured } from '@/hooks/useOptionalAuth'
 import { getSeasonalPhase } from '@/lib/seasons'
 import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
@@ -141,19 +141,21 @@ export default function Navigation() {
             />
 
             {/* Auth */}
-            {isSignedIn ? (
-              <div className="flex items-center gap-2">
-                <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                <UserButton />
-              </div>
-            ) : (
-              <Link
-                href="/sign-in"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign in
-              </Link>
+            {isClerkConfigured && (
+              isSignedIn ? (
+                <div className="flex items-center gap-2">
+                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+                  <UserButton />
+                </div>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:text-zen-ink-800 hover:bg-zen-stone-50 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign in
+                </Link>
+              )
             )}
           </div>
 
@@ -196,23 +198,25 @@ export default function Navigation() {
             </div>
 
             {/* Auth */}
-            <div className="pt-3 border-t border-zen-stone-100">
-              {isSignedIn ? (
-                <div className="flex items-center gap-2 px-3 py-2">
-                  <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
-                  <UserButton />
-                </div>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:bg-zen-stone-50 transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign in
-                </Link>
-              )}
-            </div>
+            {isClerkConfigured && (
+              <div className="pt-3 border-t border-zen-stone-100">
+                {isSignedIn ? (
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <SyncStatusIcon syncStatus={syncStatus} syncError={syncError} />
+                    <UserButton />
+                  </div>
+                ) : (
+                  <Link
+                    href="/sign-in"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-zen text-sm font-medium text-zen-ink-600 hover:bg-zen-stone-50 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
