@@ -26,7 +26,7 @@ function buildCspHeader(): string {
     ],
     'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://img.clerk.com'],
     'font-src': ["'self'"],
-    'worker-src': ["'self'", 'blob:'],
+    'worker-src': ["'self'", 'blob:'], // blob: required by Clerk for CAPTCHA web workers
     'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://challenges.cloudflare.com'],
     'frame-ancestors': ["'none'"],
     'base-uri': ["'self'"],
