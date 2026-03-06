@@ -44,7 +44,7 @@ export default function CompostAlerts() {
   }
 
   return (
-    <div className="zen-card p-4 border-zen-moss-200">
+    <div className="zen-card p-4 border-zen-moss-200" data-tour="compost-alerts">
       <div className="flex items-center gap-2 mb-3">
         <Recycle className="w-5 h-5 text-zen-moss-600" />
         <h3 className="font-medium text-zen-ink-700">Compost</h3>

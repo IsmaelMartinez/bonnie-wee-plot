@@ -10,6 +10,7 @@ import CompostAlerts from './CompostAlerts'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
+import { useApiToken } from '@/hooks/useSessionStorage'
 import { trackEvent } from '@/lib/analytics'
 
 function LoadingSkeleton() {
@@ -52,6 +53,7 @@ export default function TodayDashboard() {
     onDismissTask,
     onRestoreTask,
   } = useTodayData()
+  const { token } = useApiToken()
 
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
@@ -121,14 +123,16 @@ export default function TodayDashboard() {
           {/* Compost Alerts */}
           <CompostAlerts />
 
-          {/* AI Insight */}
-          <AIInsight
-            input={{
-              seasonalPhase,
-              currentMonth,
-              maintenanceTasks,
-            }}
-          />
+          {/* AI Insight - only shown when AI token is configured */}
+          {token && (
+            <AIInsight
+              input={{
+                seasonalPhase,
+                currentMonth,
+                maintenanceTasks,
+              }}
+            />
+          )}
 
           {/* Sign-in prompt for anonymous users */}
           <SignInPrompt />
