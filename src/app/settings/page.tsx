@@ -48,7 +48,7 @@ export default function SettingsPage() {
         <PageTour tourId="settings" />
       </div>
 
-      <div className="zen-card p-6">
+      <div className="zen-card p-6" data-tour="settings-tabs">
         <Tabs
           defaultTab="ai-location"
           tabs={[
@@ -176,7 +176,7 @@ export default function SettingsPage() {
               label: 'Help',
               icon: <HelpCircle className="w-4 h-4" />,
               content: (
-                <section>
+                <section data-tour="tour-management">
                   <div className="flex items-center gap-2 mb-4">
                     <HelpCircle className="w-5 h-5 text-zen-water-600" />
                     <h2 className="text-lg font-medium text-zen-ink-700">Guided Tours</h2>

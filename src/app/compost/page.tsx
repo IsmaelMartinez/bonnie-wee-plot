@@ -16,6 +16,7 @@ import {
   Pencil,
 } from 'lucide-react'
 import { useCompost } from '@/hooks/useCompost'
+import PageTour from '@/components/onboarding/PageTour'
 import {
   CompostPile,
   CompostStatus,
@@ -190,6 +191,7 @@ export default function CompostPage() {
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0 self-end sm:self-auto">
+              <PageTour tourId="compost" />
               <Link
                 href="/allotment"
                 className="zen-btn-secondary flex items-center gap-2 whitespace-nowrap"
@@ -202,7 +204,7 @@ export default function CompostPage() {
         </header>
 
         {/* Generic Care Tips */}
-        <div className="zen-card p-6 mb-8 bg-zen-moss-50 border-zen-moss-200">
+        <div data-tour="care-tips" className="zen-card p-6 mb-8 bg-zen-moss-50 border-zen-moss-200">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb className="w-5 h-5 text-zen-moss-600" />
             <h2 className="font-display text-zen-ink-800">Compost Care Tips</h2>
@@ -220,6 +222,7 @@ export default function CompostPage() {
         {/* Add Pile Button */}
         <div className="mb-6">
           <button
+            data-tour="add-pile-btn"
             onClick={() => setShowAddPileDialog(true)}
             className="zen-btn-primary flex items-center gap-2"
           >
@@ -229,6 +232,7 @@ export default function CompostPage() {
         </div>
 
         {/* Active Piles */}
+        <div data-tour="compost-piles">
         {activePiles.length > 0 && (
           <div className="space-y-6 mb-8">
             <h2 className="font-display text-zen-ink-800">Your Compost Piles</h2>
@@ -405,6 +409,7 @@ export default function CompostPage() {
             </button>
           </div>
         )}
+        </div>
 
         {/* Applied Piles (collapsed by default) */}
         {appliedPiles.length > 0 && (

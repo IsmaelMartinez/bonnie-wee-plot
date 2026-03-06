@@ -39,11 +39,11 @@ export function useSyncedStorage(
 
   const canSync = isSignedIn && isSupabaseConfigured() && isOnline
 
-  // Get Clerk session token for Supabase auth.
-  // Uses the default session token (Third-Party Auth) — no JWT template needed.
+  // Get Clerk JWT for Supabase auth using the "supabase" JWT template.
+  // The template maps Clerk's user ID to the `sub` claim for RLS policies.
   const getSupabaseToken = async (): Promise<string | null> => {
     try {
-      return await getToken()
+      return await getToken({ template: 'supabase' })
     } catch (err) {
       console.error('[useSyncedStorage] Failed to get auth token:', err)
       return null
