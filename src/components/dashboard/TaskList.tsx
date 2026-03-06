@@ -290,9 +290,9 @@ export default function TaskList({
   }
 
   // Combine and limit generated + maintenance tasks for display
-  const maxDisplay = 8
-  const displayGeneratedTasks = showAll ? generatedTasks : generatedTasks.slice(0, maxDisplay)
-  const remainingSlots = showAll ? tasks.length : Math.max(0, maxDisplay - displayGeneratedTasks.length)
+  const MAX_DISPLAY = 8
+  const displayGeneratedTasks = showAll ? generatedTasks : generatedTasks.slice(0, MAX_DISPLAY)
+  const remainingSlots = showAll ? tasks.length : Math.max(0, MAX_DISPLAY - displayGeneratedTasks.length)
   const displayManualTasks = tasks.slice(0, remainingSlots)
   const hiddenCount = showAll ? 0 : (tasks.length + generatedTasks.length) - displayGeneratedTasks.length - displayManualTasks.length
 
@@ -340,7 +340,7 @@ export default function TaskList({
             +{hiddenCount} more
           </button>
         )}
-        {showAll && (tasks.length + generatedTasks.length) > maxDisplay && (
+        {showAll && (tasks.length + generatedTasks.length) > MAX_DISPLAY && (
           <button
             onClick={() => setShowAll(false)}
             className="text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors text-center pt-3 w-full"
