@@ -5,7 +5,7 @@ import type { DriveStep } from 'driver.js'
  * Each tour is an array of driver.js steps targeting specific elements.
  */
 
-export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings'
+export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings' | 'compost' | 'plants' | 'about'
 
 export interface TourDefinition {
   id: TourId
@@ -215,6 +215,15 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     description: 'Configure your preferences',
     steps: [
       {
+        element: '[data-tour="settings-tabs"]',
+        popover: {
+          title: 'Settings Tabs',
+          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, Help for guided tours, and Account if you\'re signed in.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
         element: '[data-tour="ai-settings"]',
         popover: {
           title: 'Unlock Aitor',
@@ -250,6 +259,120 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           align: 'center',
         },
       },
+      {
+        element: '[data-tour="tour-management"]',
+        popover: {
+          title: 'Manage Tours',
+          description: 'Replay any guided tour or reset them all. Each page has its own tour you can trigger with the ? key.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+    ],
+  },
+
+  compost: {
+    id: 'compost',
+    name: 'Compost',
+    description: 'Track your compost piles',
+    steps: [
+      {
+        element: '[data-tour="care-tips"]',
+        popover: {
+          title: 'Compost Care Tips',
+          description: 'Quick reminders for healthy compost. Too wet? Too dry? Not heating up? These tips help you troubleshoot common issues.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="add-pile-btn"]',
+        popover: {
+          title: 'Start a New Pile',
+          description: 'Create a compost pile and choose your system type - hot compost, tumbler, bokashi, worm bin, or others.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="compost-piles"]',
+        popover: {
+          title: 'Your Compost Piles',
+          description: 'Track inputs, log events like turning and watering, and update the status as your compost matures.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+    ],
+  },
+
+  plants: {
+    id: 'plants',
+    name: 'Plant Guide',
+    description: 'Browse the plant database',
+    steps: [
+      {
+        element: '[data-tour="plant-search"]',
+        popover: {
+          title: 'Search Plants',
+          description: 'Type a name to quickly find any plant in the database. Works with common names and varieties.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="category-filter"]',
+        popover: {
+          title: 'Filter by Category',
+          description: 'Narrow the list to a specific group - leafy greens, root vegetables, brassicas, herbs, and more.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="plant-list"]',
+        popover: {
+          title: 'Plant Cards',
+          description: 'Tap any plant to see detailed growing info - sowing times, spacing, harvest windows, all tailored for Scottish conditions.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+    ],
+  },
+
+  about: {
+    id: 'about',
+    name: 'About',
+    description: 'Learn what the app can do',
+    steps: [
+      {
+        element: '[data-tour="features-overview"]',
+        popover: {
+          title: 'What You Can Do',
+          description: 'An overview of the main features: plan your plot, track seeds, and get seasonal timing advice for Scottish gardens.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="aitor-section"]',
+        popover: {
+          title: 'Meet Aitor',
+          description: 'Your AI gardening companion. Bring your own OpenAI key and get personalised advice, pest identification, and planting suggestions.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="keyboard-shortcuts"]',
+        popover: {
+          title: 'Keyboard Shortcuts',
+          description: 'Handy shortcuts for navigating the app. Press ? on any page to start a guided tour!',
+          side: 'top',
+          align: 'center',
+        },
+      },
     ],
   },
 }
@@ -278,6 +401,9 @@ export function getTourIdForPath(pathname: string): TourId | null {
     '/allotment': 'allotment',
     '/seeds': 'seeds',
     '/settings': 'settings',
+    '/compost': 'compost',
+    '/plants': 'plants',
+    '/about': 'about',
   }
   return pathToTour[pathname] || null
 }

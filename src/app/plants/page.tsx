@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { vegetableIndex } from '@/lib/vegetables/index'
 import { CATEGORY_INFO, type VegetableCategory } from '@/types/garden-planner'
+import PageTour from '@/components/onboarding/PageTour'
 import { Suspense } from 'react'
 
 function PlantsIndexContent() {
@@ -45,7 +46,10 @@ function PlantsIndexContent() {
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-zen-ink-900 mb-2">Plant Guide</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-zen-ink-900 mb-2">Plant Guide</h1>
+            <PageTour tourId="plants" />
+          </div>
           <p className="text-zen-stone-500 text-lg">
             {vegetableIndex.length} plants with growing info for Scotland
           </p>
@@ -53,7 +57,7 @@ function PlantsIndexContent() {
 
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <div className="relative flex-1">
+          <div data-tour="plant-search" className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zen-stone-400" />
             <input
               type="text"
@@ -64,6 +68,7 @@ function PlantsIndexContent() {
             />
           </div>
           <select
+            data-tour="category-filter"
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value as VegetableCategory | 'all')}
             className="zen-select sm:w-48"
@@ -81,6 +86,7 @@ function PlantsIndexContent() {
         </p>
 
         {/* Plant groups */}
+        <div data-tour="plant-list">
         {categoryOrder.length === 0 ? (
           <div className="zen-card p-8 text-center">
             <p className="text-zen-stone-500">No plants match your search.</p>
@@ -108,6 +114,7 @@ function PlantsIndexContent() {
             })}
           </div>
         )}
+        </div>
       </div>
     </div>
   )

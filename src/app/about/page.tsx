@@ -1,5 +1,6 @@
 import { Sprout, Grid3X3, Calendar, Package, MessageCircle, Leaf, Keyboard } from 'lucide-react'
 import Link from 'next/link'
+import PageTour from '@/components/onboarding/PageTour'
 
 export default function AboutPage() {
   return (
@@ -10,6 +11,7 @@ export default function AboutPage() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Leaf className="w-8 h-8 text-zen-moss-600" />
             <h1 className="text-zen-ink-900">Bonnie Wee Plot</h1>
+            <PageTour tourId="about" />
           </div>
           <p className="text-zen-stone-500 text-lg mb-8">
             Your personal digital companion for growing in Scottish weather
@@ -24,7 +26,7 @@ export default function AboutPage() {
         </header>
 
         {/* Core Features */}
-        <section className="mb-12">
+        <section data-tour="features-overview" className="mb-12">
           <h2 className="font-display text-zen-ink-800 text-xl text-center mb-6">What You Can Do</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="zen-card p-6 text-center">
@@ -91,7 +93,7 @@ export default function AboutPage() {
         </section>
 
         {/* AI Advisor */}
-        <section className="mb-12">
+        <section data-tour="aitor-section" className="mb-12">
           <div className="zen-card p-6 bg-zen-sakura-50/30 border-zen-sakura-200">
             <div className="flex items-center gap-3 mb-3">
               <MessageCircle className="w-5 h-5 text-zen-sakura-600" />
@@ -113,7 +115,7 @@ export default function AboutPage() {
         </section>
 
         {/* Keyboard Shortcuts */}
-        <section className="mb-12">
+        <section data-tour="keyboard-shortcuts" className="mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
             <Keyboard className="w-5 h-5 text-zen-stone-500" />
             <h2 className="font-display text-zen-ink-800 text-xl">Keyboard Shortcuts</h2>
