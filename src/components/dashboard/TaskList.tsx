@@ -245,6 +245,7 @@ export default function TaskList({
   onRestoreTask,
 }: TaskListProps) {
   const [showDismissed, setShowDismissed] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
   const activeCustomTasks = customTasks.filter(t => !t.completed)
   const completedCustomTasks = customTasks.filter(t => t.completed)
@@ -287,8 +288,6 @@ export default function TaskList({
       </div>
     )
   }
-
-  const [showAll, setShowAll] = useState(false)
 
   // Combine and limit generated + maintenance tasks for display
   const maxDisplay = 8
@@ -341,7 +340,7 @@ export default function TaskList({
             +{hiddenCount} more
           </button>
         )}
-        {showAll && generatedTasks.length > maxDisplay && (
+        {showAll && (tasks.length + generatedTasks.length) > maxDisplay && (
           <button
             onClick={() => setShowAll(false)}
             className="text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors text-center pt-3 w-full"
