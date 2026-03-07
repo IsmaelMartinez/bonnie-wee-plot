@@ -38,17 +38,19 @@ import PageTour from '@/components/onboarding/PageTour'
 function MonthButton({
   monthKey,
   isSelected,
+  isCurrentMonth,
   onClick
 }: {
   monthKey: MonthKey
   isSelected: boolean
+  isCurrentMonth: boolean
   onClick: () => void
 }) {
   const data = scotlandMonthlyCalendar[monthKey]
   return (
     <button
       onClick={onClick}
-      className={`px-2 sm:px-3 py-2.5 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
+      className={`relative px-2 sm:px-3 py-2.5 rounded-zen text-xs sm:text-sm font-medium transition whitespace-nowrap min-h-[44px] ${
         isSelected
           ? 'bg-zen-moss-600 text-white'
           : 'bg-white text-zen-ink-700 hover:bg-zen-stone-50 border border-zen-stone-200'
@@ -56,6 +58,9 @@ function MonthButton({
     >
       <span className="hidden sm:inline">{data.emoji} {data.month.slice(0, 3)}</span>
       <span className="sm:hidden">{data.emoji} {data.month.slice(0, 1)}</span>
+      {isCurrentMonth && (
+        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-zen-moss-500 rounded-full animate-pulse border-2 border-zen-stone-50" />
+      )}
     </button>
   )
 }
@@ -83,41 +88,6 @@ function TaskList({
   )
 }
 
-// Specialization tip card
-function TipCard({
-  icon: Icon,
-  title,
-  content,
-  color
-}: {
-  icon: React.ElementType
-  title: string
-  content: string
-  color: string
-}) {
-  const colorClasses: Record<string, string> = {
-    green: 'bg-zen-moss-50 border-zen-moss-200 text-zen-moss-800',
-    blue: 'bg-zen-water-50 border-zen-water-200 text-zen-water-800',
-    amber: 'bg-zen-kitsune-50 border-zen-kitsune-200 text-zen-kitsune-800',
-    purple: 'bg-zen-sakura-50 border-zen-sakura-200 text-zen-sakura-800'
-  }
-  const iconColors: Record<string, string> = {
-    green: 'text-zen-moss-600',
-    blue: 'text-zen-water-600',
-    amber: 'text-zen-kitsune-600',
-    purple: 'text-zen-sakura-600'
-  }
-
-  return (
-    <div className={`rounded-zen border p-4 ${colorClasses[color]}`}>
-      <div className="flex items-center mb-2">
-        <Icon className={`w-5 h-5 mr-2 ${iconColors[color]}`} />
-        <h4 className="font-medium">{title}</h4>
-      </div>
-      <p className="text-sm leading-relaxed">{content}</p>
-    </div>
-  )
-}
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -136,6 +106,7 @@ function formatDateRange(startDate?: string, endDate?: string): string | null {
 // Personalized planting card
 function PersonalizedPlanting({
   bedId,
+  bedName,
   plantingId,
   vegetableName,
   varietyName,
@@ -146,6 +117,7 @@ function PersonalizedPlanting({
   hasSeeds
 }: {
   bedId: string
+  bedName: string
   plantingId?: string
   vegetableName: string
   varietyName?: string
@@ -167,7 +139,7 @@ function PersonalizedPlanting({
           )}
         </div>
         {varietyName && <div className="text-xs text-zen-stone-500">{varietyName}</div>}
-        <div className="text-xs text-zen-moss-600 mt-1">Bed {bedId}</div>
+        <div className="text-xs text-zen-moss-600 mt-1">{bedName}</div>
         {context === 'harvest' && dateInfo && (
           <div className="text-xs text-zen-kitsune-600 mt-1">Expected harvest: {dateInfo}</div>
         )}
@@ -231,7 +203,7 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
 
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
-  const [isExpertTipsOpen, setIsExpertTipsOpen] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   // Load allotment data for personalization
   const { data: allotmentData, currentSeason, isLoading, getAreasByKind } = useAllotment()
@@ -242,7 +214,6 @@ export default function ThisMonthPage() {
   }, [])
 
   const data = scotlandMonthlyCalendar[selectedMonth]
-  const isCurrentMonth = selectedMonth === getCurrentMonthKey()
 
   // Get personalized maintenance for user's permanent plantings (trees, berries, perennials)
   const personalizedMaintenance = useMemo(() => {
@@ -275,6 +246,7 @@ export default function ThisMonthPage() {
     interface PlantingInfo {
       id: string
       areaId: string
+      areaName: string
       plantId: string
       vegetableName: string
       varietyName?: string
@@ -304,6 +276,8 @@ export default function ThisMonthPage() {
     }
 
     for (const areaSeason of currentSeason.areas) {
+      const area = allotmentData.layout.areas.find((a: Area) => a.id === areaSeason.areaId)
+      const areaName = area?.name || `Area ${areaSeason.areaId.slice(0, 6)}`
       for (const planting of areaSeason.plantings) {
         const veg = getVegetableById(planting.plantId)
         if (veg) {
@@ -312,6 +286,7 @@ export default function ThisMonthPage() {
           allPlantings.push({
             id: planting.id,
             areaId: areaSeason.areaId,
+            areaName,
             plantId: planting.plantId,
             vegetableName: veg.name,
             varietyName: planting.varietyName,
@@ -448,21 +423,12 @@ export default function ThisMonthPage() {
                 key={monthKey}
                 monthKey={monthKey}
                 isSelected={selectedMonth === monthKey}
+                isCurrentMonth={monthKey === getCurrentMonthKey()}
                 onClick={() => setSelectedMonth(monthKey)}
               />
             ))}
           </div>
         </div>
-
-        {/* Current Month Indicator */}
-        {isCurrentMonth && (
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center bg-zen-moss-100 text-zen-moss-800 px-4 py-2 rounded-full text-sm font-medium">
-              <span className="w-2 h-2 bg-zen-moss-500 rounded-full mr-2 animate-pulse"></span>
-              You&apos;re viewing the current month
-            </div>
-          </div>
-        )}
 
         {/* Month Overview */}
         <div className="zen-card p-6 mb-8" data-tour="month-overview">
@@ -505,6 +471,7 @@ export default function ThisMonthPage() {
                         <PersonalizedPlanting
                           key={p.id}
                           bedId={p.areaId}
+                          bedName={p.areaName}
                           plantingId={p.id}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
@@ -532,6 +499,7 @@ export default function ThisMonthPage() {
                         <PersonalizedPlanting
                           key={p.id}
                           bedId={p.areaId}
+                          bedName={p.areaName}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
                           context="sow"
@@ -564,6 +532,7 @@ export default function ThisMonthPage() {
                         <PersonalizedPlanting
                           key={p.id}
                           bedId={p.areaId}
+                          bedName={p.areaName}
                           vegetableName={p.vegetableName}
                           varietyName={p.varietyName}
                           context="growing"
@@ -629,13 +598,33 @@ export default function ThisMonthPage() {
           </div>
         )}
 
-        {/* Planting Calendar */}
+        {/* Planting Calendar - Collapsible */}
         {!isLoading && calendarPlantings.length > 0 && (
-          <div className="mb-8">
-            <UnifiedCalendar
-              plantings={calendarPlantings}
-              currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
-            />
+          <div className="mb-8" data-tour="planting-calendar">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="w-full flex items-center justify-between text-lg font-display text-zen-ink-800 mb-4 hover:text-zen-moss-700 transition"
+              aria-expanded={showCalendar}
+              aria-controls="planting-calendar-content"
+            >
+              <span className="flex items-center">
+                <Calendar className="w-5 h-5 text-zen-moss-600 mr-2" />
+                Planting Calendar
+              </span>
+              {showCalendar ? (
+                <ChevronUp className="w-5 h-5 text-zen-stone-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-zen-stone-500" />
+              )}
+            </button>
+            {showCalendar && (
+              <div id="planting-calendar-content">
+                <UnifiedCalendar
+                  plantings={calendarPlantings}
+                  currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -656,13 +645,6 @@ export default function ThisMonthPage() {
             </Link>
           </div>
         )}
-
-        {/* Scottish Calendar Section Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="w-5 h-5 text-zen-stone-400" />
-          <h2 className="font-display text-zen-ink-700">Scottish Gardening Calendar</h2>
-          <span className="text-xs text-zen-stone-400 bg-zen-stone-100 px-2 py-0.5 rounded-full">General guidance</span>
-        </div>
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
@@ -730,88 +712,30 @@ export default function ThisMonthPage() {
           </div>
         </div>
 
-        {/* Soil Care - Featured Section */}
-        <div className="zen-card p-6 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-zen-bamboo-200">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-zen-lg bg-zen-bamboo-100 flex items-center justify-center flex-shrink-0">
-              <Layers className="w-6 h-6 text-zen-bamboo-700" />
-            </div>
-            <div>
-              <h3 className="font-display text-zen-ink-800 mb-2">Soil Care</h3>
-              <p className="text-amber-900 leading-relaxed">
-                Add compost and organic matter to improve soil structure. Mulch bare soil to retain moisture and suppress weeds.
-              </p>
-              <p className="text-xs text-amber-700 mt-3 italic">
-                Healthy soil grows healthy plants. Feed the soil, and it feeds you.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Specialization Tips - Collapsible */}
-        <div className="mb-8">
-          <button
-            onClick={() => setIsExpertTipsOpen(!isExpertTipsOpen)}
-            className="w-full flex items-center justify-between text-lg font-display text-zen-ink-800 mb-4 hover:text-zen-moss-700 transition"
-            aria-expanded={isExpertTipsOpen}
-            aria-controls="expert-tips-content"
-            aria-label="Toggle expert tips section"
-          >
-            <span>Expert Tips for {data.month}</span>
-            {isExpertTipsOpen ? (
-              <ChevronUp className="w-5 h-5 text-zen-stone-500" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-zen-stone-500" />
-            )}
-          </button>
-          {isExpertTipsOpen && (
-            <div id="expert-tips-content" className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <TipCard
-                icon={Recycle}
-                title="Composting"
-                content={data.composting}
-                color="green"
-              />
-              <TipCard
-                icon={RotateCcw}
-                title="Crop Rotation"
-                content={data.rotation}
-                color="blue"
-              />
-              <TipCard
-                icon={Users}
-                title="Companions"
-                content={data.companions}
-                color="purple"
-              />
-              <TipCard
-                icon={Leaf}
-                title="Organic"
-                content={data.organic}
-                color="amber"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Weather & Tip Callouts */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Weather */}
-          <div className="zen-card p-6 bg-zen-water-50/30 border-zen-water-200">
-            <div className="flex items-center mb-3">
-              <Cloud className="w-5 h-5 text-zen-water-600 mr-2" />
-              <h3 className="font-display text-zen-water-800">Weather to Expect</h3>
-            </div>
-            <p className="text-zen-water-700 leading-relaxed">{data.weather}</p>
-          </div>
-
-          {/* Monthly Tip */}
-          <div className="zen-card p-6 bg-zen-kitsune-50/30 border-zen-kitsune-200">
-            <div className="flex items-center mb-3">
-              <Lightbulb className="w-5 h-5 text-zen-kitsune-600 mr-2" />
-              <h3 className="font-display text-zen-kitsune-800">Tip of the Month</h3>
-            </div>
-            <p className="text-zen-kitsune-700 leading-relaxed">{data.tip}</p>
+        {/* Tips & Insights Carousel */}
+        <div className="mb-8" data-tour="monthly-tips">
+          <h3 className="font-display text-zen-ink-800 mb-4">Tips & Insights</h3>
+          <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory -mx-4 px-4">
+            {[
+              { icon: Cloud, title: 'Weather', content: data.weather, borderColor: 'border-l-zen-water-400', iconColor: 'text-zen-water-600' },
+              { icon: Lightbulb, title: 'Tip of the Month', content: data.tip, borderColor: 'border-l-zen-kitsune-400', iconColor: 'text-zen-kitsune-600' },
+              { icon: Layers, title: 'Soil Care', content: 'Add compost and organic matter to improve structure. Mulch bare soil to retain moisture.', borderColor: 'border-l-amber-400', iconColor: 'text-amber-600' },
+              { icon: Recycle, title: 'Composting', content: data.composting, borderColor: 'border-l-zen-moss-400', iconColor: 'text-zen-moss-600' },
+              { icon: RotateCcw, title: 'Crop Rotation', content: data.rotation, borderColor: 'border-l-zen-water-400', iconColor: 'text-zen-water-600' },
+              { icon: Users, title: 'Companions', content: data.companions, borderColor: 'border-l-zen-sakura-400', iconColor: 'text-zen-sakura-600' },
+              { icon: Leaf, title: 'Organic', content: data.organic, borderColor: 'border-l-zen-kitsune-400', iconColor: 'text-zen-kitsune-600' },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className={`w-64 flex-shrink-0 snap-start zen-card p-4 border-l-4 ${card.borderColor}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <card.icon className={`w-4 h-4 ${card.iconColor}`} />
+                  <h4 className="font-medium text-sm text-zen-ink-800">{card.title}</h4>
+                </div>
+                <p className="text-sm text-zen-stone-600 leading-relaxed line-clamp-3">{card.content}</p>
+              </div>
+            ))}
           </div>
         </div>
 

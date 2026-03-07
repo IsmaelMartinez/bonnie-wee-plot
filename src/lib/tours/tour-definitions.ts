@@ -101,6 +101,15 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         },
       },
       {
+        element: '[data-tour="planting-calendar"]',
+        popover: {
+          title: 'Your Planting Calendar',
+          description: 'Expand this to see sow and harvest timing for all your plantings at a glance. Great for spotting gaps and overlaps.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
         element: '[data-tour="sowing-section"]',
         popover: {
           title: 'Time to Sow',
@@ -116,6 +125,15 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           description: 'The best bit! These crops are typically ready to pick this month. Nothing beats fresh veg straight from your plot.',
           side: 'left',
           align: 'start',
+        },
+      },
+      {
+        element: '[data-tour="monthly-tips"]',
+        popover: {
+          title: 'Tips & Insights',
+          description: 'Scroll horizontally for weather forecasts, gardening tips, and expert advice on composting, rotation, and more.',
+          side: 'top',
+          align: 'center',
         },
       },
     ],
