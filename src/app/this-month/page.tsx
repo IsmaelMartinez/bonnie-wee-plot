@@ -453,6 +453,7 @@ export default function ThisMonthPage() {
                   <UnifiedCalendar
                     plantings={calendarPlantings}
                     currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
+                    onMonthClick={(m) => setSelectedMonth(MONTH_KEYS[m - 1])}
                   />
                 </div>
               )}
