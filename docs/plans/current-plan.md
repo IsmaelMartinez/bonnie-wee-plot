@@ -169,9 +169,11 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 1. `/` (Today Dashboard) — reviewed and polished (PR #229, #230). Clarified compost tour copy. Review improvements committed.
 2. `/this-month` — reviewed and polished (PR #232). Fixed bed UUID display, replaced current-month banner with dot indicator, merged month selector with collapsible planting calendar (starts expanded, clickable month headers), removed redundant header, consolidated bottom sections into scrollable tip carousel, tour synced to 8 steps covering all sections.
 
-### Pages to Review
+### Pages Under Review
 
-3. `/allotment` — plot layout, bed management, plantings
+3. `/allotment` — plot layout, bed management, plantings (reviewing)
+
+### Pages to Review
 4. `/seeds` — seed inventory and variety tracking
 5. `/compost` — compost pile tracking
 6. `/plants` — plant guide index (192 plants, search + filter)

@@ -56,7 +56,7 @@ export default function AboutPage() {
         </section>
 
         {/* Quick Actions */}
-        <section className="grid md:grid-cols-2 gap-6 mb-12">
+        <section data-tour="quick-actions" className="grid md:grid-cols-2 gap-6 mb-12">
           <div className="zen-card p-6 bg-zen-moss-50/30 border-zen-moss-200">
             <div className="flex items-center gap-3 mb-3">
               <Sprout className="w-5 h-5 text-zen-moss-600" />
