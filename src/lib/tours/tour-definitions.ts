@@ -51,7 +51,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="compost-alerts"]',
         popover: {
           title: 'Compost Updates',
-          description: 'If you have compost piles, alerts appear here when they need turning or are ready to use. Tap to go to the Compost section.',
+          description: 'If you have compost piles, alerts appear here when they need turning or are ready to use. Tap an alert to go to the Compost section.',
           side: 'top',
           align: 'center',
         },
