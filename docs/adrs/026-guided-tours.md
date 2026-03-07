@@ -32,7 +32,7 @@ Path-to-tour mapping in `getTourIdForPath()` enables the keyboard shortcut to re
 
 | Page | TourId | Steps |
 |------|--------|-------|
-| Today Dashboard | `today` | 4 |
+| Today Dashboard | `today` | 5 |
 | Monthly Calendar | `this-month` | 5 |
 | Plot Layout | `allotment` | 5 |
 | Seeds & Varieties | `seeds` | 4 |
