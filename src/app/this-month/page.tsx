@@ -203,7 +203,7 @@ function MaintenanceCard({ task }: { task: MaintenanceTask }) {
 
 export default function ThisMonthPage() {
   const [selectedMonth, setSelectedMonth] = useState<MonthKey>('january')
-  const [showCalendar, setShowCalendar] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(true)
 
   // Load allotment data for personalization
   const { data: allotmentData, currentSeason, isLoading, getAreasByKind } = useAllotment()
@@ -680,7 +680,7 @@ export default function ThisMonthPage() {
           </div>
 
           {/* Plant Out Section */}
-          <div className="zen-card p-6">
+          <div className="zen-card p-6" data-tour="plantout-section">
             <div className="flex items-center mb-4">
               <Shovel className="w-5 h-5 text-zen-kitsune-600 mr-2" />
               <h3 className="font-display text-zen-ink-800">Plant Out</h3>
@@ -704,7 +704,7 @@ export default function ThisMonthPage() {
           </div>
 
           {/* Key Tasks Section */}
-          <div className="zen-card p-6">
+          <div className="zen-card p-6" data-tour="keytasks-section">
             <div className="flex items-center mb-4">
               <CheckCircle className="w-5 h-5 text-zen-water-600 mr-2" />
               <h3 className="font-display text-zen-ink-800">Key Tasks</h3>
