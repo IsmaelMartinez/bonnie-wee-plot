@@ -245,6 +245,7 @@ export default function TaskList({
   onRestoreTask,
 }: TaskListProps) {
   const [showDismissed, setShowDismissed] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
   const activeCustomTasks = customTasks.filter(t => !t.completed)
   const completedCustomTasks = customTasks.filter(t => t.completed)
@@ -289,11 +290,11 @@ export default function TaskList({
   }
 
   // Combine and limit generated + maintenance tasks for display
-  const maxDisplay = 8
-  const displayGeneratedTasks = generatedTasks.slice(0, maxDisplay)
-  const remainingSlots = Math.max(0, maxDisplay - displayGeneratedTasks.length)
+  const MAX_DISPLAY = 8
+  const displayGeneratedTasks = showAll ? generatedTasks : generatedTasks.slice(0, MAX_DISPLAY)
+  const remainingSlots = showAll ? tasks.length : Math.max(0, MAX_DISPLAY - displayGeneratedTasks.length)
   const displayManualTasks = tasks.slice(0, remainingSlots)
-  const hiddenCount = (tasks.length + generatedTasks.length) - displayGeneratedTasks.length - displayManualTasks.length
+  const hiddenCount = showAll ? 0 : (tasks.length + generatedTasks.length) - displayGeneratedTasks.length - displayManualTasks.length
 
   return (
     <div className="zen-card p-6" data-tour="task-list">
@@ -332,9 +333,20 @@ export default function TaskList({
         ))}
 
         {hiddenCount > 0 && (
-          <p className="text-xs text-zen-stone-400 text-center pt-3">
+          <button
+            onClick={() => setShowAll(true)}
+            className="text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors text-center pt-3 w-full"
+          >
             +{hiddenCount} more
-          </p>
+          </button>
+        )}
+        {showAll && (tasks.length + generatedTasks.length) > MAX_DISPLAY && (
+          <button
+            onClick={() => setShowAll(false)}
+            className="text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors text-center pt-3 w-full"
+          >
+            Show less
+          </button>
         )}
 
         {/* Completed section (dismissed generated + completed custom tasks) */}

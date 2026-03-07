@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-02-18
+Last updated: 2026-03-06
 
 ## What's Been Completed
 
@@ -152,6 +152,37 @@ Added 67 component unit tests across 3 new test files: `TaskList.test.tsx` (29 t
 Implemented opt-in Clerk authentication and Supabase cloud persistence as a single body of work. Anonymous users keep localStorage only; signed-in users get continuous bidirectional sync with last-write-wins conflict resolution on `meta.updatedAt`. All existing pages remain public — auth is opt-in for cloud sync across devices.
 
 Key additions: `useSyncedStorage` hook wrapping `usePersistedStorage` with cloud sync layer, Supabase client module with RLS via Clerk JWT, GDPR-compliant data export and account deletion endpoints, sign-in/sign-up pages, navigation auth UI with sync status indicator, Settings Account tab, and sign-in prompt on Today dashboard. 851 unit tests pass, build succeeds without env vars (graceful degradation), all E2E tests pass.
+### Post-Auth Fixes (PRs #222-228)
+
+Addressed review comments across PRs #206-219 (PR #222). Hid auth UI when Clerk is not configured for graceful degradation (PR #223). Enabled Clerk keyless mode for zero-config auth (PR #224). Fixed CSP rules for Clerk CAPTCHA and workers (PR #226). Comprehensive codebase review improvements (PR #227). Added guided tours to all 8 pages, fixed Supabase auth token bug (`getToken` missing `{ template: 'supabase' }`), and wrote ADR 026 documenting the tour architecture (PR #228).
+
+---
+
+## Current Phase: Page-by-Page Review for First Release
+
+Before sharing with testers, review every user-facing page to decide whether each page should be kept as-is, simplified, or hidden for the first release. The goal is a focused, polished experience — fewer pages done well beats many pages done partially.
+
+For each page, evaluate: does a new user need this on day one? Is it polished enough? Does it add confusion or value? Could it be accessed from another page instead of having its own route?
+
+### Pages to Review
+
+1. `/` (Today Dashboard) — the landing page, daily tasks and overview
+2. `/this-month` — monthly calendar with sowing/harvest guidance
+3. `/allotment` — plot layout, bed management, plantings
+4. `/seeds` — seed inventory and variety tracking
+5. `/compost` — compost pile tracking
+6. `/plants` — plant guide index (192 plants, search + filter)
+7. `/plants/[id]` — individual plant detail pages
+8. `/ai-advisor` — Aitor chat (BYO API key)
+9. `/about` — feature overview, keyboard shortcuts
+10. `/settings` — AI config, location, data management, tours, account
+11. `/receive` + `/receive/[code]` — QR/code data import flow
+12. `/sign-in` + `/sign-up` — Clerk auth pages
+
+### Review Criteria
+
+For each page, document a recommendation: keep, simplify, or hide. Consider whether the page is essential for the core "plan your plot" workflow, whether it's polished enough for first impressions, and whether hiding it reduces confusion without losing critical functionality. Pages that are hidden can always be unhidden later based on user feedback.
+
 ### Remaining Backlog
 
 - Automatic backup prompts
