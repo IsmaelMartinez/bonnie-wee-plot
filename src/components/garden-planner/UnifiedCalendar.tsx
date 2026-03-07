@@ -20,6 +20,7 @@ interface PlantingEntry {
 interface UnifiedCalendarProps {
   plantings: PlantingEntry[]
   currentMonth?: number // 1-12, highlights the current month column
+  onMonthClick?: (month: number) => void // 1-12, callback when a month header is clicked
 }
 
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
@@ -44,7 +45,7 @@ function monthRange(startDate: string, endDate: string): number[] {
   return months
 }
 
-export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCalendarProps) {
+export default function UnifiedCalendar({ plantings, currentMonth, onMonthClick }: UnifiedCalendarProps) {
   // Group plantings by bed
   const bedGroups = plantings.reduce((acc, p) => {
     if (!acc[p.bedId]) {
@@ -83,16 +84,18 @@ export default function UnifiedCalendar({ plantings, currentMonth }: UnifiedCale
       {/* Month Headers */}
       <div className="grid grid-cols-12 gap-1 text-xs mb-2">
         {MONTH_LABELS.map((m, i) => (
-          <div
+          <button
             key={i}
-            className={`text-center font-medium ${
+            type="button"
+            onClick={() => onMonthClick?.(i + 1)}
+            className={`text-center font-medium py-0.5 rounded transition ${
               currentMonth === i + 1
-                ? 'text-zen-moss-700 bg-zen-moss-100 rounded'
-                : 'text-gray-500'
-            }`}
+                ? 'text-zen-moss-700 bg-zen-moss-100'
+                : 'text-gray-500 hover:text-zen-moss-600 hover:bg-zen-stone-100'
+            } ${onMonthClick ? 'cursor-pointer' : 'cursor-default'}`}
           >
             {m}
-          </div>
+          </button>
         ))}
       </div>
 

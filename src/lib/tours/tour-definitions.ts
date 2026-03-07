@@ -77,7 +77,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="month-selector"]',
         popover: {
           title: 'Explore the Year',
-          description: 'Tap any month to see what to sow, plant, and harvest. Great for planning ahead or checking what you should be doing now.',
+          description: 'Tap any month to see what to sow, plant, and harvest. The planting calendar below shows timing for your crops — click its month headers to navigate too.',
           side: 'bottom',
           align: 'center',
         },
@@ -104,8 +104,17 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="sowing-section"]',
         popover: {
           title: 'Time to Sow',
-          description: 'These lists are tailored for Scottish conditions - shorter summers, later last frosts. Indoor sowing gives you a head start!',
+          description: 'These lists are tailored for Scottish conditions — shorter summers, later last frosts. Indoor sowing gives you a head start!',
           side: 'right',
+          align: 'start',
+        },
+      },
+      {
+        element: '[data-tour="plantout-section"]',
+        popover: {
+          title: 'Plant Out',
+          description: 'Seedlings and transplants that are ready to go outside this month. Harden off gradually before planting.',
+          side: 'left',
           align: 'start',
         },
       },
@@ -114,8 +123,26 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         popover: {
           title: 'Harvest Time',
           description: 'The best bit! These crops are typically ready to pick this month. Nothing beats fresh veg straight from your plot.',
+          side: 'right',
+          align: 'start',
+        },
+      },
+      {
+        element: '[data-tour="keytasks-section"]',
+        popover: {
+          title: 'Key Tasks',
+          description: 'Essential jobs for the month — weeding, feeding, pest control, and general plot maintenance to keep things on track.',
           side: 'left',
           align: 'start',
+        },
+      },
+      {
+        element: '[data-tour="monthly-tips"]',
+        popover: {
+          title: 'Tips & Insights',
+          description: 'Scroll horizontally for weather forecasts, gardening tips, and expert advice on composting, rotation, and more.',
+          side: 'top',
+          align: 'center',
         },
       },
     ],
