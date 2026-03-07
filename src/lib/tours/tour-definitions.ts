@@ -77,7 +77,16 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="month-selector"]',
         popover: {
           title: 'Explore the Year',
-          description: 'Tap any month to see what to sow, plant, and harvest. The planting calendar below shows timing for your crops — click its month headers to navigate too.',
+          description: 'Tap any month to see what to sow, plant, and harvest throughout the year.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="planting-calendar"]',
+        popover: {
+          title: 'Planting Calendar',
+          description: 'A visual timeline of your plantings showing sow and harvest windows. Click month headers to jump to that month.',
           side: 'bottom',
           align: 'center',
         },
@@ -219,7 +228,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="seed-stats"]',
         popover: {
           title: 'Seed Inventory',
-          description: 'Track what you have vs what you need to order. Tap these cards to filter the list below. Spend tracking is there too!',
+          description: 'Track what you have vs what you need to order. When viewing a specific year, tap these cards to filter the list below.',
           side: 'bottom',
           align: 'center',
         },
@@ -237,7 +246,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="variety-list"]',
         popover: {
           title: 'Your Seed Collection',
-          description: 'Grouped by vegetable for easy browsing. Tap the status badge (Need/Ordered/Have/Had) to update as your seeds arrive!',
+          description: 'Grouped by vegetable for easy browsing. When viewing a year, tap the status badge to cycle through Need/Ordered/Have/Had. In "All" view, use "Add to Year" to plan ahead.',
           side: 'top',
           align: 'center',
         },
@@ -388,6 +397,15 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           title: 'What You Can Do',
           description: 'An overview of the main features: plan your plot, track seeds, and get seasonal timing advice for Scottish gardens.',
           side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="quick-actions"]',
+        popover: {
+          title: 'Jump Right In',
+          description: 'Head straight to your allotment to plan beds, or check the monthly calendar to see what needs doing now.',
+          side: 'top',
           align: 'center',
         },
       },
