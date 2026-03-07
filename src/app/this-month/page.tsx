@@ -59,7 +59,7 @@ function MonthButton({
       <span className="hidden sm:inline">{data.emoji} {data.month.slice(0, 3)}</span>
       <span className="sm:hidden">{data.emoji} {data.month.slice(0, 1)}</span>
       {isCurrentMonth && (
-        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-zen-moss-500 rounded-full animate-pulse border-2 border-zen-stone-50" />
+        <span className="absolute -top-1 -right-1 z-10 w-2.5 h-2.5 bg-zen-moss-500 rounded-full animate-pulse border-2 border-zen-stone-50" />
       )}
     </button>
   )
@@ -415,9 +415,9 @@ export default function ThisMonthPage() {
           </p>
         </header>
 
-        {/* Month Selector */}
+        {/* Month Selector + Planting Calendar */}
         <div className="mb-8" data-tour="month-selector">
-          <div className="flex gap-2 overflow-x-auto pb-2 justify-center flex-wrap">
+          <div className="flex gap-2 overflow-x-auto pb-2 pt-2 justify-center flex-wrap">
             {MONTH_KEYS.map((monthKey) => (
               <MonthButton
                 key={monthKey}
@@ -428,6 +428,36 @@ export default function ThisMonthPage() {
               />
             ))}
           </div>
+
+          {/* Planting Calendar - Collapsible */}
+          {!isLoading && calendarPlantings.length > 0 && (
+            <div className="mt-4" data-tour="planting-calendar">
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="w-full flex items-center justify-between text-sm text-zen-stone-500 hover:text-zen-moss-700 transition py-2"
+                aria-expanded={showCalendar}
+                aria-controls="planting-calendar-content"
+              >
+                <span className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-1.5" />
+                  Planting Calendar
+                </span>
+                {showCalendar ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              {showCalendar && (
+                <div id="planting-calendar-content" className="mt-2">
+                  <UnifiedCalendar
+                    plantings={calendarPlantings}
+                    currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Month Overview */}
@@ -593,36 +623,6 @@ export default function ThisMonthPage() {
                     No specific maintenance tasks for your trees and perennials this month.
                   </p>
                 )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Planting Calendar - Collapsible */}
-        {!isLoading && calendarPlantings.length > 0 && (
-          <div className="mb-8" data-tour="planting-calendar">
-            <button
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="w-full flex items-center justify-between text-lg font-display text-zen-ink-800 mb-4 hover:text-zen-moss-700 transition"
-              aria-expanded={showCalendar}
-              aria-controls="planting-calendar-content"
-            >
-              <span className="flex items-center">
-                <Calendar className="w-5 h-5 text-zen-moss-600 mr-2" />
-                Planting Calendar
-              </span>
-              {showCalendar ? (
-                <ChevronUp className="w-5 h-5 text-zen-stone-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-zen-stone-500" />
-              )}
-            </button>
-            {showCalendar && (
-              <div id="planting-calendar-content">
-                <UnifiedCalendar
-                  plantings={calendarPlantings}
-                  currentMonth={MONTH_KEYS.indexOf(selectedMonth) + 1}
-                />
               </div>
             )}
           </div>
