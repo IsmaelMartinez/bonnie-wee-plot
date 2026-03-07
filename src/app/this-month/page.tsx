@@ -715,7 +715,7 @@ export default function ThisMonthPage() {
         {/* Tips & Insights Carousel */}
         <div className="mb-8" data-tour="monthly-tips">
           <h3 className="font-display text-zen-ink-800 mb-4">Tips & Insights</h3>
-          <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory -mx-4 px-4">
+          <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory -mx-4 px-4" tabIndex={0} role="region" aria-label="Tips and insights carousel">
             {[
               { icon: Cloud, title: 'Weather', content: data.weather, borderColor: 'border-l-zen-water-400', iconColor: 'text-zen-water-600' },
               { icon: Lightbulb, title: 'Tip of the Month', content: data.tip, borderColor: 'border-l-zen-kitsune-400', iconColor: 'text-zen-kitsune-600' },
