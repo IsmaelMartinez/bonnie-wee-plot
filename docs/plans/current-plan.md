@@ -164,10 +164,13 @@ Before sharing with testers, review every user-facing page to decide whether eac
 
 For each page, evaluate: does a new user need this on day one? Is it polished enough? Does it add confusion or value? Could it be accessed from another page instead of having its own route?
 
+### Pages Reviewed
+
+1. `/` (Today Dashboard) — reviewed and polished (PR #229, #230). Clarified compost tour copy. Review improvements committed.
+2. `/this-month` — reviewed and polished (PR #232). Fixed bed UUID display, replaced current-month banner with dot indicator, merged month selector with collapsible planting calendar (starts expanded, clickable month headers), removed redundant header, consolidated bottom sections into scrollable tip carousel, tour synced to 8 steps covering all sections.
+
 ### Pages to Review
 
-1. `/` (Today Dashboard) — the landing page, daily tasks and overview
-2. `/this-month` — monthly calendar with sowing/harvest guidance
 3. `/allotment` — plot layout, bed management, plantings
 4. `/seeds` — seed inventory and variety tracking
 5. `/compost` — compost pile tracking
