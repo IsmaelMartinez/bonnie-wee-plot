@@ -171,11 +171,12 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 3. `/seeds` — reviewed and polished (PR #235). Filter button changed from emoji to text label.
 4. `/compost` — reviewed and polished (PR #238). Kept with simplifications: moved care tips to collapsible section at bottom, fixed empty state copy (removed C:N ratio reference), added reactivate button for applied piles, wired up PageTour with 3 data-tour attributes matching tour definition order.
 
+5. `/about` — removed. Not needed for first release; onboarding wizard covers the same ground. Removed page, nav link, tour definition, and related E2E tests.
+
 ### Pages to Review
-5. `/plants` — plant guide index (192 plants, search + filter)
-6. `/plants/[id]` — individual plant detail pages
-7. `/ai-advisor` — Aitor chat (BYO API key)
-8. `/about` — feature overview, keyboard shortcuts
+6. `/plants` — plant guide index (192 plants, search + filter)
+7. `/plants/[id]` — individual plant detail pages
+8. `/ai-advisor` — Aitor chat (BYO API key)
 9. `/settings` — AI config, location, data management, tours, account
 10. `/receive` + `/receive/[code]` — QR/code data import flow
 11. `/sign-in` + `/sign-up` — Clerk auth pages

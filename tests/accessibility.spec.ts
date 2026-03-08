@@ -137,14 +137,6 @@ test.describe('Accessibility - Compost Page', () => {
   })
 })
 
-test.describe('Accessibility - About Page', () => {
-  test('about page should have no critical accessibility violations', async ({ page }) => {
-    await page.goto('/about')
-    await disableTours(page)
-    await checkA11y(page)
-  })
-})
-
 test.describe('Accessibility - Navigation', () => {
   // Helper to skip onboarding by marking setup as complete
   async function skipOnboarding(page: import('@playwright/test').Page) {
@@ -207,7 +199,6 @@ test.describe('Accessibility - Detailed Report', () => {
       { path: '/seeds', name: 'Seeds' },
       { path: '/this-month', name: 'This Month' },
       { path: '/compost', name: 'Compost' },
-      { path: '/about', name: 'About' },
     ]
 
     const reports: { name: string; violations: number; details: string }[] = []

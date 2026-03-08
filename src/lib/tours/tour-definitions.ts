@@ -5,7 +5,7 @@ import type { DriveStep } from 'driver.js'
  * Each tour is an array of driver.js steps targeting specific elements.
  */
 
-export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings' | 'compost' | 'plants' | 'about'
+export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings' | 'compost' | 'plants'
 
 export interface TourDefinition {
   id: TourId
@@ -395,49 +395,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     ],
   },
 
-  about: {
-    id: 'about',
-    name: 'About',
-    description: 'Learn what the app can do',
-    steps: [
-      {
-        element: '[data-tour="features-overview"]',
-        popover: {
-          title: 'What You Can Do',
-          description: 'An overview of the main features: plan your plot, track seeds, and get seasonal timing advice for Scottish gardens.',
-          side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="quick-actions"]',
-        popover: {
-          title: 'Jump Right In',
-          description: 'Head straight to your allotment to plan beds, or check the monthly calendar to see what needs doing now.',
-          side: 'top',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="aitor-section"]',
-        popover: {
-          title: 'Meet Aitor',
-          description: 'Your AI gardening companion. Bring your own OpenAI key and get personalised advice, pest identification, and planting suggestions.',
-          side: 'top',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="keyboard-shortcuts"]',
-        popover: {
-          title: 'Keyboard Shortcuts',
-          description: 'Handy shortcuts for navigating the app. Press ? on any page to start a guided tour!',
-          side: 'top',
-          align: 'center',
-        },
-      },
-    ],
-  },
 }
 
 /**
@@ -466,7 +423,6 @@ export function getTourIdForPath(pathname: string): TourId | null {
     '/settings': 'settings',
     '/compost': 'compost',
     '/plants': 'plants',
-    '/about': 'about',
   }
   return pathToTour[pathname] || null
 }
