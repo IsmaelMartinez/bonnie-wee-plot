@@ -251,6 +251,15 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           align: 'center',
         },
       },
+      {
+        element: '[data-tour="suppliers-section"]',
+        popover: {
+          title: 'Your Suppliers',
+          description: 'Quick links to the seed suppliers you\'ve used. These are populated automatically from the varieties you add.',
+          side: 'top',
+          align: 'center',
+        },
+      },
     ],
   },
 

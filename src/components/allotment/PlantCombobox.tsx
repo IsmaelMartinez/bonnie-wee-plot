@@ -88,30 +88,32 @@ export default function PlantCombobox({
   return (
     <div ref={containerRef} className="relative">
       {/* Category Filter Tabs */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-1.5 mb-3">
         <button
           type="button"
           onClick={() => onCategoryChange('all')}
-          className={`px-3 min-h-[44px] text-sm rounded-lg whitespace-nowrap transition flex items-center ${
+          title="All Plants"
+          className={`w-10 h-10 text-sm rounded-lg transition flex items-center justify-center ${
             categoryFilter === 'all'
               ? 'bg-zen-moss-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          All Plants
+          🌱
         </button>
         {CATEGORY_INFO.map((info) => (
           <button
             key={info.id}
             type="button"
             onClick={() => onCategoryChange(info.id)}
-            className={`px-3 min-h-[44px] text-sm rounded-lg whitespace-nowrap transition flex items-center ${
+            title={info.name}
+            className={`w-10 h-10 text-sm rounded-lg transition flex items-center justify-center ${
               categoryFilter === info.id
-                ? 'bg-zen-moss-600 text-white'
+                ? 'bg-zen-moss-600 text-white ring-2 ring-zen-moss-400'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {getPlantEmoji(info.id)} {info.name}
+            {getPlantEmoji(info.id)}
           </button>
         ))}
       </div>

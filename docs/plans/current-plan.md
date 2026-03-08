@@ -171,18 +171,19 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 
 ### Pages Under Review
 
-3. `/allotment` — plot layout, bed management, plantings (reviewing)
+3. `/seeds` — seed inventory and variety tracking (reviewing)
 
 ### Pages to Review
-4. `/seeds` — seed inventory and variety tracking
-5. `/compost` — compost pile tracking
-6. `/plants` — plant guide index (192 plants, search + filter)
-7. `/plants/[id]` — individual plant detail pages
-8. `/ai-advisor` — Aitor chat (BYO API key)
-9. `/about` — feature overview, keyboard shortcuts
-10. `/settings` — AI config, location, data management, tours, account
-11. `/receive` + `/receive/[code]` — QR/code data import flow
-12. `/sign-in` + `/sign-up` — Clerk auth pages
+
+4. `/compost` — compost pile tracking
+5. `/plants` — plant guide index (192 plants, search + filter)
+6. `/plants/[id]` — individual plant detail pages
+7. `/ai-advisor` — Aitor chat (BYO API key)
+8. `/about` — feature overview, keyboard shortcuts
+9. `/settings` — AI config, location, data management, tours, account
+10. `/receive` + `/receive/[code]` — QR/code data import flow
+11. `/sign-in` + `/sign-up` — Clerk auth pages
+12. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
 
 ### Review Criteria
 
