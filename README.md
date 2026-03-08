@@ -8,9 +8,9 @@ Welcome to your personal digital garden assistant, specifically tuned for those 
 
 ## 🤖 AI-Generated Code Disclaimer
 
-**This entire project was created using Claude Sonnet (Anthropic's AI assistant) via VS Code's agent mode.** Every line of code, configuration, test, and documentation was generated through AI assistance, demonstrating the current capabilities of AI-powered software development.
+**This entire project was created using Claude (Anthropic's AI assistant) via VS Code's agent mode and Claude Code CLI.** Every line of code, configuration, test, and documentation was generated through AI assistance, demonstrating the current capabilities of AI-powered software development.
 
-This serves as an example of what's possible when AI agents have access to development tools and can iterate on complex projects. The code quality, architecture decisions, and feature implementations represent the state of AI coding capabilities as of June 2025. I did guide the AI, as it does like to be a bit too creative at times, and too lazy at others, but the AI did the heavy lifting.
+This serves as an example of what's possible when AI agents have access to development tools and can iterate on complex projects. The code quality, architecture decisions, and feature implementations represent the state of AI coding capabilities. I did guide the AI, as it does like to be a bit too creative at times, and too lazy at others, but the AI did the heavy lifting.
 
 ## 🎉 What Does This Thing Actually Do?
 
@@ -43,7 +43,7 @@ Think of it as having a horticultural genius in your pocket, one who understands
 ### ♻️ Compost Tracker
 Turn garden waste into black gold:
 - **Multiple Piles**: Track several compost piles simultaneously
-- **Material Logging**: Record greens and browns with automatic C:N ratio tracking
+- **Material Logging**: Record what goes into your compost
 - **Event History**: Document turning, watering, and monitoring activities
 - **Status Tracking**: Follow pile progress from active through curing to ready
 
@@ -90,30 +90,30 @@ src/
 ├── app/
 │   ├── layout.tsx              # Root layout with navigation
 │   ├── page.tsx                # Today Dashboard (homepage)
-│   ├── globals.css             # Global styles
-│   ├── allotment/
-│   │   └── page.tsx            # Allotment planner with year-by-year tracking
-│   ├── ai-advisor/
-│   │   └── page.tsx            # AI-powered plant advice chat (Aitor)
-│   ├── seeds/
-│   │   └── page.tsx            # Seed catalog and planting calendar
-│   ├── compost/
-│   │   └── page.tsx            # Compost pile tracking
-│   ├── plan-history/
-│   │   └── page.tsx            # Historical plan viewer
-│   ├── this-month/
-│   │   └── page.tsx            # Seasonal calendar and tasks
+│   ├── allotment/              # Plot planner with year-by-year tracking
+│   ├── ai-advisor/             # AI chat redirect (opens modal)
+│   ├── seeds/                  # Seed inventory and variety tracking
+│   ├── compost/                # Compost pile tracking
+│   ├── this-month/             # Seasonal calendar and tasks
+│   ├── plants/                 # Plant guide index and detail pages
+│   ├── settings/               # App settings, data management, tours
+│   ├── receive/                # QR/code data import flow
+│   ├── sign-in/ & sign-up/     # Clerk authentication pages
+│   └── api/                    # API routes (ai-advisor, share, health, account)
 ├── components/
 │   ├── dashboard/              # Today Dashboard components
 │   ├── allotment/              # Allotment planner components
 │   ├── ai-advisor/             # Chat interface components
+│   ├── seeds/                  # Seed management components
+│   ├── share/                  # Data sharing UI
+│   ├── onboarding/             # Onboarding wizard and tours
 │   └── ui/                     # Shared UI components
 ├── lib/
-│   ├── vegetables/             # Vegetable database
-│   ├── seasons.ts              # Seasonal phase calculations
-│   └── ai-suggestions.ts       # AI topic generation
+│   ├── vegetables/             # Vegetable database (index + per-category data)
+│   ├── supabase/               # Cloud sync client and services
+│   └── tours/                  # Guided tour definitions
 └── services/
-    └── allotment-storage.ts    # LocalStorage data persistence
+    └── allotment-storage.ts    # LocalStorage data persistence (barrel file)
 ```
 
 ## 🎨 The Pretty Stuff (Design System)
@@ -139,16 +139,16 @@ The heart of the app - manage your growing space with physical bed layouts, year
 Browse vegetables by category, track your seed inventory with per-year status (need/ordered/have/had), view detailed planting calendars, and learn about crop rotation families.
 
 ### Compost Tracker (`/compost`)
-Track multiple compost piles with material logging, C:N ratio tracking, event history, and status management.
-
-### Plan History (`/plan-history`)
-Review historical planting plans year by year to inform future decisions.
-
-### Aitor - AI Garden Advisor (`/ai-advisor`)
-Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your plot data and Scottish growing conditions.
+Track multiple compost piles with material logging, event history, and status management.
 
 ### This Month (`/this-month`)
 Seasonal calendar showing what to plant, harvest, and maintain during the current month.
+
+### Plant Guide (`/plants`)
+Browse all 192 plants in the database with search and category filtering. Detail pages show planting calendars, care requirements, companion planting, and external links.
+
+### Aitor - AI Garden Advisor (`/ai-advisor`)
+Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your plot data and Scottish growing conditions.
 
 ## 🔮 Future Dreams and Schemes
 
@@ -156,7 +156,6 @@ Seasonal calendar showing what to plant, harvest, and maintain during the curren
 
 ### Coming Eventually™
 - **Scottish Weather Integration**: So you know when to rush out and cover your brassicas before the next storm
-- **Garden Data Persistence**: Cloud sync for your garden plans
 
 ### Pie-in-the-Sky Features
 - **Blight Early Warning System**: Know before the spores do
