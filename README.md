@@ -171,13 +171,6 @@ Sign in or create an account to enable cloud sync for your garden data across mu
 - **Frost Date Predictions**: Beyond the usual "expect frost until June" advice
 - **Variety Success Ratings**: Crowdsourced data on what actually ripens at your latitude
 
-## 🐛 Known Issues (The Hall of Shame)
-
-- Sometimes the icons have commitment issues with the latest libraries
-- A few forms are having an identity crisis about labels
-- The linter occasionally throws temper tantrums about array keys
-- The growing calendar assumes you're somewhere in central Scotland—Shetland folk, you know to adjust
-
 ## Want to Help?
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
