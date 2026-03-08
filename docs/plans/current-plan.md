@@ -174,13 +174,13 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 5. `/about` — removed. Not needed for first release; onboarding wizard covers the same ground. Removed page, nav link, tour definition, and related E2E tests.
 
 ### Pages to Review
-6. `/plants` — plant guide index (192 plants, search + filter)
-7. `/plants/[id]` — individual plant detail pages
-8. `/ai-advisor` — Aitor chat (BYO API key)
-9. `/settings` — AI config, location, data management, tours, account
-10. `/receive` + `/receive/[code]` — QR/code data import flow
-11. `/sign-in` + `/sign-up` — Clerk auth pages
-12. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
+5. `/plants` — plant guide index (192 plants, search + filter)
+6. `/plants/[id]` — individual plant detail pages
+7. `/ai-advisor` — Aitor chat (BYO API key)
+8. `/settings` — AI config, location, data management, tours, account
+9. `/receive` + `/receive/[code]` — QR/code data import flow
+10. `/sign-in` + `/sign-up` — Clerk auth pages
+11. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
 
 ### Review Criteria
 

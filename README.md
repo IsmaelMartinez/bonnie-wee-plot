@@ -150,6 +150,15 @@ Browse all 192 plants in the database with search and category filtering. Detail
 ### Aitor - AI Garden Advisor (`/ai-advisor`)
 Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your plot data and Scottish growing conditions.
 
+### Settings (`/settings`)
+Manage app settings, export/import your data, and control guided tours. If signed in, you can also manage your account and cloud sync.
+
+### Data Receiver (`/receive`)
+Import allotment data from another device by scanning a QR code or entering a 6-character share code.
+
+### Authentication (`/sign-in`, `/sign-up`)
+Sign in or create an account to enable cloud sync for your garden data across multiple devices.
+
 ## 🔮 Future Dreams and Schemes
 
 *Because every good project needs unrealistic expectations*

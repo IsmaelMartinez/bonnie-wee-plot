@@ -440,8 +440,8 @@ export default function CompostPage() {
           {showCareTips && (
             <div className="zen-card p-5 mt-3 bg-zen-moss-50 border-zen-moss-200">
               <ul className="space-y-2">
-                {GENERIC_CARE_TIPS.map((tip, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-zen-stone-700">
+                {GENERIC_CARE_TIPS.map((tip) => (
+                  <li key={tip} className="flex gap-2 text-sm text-zen-stone-700">
                     <span className="text-zen-moss-500">•</span>
                     {tip}
                   </li>
