@@ -168,14 +168,10 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 
 1. `/` (Today Dashboard) — reviewed and polished (PR #229, #230). Clarified compost tour copy. Review improvements committed.
 2. `/this-month` — reviewed and polished (PR #232). Fixed bed UUID display, replaced current-month banner with dot indicator, merged month selector with collapsible planting calendar (starts expanded, clickable month headers), removed redundant header, consolidated bottom sections into scrollable tip carousel, tour synced to 8 steps covering all sections.
-
-### Pages Under Review
-
-3. `/seeds` — seed inventory and variety tracking (reviewing)
+3. `/seeds` — reviewed and polished (PR #235). Filter button changed from emoji to text label.
+4. `/compost` — reviewed and polished (PR #238). Kept with simplifications: moved care tips to collapsible section at bottom, fixed empty state copy (removed C:N ratio reference), added reactivate button for applied piles, wired up PageTour with 3 data-tour attributes matching tour definition order.
 
 ### Pages to Review
-
-4. `/compost` — compost pile tracking
 5. `/plants` — plant guide index (192 plants, search + filter)
 6. `/plants/[id]` — individual plant detail pages
 7. `/ai-advisor` — Aitor chat (BYO API key)
