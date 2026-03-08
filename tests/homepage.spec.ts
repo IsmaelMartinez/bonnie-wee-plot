@@ -124,9 +124,9 @@ test.describe('More Dropdown Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
 
-    // Settings/About links are in dropdown
-    const aboutLink = page.locator('a[href^="/about"]');
-    await expect(aboutLink).toBeVisible();
+    // Settings link is in dropdown
+    const settingsLink = page.locator('a[href^="/settings"]');
+    await expect(settingsLink).toBeVisible();
   });
 
   test('should navigate to Compost from primary nav', async ({ page }) => {
@@ -151,22 +151,6 @@ test.describe('More Dropdown Navigation', () => {
     await thisMonthLink.click();
 
     await expect(page).toHaveURL(/this-month/);
-  });
-
-  test('should navigate to About from dropdown', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/');
-
-    // Open dropdown
-    const moreButton = page.locator('header button').filter({ hasText: 'More' });
-    await moreButton.click();
-
-    // Wait for and click on About - use href selector with trailing slash flexibility
-    const aboutLink = page.locator('a[href^="/about"]');
-    await expect(aboutLink).toBeVisible();
-    await aboutLink.click();
-
-    await expect(page).toHaveURL(/about/);
   });
 
   test('should show mobile menu button on mobile', async ({ page }) => {
