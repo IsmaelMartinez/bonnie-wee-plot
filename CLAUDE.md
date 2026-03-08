@@ -171,7 +171,7 @@ The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSynced
 
 The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonClient()`, `createAuthClient(token)`, and `isSupabaseConfigured()`. The sync service (`src/lib/supabase/sync.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()`.
 
-Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be configured to map the user ID to the `sub` claim.
+Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be created in the Clerk Dashboard (JWT Templates > New template > Supabase preset). The template claims should be `{ "aud": "authenticated", "role": "authenticated", "email": "{{user.primary_email_address}}" }` — do not include `sub` as it is a reserved claim that Clerk sets automatically to the user ID. The signing key must be the Supabase JWT Secret (Project Settings > API > JWT Secret), algorithm HS256. The RLS policies in `sql/001-allotments.sql` use `auth.jwt() ->> 'sub'` to match rows to users.
 
 ### GDPR Compliance
 
