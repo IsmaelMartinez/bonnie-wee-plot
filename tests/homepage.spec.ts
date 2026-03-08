@@ -124,9 +124,9 @@ test.describe('More Dropdown Navigation', () => {
     const moreButton = page.locator('header button').filter({ hasText: 'More' });
     await moreButton.click();
 
-    // Settings link is in dropdown
-    const settingsLink = page.locator('a[href^="/settings"]');
-    await expect(settingsLink).toBeVisible();
+    // Settings link is in dropdown, About is not
+    await expect(page.locator('a[href^="/settings"]')).toBeVisible();
+    await expect(page.locator('a[href^="/about"]')).toBeHidden();
   });
 
   test('should navigate to Compost from primary nav', async ({ page }) => {
