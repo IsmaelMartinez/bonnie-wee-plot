@@ -26,7 +26,12 @@ test.describe('Compost Page', () => {
   })
 
   test('should display care tips section', async ({ page }) => {
-    await expect(page.getByText('Compost Care Tips')).toBeVisible()
+    // Care tips start collapsed
+    await expect(page.getByText('Compost care tips')).toBeVisible()
+    await expect(page.getByText('Too wet or smelly?')).not.toBeVisible()
+
+    // Expand care tips
+    await page.getByText('Compost care tips').click()
     await expect(page.getByText('Too wet or smelly?')).toBeVisible()
     await expect(page.getByText('Be patient - composting takes time!')).toBeVisible()
   })
