@@ -892,7 +892,7 @@ test.describe('Seeds Page - PlantCombobox', () => {
     await expect(plantCombobox).toHaveValue('Carrot')
   })
 
-  test('should allow adding variety without a name', async ({ page }) => {
+  test('should require variety name to submit', async ({ page }) => {
     // Click Add Variety button
     const addVarietyButton = page.locator('button').filter({ hasText: 'Add Variety' })
     await addVarietyButton.click()
@@ -908,9 +908,14 @@ test.describe('Seeds Page - PlantCombobox', () => {
     await page.getByRole('option', { name: /Spinach/ }).first().click()
 
     // Don't fill in variety name - leave it empty
-
-    // Submit button should be enabled (only requires plant selection)
+    // Submit button should be disabled (requires both plant and name)
     const submitButton = page.getByRole('dialog').getByRole('button', { name: 'Add Variety' })
+    await expect(submitButton).toBeDisabled()
+
+    // Fill in a variety name
+    await page.getByLabel('Variety Name *').fill('Bloomsdale')
+
+    // Now submit should be enabled
     await expect(submitButton).toBeEnabled()
 
     // Click submit
@@ -919,7 +924,7 @@ test.describe('Seeds Page - PlantCombobox', () => {
     // Dialog should close
     await expect(page.getByRole('dialog')).not.toBeVisible()
 
-    // Variety should appear with just the plant name
+    // Variety should appear
     await expect(page.getByRole('button', { name: 'Spinach (1)' })).toBeVisible()
   })
 })
