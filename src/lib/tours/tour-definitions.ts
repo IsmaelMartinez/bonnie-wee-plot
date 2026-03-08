@@ -263,6 +263,41 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     ],
   },
 
+  compost: {
+    id: 'compost',
+    name: 'Compost',
+    description: 'Track your compost piles',
+    steps: [
+      {
+        element: '[data-tour="add-pile-btn"]',
+        popover: {
+          title: 'Start a New Pile',
+          description: 'Create a compost pile and choose your system type — hot compost, tumbler, bokashi, worm bin, or others.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="compost-piles"]',
+        popover: {
+          title: 'Your Compost Piles',
+          description: 'Your piles appear here. Track inputs, log events like turning and watering, and update the status as your compost matures.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="care-tips"]',
+        popover: {
+          title: 'Care Tips',
+          description: 'Quick troubleshooting reminders for healthy compost — what to do when it is too wet, too dry, or not heating up.',
+          side: 'top',
+          align: 'center',
+        },
+      },
+    ],
+  },
+
   settings: {
     id: 'settings',
     name: 'Settings',
@@ -318,41 +353,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         popover: {
           title: 'Manage Tours',
           description: 'Replay any guided tour or reset them all. Each page has its own tour you can trigger with the ? key.',
-          side: 'top',
-          align: 'center',
-        },
-      },
-    ],
-  },
-
-  compost: {
-    id: 'compost',
-    name: 'Compost',
-    description: 'Track your compost piles',
-    steps: [
-      {
-        element: '[data-tour="care-tips"]',
-        popover: {
-          title: 'Compost Care Tips',
-          description: 'Quick reminders for healthy compost. Too wet? Too dry? Not heating up? These tips help you troubleshoot common issues.',
-          side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="add-pile-btn"]',
-        popover: {
-          title: 'Start a New Pile',
-          description: 'Create a compost pile and choose your system type - hot compost, tumbler, bokashi, worm bin, or others.',
-          side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="compost-piles"]',
-        popover: {
-          title: 'Your Compost Piles',
-          description: 'Track inputs, log events like turning and watering, and update the status as your compost matures.',
           side: 'top',
           align: 'center',
         },

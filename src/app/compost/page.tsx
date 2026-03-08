@@ -14,6 +14,7 @@ import {
   Sprout,
   Lightbulb,
   Pencil,
+  Undo2,
 } from 'lucide-react'
 import { useCompost } from '@/hooks/useCompost'
 import PageTour from '@/components/onboarding/PageTour'
@@ -78,6 +79,7 @@ export default function CompostPage() {
   const [pileToDelete, setPileToDelete] = useState<string | null>(null)
   const [expandedPiles, setExpandedPiles] = useState<Set<string>>(new Set())
   const [editingStartDate, setEditingStartDate] = useState<string | null>(null)
+  const [showCareTips, setShowCareTips] = useState(false)
 
   // Form state for new pile
   const [newPileName, setNewPileName] = useState('')
@@ -202,22 +204,6 @@ export default function CompostPage() {
             </div>
           </div>
         </header>
-
-        {/* Generic Care Tips */}
-        <div data-tour="care-tips" className="zen-card p-6 mb-8 bg-zen-moss-50 border-zen-moss-200">
-          <div className="flex items-center gap-2 mb-3">
-            <Lightbulb className="w-5 h-5 text-zen-moss-600" />
-            <h2 className="font-display text-zen-ink-800">Compost Care Tips</h2>
-          </div>
-          <ul className="space-y-2">
-            {GENERIC_CARE_TIPS.map((tip, i) => (
-              <li key={i} className="flex gap-2 text-sm text-zen-stone-700">
-                <span className="text-zen-moss-500">•</span>
-                {tip}
-              </li>
-            ))}
-          </ul>
-        </div>
 
         {/* Add Pile Button */}
         <div className="mb-6">
@@ -397,7 +383,7 @@ export default function CompostPage() {
             <Recycle className="w-16 h-16 text-zen-stone-300 mx-auto mb-4" aria-hidden="true" />
             <h3 className="font-display text-zen-ink-700 mb-2">No compost piles yet</h3>
             <p className="text-zen-stone-500 mb-4">
-              Track your green and brown inputs, monitor C:N ratios, and know when your compost is ready to use.
+              Track what goes into your compost, log turnings and waterings, and know when it is ready to use.
             </p>
             <button
               onClick={() => setShowAddPileDialog(true)}
@@ -411,25 +397,59 @@ export default function CompostPage() {
         )}
         </div>
 
-        {/* Applied Piles (collapsed by default) */}
+        {/* Applied Piles */}
         {appliedPiles.length > 0 && (
           <div className="mt-8">
             <h2 className="font-display text-zen-stone-500 mb-4">Applied ({appliedPiles.length})</h2>
             <div className="space-y-2">
               {appliedPiles.map((pile: CompostPile) => (
-                <div key={pile.id} className="zen-card p-3 flex items-center justify-between opacity-60">
+                <div key={pile.id} className="zen-card p-3 flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
                   <div className="flex items-center gap-2">
                     <span>{getSystemEmoji(pile.systemType)}</span>
                     <span className="text-zen-stone-600">{pile.name}</span>
                   </div>
-                  <span className="text-xs text-zen-stone-400">
-                    {getDaysSince(pile.startDate)} days total
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-zen-stone-400">
+                      {getDaysSince(pile.startDate)} days total
+                    </span>
+                    <button
+                      onClick={() => updatePile(pile.id, { status: 'ready' })}
+                      className="text-xs text-zen-water-600 hover:text-zen-water-700 flex items-center gap-1"
+                      title="Reactivate pile"
+                    >
+                      <Undo2 className="w-3 h-3" />
+                      Reactivate
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Care Tips (collapsible) */}
+        <div data-tour="care-tips" className="mt-8">
+          <button
+            onClick={() => setShowCareTips(!showCareTips)}
+            className="flex items-center gap-2 text-sm text-zen-stone-500 hover:text-zen-moss-700 transition-colors"
+          >
+            <Lightbulb className="w-4 h-4" />
+            <span>Compost care tips</span>
+            {showCareTips ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+          {showCareTips && (
+            <div className="zen-card p-5 mt-3 bg-zen-moss-50 border-zen-moss-200">
+              <ul className="space-y-2">
+                {GENERIC_CARE_TIPS.map((tip, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-zen-stone-700">
+                    <span className="text-zen-moss-500">•</span>
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
         <footer className="mt-16 pt-8 border-t border-zen-stone-200 text-center">
