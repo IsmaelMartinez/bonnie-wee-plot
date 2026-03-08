@@ -583,48 +583,12 @@
 
 ---
 
-## 8. About - `/about`
-
-### Page Load
-- ✅ No accessibility violations
-- ✅ Header with app name visible
-- ✅ Tagline visible
-
-### Content Sections
-- ✅ Mission statement card visible
-- ✅ Core features overview (3 cards) visible
-- ✅ Quick action cards (2) visible
-- ✅ AI Advisor section with BYO API key badge
-- ✅ Keyboard shortcuts reference visible
-- ✅ Philosophy statement visible
-- ✅ Footer note visible
-
-### Quick Action Links
-- ✅ "My Allotment" link works
-- ✅ "This Month" link works
-- ✅ "Talk to Aitor" link works (opens modal)
-
-### Keyboard Shortcuts Reference
-- ✅ ESC shortcut documented
-- ✅ Enter shortcut documented
-- ✅ Arrow keys documented
-- ✅ Tab documented
-- ✅ Home/End documented
-
-### BYO API Key Explanation
-- ✅ Concept explained clearly — `about.spec.ts: BYO section`
-- ✅ Benefits mentioned — `about.spec.ts: BYO section`
-- ✅ Not intimidating for new users — `about.spec.ts: BYO section`
-
----
-
-## 9. Navigation
+## 8. Navigation
 
 ### Desktop Navigation
 - ✅ Primary nav items visible (Today, This Month, Seeds, Compost, Allotment)
 - ✅ "More" dropdown button visible
 - ✅ Dropdown opens on click
-- ✅ About link in dropdown
 - ✅ Settings link in dropdown
 - ✅ Seasonal emoji in header correct — `navigation-extended.spec.ts: seasonal emoji`
 - ✅ Active page indicator visible — `navigation-extended.spec.ts: active page indicator`

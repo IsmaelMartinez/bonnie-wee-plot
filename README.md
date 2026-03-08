@@ -103,8 +103,6 @@ src/
 │   │   └── page.tsx            # Historical plan viewer
 │   ├── this-month/
 │   │   └── page.tsx            # Seasonal calendar and tasks
-│   └── about/
-│       └── page.tsx            # About page
 ├── components/
 │   ├── dashboard/              # Today Dashboard components
 │   ├── allotment/              # Allotment planner components
@@ -151,9 +149,6 @@ Your personal garden guru that never sleeps, judges, or asks for payment in home
 
 ### This Month (`/this-month`)
 Seasonal calendar showing what to plant, harvest, and maintain during the current month.
-
-### About (`/about`)
-Learn about the project and its AI-powered origins.
 
 ## 🔮 Future Dreams and Schemes
 
