@@ -36,8 +36,6 @@ const SUPPLIER_URLS: Record<string, string> = {
   'Garden Organic': 'https://www.gardenorganic.org.uk/shop/seeds',
 }
 
-const CURRENT_YEAR = new Date().getFullYear()
-
 // Helper to get next seed status in cycle
 function getNextStatus(current: SeedStatus): SeedStatus {
   const cycle: Record<SeedStatus, SeedStatus> = {
@@ -301,69 +299,47 @@ function SeedsPageContent() {
           </div>
         </div>
 
-        {/* Stats - clickable filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" data-tour="seed-stats">
-          <button
-            onClick={() => selectedYear !== 'all' && setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
-            disabled={selectedYear === 'all'}
-            aria-pressed={statusFilter === 'have'}
-            className={`zen-card p-4 text-center transition ${
-              selectedYear === 'all'
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer ' + (statusFilter === 'have' ? 'ring-2 ring-zen-moss-500 bg-zen-moss-50' : 'hover:bg-zen-stone-50')
-            }`}
-            title={selectedYear === 'all' ? 'Select a year to filter by seed status' : undefined}
-          >
-            <div className="text-2xl font-bold text-zen-moss-600">{haveCount}</div>
-            <div className="text-sm text-zen-stone-500">
-              {statusFilter === 'have' ? '✓ Have Seeds' : 'Have Seeds'}
+        {/* Stats - clickable filters (only shown for specific year) */}
+        {selectedYear !== 'all' && (
+          <div className="grid grid-cols-3 gap-4 mb-8" data-tour="seed-stats">
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'have' ? 'all' : 'have')}
+              aria-pressed={statusFilter === 'have'}
+              className={`zen-card p-4 text-center transition cursor-pointer ${
+                statusFilter === 'have' ? 'ring-2 ring-zen-moss-500 bg-zen-moss-50' : 'hover:bg-zen-stone-50'
+              }`}
+            >
+              <div className="text-2xl font-bold text-zen-moss-600">{haveCount}</div>
+              <div className="text-sm text-zen-stone-500">
+                {statusFilter === 'have' ? '✓ Have Seeds' : 'Have Seeds'}
+              </div>
+            </button>
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'need' ? 'all' : 'need')}
+              aria-pressed={statusFilter === 'need'}
+              className={`zen-card p-4 text-center transition cursor-pointer ${
+                statusFilter === 'need' ? 'ring-2 ring-zen-kitsune-500 bg-zen-kitsune-50' : 'hover:bg-zen-stone-50'
+              }`}
+            >
+              <div className="text-2xl font-bold text-zen-kitsune-600">{needCount}</div>
+              <div className="text-sm text-zen-stone-500">Need for {selectedYear}</div>
+            </button>
+            <div className="zen-card p-4 text-center">
+              <div className="text-2xl font-bold text-zen-stone-600">
+                £{(() => {
+                  const total = (data.varieties || [])
+                    .filter(v => {
+                      const yearsUsed = getVarietyUsedYears(v.id, data)
+                      return yearsUsed.includes(selectedYear)
+                    })
+                    .reduce((sum, v) => sum + (v.price || 0), 0)
+                  return total.toFixed(2)
+                })()}
+              </div>
+              <div className="text-sm text-zen-stone-500">Spent {selectedYear}</div>
             </div>
-          </button>
-          <button
-            onClick={() => selectedYear !== 'all' && setStatusFilter(statusFilter === 'need' ? 'all' : 'need')}
-            disabled={selectedYear === 'all'}
-            aria-pressed={statusFilter === 'need'}
-            className={`zen-card p-4 text-center transition ${
-              selectedYear === 'all'
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer ' + (statusFilter === 'need' ? 'ring-2 ring-zen-kitsune-500 bg-zen-kitsune-50' : 'hover:bg-zen-stone-50')
-            }`}
-            title={selectedYear === 'all' ? 'Select a year to filter by seed status' : undefined}
-          >
-            <div className="text-2xl font-bold text-zen-kitsune-600">{needCount}</div>
-            <div className="text-sm text-zen-stone-500">
-              {selectedYear !== 'all' ? `Need for ${selectedYear}` : 'Need to Order'}
-            </div>
-          </button>
-          <div className="zen-card p-4 text-center">
-            <div className="text-2xl font-bold text-zen-kitsune-600">
-              £{(() => {
-                const total = (data.varieties || [])
-                  .filter(v => {
-                    const yearsUsed = getVarietyUsedYears(v.id, data)
-                    return yearsUsed.includes(CURRENT_YEAR - 1)
-                  })
-                  .reduce((sum, v) => sum + (v.price || 0), 0)
-                return total.toFixed(2)
-              })()}
-            </div>
-            <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR - 1}</div>
           </div>
-          <div className="zen-card p-4 text-center">
-            <div className="text-2xl font-bold text-zen-kitsune-600">
-              £{(() => {
-                const total = (data.varieties || [])
-                  .filter(v => {
-                    const yearsUsed = getVarietyUsedYears(v.id, data)
-                    return yearsUsed.includes(CURRENT_YEAR)
-                  })
-                  .reduce((sum, v) => sum + (v.price || 0), 0)
-                return total.toFixed(2)
-              })()}
-            </div>
-            <div className="text-sm text-zen-stone-500">Spent {CURRENT_YEAR}</div>
-          </div>
-        </div>
+        )}
 
         {/* Add button and Expand/Collapse */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -669,7 +645,7 @@ function SeedsPageContent() {
 
         {/* Suppliers section */}
         {suppliers.length > 0 && (
-          <div className="mt-8 zen-card p-6">
+          <div className="mt-8 zen-card p-6" data-tour="suppliers-section">
             <h2 className="font-display text-zen-ink-800 mb-4">Suppliers</h2>
             <div className="flex flex-wrap gap-3">
               {suppliers.map(s => (
@@ -693,18 +669,6 @@ function SeedsPageContent() {
               ))}
             </div>
 
-            {/* Garden Organic link */}
-            <div className="mt-6 pt-4 border-t border-zen-stone-100">
-              <a
-                href="https://www.gardenorganic.org.uk/shop/seeds"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-zen-moss-600 hover:text-zen-moss-700 font-medium transition"
-              >
-                Browse Garden Organic Heritage Seeds
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </div>
           </div>
         )}
       </div>

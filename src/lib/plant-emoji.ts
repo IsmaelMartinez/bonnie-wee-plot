@@ -21,6 +21,8 @@ export function getPlantEmoji(category: string): string {
     'perennial-flowers': '🌺',
     'bulbs': '🌷',
     'climbers': '🪴',
+    'green-manures': '🌱',
+    'mushrooms': '🍄',
     'other': '🌱'
   }
   return emojis[category] || '🌱'

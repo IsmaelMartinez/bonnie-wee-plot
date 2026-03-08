@@ -76,7 +76,7 @@ export default function VarietyEditDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!plantId) return
+    if (!plantId || !name.trim()) return
 
     const parsedPrice = price ? (isNaN(parseFloat(price)) ? undefined : parseFloat(price)) : undefined
 
@@ -159,7 +159,7 @@ export default function VarietyEditDialog({
             htmlFor="variety-name-input"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Variety Name
+            Variety Name *
           </label>
           <input
             id="variety-name-input"
@@ -167,6 +167,7 @@ export default function VarietyEditDialog({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Kelvedon Wonder"
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-zen-moss-500 focus:border-zen-moss-500"
           />
         </div>
@@ -310,7 +311,7 @@ export default function VarietyEditDialog({
           </button>
           <button
             type="submit"
-            disabled={!plantId}
+            disabled={!plantId || !name.trim()}
             className="flex-1 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:ring-offset-2 disabled:bg-gray-400"
           >
             {mode === 'add' ? 'Add Variety' : 'Save Changes'}
