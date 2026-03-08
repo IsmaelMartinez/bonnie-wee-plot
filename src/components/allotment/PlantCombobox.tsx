@@ -93,13 +93,13 @@ export default function PlantCombobox({
           type="button"
           onClick={() => onCategoryChange('all')}
           title="All Plants"
-          className={`w-10 h-10 text-sm rounded-lg transition flex items-center justify-center ${
+          className={`px-3 h-10 text-xs font-semibold rounded-lg transition flex items-center justify-center ${
             categoryFilter === 'all'
               ? 'bg-zen-moss-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          🌱
+          All
         </button>
         {CATEGORY_INFO.map((info) => (
           <button
