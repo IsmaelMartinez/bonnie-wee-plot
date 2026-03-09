@@ -64,7 +64,7 @@ function MonthBar({
   const allMonths: Month[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-zen-ink-600 w-28 shrink-0">{label}</span>
+      <span className="text-sm text-zen-ink-600 w-20 sm:w-28 shrink-0">{label}</span>
       <div className="flex gap-0.5 flex-1">
         {allMonths.map(m => (
           <div
@@ -150,7 +150,7 @@ function CareTipsList({ tips }: { tips: CareTip[] }) {
             <div className="space-y-2">
               {catTips.map((tip, i) => (
                 <div key={i} className="flex gap-3 text-sm">
-                  <span className="text-zen-stone-500 shrink-0 w-20">
+                  <span className="text-zen-stone-500 shrink-0 whitespace-nowrap">
                     {tip.months.map(m => MONTH_NAMES_SHORT[m as Month]).join(', ')}
                   </span>
                   <span className="text-zen-ink-700">{tip.tip}</span>
