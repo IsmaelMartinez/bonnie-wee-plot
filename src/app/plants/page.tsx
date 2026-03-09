@@ -24,16 +24,12 @@ function PlantsIndexContent() {
 
   // Compute set of plant IDs that appear in the current year's plantings
   const plantedIds = useMemo(() => {
-    const ids = new Set<string>()
-    if (!data) return ids
+    if (!data) return new Set<string>()
     const currentSeason = data.seasons.find(s => s.year === data.currentYear)
-    if (!currentSeason) return ids
-    for (const area of currentSeason.areas) {
-      for (const planting of area.plantings) {
-        ids.add(planting.plantId)
-      }
-    }
-    return ids
+    if (!currentSeason) return new Set<string>()
+    return new Set(currentSeason.areas.flatMap(area =>
+      area.plantings.map(planting => planting.plantId)
+    ))
   }, [data])
 
   // Group plants by category, applying search, category, difficulty, and my-plants filters
@@ -116,6 +112,7 @@ function PlantsIndexContent() {
             type="checkbox"
             checked={myPlantsOnly}
             onChange={e => setMyPlantsOnly(e.target.checked)}
+            className="rounded border-zen-stone-300 text-zen-moss-600 focus:ring-zen-moss-500"
           />
           This year only
         </label>

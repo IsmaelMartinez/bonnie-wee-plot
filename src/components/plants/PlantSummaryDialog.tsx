@@ -36,7 +36,7 @@ export default function PlantSummaryDialog({ plantId, isOpen, onClose }: PlantSu
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title={plant.name} maxWidth="lg">
       {/* Header info */}
-      <div className="flex items-baseline gap-2 mb-4">
+      <div className="flex items-baseline gap-2 mb-4 flex-wrap">
         <span className={difficultyColor(plant.care.difficulty)}>
           {formatDifficulty(plant.care.difficulty)}
         </span>
