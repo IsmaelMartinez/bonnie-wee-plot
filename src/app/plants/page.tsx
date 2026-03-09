@@ -117,7 +117,7 @@ function PlantsIndexContent() {
             checked={myPlantsOnly}
             onChange={e => setMyPlantsOnly(e.target.checked)}
           />
-          My plants only
+          This year only
         </label>
 
         {/* Results count */}
@@ -131,7 +131,7 @@ function PlantsIndexContent() {
           <div className="zen-card p-8 text-center">
             <p className="text-zen-stone-500">
               {myPlantsOnly
-                ? 'No plants added yet \u2014 start planning in Allotment.'
+                ? 'No plants planned for this year yet \u2014 start in Allotment.'
                 : 'No plants match your search.'}
             </p>
           </div>
@@ -152,7 +152,7 @@ function PlantsIndexContent() {
                         <span className="flex items-center gap-2 text-sm text-zen-ink-700">
                           {v.name}
                           {plantedIds.has(v.id) && (
-                            <span className="zen-badge-moss text-xs">planted</span>
+                            <span className="zen-badge-moss text-xs">{data?.currentYear}</span>
                           )}
                         </span>
                       </Link>

@@ -95,7 +95,7 @@ describe('Plants Page', () => {
   describe('My plants checkbox', () => {
     it('renders the my plants checkbox', () => {
       render(<PlantsPage />)
-      expect(screen.getByLabelText(/my plants only/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/this year only/i)).toBeInTheDocument()
     })
 
     it('filters to only planted plants when checked', async () => {
@@ -108,7 +108,7 @@ describe('Plants Page', () => {
       render(<PlantsPage />)
       const user = userEvent.setup()
 
-      await user.click(screen.getByLabelText(/my plants only/i))
+      await user.click(screen.getByLabelText(/this year only/i))
 
       // Lettuce and carrot are planted
       expect(screen.getByText('Lettuce')).toBeInTheDocument()
@@ -124,9 +124,9 @@ describe('Plants Page', () => {
       render(<PlantsPage />)
       const user = userEvent.setup()
 
-      await user.click(screen.getByLabelText(/my plants only/i))
+      await user.click(screen.getByLabelText(/this year only/i))
 
-      expect(screen.getByText(/no plants added yet/i)).toBeInTheDocument()
+      expect(screen.getByText(/no plants planned for this year/i)).toBeInTheDocument()
     })
   })
 
@@ -140,8 +140,8 @@ describe('Plants Page', () => {
 
       render(<PlantsPage />)
 
-      // Find the lettuce link and check for planted badge
-      const badge = screen.getByText('planted')
+      // Find the lettuce link and check for year badge
+      const badge = screen.getByText('2026')
       expect(badge).toBeInTheDocument()
       expect(badge.className).toContain('zen-badge-moss')
     })
@@ -151,7 +151,7 @@ describe('Plants Page', () => {
 
       render(<PlantsPage />)
 
-      expect(screen.queryByText('planted')).not.toBeInTheDocument()
+      expect(screen.queryByText('2026')).not.toBeInTheDocument()
     })
   })
 })
