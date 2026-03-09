@@ -148,9 +148,9 @@ function CareTipsList({ tips }: { tips: CareTip[] }) {
               {categoryLabels[cat] ?? cat}
             </h4>
             <div className="space-y-2">
-              {catTips.map((tip, i) => (
-                <div key={i} className="flex gap-3 text-sm">
-                  <span className="text-zen-stone-500 shrink-0 whitespace-nowrap">
+              {catTips.map((tip) => (
+                <div key={tip.tip} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                  <span className="text-zen-stone-500">
                     {tip.months.map(m => MONTH_NAMES_SHORT[m as Month]).join(', ')}
                   </span>
                   <span className="text-zen-ink-700">{tip.tip}</span>
