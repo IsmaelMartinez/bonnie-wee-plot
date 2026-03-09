@@ -441,17 +441,26 @@ function SeedsPageContent() {
                       <ChevronRight className="w-5 h-5 text-zen-stone-400" />
                     )}
                     <Sprout className="w-5 h-5 text-zen-moss-500" />
-                    <button
-                      type="button"
+                    <span
+                      role="link"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation()
                         const veg = vegetableIndex.find(v => v.name === name)
                         if (veg) setSummaryPlantId(veg.id)
                       }}
-                      className="font-medium text-zen-ink-800 hover:text-zen-moss-700 transition-colors underline decoration-zen-stone-300 underline-offset-2"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation()
+                          e.preventDefault()
+                          const veg = vegetableIndex.find(v => v.name === name)
+                          if (veg) setSummaryPlantId(veg.id)
+                        }
+                      }}
+                      className="font-medium text-zen-ink-800 hover:text-zen-moss-700 transition-colors underline decoration-zen-stone-300 underline-offset-2 cursor-pointer"
                     >
                       {name}
-                    </button>
+                    </span>
                     <span className="text-sm text-zen-stone-400">({varieties.length})</span>
                   </div>
                 </button>
