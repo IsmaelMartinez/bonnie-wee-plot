@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { AlertTriangle, Check, Droplets, Sun, ArrowRight, Calendar } from 'lucide-react'
+import { AlertTriangle, Check, Droplets, Sun, ArrowRight, Calendar, Info } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
@@ -13,6 +13,7 @@ interface PlantingCardProps {
   onUpdate: (updates: PlantingUpdate) => void
   otherPlantings?: Planting[]
   onClick?: () => void
+  onPlantInfo?: (plantId: string) => void
 }
 
 export default function PlantingCard({
@@ -20,6 +21,7 @@ export default function PlantingCard({
   onUpdate,
   otherPlantings = [],
   onClick,
+  onPlantInfo,
 }: PlantingCardProps) {
   const veg = getVegetableById(planting.plantId)
   const { goods, bads } = getCompanionStatusForPlanting(planting, otherPlantings)
@@ -65,6 +67,20 @@ export default function PlantingCard({
             <span className="font-medium text-zen-ink-800">
               {veg?.name || planting.plantId}
             </span>
+            {onPlantInfo && veg && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPlantInfo(planting.plantId)
+                }}
+                className="p-1 text-zen-stone-400 hover:text-zen-moss-600 transition-colors rounded-zen"
+                aria-label={`Info about ${veg.name}`}
+                title={`About ${veg.name}`}
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            )}
             <span
               className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${getPhaseColors(phaseInfo.color)}`}
               title={phaseInfo.description}

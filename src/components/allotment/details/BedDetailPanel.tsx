@@ -10,6 +10,7 @@ import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, Area
 import BedNotes from '@/components/allotment/BedNotes'
 import PlantingCard from '@/components/allotment/PlantingCard'
 import PlantingDetailDialog from '@/components/allotment/PlantingDetailDialog'
+import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 
@@ -53,6 +54,7 @@ export default function BedDetailPanel({
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
+  const [summaryPlantId, setSummaryPlantId] = useState<string | null>(null)
   // Determine if this is a rotation bed (vs perennial bed)
   const isRotationBed = area.kind === 'rotation-bed'
 
@@ -218,6 +220,7 @@ export default function BedDetailPanel({
                 onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                 otherPlantings={plantings}
                 onClick={() => setSelectedPlanting(p)}
+                onPlantInfo={setSummaryPlantId}
               />
             ))}
           </div>
@@ -272,6 +275,12 @@ export default function BedDetailPanel({
         }
       }}
       otherPlantings={plantings}
+    />
+
+    <PlantSummaryDialog
+      plantId={summaryPlantId}
+      isOpen={summaryPlantId !== null}
+      onClose={() => setSummaryPlantId(null)}
     />
 
     {/* Archive Confirm Dialog */}
