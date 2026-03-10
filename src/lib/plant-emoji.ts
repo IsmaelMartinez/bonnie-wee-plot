@@ -6,7 +6,7 @@ const categoryEmojis: Record<string, string> = {
   'leafy-greens': '🥬',
   'root-vegetables': '🥕',
   'brassicas': '🥦',
-  'legumes': '🫛',
+  'legumes': '🥜',
   'solanaceae': '🍅',
   'cucurbits': '🥒',
   'alliums': '🧅',
@@ -26,9 +26,9 @@ const plantEmojis: Record<string, string> = {
   'potato': '🥔',
   'pepper': '🌶️',
   'aubergine': '🍆',
-  'peas': '🫛',
-  'sugar-snap-peas': '🫛',
-  'asparagus-peas': '🫛',
+  'peas': '🥜',
+  'sugar-snap-peas': '🥜',
+  'asparagus-peas': '🥜',
 }
 
 /**
