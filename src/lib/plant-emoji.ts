@@ -26,6 +26,9 @@ const plantEmojis: Record<string, string> = {
   'potato': '🥔',
   'pepper': '🌶️',
   'aubergine': '🍆',
+  'peas': '🫛',
+  'sugar-snap-peas': '🫛',
+  'asparagus-peas': '🫛',
 }
 
 /**
