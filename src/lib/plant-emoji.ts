@@ -22,7 +22,7 @@ const categoryEmojis: Record<string, string> = {
   'other': '🌱'
 }
 
-const plantEmojis: Record<string, string> = {
+export const plantEmojis: Record<string, string> = {
   'potato': '🥔',
   'pepper': '🌶️',
   'aubergine': '🍆',
