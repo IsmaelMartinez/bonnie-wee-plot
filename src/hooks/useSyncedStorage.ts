@@ -79,10 +79,26 @@ export function useSyncedStorage(
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('disabled')
   const [syncError, setSyncError] = useState<string | null>(null)
   const syncInProgressRef = useRef(false)
+  const syncInProgressUserRef = useRef<string | null>(null)
   const pulledSnapshotRef = useRef<string | null>(null)
   const lastPushedRef = useRef<string | null>(null)
+  const activeUserIdRef = useRef<string | null>(userId)
 
   const canSync = isSignedIn && isSupabaseConfigured() && isOnline
+
+  useEffect(() => {
+    activeUserIdRef.current = userId
+  }, [userId])
+
+  const isStaleSyncUser = (expectedUserId: string): boolean =>
+    activeUserIdRef.current !== expectedUserId
+
+  const applyRemoteSnapshot = (remoteData: AllotmentData) => {
+    const snapshot = JSON.stringify(remoteData)
+    pulledSnapshotRef.current = snapshot
+    local.setData(remoteData)
+    lastPushedRef.current = snapshot
+  }
 
   // Get Clerk JWT for Supabase auth using the "supabase" JWT template.
   // Clerk automatically sets the `sub` claim to the user ID (reserved claim).
@@ -99,24 +115,29 @@ export function useSyncedStorage(
   // Initial sync: fetch cloud data and reconcile with local
   useEffect(() => {
     if (!canSync || !userId || local.isLoading || !local.data) return
-    if (syncInProgressRef.current) return
+    if (syncInProgressRef.current && syncInProgressUserRef.current === userId) return
     syncInProgressRef.current = true
+    syncInProgressUserRef.current = userId
+    const syncUserId = userId
 
     const doInitialSync = async () => {
       try {
         setSyncStatus('syncing')
         const token = await getSupabaseToken()
+        if (isStaleSyncUser(syncUserId)) return
         if (!token) {
           setSyncStatus('error')
           setSyncError('JWT template "supabase" not configured in Clerk dashboard')
           return
         }
 
-        const remote = await fetchRemote(token, userId)
+        const remote = await fetchRemote(token, syncUserId)
+        if (isStaleSyncUser(syncUserId)) return
 
         if (!remote) {
           // First-time cloud user — push local data up
-          await pushToRemote(token, userId, local.data!)
+          await pushToRemote(token, syncUserId, local.data!)
+          if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
           setSyncStatus('synced')
           setSyncError(null)
@@ -127,21 +148,13 @@ export function useSyncedStorage(
         const localTime = toTimestamp(localData.meta?.updatedAt)
         const remoteTime = toTimestamp(remote.updatedAt)
 
-        if (isBootstrapLocalData(localData)) {
-          // A fresh/empty browser session should not override existing cloud state.
-          const snapshot = JSON.stringify(remote.data)
-          pulledSnapshotRef.current = snapshot
-          local.setData(remote.data)
-          lastPushedRef.current = snapshot
-        } else if (remoteTime > localTime) {
-          // Cloud is newer — update local, record snapshot to skip push-back
-          const snapshot = JSON.stringify(remote.data)
-          pulledSnapshotRef.current = snapshot
-          local.setData(remote.data)
-          lastPushedRef.current = snapshot
+        if (isBootstrapLocalData(localData) || remoteTime > localTime) {
+          // Bootstrap local snapshots and older local data must not override cloud state.
+          applyRemoteSnapshot(remote.data)
         } else if (localTime > remoteTime) {
           // Local is newer — push to cloud
-          await pushToRemote(token, userId, local.data!)
+          await pushToRemote(token, syncUserId, local.data!)
+          if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
         } else {
           // Same timestamp — already in sync
@@ -151,11 +164,15 @@ export function useSyncedStorage(
         setSyncStatus('synced')
         setSyncError(null)
       } catch (err) {
+        if (isStaleSyncUser(syncUserId)) return
         console.error('[useSyncedStorage] Initial sync failed:', err)
         setSyncStatus('error')
         setSyncError(err instanceof Error ? err.message : 'Sync failed')
       } finally {
-        syncInProgressRef.current = false
+        if (syncInProgressUserRef.current === syncUserId) {
+          syncInProgressRef.current = false
+          syncInProgressUserRef.current = null
+        }
       }
     }
 
@@ -181,16 +198,20 @@ export function useSyncedStorage(
     if (serialized === lastPushedRef.current) return
 
     const pushAsync = async () => {
+      const syncUserId = userId
       try {
         setSyncStatus('syncing')
         const token = await getSupabaseToken()
+        if (isStaleSyncUser(syncUserId)) return
         if (!token) return
 
-        await pushToRemote(token, userId, local.data!)
+        await pushToRemote(token, syncUserId, local.data!)
+        if (isStaleSyncUser(syncUserId)) return
         lastPushedRef.current = serialized
         setSyncStatus('synced')
         setSyncError(null)
       } catch (err) {
+        if (isStaleSyncUser(syncUserId)) return
         console.error('[useSyncedStorage] Push failed:', err)
         setSyncStatus('error')
         setSyncError(err instanceof Error ? err.message : 'Sync failed')
@@ -204,40 +225,38 @@ export function useSyncedStorage(
   // Reconnect sync
   useEffect(() => {
     if (!justReconnected || !canSync || !userId || !local.data) return
+    const syncUserId = userId
 
     const resync = async () => {
       try {
         setSyncStatus('syncing')
         const token = await getSupabaseToken()
+        if (isStaleSyncUser(syncUserId)) return
         if (!token) return
 
-        const remote = await fetchRemote(token, userId)
+        const remote = await fetchRemote(token, syncUserId)
+        if (isStaleSyncUser(syncUserId)) return
         if (!remote) {
-          await pushToRemote(token, userId, local.data!)
+          await pushToRemote(token, syncUserId, local.data!)
+          if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
         } else {
           const localData = local.data!
           const localTime = toTimestamp(localData.meta?.updatedAt)
           const remoteTime = toTimestamp(remote.updatedAt)
 
-          if (isBootstrapLocalData(localData)) {
-            const snapshot = JSON.stringify(remote.data)
-            pulledSnapshotRef.current = snapshot
-            local.setData(remote.data)
-            lastPushedRef.current = snapshot
-          } else if (remoteTime > localTime) {
-            const snapshot = JSON.stringify(remote.data)
-            pulledSnapshotRef.current = snapshot
-            local.setData(remote.data)
-            lastPushedRef.current = snapshot
+          if (isBootstrapLocalData(localData) || remoteTime > localTime) {
+            applyRemoteSnapshot(remote.data)
           } else {
-            await pushToRemote(token, userId, local.data!)
+            await pushToRemote(token, syncUserId, local.data!)
+            if (isStaleSyncUser(syncUserId)) return
             lastPushedRef.current = JSON.stringify(local.data)
           }
         }
         setSyncStatus('synced')
         setSyncError(null)
       } catch (err) {
+        if (isStaleSyncUser(syncUserId)) return
         setSyncStatus('error')
         setSyncError(err instanceof Error ? err.message : 'Sync failed')
       }
