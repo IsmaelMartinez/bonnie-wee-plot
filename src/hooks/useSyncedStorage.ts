@@ -24,6 +24,51 @@ export interface UseSyncedStorageReturn<T> extends UsePersistedStorageReturn<T> 
   syncError: string | null
 }
 
+const DEFAULT_ALLOTMENT_NAME = 'My Allotment'
+const DEFAULT_ALLOTMENT_LOCATION = 'Edinburgh, Scotland'
+
+function toTimestamp(value?: string): number {
+  if (!value) return 0
+  const ts = new Date(value).getTime()
+  return Number.isNaN(ts) ? 0 : ts
+}
+
+function hasSeasonContent(data: AllotmentData): boolean {
+  return data.seasons.some(season => {
+    if (season.notes?.trim()) return true
+
+    return season.areas.some(areaSeason => {
+      if (areaSeason.plantings.length > 0) return true
+      if ((areaSeason.notes?.length ?? 0) > 0) return true
+      if ((areaSeason.careLogs?.length ?? 0) > 0) return true
+      if (typeof areaSeason.harvestTotal === 'number') return true
+      if (typeof areaSeason.harvestUnit === 'string' && areaSeason.harvestUnit.trim().length > 0) return true
+      if (areaSeason.rotationGroup) return true
+      if (areaSeason.gridPosition) return true
+      return false
+    })
+  })
+}
+
+function isBootstrapLocalData(data: AllotmentData): boolean {
+  if (data.layout.areas.length > 0) return false
+  if ((data.varieties?.length ?? 0) > 0) return false
+  if ((data.customTasks?.length ?? 0) > 0) return false
+  if ((data.maintenanceTasks?.length ?? 0) > 0) return false
+  if ((data.gardenEvents?.length ?? 0) > 0) return false
+  if ((data.compost?.length ?? 0) > 0) return false
+  if (hasSeasonContent(data)) return false
+
+  const name = data.meta?.name?.trim() ?? ''
+  const location = data.meta?.location?.trim() ?? ''
+
+  const defaultName = name === DEFAULT_ALLOTMENT_NAME
+  const defaultLocation = location === '' || location === DEFAULT_ALLOTMENT_LOCATION
+  const setupCompleted = Boolean(data.meta?.setupCompleted)
+
+  return defaultName && defaultLocation && !setupCompleted
+}
+
 export function useSyncedStorage(
   options: UsePersistedStorageOptions<AllotmentData>
 ): UseSyncedStorageReturn<AllotmentData> {
@@ -78,11 +123,17 @@ export function useSyncedStorage(
           return
         }
 
-        // Compare timestamps — LWW
-        const localTime = new Date(local.data!.meta?.updatedAt || 0).getTime()
-        const remoteTime = new Date(remote.updatedAt).getTime()
+        const localData = local.data!
+        const localTime = toTimestamp(localData.meta?.updatedAt)
+        const remoteTime = toTimestamp(remote.updatedAt)
 
-        if (remoteTime > localTime) {
+        if (isBootstrapLocalData(localData)) {
+          // A fresh/empty browser session should not override existing cloud state.
+          const snapshot = JSON.stringify(remote.data)
+          pulledSnapshotRef.current = snapshot
+          local.setData(remote.data)
+          lastPushedRef.current = snapshot
+        } else if (remoteTime > localTime) {
           // Cloud is newer — update local, record snapshot to skip push-back
           const snapshot = JSON.stringify(remote.data)
           pulledSnapshotRef.current = snapshot
@@ -116,6 +167,7 @@ export function useSyncedStorage(
   useEffect(() => {
     if (!canSync || !userId || !local.data) return
     if (local.saveStatus !== 'saved') return
+    if (syncInProgressRef.current) return
 
     const serialized = JSON.stringify(local.data)
 
@@ -164,10 +216,16 @@ export function useSyncedStorage(
           await pushToRemote(token, userId, local.data!)
           lastPushedRef.current = JSON.stringify(local.data)
         } else {
-          const localTime = new Date(local.data!.meta?.updatedAt || 0).getTime()
-          const remoteTime = new Date(remote.updatedAt).getTime()
+          const localData = local.data!
+          const localTime = toTimestamp(localData.meta?.updatedAt)
+          const remoteTime = toTimestamp(remote.updatedAt)
 
-          if (remoteTime > localTime) {
+          if (isBootstrapLocalData(localData)) {
+            const snapshot = JSON.stringify(remote.data)
+            pulledSnapshotRef.current = snapshot
+            local.setData(remote.data)
+            lastPushedRef.current = snapshot
+          } else if (remoteTime > localTime) {
             const snapshot = JSON.stringify(remote.data)
             pulledSnapshotRef.current = snapshot
             local.setData(remote.data)

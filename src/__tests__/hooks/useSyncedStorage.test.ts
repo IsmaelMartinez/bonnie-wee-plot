@@ -70,6 +70,25 @@ const makeTestData = (updatedAt: string): AllotmentData =>
     varieties: [],
   }) as unknown as AllotmentData
 
+const makeBootstrapData = (updatedAt: string): AllotmentData =>
+  ({
+    version: 16,
+    meta: {
+      name: 'My Allotment',
+      location: 'Edinburgh, Scotland',
+      updatedAt,
+      setupCompleted: false,
+    },
+    layout: { areas: [] },
+    seasons: [{ year: 2026, status: 'current', areas: [], createdAt: updatedAt, updatedAt }],
+    currentYear: 2026,
+    varieties: [],
+    customTasks: [],
+    maintenanceTasks: [],
+    gardenEvents: [],
+    compost: [],
+  }) as unknown as AllotmentData
+
 const hookOptions = {
   storageKey: 'test',
   load: vi.fn(() => ({ success: true as const, data: undefined })),
@@ -157,6 +176,24 @@ describe('useSyncedStorage', () => {
     })
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
     expect(mockSetData).not.toHaveBeenCalled()
+  })
+
+  it('prefers cloud data when local snapshot is bootstrap-empty, even if local timestamp is newer', async () => {
+    const localData = makeBootstrapData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T10:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T10:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(mockPushToRemote).not.toHaveBeenCalled()
   })
 
   it('sets error status on sync failure', async () => {
