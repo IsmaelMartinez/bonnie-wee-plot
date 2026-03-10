@@ -22,8 +22,12 @@ export default function BedItem({ item, isSelected, isEditing, plantings = [], a
   const getPlantingIcon = (): string | undefined => {
     if (plantings.length === 0) return item.icon
 
-    // Get first planting's category and show its emoji
+    // Get first planting's emoji - try plant-specific first, then category
     const firstPlanting = plantings[0]
+    const plantEmoji = getPlantEmoji(firstPlanting.plantId)
+    if (plantEmoji !== '🌱') {
+      return plantEmoji
+    }
     const category = getVegetableCategory(firstPlanting.plantId)
     if (category) {
       return getPlantEmoji(category)
