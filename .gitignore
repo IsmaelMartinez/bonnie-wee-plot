@@ -80,3 +80,6 @@ pids
 public/sw*
 public/swe-worker*
 .env*.local
+
+# clerk configuration (can include secrets)
+/.clerk/

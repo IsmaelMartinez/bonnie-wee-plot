@@ -70,6 +70,25 @@ const makeTestData = (updatedAt: string): AllotmentData =>
     varieties: [],
   }) as unknown as AllotmentData
 
+const makeBootstrapData = (updatedAt: string): AllotmentData =>
+  ({
+    version: 16,
+    meta: {
+      name: 'My Allotment',
+      location: 'Edinburgh, Scotland',
+      updatedAt,
+      setupCompleted: false,
+    },
+    layout: { areas: [] },
+    seasons: [{ year: 2026, status: 'current', areas: [], createdAt: updatedAt, updatedAt }],
+    currentYear: 2026,
+    varieties: [],
+    customTasks: [],
+    maintenanceTasks: [],
+    gardenEvents: [],
+    compost: [],
+  }) as unknown as AllotmentData
+
 const hookOptions = {
   storageKey: 'test',
   load: vi.fn(() => ({ success: true as const, data: undefined })),
@@ -157,6 +176,73 @@ describe('useSyncedStorage', () => {
     })
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
     expect(mockSetData).not.toHaveBeenCalled()
+  })
+
+  it('prefers cloud data when local snapshot is bootstrap-empty, even if local timestamp is newer', async () => {
+    const localData = makeBootstrapData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T10:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T10:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(mockPushToRemote).not.toHaveBeenCalled()
+  })
+
+  it('ignores stale initial-sync results when user changes mid-request', async () => {
+    const localData = makeTestData('2026-03-04T14:00:00Z')
+    const staleRemoteData = makeTestData('2026-03-04T18:00:00Z')
+    mockLocalData = localData
+    mockPushToRemote.mockResolvedValue(undefined)
+
+    let resolveFirstFetch: (value: { data: AllotmentData; updatedAt: string }) => void = () => undefined
+    let hasFirstFetchResolver = false
+    mockFetchRemote
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveFirstFetch = resolve as (value: { data: AllotmentData; updatedAt: string }) => void
+            hasFirstFetchResolver = true
+          })
+      )
+      .mockResolvedValueOnce(null)
+
+    const { result, rerender } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(mockFetchRemote).toHaveBeenCalledTimes(1)
+    })
+
+    mockUserId = 'user-456'
+    rerender()
+
+    await waitFor(() => {
+      expect(mockFetchRemote).toHaveBeenCalledTimes(2)
+    })
+
+    if (!hasFirstFetchResolver) {
+      throw new Error('Expected first fetch resolver to be set')
+    }
+
+    resolveFirstFetch({
+      data: staleRemoteData,
+      updatedAt: '2026-03-04T18:00:00Z',
+    })
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+
+    expect(mockSetData).not.toHaveBeenCalledWith(staleRemoteData)
+    expect(mockPushToRemote).not.toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-456', localData)
   })
 
   it('sets error status on sync failure', async () => {

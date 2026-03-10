@@ -26,6 +26,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableIndexById, vegetableIndex } from '@/lib/vegetables/index'
 import { StoredVariety, NewVariety, VarietyUpdate, SeedStatus } from '@/types/variety-data'
 import VarietyEditDialog from '@/components/seeds/VarietyEditDialog'
+import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
 import { getVarietyUsedYears } from '@/lib/variety-queries'
 import PageTour from '@/components/onboarding/PageTour'
 
@@ -102,6 +103,7 @@ function SeedsPageContent() {
   const [yearMenuOpen, setYearMenuOpen] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'have' | 'need'>('all')
   const [showArchived, setShowArchived] = useState(false)
+  const [summaryPlantId, setSummaryPlantId] = useState<string | null>(null)
 
   // Handle URL param filtering (Spike 3)
   const searchParams = useSearchParams()
@@ -439,7 +441,26 @@ function SeedsPageContent() {
                       <ChevronRight className="w-5 h-5 text-zen-stone-400" />
                     )}
                     <Sprout className="w-5 h-5 text-zen-moss-500" />
-                    <span className="font-medium text-zen-ink-800">{name}</span>
+                    <span
+                      role="link"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const veg = vegetableIndex.find(v => v.name === name)
+                        if (veg) setSummaryPlantId(veg.id)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation()
+                          e.preventDefault()
+                          const veg = vegetableIndex.find(v => v.name === name)
+                          if (veg) setSummaryPlantId(veg.id)
+                        }
+                      }}
+                      className="font-medium text-zen-ink-800 hover:text-zen-moss-700 transition-colors underline decoration-zen-stone-300 underline-offset-2 cursor-pointer"
+                    >
+                      {name}
+                    </span>
                     <span className="text-sm text-zen-stone-400">({varieties.length})</span>
                   </div>
                 </button>
@@ -672,6 +693,12 @@ function SeedsPageContent() {
           </div>
         )}
       </div>
+
+      <PlantSummaryDialog
+        plantId={summaryPlantId}
+        isOpen={summaryPlantId !== null}
+        onClose={() => setSummaryPlantId(null)}
+      />
 
       {/* Edit Dialog */}
       <VarietyEditDialog

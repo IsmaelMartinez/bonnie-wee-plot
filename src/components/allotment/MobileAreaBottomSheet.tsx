@@ -9,6 +9,7 @@ import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import PlantingCard from './PlantingCard'
 import PlantingDetailDialog from './PlantingDetailDialog'
+import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
 import BedNotes from './BedNotes'
 import { ConfirmDialog } from '@/components/ui/Dialog'
 
@@ -94,6 +95,7 @@ export default function MobileAreaBottomSheet({
 }: MobileAreaBottomSheetProps) {
   const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
+  const [summaryPlantId, setSummaryPlantId] = useState<string | null>(null)
 
   const area = selectedItemRef ? getArea(selectedItemRef.id) : undefined
   const areaSeason = area ? getAreaSeason(area.id) : null
@@ -281,6 +283,7 @@ export default function MobileAreaBottomSheet({
                         onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                         otherPlantings={plantings}
                         onClick={() => setSelectedPlanting(p)}
+                        onPlantInfo={setSummaryPlantId}
                       />
                     ))}
                   </div>
@@ -356,6 +359,12 @@ export default function MobileAreaBottomSheet({
           }
         }}
         otherPlantings={plantings}
+      />
+
+      <PlantSummaryDialog
+        plantId={summaryPlantId}
+        isOpen={summaryPlantId !== null}
+        onClose={() => setSummaryPlantId(null)}
       />
 
       {/* Archive Confirm Dialog */}
