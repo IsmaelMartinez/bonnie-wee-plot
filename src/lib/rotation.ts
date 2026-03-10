@@ -125,7 +125,7 @@ export const ROTATION_GROUP_NAMES: Record<RotationGroup, string> = {
  * Display info for rotation groups (with emoji and color)
  */
 export const ROTATION_GROUP_DISPLAY: Record<RotationGroup, { name: string; emoji: string; color: string }> = {
-  'legumes': { name: 'Legumes', emoji: '🫛', color: 'green' },
+  'legumes': { name: 'Legumes', emoji: '🥜', color: 'green' },
   'brassicas': { name: 'Brassicas', emoji: '🥬', color: 'purple' },
   'roots': { name: 'Roots', emoji: '🥕', color: 'orange' },
   'solanaceae': { name: 'Nightshades', emoji: '🥔', color: 'red' },
