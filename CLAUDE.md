@@ -167,7 +167,7 @@ Environment: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBL
 
 Supabase stores AllotmentData as a JSONB document per user in the `allotments` table (schema in `sql/001-allotments.sql`). Row Level Security restricts access via Clerk JWT `sub` claim.
 
-The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated: initial load reconciles with LWW on `meta.updatedAt`, saves push asynchronously to Supabase, and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
+The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated. On first sync for a device (no `bonnie-synced-{userId}` flag in localStorage), cloud data always wins — this prevents empty/bootstrap local data from overwriting cloud state when signing in on a new browser. On subsequent syncs (flag exists), LWW on `meta.updatedAt` handles offline edits. Saves push asynchronously to Supabase, and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
 
 The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonClient()`, `createAuthClient(token)`, and `isSupabaseConfigured()`. The sync service (`src/lib/supabase/sync.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()`.
 

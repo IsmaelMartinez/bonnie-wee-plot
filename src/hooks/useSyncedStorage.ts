@@ -24,8 +24,7 @@ export interface UseSyncedStorageReturn<T> extends UsePersistedStorageReturn<T> 
   syncError: string | null
 }
 
-const DEFAULT_ALLOTMENT_NAME = 'My Allotment'
-const DEFAULT_ALLOTMENT_LOCATION = 'Edinburgh, Scotland'
+const SYNC_FLAG_PREFIX = 'bonnie-synced-'
 
 function toTimestamp(value?: string): number {
   if (!value) return 0
@@ -33,40 +32,18 @@ function toTimestamp(value?: string): number {
   return Number.isNaN(ts) ? 0 : ts
 }
 
-function hasSeasonContent(data: AllotmentData): boolean {
-  return data.seasons.some(season => {
-    if (season.notes?.trim()) return true
-
-    return season.areas.some(areaSeason => {
-      if (areaSeason.plantings.length > 0) return true
-      if ((areaSeason.notes?.length ?? 0) > 0) return true
-      if ((areaSeason.careLogs?.length ?? 0) > 0) return true
-      if (typeof areaSeason.harvestTotal === 'number') return true
-      if (typeof areaSeason.harvestUnit === 'string' && areaSeason.harvestUnit.trim().length > 0) return true
-      if (areaSeason.rotationGroup) return true
-      if (areaSeason.gridPosition) return true
-      return false
-    })
-  })
+function hasSyncedBefore(userId: string): boolean {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem(`${SYNC_FLAG_PREFIX}${userId}`) === 'true'
 }
 
-function isBootstrapLocalData(data: AllotmentData): boolean {
-  if (data.layout.areas.length > 0) return false
-  if ((data.varieties?.length ?? 0) > 0) return false
-  if ((data.customTasks?.length ?? 0) > 0) return false
-  if ((data.maintenanceTasks?.length ?? 0) > 0) return false
-  if ((data.gardenEvents?.length ?? 0) > 0) return false
-  if ((data.compost?.length ?? 0) > 0) return false
-  if (hasSeasonContent(data)) return false
-
-  const name = data.meta?.name?.trim() ?? ''
-  const location = data.meta?.location?.trim() ?? ''
-
-  const defaultName = name === DEFAULT_ALLOTMENT_NAME
-  const defaultLocation = location === '' || location === DEFAULT_ALLOTMENT_LOCATION
-  const setupCompleted = Boolean(data.meta?.setupCompleted)
-
-  return defaultName && defaultLocation && !setupCompleted
+function markSynced(userId: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(`${SYNC_FLAG_PREFIX}${userId}`, 'true')
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function useSyncedStorage(
@@ -139,28 +116,36 @@ export function useSyncedStorage(
           await pushToRemote(token, syncUserId, local.data!)
           if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
+          markSynced(syncUserId)
           setSyncStatus('synced')
           setSyncError(null)
           return
         }
 
-        const localData = local.data!
-        const localTime = toTimestamp(localData.meta?.updatedAt)
-        const remoteTime = toTimestamp(remote.updatedAt)
+        const synced = hasSyncedBefore(syncUserId)
 
-        if (isBootstrapLocalData(localData) || remoteTime > localTime) {
-          // Bootstrap local snapshots and older local data must not override cloud state.
+        if (!synced) {
+          // New device or new browser — cloud is authoritative.
+          // Any local data is just bootstrap/defaults; cloud always wins.
           applyRemoteSnapshot(remote.data)
-        } else if (localTime > remoteTime) {
-          // Local is newer — push to cloud
-          await pushToRemote(token, syncUserId, local.data!)
-          if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = JSON.stringify(local.data)
         } else {
-          // Same timestamp — already in sync
-          lastPushedRef.current = JSON.stringify(local.data)
+          // Returning user on this device — use LWW for offline edits
+          const localData = local.data!
+          const localTime = toTimestamp(localData.meta?.updatedAt)
+          const remoteTime = toTimestamp(remote.updatedAt)
+
+          if (remoteTime > localTime) {
+            applyRemoteSnapshot(remote.data)
+          } else if (localTime > remoteTime) {
+            await pushToRemote(token, syncUserId, local.data!)
+            if (isStaleSyncUser(syncUserId)) return
+            lastPushedRef.current = JSON.stringify(local.data)
+          } else {
+            lastPushedRef.current = JSON.stringify(local.data)
+          }
         }
 
+        markSynced(syncUserId)
         setSyncStatus('synced')
         setSyncError(null)
       } catch (err) {
@@ -245,7 +230,7 @@ export function useSyncedStorage(
           const localTime = toTimestamp(localData.meta?.updatedAt)
           const remoteTime = toTimestamp(remote.updatedAt)
 
-          if (isBootstrapLocalData(localData) || remoteTime > localTime) {
+          if (remoteTime > localTime) {
             applyRemoteSnapshot(remote.data)
           } else {
             await pushToRemote(token, syncUserId, local.data!)
@@ -253,6 +238,7 @@ export function useSyncedStorage(
             lastPushedRef.current = JSON.stringify(local.data)
           }
         }
+        markSynced(syncUserId)
         setSyncStatus('synced')
         setSyncError(null)
       } catch (err) {
