@@ -77,10 +77,11 @@ const hookOptions = {
 }
 
 // Helper to set/clear the synced-before flag
-function setSyncedFlag(userId: string, value: boolean) {
+function setSyncedFlag(userId: string, value: boolean, lastSyncedAt?: string) {
   const key = `bonnie-synced-${userId}`
   if (value) {
-    localStorage.setItem(key, 'true')
+    const flag = { synced: true, lastSyncedAt: lastSyncedAt || new Date().toISOString() }
+    localStorage.setItem(key, JSON.stringify(flag))
   } else {
     localStorage.removeItem(key)
   }
@@ -132,7 +133,7 @@ describe('useSyncedStorage', () => {
       expect(result.current.syncStatus).toBe('synced')
     })
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(localStorage.getItem('bonnie-synced-user-123')).toBe('true')
+    expect(JSON.parse(localStorage.getItem('bonnie-synced-user-123')!).synced).toBe(true)
   })
 
   it('prefers cloud when device has never synced for this user (new browser)', async () => {
@@ -152,7 +153,7 @@ describe('useSyncedStorage', () => {
     })
     expect(mockSetData).toHaveBeenCalledWith(remoteData)
     expect(mockPushToRemote).not.toHaveBeenCalled()
-    expect(localStorage.getItem('bonnie-synced-user-123')).toBe('true')
+    expect(JSON.parse(localStorage.getItem('bonnie-synced-user-123')!).synced).toBe(true)
   })
 
   it('prefers cloud when device has never synced, even with setupCompleted local data', async () => {
@@ -284,5 +285,79 @@ describe('useSyncedStorage', () => {
     const { result } = renderHook(() => useSyncedStorage(hookOptions))
 
     expect(result.current.syncStatus).toBe('offline')
+  })
+
+  it('shows conflict dialog when both sides changed since last sync', async () => {
+    // Last synced at noon; local updated at 2pm, cloud updated at 3pm
+    setSyncedFlag('user-123', true, '2026-03-04T12:00:00Z')
+    const localData = makeTestData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T15:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T15:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+    expect(result.current.syncConflict).not.toBeNull()
+    expect(result.current.syncConflict?.local).toBe(localData)
+    expect(result.current.syncConflict?.cloud).toBe(remoteData)
+  })
+
+  it('resolves conflict by choosing cloud', async () => {
+    setSyncedFlag('user-123', true, '2026-03-04T12:00:00Z')
+    const localData = makeTestData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T15:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T15:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+
+    // Resolve by choosing cloud
+    await result.current.resolveConflict('cloud')
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(result.current.syncConflict).toBeNull()
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+  })
+
+  it('resolves conflict by choosing local and pushes to cloud', async () => {
+    setSyncedFlag('user-123', true, '2026-03-04T12:00:00Z')
+    const localData = makeTestData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T15:00:00Z')
+    mockLocalData = localData
+    mockPushToRemote.mockResolvedValue(undefined)
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-04T15:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+
+    // Resolve by choosing local
+    await result.current.resolveConflict('local')
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(result.current.syncConflict).toBeNull()
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
   })
 })

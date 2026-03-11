@@ -72,6 +72,8 @@ export interface UseAllotmentState {
   lastSavedAt: Date | null  // Timestamp of last successful save
   syncStatus: SyncStatus  // Cloud sync status
   syncError: string | null  // Cloud sync error message
+  syncConflict: import('./useSyncedStorage').SyncConflict | null
+  resolveConflict: (choice: 'local' | 'cloud') => void
 }
 
 export interface UseAllotmentActions {
@@ -208,6 +210,8 @@ export function useAllotment(): UseAllotmentReturn {
     isSyncedFromOtherTab,
     syncStatus,
     syncError,
+    syncConflict,
+    resolveConflict,
     selectYear: baseSelectYear,
     getYears,
     reload,
@@ -346,6 +350,8 @@ export function useAllotment(): UseAllotmentReturn {
     lastSavedAt,
     syncStatus,
     syncError,
+    syncConflict,
+    resolveConflict,
 
     // Year navigation
     selectYear,

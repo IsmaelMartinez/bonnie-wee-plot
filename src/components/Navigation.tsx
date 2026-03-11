@@ -11,6 +11,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import DesktopMoreDropdown from './DesktopMoreDropdown'
 import MobileMoreMenu from './MobileMoreMenu'
 import SyncStatusIcon from './auth/SyncStatusIcon'
+import SyncConflictDialog from './auth/SyncConflictDialog'
 import type { SyncStatus } from '@/types/storage'
 
 function NavAuthSection({
@@ -62,7 +63,7 @@ export default function Navigation() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const pathname = usePathname()
-  const { data, updateMeta, syncStatus, syncError } = useAllotment()
+  const { data, updateMeta, syncStatus, syncError, syncConflict, resolveConflict } = useAllotment()
   const { isSignedIn } = useOptionalAuth()
 
   const handleStartEditName = () => {
@@ -221,6 +222,10 @@ export default function Navigation() {
           </div>
         )}
       </div>
+
+      {syncConflict && (
+        <SyncConflictDialog conflict={syncConflict} onResolve={resolveConflict} />
+      )}
     </header>
   )
 }

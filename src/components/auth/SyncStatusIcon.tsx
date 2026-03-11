@@ -16,6 +16,7 @@ export default function SyncStatusIcon({ syncStatus, syncError }: SyncStatusIcon
     syncing: { icon: Loader2, className: 'text-zen-water-500 animate-spin', title: 'Syncing...' },
     error: { icon: AlertCircle, className: 'text-zen-kitsune-500', title: syncError || 'Sync error' },
     offline: { icon: CloudOff, className: 'text-zen-stone-400', title: 'Offline — changes saved locally' },
+    conflict: { icon: AlertCircle, className: 'text-zen-bamboo-500', title: 'Data conflict — action needed' },
   }
 
   const { icon: Icon, className, title } = config[syncStatus]
