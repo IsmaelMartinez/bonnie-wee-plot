@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
 import { driver, type Driver, type Config } from 'driver.js'
-import { TourId, getTourDefinition } from '@/lib/tours/tour-definitions'
+import { TourId, getTourDefinition, type SettingsTabStep } from '@/lib/tours/tour-definitions'
 
 const TOUR_STORAGE_KEY = 'bonnie-wee-plot-tours'
 
@@ -129,10 +129,31 @@ export function useTour(): UseTourReturn {
       driverRef.current.destroy()
     }
 
-    // Filter steps: keep steps that have onHighlightStarted (they switch tabs)
-    // or whose elements already exist in the DOM
+    // Check if steps need tab switching (settings tour)
+    const hasTabSteps = definition.steps.some(
+      (step) => (step as SettingsTabStep).settingsTab
+    )
+
+    // Switch to the required tab for a step, returns true if a switch happened
+    const switchToTab = (stepIndex: number): boolean => {
+      const step = definition.steps[stepIndex] as SettingsTabStep
+      if (!step?.settingsTab) return false
+      const tabButton = document.querySelector(`#tab-${step.settingsTab}`) as HTMLElement | null
+      if (tabButton && tabButton.getAttribute('aria-selected') !== 'true') {
+        tabButton.click()
+        return true
+      }
+      return false
+    }
+
+    // For the initial step, switch tab first so elements exist
+    if (hasTabSteps) {
+      switchToTab(0)
+    }
+
+    // Filter steps whose elements exist (or will exist after tab switch)
     const availableSteps = definition.steps.filter(step => {
-      if (step.onHighlightStarted) return true
+      if ((step as SettingsTabStep).settingsTab) return true
       if (typeof step.element === 'string') {
         return document.querySelector(step.element) !== null
       }
@@ -142,6 +163,19 @@ export function useTour(): UseTourReturn {
     if (availableSteps.length === 0) {
       console.warn(`No elements found for tour "${tourId}"`)
       return
+    }
+
+    // Move to a step with tab switching and delay
+    const moveToStep = (targetIndex: number, onComplete?: () => void) => {
+      const switched = switchToTab(targetIndex)
+      if (switched) {
+        // Delay to let React render the new tab content
+        setTimeout(() => {
+          onComplete?.()
+        }, 100)
+      } else {
+        onComplete?.()
+      }
     }
 
     const config: Config = {
@@ -154,7 +188,6 @@ export function useTour(): UseTourReturn {
       stageRadius: 8,
       popoverClass: 'bonnie-tour-popover',
       onDestroyStarted: () => {
-        // User clicked X or clicked outside - mark as dismissed
         markDismissed(tourId)
         setIsActive(false)
         driverRef.current?.destroy()
@@ -168,35 +201,45 @@ export function useTour(): UseTourReturn {
         driverRef.current?.destroy()
       },
       onNextClick: () => {
-        driverRef.current?.moveNext()
-      },
-      onPrevClick: () => {
-        driverRef.current?.movePrevious()
-      },
-    }
-
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-      const driverInstance = driver(config)
-      driverRef.current = driverInstance
-
-      // Track when tour completes (last step)
-      const originalMoveNext = driverInstance.moveNext.bind(driverInstance)
-      driverInstance.moveNext = () => {
-        const currentIndex = driverInstance.getActiveIndex()
+        if (!driverRef.current) return
+        const currentIndex = driverRef.current.getActiveIndex() ?? 0
         const isLastStep = currentIndex === availableSteps.length - 1
 
         if (isLastStep) {
           markCompleted(tourId)
-          driverInstance.destroy()
+          driverRef.current.destroy()
+        } else if (hasTabSteps) {
+          moveToStep(currentIndex + 1, () => {
+            driverRef.current?.moveNext()
+          })
         } else {
-          originalMoveNext()
+          driverRef.current.moveNext()
         }
-      }
+      },
+      onPrevClick: () => {
+        if (!driverRef.current) return
+        if (hasTabSteps) {
+          const currentIndex = driverRef.current.getActiveIndex() ?? 0
+          if (currentIndex > 0) {
+            moveToStep(currentIndex - 1, () => {
+              driverRef.current?.movePrevious()
+            })
+          }
+        } else {
+          driverRef.current.movePrevious()
+        }
+      },
+    }
+
+    // Small delay to ensure DOM is ready (longer if we switched tabs)
+    const initialDelay = hasTabSteps ? 600 : 500
+    setTimeout(() => {
+      const driverInstance = driver(config)
+      driverRef.current = driverInstance
 
       setIsActive(true)
       driverInstance.drive()
-    }, 500)
+    }, initialDelay)
   }, [markCompleted, markDismissed])
 
   const isCompleted = useCallback((tourId: TourId): boolean => {
