@@ -170,17 +170,16 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 2. `/this-month` — reviewed and polished (PR #232). Fixed bed UUID display, replaced current-month banner with dot indicator, merged month selector with collapsible planting calendar (starts expanded, clickable month headers), removed redundant header, consolidated bottom sections into scrollable tip carousel, tour synced to 8 steps covering all sections.
 3. `/seeds` — reviewed and polished (PR #235). Filter button changed from emoji to text label.
 4. `/compost` — reviewed and polished (PR #238). Kept with simplifications: moved care tips to collapsible section at bottom, fixed empty state copy (removed C:N ratio reference), added reactivate button for applied piles, wired up PageTour with 3 data-tour attributes matching tour definition order.
-
 5. `/about` — removed. Not needed for first release; onboarding wizard covers the same ground. Removed page, nav link, tour definition, and related E2E tests.
+6. `/plants` — reviewed and polished. Keep for first release. Plant guide is now a useful working reference rather than a static encyclopaedia: difficulty filter, "my plants" filter, planted badges, and reusable summary dialog make it directly useful from planning flows.
+7. `/plants/[id]` — reviewed and polished. Keep for first release. Detail pages are sufficiently rich and connected to the rest of the product via companion links, external references, and shared summary entry points from Seeds and Allotment.
+8. `/sign-in` + `/sign-up` — reviewed. Keep as support routes, not core navigation destinations. They already redirect home when Clerk is unavailable, and sign-out should remain in the existing `UserButton` menu rather than becoming its own page.
 
 ### Pages to Review
-5. `/plants` — plant guide index (192 plants, search + filter)
-6. `/plants/[id]` — individual plant detail pages
-7. `/ai-advisor` — Aitor chat (BYO API key)
-8. `/settings` — AI config, location, data management, tours, account
-9. `/receive` + `/receive/[code]` — QR/code data import flow
-10. `/sign-in` + `/sign-up` — Clerk auth pages
-11. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
+9. `/ai-advisor` — Aitor chat (BYO API key)
+10. `/settings` — AI config, location, data management, tours, account
+11. `/receive` + `/receive/[code]` — QR/code data import flow
+12. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
 
 ### Review Criteria
 
