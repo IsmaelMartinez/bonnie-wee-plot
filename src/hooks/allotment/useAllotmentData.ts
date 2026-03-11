@@ -24,6 +24,7 @@ import {
 import { StorageResult, SaveStatus } from '../usePersistedStorage'
 import { useSyncedStorage } from '../useSyncedStorage'
 import type { SyncStatus } from '@/types/storage'
+import type { SyncConflict } from '../useSyncedStorage'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from '../usePersistedStorage'
@@ -62,6 +63,8 @@ export interface UseAllotmentDataReturn {
   isSyncedFromOtherTab: boolean
   syncStatus: SyncStatus
   syncError: string | null
+  syncConflict: SyncConflict | null
+  resolveConflict: (choice: 'cloud' | 'local') => void
 
   // Actions
   selectYear: (year: number) => void
@@ -98,6 +101,8 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     cancelPendingSave,
     syncStatus,
     syncError,
+    syncConflict,
+    resolveConflict,
   } = useSyncedStorage({
     storageKey: STORAGE_KEY,
     load: loadAllotment,
@@ -172,6 +177,8 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     isSyncedFromOtherTab,
     syncStatus,
     syncError,
+    syncConflict,
+    resolveConflict,
 
     // Actions
     selectYear,
