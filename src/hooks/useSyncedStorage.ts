@@ -77,6 +77,7 @@ export function useSyncedStorage(
   const [syncConflict, setSyncConflict] = useState<SyncConflict | null>(null)
   const syncInProgressRef = useRef(false)
   const syncInProgressUserRef = useRef<string | null>(null)
+  const initialSyncDoneRef = useRef(false)
   const pulledSnapshotRef = useRef<string | null>(null)
   const lastPushedRef = useRef<string | null>(null)
   const activeUserIdRef = useRef<string | null>(userId)
@@ -136,9 +137,17 @@ export function useSyncedStorage(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncConflict, userId])
 
+  // Reset initial sync tracking when user changes
+  useEffect(() => {
+    initialSyncDoneRef.current = false
+  }, [userId])
+
   // Initial sync: fetch cloud data and reconcile with local
+  // Depends on !!local.data to re-trigger when data becomes available after loading
+  const hasLocalData = !!local.data
   useEffect(() => {
     if (!canSync || !userId || local.isLoading || !local.data) return
+    if (initialSyncDoneRef.current) return
     if (syncInProgressRef.current && syncInProgressUserRef.current === userId) return
     syncInProgressRef.current = true
     syncInProgressUserRef.current = userId
@@ -227,18 +236,22 @@ export function useSyncedStorage(
           syncInProgressRef.current = false
           syncInProgressUserRef.current = null
         }
+        if (!isStaleSyncUser(syncUserId)) {
+          initialSyncDoneRef.current = true
+        }
       }
     }
 
     doInitialSync()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canSync, userId, local.isLoading])
+  }, [canSync, userId, local.isLoading, hasLocalData])
 
-  // Push to cloud after local save completes
+  // Push to cloud after local save completes (only after initial sync is done)
   useEffect(() => {
     if (!canSync || !userId || !local.data) return
     if (local.saveStatus !== 'saved') return
     if (syncInProgressRef.current) return
+    if (!initialSyncDoneRef.current) return
 
     const serialized = JSON.stringify(local.data)
 
@@ -342,6 +355,7 @@ export function useSyncedStorage(
     if (!isSignedIn || !isSupabaseConfigured()) {
       setSyncStatus('disabled')
       syncInProgressRef.current = false
+      initialSyncDoneRef.current = false
     } else if (!isOnline) {
       setSyncStatus('offline')
       syncInProgressRef.current = false
