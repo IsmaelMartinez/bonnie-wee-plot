@@ -1,45 +1,38 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { ShareDialog } from '@/components/share/ShareDialog'
 import { useDataTransfer } from '@/hooks/useDataTransfer'
 import { useAllotment } from '@/hooks/useAllotment'
 import Link from 'next/link'
 import {
   Download, Upload, ArrowRight, Database,
-  Share2, QrCode, Trash2, AlertTriangle, CheckCircle, RefreshCw, BarChart2,
+  Share2, QrCode, Trash2, AlertTriangle, CheckCircle, RefreshCw, Shield,
 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/Dialog'
-import { clearAnalytics } from '@/lib/analytics'
-import AnalyticsViewer from '@/components/allotment/AnalyticsViewer'
 
 interface DataTabProps {
   data: ReturnType<typeof useAllotment>['data']
   flushSave: ReturnType<typeof useAllotment>['flushSave']
   reload: ReturnType<typeof useAllotment>['reload']
+  isSignedIn?: boolean
+  onDeleteAccount?: () => Promise<void>
+  userEmail?: string
 }
 
 /**
- * Data tab with unified Transfer and Storage sections.
+ * Data tab with unified Transfer, Danger Zone, and Account sections.
  */
-export default function DataTab({ data, flushSave, reload }: DataTabProps) {
+export default function DataTab({ data, flushSave, reload, isSignedIn, onDeleteAccount, userEmail }: DataTabProps) {
   const {
     handleExport, exportSuccess,
     handleImport, importError, fileInputRef, lastBackupKey, handleRestoreBackup,
     handleClear, showClearConfirm, setShowClearConfirm,
-    stats, quota,
   } = useDataTransfer({ data, onDataImported: reload, flushSave })
 
-  // Analytics state
-  const [showAnalytics, setShowAnalytics] = useState(false)
-  const [showClearAnalyticsConfirm, setShowClearAnalyticsConfirm] = useState(false)
-  const [analyticsKey, setAnalyticsKey] = useState(0)
-
-  const handleClearAnalytics = useCallback(() => {
-    clearAnalytics()
-    setAnalyticsKey(k => k + 1)
-    setShowClearAnalyticsConfirm(false)
-  }, [])
+  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [accountFeedback, setAccountFeedback] = useState<string | null>(null)
 
   return (
     <div className="space-y-8">
@@ -196,83 +189,75 @@ export default function DataTab({ data, flushSave, reload }: DataTabProps) {
         </div>
       </section>
 
-      {/* Storage Section */}
+      {/* Danger Zone */}
       <section className="pt-6 border-t border-zen-stone-200">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart2 className="w-5 h-5 text-zen-stone-600" />
-          <h2 className="text-lg font-medium text-zen-ink-700">Storage</h2>
-        </div>
-
-        {/* Storage Stats */}
-        {stats && (
-          <div className={`rounded-lg p-4 mb-4 ${quota.percentageUsed > 80 ? 'bg-zen-bamboo-50 border border-zen-bamboo-200' : 'bg-gray-50'}`}>
-            <div className="grid grid-cols-2 gap-4 mb-2">
-              <div>
-                <p className="text-xs text-gray-500">Allotment Data</p>
-                <p className="text-lg font-semibold text-gray-900">{stats.dataSize}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Total localStorage</p>
-                <p className="text-lg font-semibold text-gray-900">{stats.used}</p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Quota Usage</span>
-                <span>{quota.percentageUsed.toFixed(1)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    quota.percentageUsed > 90 ? 'bg-zen-kitsune-500' :
-                    quota.percentageUsed > 80 ? 'bg-zen-bamboo-500' :
-                    'bg-zen-moss-500'
-                  }`}
-                  style={{ width: `${Math.min(quota.percentageUsed, 100)}%` }}
-                />
-              </div>
-            </div>
-            {quota.percentageUsed > 80 && (
-              <div className="mt-3 flex items-start gap-2 text-xs text-amber-700">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>Storage is {quota.percentageUsed.toFixed(0)}% full. Consider exporting your data and clearing old backups.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Analytics */}
-        <div className="mb-4">
-          <button
-            onClick={() => setShowAnalytics(!showAnalytics)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
-          >
-            <BarChart2 className="w-4 h-4" />
-            {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
-          </button>
-          <p className="text-xs text-gray-500 mt-1">Local usage patterns only. No data sent externally.</p>
-
-          {showAnalytics && (
-            <AnalyticsViewer
-              key={analyticsKey}
-              onClearClick={() => setShowClearAnalyticsConfirm(true)}
-            />
-          )}
-        </div>
-
-        {/* Danger Zone */}
         <div className="bg-zen-kitsune-50 rounded-lg p-4">
           <h3 className="text-sm font-medium text-zen-kitsune-800 mb-2">Danger Zone</h3>
-          <p className="text-sm text-zen-kitsune-600 mb-3">
-            Clear all data and start fresh. This cannot be undone.
-          </p>
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-zen-kitsune-600 text-white rounded-lg hover:bg-zen-kitsune-700 transition"
-          >
-            <Trash2 className="w-4 h-4" />
-            Clear All Data
-          </button>
+
+          {/* Clear local data */}
+          <div className="mb-4">
+            <p className="text-sm text-zen-kitsune-600 mb-3">
+              Clear all local data and start fresh. This cannot be undone.
+              {isSignedIn && ' Your cloud data will not be affected.'}
+            </p>
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-zen-kitsune-600 text-white rounded-lg hover:bg-zen-kitsune-700 transition min-h-[44px]"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear Local Data
+            </button>
+          </div>
+
+          {/* Delete account (cloud + local) */}
+          {isSignedIn && onDeleteAccount && (
+            <div className="pt-4 border-t border-zen-kitsune-200">
+              <div className="flex items-start gap-2 mb-3">
+                <Shield className="w-4 h-4 text-zen-kitsune-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-zen-kitsune-600">
+                  Delete your cloud account and all data{userEmail ? ` for ${userEmail}` : ''}. This removes both cloud and local data permanently.
+                </p>
+              </div>
+              {confirmDeleteAccount ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={async () => {
+                      setIsDeletingAccount(true)
+                      try {
+                        await onDeleteAccount()
+                      } catch {
+                        setAccountFeedback('Deletion failed. Please try again.')
+                        setIsDeletingAccount(false)
+                        setConfirmDeleteAccount(false)
+                      }
+                    }}
+                    disabled={isDeletingAccount}
+                    className="flex items-center gap-2 px-4 py-2 bg-zen-kitsune-600 text-white rounded-lg hover:bg-zen-kitsune-700 transition min-h-[44px] disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {isDeletingAccount ? 'Deleting...' : 'Yes, Delete Everything'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteAccount(false)}
+                    className="zen-btn-secondary min-h-[44px]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteAccount(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-zen-kitsune-600 border border-zen-kitsune-300 rounded-lg hover:bg-zen-kitsune-100 transition min-h-[44px]"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete My Account
+                </button>
+              )}
+              {accountFeedback && (
+                <p className="mt-2 text-sm text-zen-kitsune-600">{accountFeedback}</p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -281,22 +266,13 @@ export default function DataTab({ data, flushSave, reload }: DataTabProps) {
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
         onConfirm={handleClear}
-        title="Clear All Data?"
-        message="This will permanently delete all your allotment data including all seasons, plantings, and settings. This action cannot be undone. Consider exporting a backup first."
-        confirmText="Delete Everything"
+        title="Clear Local Data?"
+        message={isSignedIn
+          ? "This will delete your local allotment data. Your cloud data will remain intact and will sync back on next load. Consider exporting a backup first."
+          : "This will permanently delete all your allotment data including all seasons, plantings, and settings. This action cannot be undone. Consider exporting a backup first."
+        }
+        confirmText="Delete Local Data"
         cancelText="Keep Data"
-        variant="danger"
-      />
-
-      {/* Clear Analytics Confirmation */}
-      <ConfirmDialog
-        isOpen={showClearAnalyticsConfirm}
-        onClose={() => setShowClearAnalyticsConfirm(false)}
-        onConfirm={handleClearAnalytics}
-        title="Clear Analytics Data?"
-        message="This will delete all analytics data. This cannot be undone."
-        confirmText="Clear Analytics"
-        cancelText="Cancel"
         variant="danger"
       />
     </div>

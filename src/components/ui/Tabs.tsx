@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, ReactNode } from 'react'
+import { useState, useEffect, ReactNode } from 'react'
 
 export interface Tab {
   id: string
@@ -14,10 +14,19 @@ interface TabsProps {
   defaultTab?: string
   contentClassName?: string
   iconOnly?: boolean
+  /** Controlled active tab — when set externally, the tab switches */
+  activeTabId?: string
 }
 
-export default function Tabs({ tabs, defaultTab, contentClassName, iconOnly }: TabsProps) {
+export default function Tabs({ tabs, defaultTab, contentClassName, iconOnly, activeTabId }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+
+  // Allow external tab switching
+  useEffect(() => {
+    if (activeTabId && tabs.some(t => t.id === activeTabId)) {
+      setActiveTab(activeTabId)
+    }
+  }, [activeTabId, tabs])
 
   const activeTabData = tabs.find(tab => tab.id === activeTab)
 

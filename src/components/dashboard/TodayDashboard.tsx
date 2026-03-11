@@ -11,7 +11,6 @@ import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
 import { useApiToken } from '@/hooks/useSessionStorage'
-import { trackEvent } from '@/lib/analytics'
 
 function LoadingSkeleton() {
   return (
@@ -61,7 +60,6 @@ export default function TodayDashboard() {
 
   const handleOnboardingComplete = () => {
     completeOnboarding()
-    trackEvent('onboarding', 'completed', 'wizard')
   }
 
   if (isLoading) {
