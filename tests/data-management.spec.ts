@@ -54,13 +54,12 @@ test.describe('Data Management - Export/Import', () => {
     await expect(page.getByText('Transfer Data')).toBeVisible()
   })
 
-  test('should show storage statistics', async ({ page }) => {
+  test('should show danger zone in data tab', async ({ page }) => {
     await page.getByRole('tab', { name: 'Data' }).click()
 
-    // Should show storage stats
-    await expect(page.getByRole('heading', { name: 'Storage' })).toBeVisible()
-    await expect(page.getByText('Allotment Data', { exact: true })).toBeVisible()
-    await expect(page.getByText('Total localStorage')).toBeVisible()
+    // Should show danger zone with clear button
+    await expect(page.getByText('Danger Zone')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Clear Local Data/i })).toBeVisible()
   })
 
   test('should export data as JSON file', async ({ page }) => {
@@ -350,11 +349,11 @@ test.describe('Data Management - Export/Import', () => {
     await page.getByRole('tab', { name: 'Data' }).click()
 
     // Click clear button
-    await page.getByRole('button', { name: /Clear All Data/i }).click()
+    await page.getByRole('button', { name: /Clear Local Data/i }).click()
 
     // Confirmation dialog should appear
-    await expect(page.getByText('Clear All Data?')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Delete Everything' })).toBeVisible()
+    await expect(page.getByText('Clear Local Data?')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Delete Local Data' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Keep Data' })).toBeVisible()
   })
 
@@ -368,13 +367,13 @@ test.describe('Data Management - Export/Import', () => {
     await openDataTab(page)
 
     // Click clear button
-    await page.getByRole('button', { name: /Clear All Data/i }).click()
+    await page.getByRole('button', { name: /Clear Local Data/i }).click()
 
     // Click Keep Data
     await page.getByRole('button', { name: 'Keep Data' }).click()
 
     // Dialog should close
-    await expect(page.getByText('Clear All Data?')).not.toBeVisible()
+    await expect(page.getByText('Clear Local Data?')).not.toBeVisible()
 
     // Navigate to allotment to verify data is still there
     await page.goto('/allotment')
