@@ -5,6 +5,12 @@ import type { DriveStep } from 'driver.js'
  * Each tour is an array of driver.js steps targeting specific elements.
  */
 
+/** Click a settings tab button by tab ID to switch tabs during a tour */
+function clickSettingsTab(tabId: string) {
+  const tabButton = document.querySelector(`#tab-${tabId}`) as HTMLElement | null
+  tabButton?.click()
+}
+
 export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings' | 'compost' | 'plants'
 
 export interface TourDefinition {
@@ -307,7 +313,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="settings-tabs"]',
         popover: {
           title: 'Settings Tabs',
-          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, Help for guided tours, and Account if you\'re signed in.',
+          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, and Help for guided tours.',
           side: 'bottom',
           align: 'center',
         },
@@ -319,6 +325,9 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           description: 'Add your OpenAI API key to chat with Aitor. He can identify plants from photos, suggest what to grow, and even add plants for you!',
           side: 'bottom',
           align: 'center',
+        },
+        onHighlightStarted: () => {
+          clickSettingsTab('ai-location')
         },
       },
       {
@@ -338,6 +347,9 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           side: 'bottom',
           align: 'center',
         },
+        onHighlightStarted: () => {
+          clickSettingsTab('data')
+        },
       },
       {
         element: '[data-tour="share-settings"]',
@@ -355,6 +367,9 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           description: 'Replay any guided tour or reset them all. Each page has its own tour you can trigger with the ? key.',
           side: 'top',
           align: 'center',
+        },
+        onHighlightStarted: () => {
+          clickSettingsTab('help')
         },
       },
     ],

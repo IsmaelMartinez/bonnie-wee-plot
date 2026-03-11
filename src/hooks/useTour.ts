@@ -129,8 +129,10 @@ export function useTour(): UseTourReturn {
       driverRef.current.destroy()
     }
 
-    // Filter steps to only include those with existing elements
+    // Filter steps: keep steps that have onHighlightStarted (they switch tabs)
+    // or whose elements already exist in the DOM
     const availableSteps = definition.steps.filter(step => {
+      if (step.onHighlightStarted) return true
       if (typeof step.element === 'string') {
         return document.querySelector(step.element) !== null
       }
