@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Grid3X3, MessageCircle, Sprout, ArrowRight, Check } from 'lucide-react'
+import { Calendar, Grid3X3, Sprout, ArrowRight, Check } from 'lucide-react'
 import Dialog from '@/components/ui/Dialog'
 
-type OnboardingPath = 'explore' | 'plan' | 'ask'
+type OnboardingPath = 'explore' | 'plan'
 
 interface OnboardingWizardProps {
   isOpen: boolean
@@ -40,8 +40,6 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
       router.push('/this-month')
     } else if (selectedPath === 'plan') {
       router.push('/allotment')
-    } else if (selectedPath === 'ask') {
-      router.push('/ai-advisor')
     }
   }
 
@@ -93,12 +91,6 @@ function WelcomeScreen({ onPathSelect, onSkip }: WelcomeScreenProps) {
           title="I have a plot to plan"
           description="Set up your allotment beds and start planning"
           onClick={() => onPathSelect('plan')}
-        />
-        <PathCard
-          icon={MessageCircle}
-          title="I just want to ask"
-          description="Chat with Aitor, your AI gardening advisor"
-          onClick={() => onPathSelect('ask')}
         />
       </div>
 
@@ -225,18 +217,6 @@ function getActionContent(path: OnboardingPath) {
         ],
         tip: 'Start with one bed. You can always add more later.',
       }
-    case 'ask':
-      return {
-        icon: MessageCircle,
-        title: 'Ask Aitor',
-        description: 'Your AI gardening advisor, trained on Scottish growing conditions.',
-        features: [
-          'Personalised advice for your specific plot',
-          'Pest and disease identification',
-          'Companion planting suggestions',
-        ],
-        tip: 'Aitor knows about your allotment data and can give contextual advice.',
-      }
   }
 }
 
@@ -300,12 +280,6 @@ function getNextSteps(path: OnboardingPath): string[] {
         'Add your first bed to the allotment layout',
         'Record a planting in that bed',
         'Check the calendar for sowing dates',
-      ]
-    case 'ask':
-      return [
-        'Ask Aitor about growing conditions',
-        'Try uploading a photo for plant ID',
-        'Come back to plan your plot anytime',
       ]
   }
 }

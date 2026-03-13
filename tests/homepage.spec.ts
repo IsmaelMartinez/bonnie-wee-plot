@@ -31,20 +31,6 @@ test.describe('Homepage and Navigation', () => {
     await expect(page.getByRole('heading', { name: /Today/i })).toBeVisible();
   });
 
-  test('should open AI advisor modal via floating button', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 720 });
-    await skipOnboarding(page)
-    await page.goto('/');
-
-    // AI advisor is accessed via floating button
-    const aitorButton = page.locator('button[aria-label*="Aitor"]');
-    await expect(aitorButton).toBeVisible();
-    await aitorButton.click();
-
-    // Modal should open
-    await expect(page.locator('h2').filter({ hasText: /Ask Aitor/i })).toBeVisible();
-  });
-
   test('should be responsive on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
