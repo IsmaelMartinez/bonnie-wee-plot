@@ -1,6 +1,6 @@
 'use client'
 
-import { Cloud, CloudOff, Loader2, AlertCircle } from 'lucide-react'
+import { Cloud, CloudOff, Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
 import type { SyncStatus } from '@/types/storage'
 
 interface SyncStatusIconProps {
@@ -16,6 +16,7 @@ export default function SyncStatusIcon({ syncStatus, syncError }: SyncStatusIcon
     syncing: { icon: Loader2, className: 'text-zen-water-500 animate-spin', title: 'Syncing...' },
     error: { icon: AlertCircle, className: 'text-zen-kitsune-500', title: syncError || 'Sync error' },
     offline: { icon: CloudOff, className: 'text-zen-stone-400', title: 'Offline — changes saved locally' },
+    conflict: { icon: AlertTriangle, className: 'text-amber-500', title: 'Sync conflict — choose which version to keep' },
   }
 
   const { icon: Icon, className, title } = config[syncStatus]

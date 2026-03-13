@@ -27,7 +27,7 @@ export default function MobileFloatingActions({
   }
 
   return (
-    <div className="fixed bottom-6 right-4 z-30 flex flex-col-reverse items-end gap-3" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse items-end gap-3" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Action Options (shown when expanded) */}
       {isExpanded && (
         <>

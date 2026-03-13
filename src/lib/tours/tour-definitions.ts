@@ -5,6 +5,15 @@ import type { DriveStep } from 'driver.js'
  * Each tour is an array of driver.js steps targeting specific elements.
  */
 
+/**
+ * Extended step type that includes which settings tab a step needs.
+ * Used by useTour to switch tabs before advancing to the step.
+ */
+export interface SettingsTabStep extends DriveStep {
+  /** Which settings tab this step requires (switches before highlighting) */
+  settingsTab?: string
+}
+
 export type TourId = 'today' | 'this-month' | 'allotment' | 'seeds' | 'settings' | 'compost' | 'plants'
 
 export interface TourDefinition {
@@ -296,15 +305,17 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     steps: [
       {
         element: '[data-tour="settings-tabs"]',
+        settingsTab: 'ai-location',
         popover: {
           title: 'Settings Tabs',
-          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, Help for guided tours, and Account if you\'re signed in.',
+          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, and Help for guided tours.',
           side: 'bottom',
           align: 'center',
         },
       },
       {
         element: '[data-tour="location-settings"]',
+        settingsTab: 'ai-location',
         popover: {
           title: 'Set Your Location',
           description: 'Your location helps with personalised growing advice. Scotland\'s microclimates vary a lot - coastal vs inland makes a difference!',
@@ -314,6 +325,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       },
       {
         element: '[data-tour="data-management"]',
+        settingsTab: 'data',
         popover: {
           title: 'Backup Your Data',
           description: 'Export your garden data to a file for safekeeping. You can import it back later or on a new device.',
@@ -323,6 +335,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       },
       {
         element: '[data-tour="share-settings"]',
+        settingsTab: 'data',
         popover: {
           title: 'Share Between Devices',
           description: 'Want your garden on your phone and tablet? Generate a QR code to quickly transfer your data. Links expire after 5 minutes.',
@@ -332,6 +345,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
       },
       {
         element: '[data-tour="tour-management"]',
+        settingsTab: 'help',
         popover: {
           title: 'Manage Tours',
           description: 'Replay any guided tour or reset them all. Each page has its own tour you can trigger with the ? key.',
@@ -339,7 +353,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           align: 'center',
         },
       },
-    ],
+    ] as SettingsTabStep[],
   },
 
   plants: {

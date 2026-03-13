@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { useSyncedStorage } from '@/hooks/useSyncedStorage'
+import { renderHook, waitFor, act } from '@testing-library/react'
+import { useSyncedStorage, getSyncFlag } from '@/hooks/useSyncedStorage'
 import type { AllotmentData } from '@/types/unified-allotment'
 
 // Mock auth — use mutable variables so tests can override
@@ -60,14 +60,15 @@ vi.mock('@/hooks/usePersistedStorage', () => ({
   })),
 }))
 
-const makeTestData = (updatedAt: string): AllotmentData =>
+const makeTestData = (updatedAt: string, overrides?: Partial<AllotmentData>): AllotmentData =>
   ({
     version: 16,
     meta: { name: 'Test', updatedAt },
-    layout: { areas: [] },
+    layout: { areas: [{ id: 'bed-a', kind: 'rotation-bed', name: 'Bed A' }] },
     seasons: [],
     currentYear: 2026,
-    varieties: [],
+    varieties: [{ id: 'v1', name: 'Tomato' }],
+    ...overrides,
   }) as unknown as AllotmentData
 
 const makeBootstrapData = (updatedAt: string): AllotmentData =>
@@ -77,7 +78,7 @@ const makeBootstrapData = (updatedAt: string): AllotmentData =>
       name: 'My Allotment',
       location: 'Edinburgh, Scotland',
       updatedAt,
-      setupCompleted: false,
+      setupCompleted: true,
     },
     layout: { areas: [] },
     seasons: [{ year: 2026, status: 'current', areas: [], createdAt: updatedAt, updatedAt }],
@@ -106,9 +107,11 @@ describe('useSyncedStorage', () => {
     mockLocalData = null
     mockIsLoading = false
     mockSaveStatus = 'idle'
+    // Clear sync flags
+    localStorage.clear()
   })
 
-  it('exposes the same interface as usePersistedStorage plus syncStatus', () => {
+  it('exposes the same interface as usePersistedStorage plus syncStatus and conflict', () => {
     const { result } = renderHook(() => useSyncedStorage(hookOptions))
 
     expect(result.current).toHaveProperty('data')
@@ -117,6 +120,8 @@ describe('useSyncedStorage', () => {
     expect(result.current).toHaveProperty('saveStatus')
     expect(result.current).toHaveProperty('syncStatus')
     expect(result.current).toHaveProperty('syncError')
+    expect(result.current).toHaveProperty('syncConflict')
+    expect(result.current).toHaveProperty('resolveConflict')
   })
 
   it('syncStatus is "disabled" when not signed in', () => {
@@ -140,16 +145,20 @@ describe('useSyncedStorage', () => {
       expect(result.current.syncStatus).toBe('synced')
     })
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    // Should set the sync flag
+    expect(getSyncFlag('user-123')).not.toBeNull()
   })
 
-  it('updates local data when cloud is newer (LWW)', async () => {
-    const localData = makeTestData('2026-03-04T10:00:00Z')
-    const remoteData = makeTestData('2026-03-04T14:00:00Z')
+  // NEW: First sync for a new device — cloud always wins, even with setupCompleted local data
+  it('cloud wins on first sync for new device, even when local has setupCompleted', async () => {
+    const localData = makeBootstrapData('2026-03-04T14:00:00Z')
+    const remoteData = makeTestData('2026-03-04T10:00:00Z')
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
-      updatedAt: '2026-03-04T14:00:00Z',
+      updatedAt: '2026-03-04T10:00:00Z',
     })
+    // No sync flag — first time for this device/user
 
     const { result } = renderHook(() => useSyncedStorage(hookOptions))
 
@@ -160,26 +169,9 @@ describe('useSyncedStorage', () => {
     expect(mockPushToRemote).not.toHaveBeenCalled()
   })
 
-  it('pushes to cloud when local is newer (LWW)', async () => {
-    const localData = makeTestData('2026-03-04T14:00:00Z')
-    mockLocalData = localData
-    mockFetchRemote.mockResolvedValue({
-      data: makeTestData('2026-03-04T10:00:00Z'),
-      updatedAt: '2026-03-04T10:00:00Z',
-    })
-    mockPushToRemote.mockResolvedValue(undefined)
-
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(mockSetData).not.toHaveBeenCalled()
-  })
-
-  it('prefers cloud data when local snapshot is bootstrap-empty, even if local timestamp is newer', async () => {
-    const localData = makeBootstrapData('2026-03-04T14:00:00Z')
+  // NEW: First sync — cloud wins regardless of timestamps
+  it('cloud wins on first sync even when local timestamp is newer', async () => {
+    const localData = makeTestData('2026-03-04T18:00:00Z')
     const remoteData = makeTestData('2026-03-04T10:00:00Z')
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
@@ -193,7 +185,150 @@ describe('useSyncedStorage', () => {
       expect(result.current.syncStatus).toBe('synced')
     })
     expect(mockSetData).toHaveBeenCalledWith(remoteData)
+  })
+
+  // LWW: subsequent sync when only remote changed
+  it('updates local data when cloud is newer on subsequent sync (LWW)', async () => {
+    // Set a past sync time
+    const pastSyncTime = '2026-03-01T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    const localData = makeTestData(pastSyncTime) // local unchanged since last sync
+    const remoteData = makeTestData('2026-03-10T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-10T14:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
     expect(mockPushToRemote).not.toHaveBeenCalled()
+  })
+
+  // LWW: subsequent sync when only local changed
+  it('pushes to cloud when local is newer on subsequent sync (LWW)', async () => {
+    const pastSyncTime = '2026-03-01T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    const localData = makeTestData('2026-03-10T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: makeTestData(pastSyncTime), // remote unchanged
+      updatedAt: pastSyncTime,
+    })
+    mockPushToRemote.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('synced')
+    })
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockSetData).not.toHaveBeenCalled()
+  })
+
+  // NEW: Bidirectional conflict detection
+  it('detects conflict when both local and remote changed since last sync', async () => {
+    // Simulate a previous sync at a known time
+    const pastSyncTime = '2026-03-04T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    const localData = makeTestData('2026-03-05T10:00:00Z')
+    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-05T14:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+    expect(result.current.syncConflict).not.toBeNull()
+    expect(result.current.syncConflict!.local).toBe(localData)
+    expect(result.current.syncConflict!.remote).toBe(remoteData)
+    // Neither setData nor pushToRemote should be called during conflict
+    expect(mockSetData).not.toHaveBeenCalled()
+    expect(mockPushToRemote).not.toHaveBeenCalled()
+  })
+
+  // NEW: Conflict resolution — choose cloud
+  it('resolves conflict by choosing cloud version', async () => {
+    const pastSyncTime = '2026-03-04T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    const localData = makeTestData('2026-03-05T10:00:00Z')
+    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-05T14:00:00Z',
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+
+    await act(async () => {
+      result.current.resolveConflict('cloud')
+    })
+
+    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(result.current.syncStatus).toBe('synced')
+    expect(result.current.syncConflict).toBeNull()
+  })
+
+  // NEW: Conflict resolution — choose local
+  it('resolves conflict by choosing local version', async () => {
+    const pastSyncTime = '2026-03-04T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    const localData = makeTestData('2026-03-05T10:00:00Z')
+    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: '2026-03-05T14:00:00Z',
+    })
+    mockPushToRemote.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+
+    await act(async () => {
+      result.current.resolveConflict('local')
+    })
+
+    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(result.current.syncStatus).toBe('synced')
+    expect(result.current.syncConflict).toBeNull()
   })
 
   it('ignores stale initial-sync results when user changes mid-request', async () => {

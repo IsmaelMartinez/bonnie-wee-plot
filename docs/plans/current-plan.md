@@ -175,11 +175,13 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 7. `/plants/[id]` — reviewed and polished. Keep for first release. Detail pages are sufficiently rich and connected to the rest of the product via companion links, external references, and shared summary entry points from Seeds and Allotment.
 8. `/sign-in` + `/sign-up` — reviewed. Keep as support routes, not core navigation destinations. They already redirect home when Clerk is unavailable, and sign-out should remain in the existing `UserButton` menu rather than becoming its own page.
 
+9. `/settings` — reviewed and simplified. Removed analytics UI (Show Analytics, storage stats, clear analytics). Merged Account tab into Data tab: single Danger Zone with "Clear Local Data" and "Delete My Account" (cloud+local, only when signed in). Single export button works for both local and cloud users. Tour now navigates across tabs automatically via `onHighlightStarted` callbacks.
+10. `/receive` + `/receive/[code]` — reviewed. Keep as-is, working correctly.
+11. `/sign-in` + `/sign-up` — reviewed. Keep as support routes.
+
 ### Pages to Review
-9. `/ai-advisor` — Aitor chat (BYO API key)
-10. `/settings` — AI config, location, data management, tours, account
-11. `/receive` + `/receive/[code]` — QR/code data import flow
-12. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
+12. `/ai-advisor` — Aitor chat (BYO API key)
+13. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
 
 ### Review Criteria
 
