@@ -334,16 +334,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         },
       },
       {
-        element: '[data-tour="share-settings"]',
-        settingsTab: 'data',
-        popover: {
-          title: 'Share Between Devices',
-          description: 'Want your garden on your phone and tablet? Generate a QR code to quickly transfer your data. Links expire after 5 minutes.',
-          side: 'top',
-          align: 'center',
-        },
-      },
-      {
         element: '[data-tour="tour-management"]',
         settingsTab: 'help',
         popover: {
