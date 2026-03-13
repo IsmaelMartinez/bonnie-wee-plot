@@ -7,6 +7,7 @@ import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
 import OfflineIndicator from '@/components/ui/OfflineIndicator'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 import { WebVitalsReporter } from '@/components/web-vitals'
+import { AitorChatProvider } from '@/contexts/AitorChatContext'
 import TourProvider from '@/components/onboarding/TourProvider'
 import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
 import './globals.css'
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
+        <AitorChatProvider>
           <TourProvider>
             <a
               href="#main-content"
@@ -56,8 +58,10 @@ export default function RootLayout({
           </footer>
           <InstallPrompt />
           <WebVitalsReporter />
+          {/* AitorChatButton and AitorChatModal hidden for first release */}
           <TourKeyboardShortcut />
           </TourProvider>
+        </AitorChatProvider>
         </AuthProvider>
       </body>
     </html>
