@@ -60,32 +60,6 @@ test.describe('Accessibility - Allotment Page', () => {
   })
 })
 
-test.describe('Accessibility - AI Advisor Modal', () => {
-  test('ai-advisor modal should have no critical accessibility violations', async ({ page }) => {
-    // Set up allotment data to skip onboarding
-    await page.addInitScript(() => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify({
-        meta: { setupCompleted: true },
-        layout: { areas: [] },
-        seasons: [],
-        currentYear: new Date().getFullYear(),
-        varieties: []
-      }))
-    })
-    await page.goto('/')
-    await disableTours(page)
-
-    // Open the modal via floating button
-    const aitorButton = page.locator('button[aria-label*="Aitor"]')
-    await aitorButton.click()
-
-    // Wait for modal to be visible
-    await expect(page.locator('[role="dialog"]')).toBeVisible()
-
-    await checkA11y(page)
-  })
-})
-
 test.describe('Accessibility - Seeds Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/seeds')

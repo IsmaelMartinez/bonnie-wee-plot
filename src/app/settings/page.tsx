@@ -1,20 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import { Shield, MapPin, Leaf, Database, HelpCircle, User } from 'lucide-react'
+import { Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
-import AccountTab from '@/components/settings/AccountTab'
 import PageTour from '@/components/onboarding/PageTour'
 import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
 
 export default function SettingsPage() {
-  const { isSignedIn } = useOptionalAuth()
+  const { isSignedIn, signOut, userEmail } = useOptionalAuth()
   const { data, flushSave, reload } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
@@ -33,6 +32,13 @@ export default function SettingsPage() {
     clearToken()
     setTempToken('')
   }
+
+  const handleDeleteAccount = useCallback(async () => {
+    const response = await fetch('/api/account', { method: 'DELETE' })
+    if (!response.ok) throw new Error('Deletion failed')
+    localStorage.removeItem('allotment-unified-data')
+    await signOut()
+  }, [signOut])
 
   // Handle paste - primary way to enter API key
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -169,7 +175,16 @@ export default function SettingsPage() {
               id: 'data',
               label: 'Data',
               icon: <Database className="w-4 h-4" />,
-              content: <DataTab data={data} flushSave={flushSave} reload={reload} />,
+              content: (
+                <DataTab
+                  data={data}
+                  flushSave={flushSave}
+                  reload={reload}
+                  isSignedIn={isSignedIn}
+                  onDeleteAccount={isSignedIn ? handleDeleteAccount : undefined}
+                  userEmail={userEmail}
+                />
+              ),
             },
             {
               id: 'help',
@@ -188,12 +203,6 @@ export default function SettingsPage() {
                 </section>
               ),
             },
-            ...(isSignedIn ? [{
-              id: 'account',
-              label: 'Account',
-              icon: <User className="w-4 h-4" />,
-              content: <AccountTab />,
-            }] : []),
           ]}
         />
       </div>

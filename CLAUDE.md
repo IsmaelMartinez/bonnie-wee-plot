@@ -149,7 +149,7 @@ The app supports sharing allotment data between devices via a simple share/recei
 - `src/app/receive/page.tsx` - Code entry and QR scanner (uses `html5-qrcode` for cross-browser compatibility)
 - `src/app/receive/[code]/page.tsx` - Preview and import confirmation
 
-**Settings Page:** `/settings` route provides access to share functionality.
+**Settings Page:** `/settings` has three tabs: AI & Location (API key, geolocation), Data (transfer, share, danger zone with account deletion), and Help (guided tours).
 
 **Environment:** Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for the share feature.
 
@@ -159,7 +159,7 @@ See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
 Opt-in user authentication via `@clerk/nextjs`. `ClerkProvider` wraps the app in `src/app/layout.tsx`. The middleware (`src/middleware.ts`) uses `clerkMiddleware` with CSP headers allowing Clerk and Supabase domains. All routes remain public — auth is opt-in for cloud sync.
 
-Sign-in/sign-up pages at `/sign-in` and `/sign-up` use Clerk's pre-built components with catch-all routes. Navigation shows `UserButton` when signed in, "Sign in" link when not. Settings gains an "Account" tab for signed-in users.
+Sign-in/sign-up pages at `/sign-in` and `/sign-up` use Clerk's pre-built components with catch-all routes. Navigation shows `UserButton` when signed in, "Sign in" link when not. Account deletion is in the Settings Data tab's Danger Zone (visible when signed in).
 
 Environment: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`.
 
@@ -175,7 +175,7 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 
 ### GDPR Compliance
 
-`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Account tab provides UI for export and account deletion.
+`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
 
 ### AI Advisor
 

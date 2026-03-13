@@ -207,8 +207,8 @@ test.describe('Variety Management E2E', () => {
       expect(exportedVarietyNames).toEqual(expectedNames)
 
       // 6. Clear and re-import to verify roundtrip
-      await page.getByRole('button', { name: /Clear All Data/i }).click()
-      await page.getByRole('button', { name: 'Delete Everything' }).click()
+      await page.getByRole('button', { name: /Clear Local Data/i }).click()
+      await page.getByRole('button', { name: 'Delete Local Data' }).click()
       await page.waitForTimeout(1000)
 
       // Re-open Data tab after clear
