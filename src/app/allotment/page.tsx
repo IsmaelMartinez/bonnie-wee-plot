@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Loader2,
   TreeDeciduous,
-  Users,
   Sprout
 } from 'lucide-react'
 import { getVegetableName } from '@/lib/vegetable-loader'
@@ -259,14 +258,6 @@ function AllotmentPageContent() {
               >
                 <Sprout className="w-4 h-4" />
                 <span className="hidden sm:inline">Seeds</span>
-              </Link>
-              <Link
-                href="/ai-advisor"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zen-ink-600 hover:bg-zen-stone-100 rounded-zen transition whitespace-nowrap"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Ask Aitor</span>
-                <span className="sm:hidden">Aitor</span>
               </Link>
               <Link
                 href="/this-month"

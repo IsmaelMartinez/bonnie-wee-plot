@@ -42,7 +42,7 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         element: '[data-tour="quick-actions"]',
         popover: {
           title: 'Navigate Quickly',
-          description: 'These shortcuts take you to the main sections: plan your beds, check the calendar, manage seeds, or chat with Aitor.',
+          description: 'These shortcuts take you to the main sections: plan your beds, check the calendar, manage seeds, or browse the plant guide.',
           side: 'bottom',
           align: 'center',
         },
@@ -61,15 +61,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         popover: {
           title: 'Compost Updates',
           description: 'If you have compost piles, alerts appear here when they need turning or are ready to use. Tap an alert to go to the Compost section.',
-          side: 'top',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="ai-insight"]',
-        popover: {
-          title: 'Meet Aitor',
-          description: 'Aitor is your AI gardening companion. He looks at your garden and suggests what needs attention. Tap to ask him anything!',
           side: 'top',
           align: 'center',
         },
@@ -323,16 +314,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
         },
       },
       {
-        element: '[data-tour="ai-settings"]',
-        settingsTab: 'ai-location',
-        popover: {
-          title: 'Unlock Aitor',
-          description: 'Add your OpenAI API key to chat with Aitor. He can identify plants from photos, suggest what to grow, and even add plants for you!',
-          side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
         element: '[data-tour="location-settings"]',
         settingsTab: 'ai-location',
         popover: {
@@ -349,16 +330,6 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
           title: 'Backup Your Data',
           description: 'Export your garden data to a file for safekeeping. You can import it back later or on a new device.',
           side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="share-settings"]',
-        settingsTab: 'data',
-        popover: {
-          title: 'Share Between Devices',
-          description: 'Want your garden on your phone and tablet? Generate a QR code to quickly transfer your data. Links expire after 5 minutes.',
-          side: 'top',
           align: 'center',
         },
       },

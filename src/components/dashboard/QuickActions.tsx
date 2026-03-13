@@ -1,5 +1,7 @@
+'use client'
+
 import Link from 'next/link'
-import { Grid3X3, Package, MessageCircle, Calendar } from 'lucide-react'
+import { Grid3X3, Package, Sprout, Calendar } from 'lucide-react'
 
 const ACTIONS = [
   {
@@ -15,10 +17,10 @@ const ACTIONS = [
     description: 'Manage stock',
   },
   {
-    href: '/ai-advisor',
-    icon: MessageCircle,
-    label: 'Ask Aitor',
-    description: 'Get advice',
+    href: '/plants',
+    icon: Sprout,
+    label: 'Plant Guide',
+    description: 'Browse plants',
   },
   {
     href: '/this-month',
