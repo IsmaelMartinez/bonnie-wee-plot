@@ -305,20 +305,10 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     steps: [
       {
         element: '[data-tour="settings-tabs"]',
-        settingsTab: 'ai-location',
+        settingsTab: 'data',
         popover: {
           title: 'Settings Tabs',
-          description: 'Settings are organised into tabs. AI & Location for your assistant, Data for backups and sharing, and Help for guided tours.',
-          side: 'bottom',
-          align: 'center',
-        },
-      },
-      {
-        element: '[data-tour="location-settings"]',
-        settingsTab: 'ai-location',
-        popover: {
-          title: 'Set Your Location',
-          description: 'Your location helps with personalised growing advice. Scotland\'s microclimates vary a lot - coastal vs inland makes a difference!',
+          description: 'Settings are organised into tabs. Data for backups and sharing, and Help for guided tours.',
           side: 'bottom',
           align: 'center',
         },
