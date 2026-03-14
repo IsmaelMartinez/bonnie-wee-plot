@@ -228,7 +228,8 @@ describe('AddAreaForm Component', () => {
     })
   })
 
-  describe('Short ID validation', () => {
+  // Re-enable when SHOW_ADVANCED_AREA_FIELDS is set to true in src/config/release-visibility.ts
+  describe.skip('Short ID validation', () => {
     it('shows duplicate short ID error', async () => {
       render(
         <AddAreaForm
@@ -331,7 +332,8 @@ describe('AddAreaForm Component', () => {
     })
   })
 
-  describe('Temporal metadata', () => {
+  // Re-enable when SHOW_ADVANCED_AREA_FIELDS is set to true in src/config/release-visibility.ts
+  describe.skip('Temporal metadata', () => {
     it('shows created year input', () => {
       render(
         <AddAreaForm
