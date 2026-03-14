@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Calendar, Package, ArrowRight } from 'lucide-react'
 import { SEASONAL_PHASES } from '@/lib/seasons'
+import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 
 interface SeasonStatusWidgetProps {
   bedsNeedingRotation: number
@@ -42,10 +43,19 @@ export default function SeasonStatusWidget({
             <span>{varietiesCount} varieties</span>
           </Link>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 text-zen-ink-600">
-            <ArrowRight className="w-4 h-4 text-zen-stone-400" />
-            <span>{bedsNeedingRotation}/{totalRotationBeds} to rotate</span>
-          </div>
+          {SHOW_ROTATION_SUGGESTIONS ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 text-zen-ink-600">
+              <ArrowRight className="w-4 h-4 text-zen-stone-400" />
+              <span>{bedsNeedingRotation}/{totalRotationBeds} to rotate</span>
+            </div>
+          ) : (
+            totalRotationBeds > 0 && bedsNeedingRotation > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 text-zen-ink-600">
+                <ArrowRight className="w-4 h-4 text-zen-stone-400" />
+                <span>{bedsNeedingRotation} bed{bedsNeedingRotation !== 1 ? 's' : ''} not yet planted</span>
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
