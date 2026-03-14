@@ -179,14 +179,8 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 10. `/receive` + `/receive/[code]` — reviewed. Keep as-is, working correctly.
 11. `/sign-in` + `/sign-up` — reviewed. Keep as support routes.
 
+12. `/ai-advisor` — hidden for first release (PR #255). Chat modal, floating button, and receive/share-via-code UI all disconnected from navigation. Underlying code preserved for future re-enablement. Onboarding "ask" path removed, Quick Actions replaced "Ask Aitor" with "Plant Guide". Tests skipped rather than deleted.
 13. `/allotment` — reviewed and simplified. Core workflow (add areas, record plantings, view details) kept intact. Hidden for first release: auto-rotate button and dialog, rotation count jargon (replaced with "beds not yet planted"), Short ID and Built-in-year fields in Add Area, care logs, and underplantings in permanent panels. All hidden via `src/config/release-visibility.ts` constants — flip to `true` to re-enable. Harvest tracking, rotation type dropdown, rotation guide banner, grid layout, notes, and cross-links all kept.
-
-### Pages to Review
-12. `/ai-advisor` — Aitor chat (BYO API key)
-
-### Review Criteria
-
-For each page, document a recommendation: keep, simplify, or hide. Consider whether the page is essential for the core "plan your plot" workflow, whether it's polished enough for first impressions, and whether hiding it reduces confusion without losing critical functionality. Pages that are hidden can always be unhidden later based on user feedback.
 
 ### Remaining Backlog
 
