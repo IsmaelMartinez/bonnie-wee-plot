@@ -5,6 +5,7 @@ import { Sprout, Plus, ArrowRight, Leaf, Pencil, Trash2 } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
+import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import { RotationGroup } from '@/types/garden-planner'
 import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
@@ -191,7 +192,7 @@ export default function BedDetailPanel({
             {selectedYear} Plantings
           </h4>
           <div className="flex items-center gap-1">
-            {autoRotateInfo && (
+            {SHOW_ROTATION_SUGGESTIONS && autoRotateInfo && (
               <button
                 onClick={onAutoRotate}
                 className="flex items-center gap-1.5 text-xs px-3 py-2.5 min-h-[44px] bg-zen-water-100 text-zen-water-700 rounded-zen hover:bg-zen-water-200 transition"
