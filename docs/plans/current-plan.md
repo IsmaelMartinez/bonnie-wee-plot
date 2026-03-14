@@ -179,9 +179,10 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 10. `/receive` + `/receive/[code]` — reviewed. Keep as-is, working correctly.
 11. `/sign-in` + `/sign-up` — reviewed. Keep as support routes.
 
+13. `/allotment` — reviewed and simplified. Core workflow (add areas, record plantings, view details) kept intact. Hidden for first release: auto-rotate button and dialog, rotation count jargon (replaced with "beds not yet planted"), Short ID and Built-in-year fields in Add Area, care logs, and underplantings in permanent panels. All hidden via `src/config/release-visibility.ts` constants — flip to `true` to re-enable. Harvest tracking, rotation type dropdown, rotation guide banner, grid layout, notes, and cross-links all kept.
+
 ### Pages to Review
 12. `/ai-advisor` — Aitor chat (BYO API key)
-13. `/allotment` — plot layout, bed management, plantings (moved to last — core page, needs most attention)
 
 ### Review Criteria
 
