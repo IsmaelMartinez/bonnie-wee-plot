@@ -147,7 +147,7 @@ export default function BedDetailPanel({
       )}
 
       {/* Rotation Guide */}
-      {rotationInfo && (
+      {SHOW_ROTATION_SUGGESTIONS && rotationInfo && (
         <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3 mb-4">
           <div className="text-xs text-zen-kitsune-700 font-medium mb-1">Rotation Guide</div>
           <div className="flex items-center gap-2 text-sm">
