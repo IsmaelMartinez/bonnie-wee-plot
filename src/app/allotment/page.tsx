@@ -20,6 +20,7 @@ import { RotationGroup } from '@/types/garden-planner'
 import { NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
 import { ArrowRight } from 'lucide-react'
+import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
@@ -585,7 +586,7 @@ function AllotmentPageContent() {
       })()}
 
       {/* Auto-rotate Dialog */}
-      {autoRotateInfo && selectedBedId && (() => {
+      {SHOW_ROTATION_SUGGESTIONS && autoRotateInfo && selectedBedId && (() => {
         const areaData = getArea(selectedBedId)
         if (!areaData) return null
 

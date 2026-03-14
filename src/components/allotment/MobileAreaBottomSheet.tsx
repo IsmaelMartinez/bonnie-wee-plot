@@ -7,6 +7,7 @@ import { Area, AreaSeason, Planting, PlantingUpdate, AreaNote, NewAreaNote, Area
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
+import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import PlantingCard from './PlantingCard'
 import PlantingDetailDialog from './PlantingDetailDialog'
 import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
@@ -192,7 +193,7 @@ export default function MobileAreaBottomSheet({
         <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className="px-4 py-4 space-y-4">
             {/* Rotation Guide for rotation beds */}
-            {rotationInfo && (
+            {SHOW_ROTATION_SUGGESTIONS && rotationInfo && (
               <div className="bg-zen-kitsune-50 border border-zen-kitsune-200 rounded-zen p-3">
                 <div className="text-xs text-zen-kitsune-700 font-medium mb-2">Rotation Suggestion</div>
                 <div className="flex items-center gap-2 text-sm">
