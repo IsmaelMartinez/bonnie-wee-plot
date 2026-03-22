@@ -7,6 +7,7 @@ import { Area, AreaKind, Planting, CareLogEntry, NewCareLogEntry, NewPlanting } 
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getPerennialStatusFromPlant, getStatusLabel, getStatusColorClasses } from '@/lib/perennial-calculator'
 import Tabs, { Tab } from '@/components/ui/Tabs'
+import { SHOW_CARE_LOGS, SHOW_UNDERPLANTINGS } from '@/config/release-visibility'
 import CareLogSection from './CareLogSection'
 import HarvestTracker from './HarvestTracker'
 import UnderplantingsList from './UnderplantingsList'
@@ -302,7 +303,7 @@ export default function PermanentDetailPanel({
     },
     {
       id: 'care',
-      label: 'Harvest & Care',
+      label: (SHOW_CARE_LOGS || SHOW_UNDERPLANTINGS) ? 'Harvest & Care' : 'Harvest',
       icon: <Apple className="w-4 h-4" />,
       content: (
         <div className="space-y-3">
@@ -312,19 +313,23 @@ export default function PermanentDetailPanel({
             harvestLogCount={harvestLogCount}
             onLogHarvest={(qty, unit, date) => onLogHarvest(area.id, qty, unit, date)}
           />
-          <CareLogSection
-            selectedYear={selectedYear}
-            careLogs={careLogs}
-            onAddCareLog={(entry) => onAddCareLog(area.id, entry)}
-            onRemoveCareLog={(entryId) => onRemoveCareLog(area.id, entryId)}
-          />
-          <UnderplantingsList
-            parentAreaName={area.name}
-            selectedYear={selectedYear}
-            plantings={plantings}
-            onAddPlanting={(planting) => onAddPlanting(area.id, planting)}
-            onRemovePlanting={(plantingId) => onRemovePlanting(area.id, plantingId)}
-          />
+          {SHOW_CARE_LOGS && (
+            <CareLogSection
+              selectedYear={selectedYear}
+              careLogs={careLogs}
+              onAddCareLog={(entry) => onAddCareLog(area.id, entry)}
+              onRemoveCareLog={(entryId) => onRemoveCareLog(area.id, entryId)}
+            />
+          )}
+          {SHOW_UNDERPLANTINGS && (
+            <UnderplantingsList
+              parentAreaName={area.name}
+              selectedYear={selectedYear}
+              plantings={plantings}
+              onAddPlanting={(planting) => onAddPlanting(area.id, planting)}
+              onRemovePlanting={(plantingId) => onRemovePlanting(area.id, plantingId)}
+            />
+          )}
         </div>
       ),
     },

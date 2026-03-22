@@ -15,7 +15,8 @@ async function setupPage(page: import('@playwright/test').Page) {
   })
 }
 
-test.describe('AI Advisor (Aitor)', () => {
+// Skipped: AI Advisor chat modal hidden for first release
+test.describe.skip('AI Advisor (Aitor)', () => {
   test.beforeEach(async ({ page }) => {
     await setupPage(page)
   })

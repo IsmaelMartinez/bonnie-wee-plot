@@ -242,6 +242,7 @@ See `docs/adrs/018-variety-refactor.md` for details on the v13 consolidation. Se
 
 ## Code Conventions
 
+- When finishing a development branch, always push and create a PR. Do not ask — just do it.
 - TypeScript strict mode with `noUnusedLocals` and `noUnusedParameters`
 - Use server components where possible; `'use client'` only when needed
 - Tailwind CSS for styling

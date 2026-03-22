@@ -16,6 +16,7 @@ import {
 import { Area, AreaKind, InfrastructureSubtype } from '@/types/unified-allotment'
 import { RotationGroup, VegetableCategory } from '@/types/garden-planner'
 import { ROTATION_GROUP_NAMES } from '@/lib/rotation'
+import { SHOW_ADVANCED_AREA_FIELDS } from '@/config/release-visibility'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useFormState } from '@/hooks/useFormState'
 import { vegetableIndex } from '@/lib/vegetables/index'
@@ -269,7 +270,7 @@ export default function AddAreaForm({
       </div>
 
       {/* Short ID */}
-      <div>
+      {SHOW_ADVANCED_AREA_FIELDS && <div>
         <label htmlFor="area-short-id" className="block text-sm font-medium text-zen-ink-700 mb-1">
           Short ID
         </label>
@@ -288,7 +289,7 @@ export default function AddAreaForm({
         <p className="text-xs text-zen-stone-500 mt-1">
           Optional short identifier for the AI advisor (e.g., &quot;A&quot;, &quot;B1&quot;)
         </p>
-      </div>
+      </div>}
 
       {/* Rotation Group (for rotation beds) */}
       {fields.kind === 'rotation-bed' && (
@@ -415,7 +416,7 @@ export default function AddAreaForm({
       </div>
 
       {/* Temporal Metadata */}
-      <div className="border-t border-zen-stone-200 pt-4">
+      {SHOW_ADVANCED_AREA_FIELDS && <div className="border-t border-zen-stone-200 pt-4">
         <div>
           <label htmlFor="created-year" className="block text-sm font-medium text-zen-ink-700 mb-1">
             Built in year (optional)
@@ -440,7 +441,7 @@ export default function AddAreaForm({
             }
           </p>
         </div>
-      </div>
+      </div>}
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">

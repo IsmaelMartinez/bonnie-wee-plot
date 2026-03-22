@@ -67,7 +67,7 @@ const storedToken = sessionStorage.getItem('aitor_api_token')
 
 ### Mitigations
 
-The DataManagement component provides export/import functionality that exports complete state (allotment data with embedded varieties) to a single JSON file. Automatic backup is created before each import. A temporary Excel import script (`scripts/excel-to-backup.py`) enables one-time migration from existing spreadsheets.
+The DataManagement component provides export/import functionality that exports complete state (allotment data with embedded varieties) to a single JSON file. Automatic backup is created before each import.
 
 Schema v13 (2026-01-22) consolidated variety storage from separate `community-allotment-varieties` key into `AllotmentData.varieties`, eliminating dual storage issues and improving import/export reliability. Schema v14 (2026-01-23) moved grid positions from separate `allotment-grid-layout` key into `AreaSeason.gridPosition`, enabling per-year layouts and ensuring positions are included in export/import.
 

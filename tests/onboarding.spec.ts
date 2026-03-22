@@ -94,7 +94,7 @@ test.describe('Onboarding Wizard - Display', () => {
     await expect(page.getByText('Welcome to Bonnie Wee Plot')).toBeVisible()
   })
 
-  test('onboarding wizard shows all three path options', async ({ page }) => {
+  test('onboarding wizard shows both path options', async ({ page }) => {
     const newUserData = createNewUserData()
 
     await page.addInitScript((data) => {
@@ -106,10 +106,9 @@ test.describe('Onboarding Wizard - Display', () => {
     // Wait for dialog
     await expect(page.getByRole('dialog')).toBeVisible()
 
-    // Check for all three path options
+    // Check for both path options
     await expect(page.getByText('Show me what to grow')).toBeVisible()
     await expect(page.getByText('I have a plot to plan')).toBeVisible()
-    await expect(page.getByText('I just want to ask')).toBeVisible()
   })
 
   test('onboarding wizard does NOT appear when setupCompleted is true', async ({ page }) => {
@@ -245,64 +244,6 @@ test.describe('Onboarding Wizard - Plan Path', () => {
   })
 })
 
-test.describe('Onboarding Wizard - Ask Path', () => {
-  test('selecting "I just want to ask" navigates through ask path', async ({ page }) => {
-    const newUserData = createNewUserData()
-
-    await page.addInitScript((data) => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify(data))
-      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    }, newUserData)
-    await page.goto('/')
-
-    // Wait for dialog
-    await expect(page.getByRole('dialog')).toBeVisible()
-
-    // Click "I just want to ask" path
-    await page.getByText('I just want to ask').click()
-
-    // Should show Screen 2 (within the dialog)
-    await expect(page.getByText('Getting Started')).toBeVisible()
-    await expect(page.getByLabel('Getting Started').getByRole('heading', { name: 'Ask Aitor' })).toBeVisible()
-
-    // Click "Got it, let's go"
-    await page.getByText("Got it, let's go").click()
-
-    // Should show Screen 3
-    await expect(page.getByText('All set!')).toBeVisible()
-
-    // Click "Start Exploring"
-    await expect(page.getByText('Start Exploring')).toBeVisible()
-
-    // Wait for onboarding dialog to close (specifically the "You're Ready!" dialog)
-    // Note: The AI chat dialog will open on /ai-advisor page before redirecting back
-    await Promise.all([
-      page.getByRole('dialog', { name: "You're Ready!" }).waitFor({ state: 'hidden', timeout: 30000 }),
-      page.getByText('Start Exploring').click()
-    ])
-
-    // Verify we're back on homepage after /ai-advisor redirects to /
-    await expect(page).toHaveURL('/')
-  })
-
-  test('ask path shows correct guidance content', async ({ page }) => {
-    const newUserData = createNewUserData()
-
-    await page.addInitScript((data) => {
-      localStorage.setItem('allotment-unified-data', JSON.stringify(data))
-      localStorage.setItem('bonnie-wee-plot-tours', JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} }))
-    }, newUserData)
-    await page.goto('/')
-
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.getByText('I just want to ask').click()
-
-    // Check ask-specific content
-    await expect(page.getByText('Personalised advice for your specific plot')).toBeVisible()
-    await expect(page.getByText(/Aitor knows about your allotment data/)).toBeVisible()
-  })
-})
-
 test.describe('Onboarding Wizard - Skip', () => {
   test('clicking "Skip for now" closes wizard without navigation', async ({ page }) => {
     const newUserData = createNewUserData()
@@ -402,10 +343,10 @@ test.describe('Onboarding Wizard - Back Navigation', () => {
     await page.getByText('Back').click()
 
     // Select a different path
-    await page.getByText('I just want to ask').click()
+    await page.getByText('I have a plot to plan').click()
 
-    // Should see ask path content (within the dialog)
-    await expect(page.getByLabel('Getting Started').getByRole('heading', { name: 'Ask Aitor' })).toBeVisible()
+    // Should see plan path content (within the dialog)
+    await expect(page.getByLabel('Getting Started').getByRole('heading', { name: 'Your Allotment' })).toBeVisible()
   })
 })
 
@@ -486,10 +427,9 @@ test.describe('Onboarding Wizard - Mobile', () => {
     // Dialog should be visible
     await expect(page.getByRole('dialog')).toBeVisible()
 
-    // All three paths should be visible
+    // Both paths should be visible
     await expect(page.getByText('Show me what to grow')).toBeVisible()
     await expect(page.getByText('I have a plot to plan')).toBeVisible()
-    await expect(page.getByText('I just want to ask')).toBeVisible()
   })
 
   test('onboarding flow works correctly on mobile', async ({ page }) => {

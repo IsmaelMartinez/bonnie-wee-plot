@@ -8,8 +8,6 @@ import OfflineIndicator from '@/components/ui/OfflineIndicator'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 import { WebVitalsReporter } from '@/components/web-vitals'
 import { AitorChatProvider } from '@/contexts/AitorChatContext'
-import AitorChatModal from '@/components/ai-advisor/AitorChatModal'
-import AitorChatButton from '@/components/ai-advisor/AitorChatButton'
 import TourProvider from '@/components/onboarding/TourProvider'
 import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
 import './globals.css'
@@ -60,8 +58,7 @@ export default function RootLayout({
           </footer>
           <InstallPrompt />
           <WebVitalsReporter />
-          <AitorChatButton />
-          <AitorChatModal />
+          {/* AitorChatButton and AitorChatModal hidden for first release */}
           <TourKeyboardShortcut />
           </TourProvider>
         </AitorChatProvider>
