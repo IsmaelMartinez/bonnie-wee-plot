@@ -314,27 +314,42 @@ function generateMonthBasedTasks(
     }
   }
 
-  // Generate sowing/transplant suggestions for planned plantings only
-  for (const { planting, areaId, areaName } of sowEligible) {
+  // Generate sowing/transplant suggestions — one per plant, not per bed.
+  // A user only needs one "Sow Peas" reminder regardless of how many beds will receive them.
+  const seenSowTasks = new Set<string>()
+
+  for (const { planting } of sowEligible) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 
-    // Sow indoors tasks
+    // Sow indoors tasks — one per plant
     if (vegetable.planting.sowIndoorsMonths.includes(currentMonth)) {
-      const task = createSowIndoorsTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `sow-indoors-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createSowIndoorsTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
 
-    // Sow outdoors tasks
+    // Sow outdoors tasks — one per plant
     if (vegetable.planting.sowOutdoorsMonths.includes(currentMonth)) {
-      const task = createSowOutdoorsTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `sow-outdoors-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createSowOutdoorsTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
 
-    // Transplant tasks (only if no sow date tracking)
+    // Transplant tasks (only if no sow date tracking) — one per plant
     if (!planting.sowDate && vegetable.planting.transplantMonths.includes(currentMonth)) {
-      const task = createTransplantTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `transplant-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createTransplantTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
   }
 
