@@ -866,6 +866,74 @@ describe('task-generator', () => {
       expect(sowTasks[0].description).toBe('Sow Tomato (Moneymaker) indoors')
       expect(sowTasks[0].notes).toContain('seeds ready')
     })
+
+    it('should keep both planting-derived and variety-derived sow tasks for same crop', () => {
+      const today = new Date('2025-03-15')
+
+      // Existing planting of peas (no sow date → generates month-based sow task)
+      const planting: Planting = {
+        id: 'p1',
+        plantId: 'peas',
+        varietyName: 'Kelvedon Wonder',
+      }
+
+      // Unplanted variety of the same crop with seeds ready
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'peas',
+        name: 'Sugar Snap',
+        seedsByYear: { 2025: 'have' },
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'peas',
+        name: 'Peas',
+        planting: {
+          harvestMonths: [6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateTasksForMonth(
+        3 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        today,
+        [variety],
+        2025
+      )
+
+      const sowTasks = tasks.filter(t => t.generatedType === 'sow-indoors')
+      expect(sowTasks).toHaveLength(2)
+      expect(sowTasks.map(t => t.description)).toContain('Sow Peas indoors')
+      expect(sowTasks.map(t => t.description)).toContain('Sow Peas (Sugar Snap) indoors')
+    })
+
+    it('should deduplicate sow tasks across multiple beds of the same plant', () => {
+      const today = new Date('2025-03-15')
+
+      const plantings = [
+        { planting: { id: 'p1', plantId: 'peas' } as Planting, areaId: 'bed-a', areaName: 'Bed A' },
+        { planting: { id: 'p2', plantId: 'peas' } as Planting, areaId: 'bed-b', areaName: 'Bed B' },
+      ]
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'peas',
+        name: 'Peas',
+        planting: {
+          harvestMonths: [6, 7, 8],
+          sowIndoorsMonths: [3, 4],
+          sowOutdoorsMonths: [4, 5],
+          transplantMonths: [5, 6]
+        }
+      })
+
+      const tasks = generateTasksForMonth(3 as Month, plantings, [], today)
+      const sowTasks = tasks.filter(t => t.generatedType === 'sow-indoors')
+      expect(sowTasks).toHaveLength(1)
+    })
   })
 
   describe('generateVarietyTasks', () => {

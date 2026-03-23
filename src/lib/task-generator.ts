@@ -380,6 +380,16 @@ function generateMonthBasedTasks(
 }
 
 /**
+ * Build a dedup key for a task. Variety-derived tasks (IDs starting with
+ * "variety-") get a separate scope so they aren't suppressed by planting-
+ * derived tasks for the same crop.
+ */
+function taskDedupeKey(task: GeneratedTask): string {
+  const source = task.id.startsWith('variety-') ? 'variety' : 'planting'
+  return `${source}-${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
+}
+
+/**
  * Merge date-based and month-based tasks, preferring date-based
  */
 function mergeAndDeduplicateTasks(
@@ -390,13 +400,12 @@ function mergeAndDeduplicateTasks(
 
   // Add date-based tasks first (they take priority)
   for (const task of dateBasedTasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
-    taskMap.set(key, task)
+    taskMap.set(taskDedupeKey(task), task)
   }
 
   // Add month-based tasks only if no date-based equivalent exists
   for (const task of monthBasedTasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
+    const key = taskDedupeKey(task)
     if (!taskMap.has(key)) {
       taskMap.set(key, task)
     }
@@ -692,14 +701,14 @@ function createMulchTask(
 }
 
 /**
- * Remove duplicate tasks (same plant + same action type + same area)
+ * Remove duplicate tasks (same plant + same action type + same source scope)
  * Keeps the one with the most context (area info)
  */
 function deduplicateTasks(tasks: GeneratedTask[]): GeneratedTask[] {
   const taskMap = new Map<string, GeneratedTask>()
 
   for (const task of tasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'no-area'}`
+    const key = taskDedupeKey(task)
     const existing = taskMap.get(key)
 
     if (!existing) {
