@@ -314,27 +314,42 @@ function generateMonthBasedTasks(
     }
   }
 
-  // Generate sowing/transplant suggestions for planned plantings only
-  for (const { planting, areaId, areaName } of sowEligible) {
+  // Generate sowing/transplant suggestions — one per plant, not per bed.
+  // A user only needs one "Sow Peas" reminder regardless of how many beds will receive them.
+  const seenSowTasks = new Set<string>()
+
+  for (const { planting } of sowEligible) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 
-    // Sow indoors tasks
+    // Sow indoors tasks — one per plant
     if (vegetable.planting.sowIndoorsMonths.includes(currentMonth)) {
-      const task = createSowIndoorsTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `sow-indoors-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createSowIndoorsTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
 
-    // Sow outdoors tasks
+    // Sow outdoors tasks — one per plant
     if (vegetable.planting.sowOutdoorsMonths.includes(currentMonth)) {
-      const task = createSowOutdoorsTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `sow-outdoors-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createSowOutdoorsTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
 
-    // Transplant tasks (only if no sow date tracking)
+    // Transplant tasks (only if no sow date tracking) — one per plant
     if (!planting.sowDate && vegetable.planting.transplantMonths.includes(currentMonth)) {
-      const task = createTransplantTask(vegetable, currentMonth, areaId, areaName)
-      tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      const key = `transplant-${vegetable.id}`
+      if (!seenSowTasks.has(key)) {
+        seenSowTasks.add(key)
+        const task = createTransplantTask(vegetable, currentMonth)
+        tasks.push({ ...task, calculatedFrom: 'calendar-month' })
+      }
     }
   }
 
@@ -365,6 +380,16 @@ function generateMonthBasedTasks(
 }
 
 /**
+ * Build a dedup key for a task. Variety-derived tasks (IDs starting with
+ * "variety-") get a separate scope so they aren't suppressed by planting-
+ * derived tasks for the same crop.
+ */
+function taskDedupeKey(task: GeneratedTask): string {
+  const source = task.id.startsWith('variety-') ? 'variety' : 'planting'
+  return `${source}-${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
+}
+
+/**
  * Merge date-based and month-based tasks, preferring date-based
  */
 function mergeAndDeduplicateTasks(
@@ -375,13 +400,12 @@ function mergeAndDeduplicateTasks(
 
   // Add date-based tasks first (they take priority)
   for (const task of dateBasedTasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
-    taskMap.set(key, task)
+    taskMap.set(taskDedupeKey(task), task)
   }
 
   // Add month-based tasks only if no date-based equivalent exists
   for (const task of monthBasedTasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
+    const key = taskDedupeKey(task)
     if (!taskMap.has(key)) {
       taskMap.set(key, task)
     }
@@ -677,14 +701,14 @@ function createMulchTask(
 }
 
 /**
- * Remove duplicate tasks (same plant + same action type + same area)
+ * Remove duplicate tasks (same plant + same action type + same source scope)
  * Keeps the one with the most context (area info)
  */
 function deduplicateTasks(tasks: GeneratedTask[]): GeneratedTask[] {
   const taskMap = new Map<string, GeneratedTask>()
 
   for (const task of tasks) {
-    const key = `${task.generatedType}-${task.plantId}-${task.areaId || 'no-area'}`
+    const key = taskDedupeKey(task)
     const existing = taskMap.get(key)
 
     if (!existing) {
