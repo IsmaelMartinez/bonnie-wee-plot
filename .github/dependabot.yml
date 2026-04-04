@@ -4,3 +4,56 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-grid-layout"
+          - "@types/react"
+          - "@types/react-dom"
+          - "@types/react-grid-layout"
+      nextjs:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+          - "@next/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      serwist:
+        patterns:
+          - "serwist"
+          - "@serwist/*"
+      playwright:
+        patterns:
+          - "@playwright/test"
+          - "@axe-core/playwright"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "jsdom"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
+      linting:
+        patterns:
+          - "eslint"
+          - "husky"
+          - "lint-staged"
+      build-tools:
+        patterns:
+          - "typescript"
+          - "postcss"
+          - "autoprefixer"
+          - "tailwindcss"
+      type-definitions:
+        patterns:
+          - "@types/node"
