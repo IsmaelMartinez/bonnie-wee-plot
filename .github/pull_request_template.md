@@ -2,6 +2,10 @@
 
 Brief description of the changes.
 
+## Related issue
+
+Closes #
+
 ## Type of change
 
 - [ ] Bug fix
