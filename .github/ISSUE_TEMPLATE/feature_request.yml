@@ -12,3 +12,5 @@ body:
     attributes:
       label: Motivation
       description: Why is this needed?
+    validations:
+      required: true
