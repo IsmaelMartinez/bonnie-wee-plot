@@ -16,17 +16,12 @@ vi.mock('@/hooks/useOptionalAuth', () => ({
   }),
 }))
 
-// Mock Supabase sync
+// Mock sync client
 const mockFetchRemote = vi.fn()
 const mockPushToRemote = vi.fn()
-vi.mock('@/lib/supabase/sync', () => ({
+vi.mock('@/lib/sync-client', () => ({
   fetchRemote: (...args: unknown[]) => mockFetchRemote(...args),
   pushToRemote: (...args: unknown[]) => mockPushToRemote(...args),
-}))
-
-// Mock Supabase client
-vi.mock('@/lib/supabase/client', () => ({
-  isSupabaseConfigured: vi.fn(() => true),
 }))
 
 // Mock network status
@@ -99,7 +94,6 @@ const hookOptions = {
 describe('useSyncedStorage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetToken.mockResolvedValue('test-token')
     mockUserId = 'user-123'
     mockIsSignedIn = true
     mockIsOnline = true
@@ -144,7 +138,7 @@ describe('useSyncedStorage', () => {
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockPushToRemote).toHaveBeenCalledWith(localData)
     // Should set the sync flag
     expect(getSyncFlag('user-123')).not.toBeNull()
   })
@@ -234,7 +228,7 @@ describe('useSyncedStorage', () => {
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockPushToRemote).toHaveBeenCalledWith(localData)
     expect(mockSetData).not.toHaveBeenCalled()
   })
 
@@ -326,7 +320,7 @@ describe('useSyncedStorage', () => {
       result.current.resolveConflict('local')
     })
 
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
+    expect(mockPushToRemote).toHaveBeenCalledWith(localData)
     expect(result.current.syncStatus).toBe('synced')
     expect(result.current.syncConflict).toBeNull()
   })
@@ -376,8 +370,7 @@ describe('useSyncedStorage', () => {
     })
 
     expect(mockSetData).not.toHaveBeenCalledWith(staleRemoteData)
-    expect(mockPushToRemote).not.toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-456', localData)
+    expect(mockPushToRemote).toHaveBeenCalledWith(localData)
   })
 
   it('sets error status on sync failure', async () => {

@@ -3,9 +3,9 @@
 /**
  * useSyncedStorage Hook
  *
- * Wraps usePersistedStorage with Supabase cloud sync when authenticated.
+ * Wraps usePersistedStorage with cloud sync via /api/sync when authenticated.
  * localStorage always stays active as the offline cache.
- * When signed in, changes are pushed to Supabase asynchronously.
+ * When signed in, changes are pushed to the cloud asynchronously.
  * On load, cloud data is fetched and reconciled:
  *  - First sync for a device/user: cloud always wins
  *  - Subsequent syncs: LWW (last-write-wins) with conflict detection
@@ -15,8 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useOptionalAuth } from './useOptionalAuth'
 import { usePersistedStorage, UsePersistedStorageOptions, UsePersistedStorageReturn } from './usePersistedStorage'
 import { useNetworkStatus } from './useNetworkStatus'
-import { fetchRemote, pushToRemote } from '@/lib/supabase/sync'
-import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { fetchRemote, pushToRemote } from '@/lib/sync-client'
 import type { AllotmentData } from '@/types/unified-allotment'
 import type { SyncStatus } from '@/types/storage'
 
@@ -69,7 +68,7 @@ export function useSyncedStorage(
   options: UsePersistedStorageOptions<AllotmentData>
 ): UseSyncedStorageReturn<AllotmentData> {
   const local = usePersistedStorage<AllotmentData>(options)
-  const { getToken, userId, isSignedIn } = useOptionalAuth()
+  const { userId, isSignedIn } = useOptionalAuth()
   const { isOnline, justReconnected } = useNetworkStatus()
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('disabled')
@@ -82,7 +81,7 @@ export function useSyncedStorage(
   const lastPushedRef = useRef<string | null>(null)
   const activeUserIdRef = useRef<string | null>(userId)
 
-  const canSync = isSignedIn && isSupabaseConfigured() && isOnline
+  const canSync = isSignedIn && isOnline
 
   useEffect(() => {
     activeUserIdRef.current = userId
@@ -98,16 +97,6 @@ export function useSyncedStorage(
     lastPushedRef.current = snapshot
   }
 
-  // Get Clerk JWT for Supabase auth using the "supabase" JWT template.
-  const getSupabaseToken = async (): Promise<string | null> => {
-    try {
-      return await getToken({ template: 'supabase' })
-    } catch (err) {
-      console.error('[useSyncedStorage] Failed to get auth token:', err)
-      return null
-    }
-  }
-
   // Resolve a sync conflict by choosing cloud or local data
   const resolveConflict = useCallback(async (choice: 'cloud' | 'local') => {
     const conflict = syncConflict
@@ -120,9 +109,8 @@ export function useSyncedStorage(
     } else {
       // Push local data to cloud
       try {
-        const token = await getSupabaseToken()
-        if (token && !isStaleSyncUser(syncUserId)) {
-          await pushToRemote(token, syncUserId, conflict.local)
+        if (!isStaleSyncUser(syncUserId)) {
+          await pushToRemote(conflict.local)
           lastPushedRef.current = JSON.stringify(conflict.local)
         }
       } catch (err) {
@@ -156,20 +144,14 @@ export function useSyncedStorage(
     const doInitialSync = async () => {
       try {
         setSyncStatus('syncing')
-        const token = await getSupabaseToken()
         if (isStaleSyncUser(syncUserId)) return
-        if (!token) {
-          setSyncStatus('error')
-          setSyncError('JWT template "supabase" not configured in Clerk dashboard')
-          return
-        }
 
-        const remote = await fetchRemote(token, syncUserId)
+        const remote = await fetchRemote()
         if (isStaleSyncUser(syncUserId)) return
 
         if (!remote) {
           // First-time cloud user — push local data up
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(local.data!)
           if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
           markSynced(syncUserId)
@@ -215,7 +197,7 @@ export function useSyncedStorage(
           applyRemoteSnapshot(remote.data)
         } else if (localChanged || localTime > remoteTime) {
           // Only local changed, or local is newer
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(local.data!)
           if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
         } else {
@@ -268,11 +250,9 @@ export function useSyncedStorage(
       const syncUserId = userId
       try {
         setSyncStatus('syncing')
-        const token = await getSupabaseToken()
         if (isStaleSyncUser(syncUserId)) return
-        if (!token) return
 
-        await pushToRemote(token, syncUserId, local.data!)
+        await pushToRemote(local.data!)
         if (isStaleSyncUser(syncUserId)) return
         lastPushedRef.current = serialized
         markSynced(syncUserId)
@@ -298,14 +278,12 @@ export function useSyncedStorage(
     const resync = async () => {
       try {
         setSyncStatus('syncing')
-        const token = await getSupabaseToken()
         if (isStaleSyncUser(syncUserId)) return
-        if (!token) return
 
-        const remote = await fetchRemote(token, syncUserId)
+        const remote = await fetchRemote()
         if (isStaleSyncUser(syncUserId)) return
         if (!remote) {
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(local.data!)
           if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = JSON.stringify(local.data)
         } else {
@@ -331,7 +309,7 @@ export function useSyncedStorage(
           if (remoteChanged || remoteTime > localTime) {
             applyRemoteSnapshot(remote.data)
           } else {
-            await pushToRemote(token, syncUserId, local.data!)
+            await pushToRemote(local.data!)
             if (isStaleSyncUser(syncUserId)) return
             lastPushedRef.current = JSON.stringify(local.data)
           }
@@ -352,7 +330,7 @@ export function useSyncedStorage(
 
   // Update sync status based on auth/network, and reset sync lock when sync is disabled
   useEffect(() => {
-    if (!isSignedIn || !isSupabaseConfigured()) {
+    if (!isSignedIn) {
       setSyncStatus('disabled')
       syncInProgressRef.current = false
       initialSyncDoneRef.current = false
