@@ -77,7 +77,7 @@ describe('PUT /api/sync', () => {
       body: JSON.stringify({ data: mockData }),
       headers: { 'Content-Type': 'application/json' },
     })
-    const response = await PUT(request)
+    const response = await PUT(request as unknown as import('next/server').NextRequest)
     expect(response.status).toBe(401)
   })
 
@@ -93,7 +93,7 @@ describe('PUT /api/sync', () => {
       body: JSON.stringify({ data: mockData }),
       headers: { 'Content-Type': 'application/json' },
     })
-    const response = await PUT(request)
+    const response = await PUT(request as unknown as import('next/server').NextRequest)
     expect(response.status).toBe(200)
     expect(upsertAllotment).toHaveBeenCalledWith('user-123', mockData)
   })
