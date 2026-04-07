@@ -24,10 +24,11 @@ export async function fetchAllotment(userId: string): Promise<RemoteAllotment | 
 
 export async function upsertAllotment(userId: string, data: AllotmentData): Promise<void> {
   const sql = getSQL()
+  const json = JSON.stringify(data)
   await sql`
     INSERT INTO allotments (user_id, data, updated_at)
-    VALUES (${userId}, ${JSON.stringify(data)}::jsonb, now())
-    ON CONFLICT (user_id) DO UPDATE SET data = ${JSON.stringify(data)}::jsonb, updated_at = now()
+    VALUES (${userId}, ${json}::jsonb, now())
+    ON CONFLICT (user_id) DO UPDATE SET data = ${json}::jsonb, updated_at = now()
   `
 }
 
