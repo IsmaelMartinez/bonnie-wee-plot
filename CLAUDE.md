@@ -157,25 +157,27 @@ See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
 ### Authentication (Clerk)
 
-Opt-in user authentication via `@clerk/nextjs`. `ClerkProvider` wraps the app in `src/app/layout.tsx`. The middleware (`src/middleware.ts`) uses `clerkMiddleware` with CSP headers allowing Clerk and Supabase domains. All routes remain public — auth is opt-in for cloud sync.
+Opt-in user authentication via `@clerk/nextjs`. `ClerkProvider` wraps the app in `src/app/layout.tsx`. The middleware (`src/middleware.ts`) uses `clerkMiddleware` with CSP headers. All routes remain public — auth is opt-in for cloud sync.
 
 Sign-in/sign-up pages at `/sign-in` and `/sign-up` use Clerk's pre-built components with catch-all routes. Navigation shows `UserButton` when signed in, "Sign in" link when not. Account deletion is in the Settings Data tab's Danger Zone (visible when signed in).
 
 Environment: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`.
 
-### Cloud Persistence (Supabase)
+### Cloud Persistence (Neon)
 
-Supabase stores AllotmentData as a JSONB document per user in the `allotments` table (schema in `sql/001-allotments.sql`). Row Level Security restricts access via Clerk JWT `sub` claim.
+Neon Serverless Postgres stores AllotmentData as a JSONB document per user in the `allotments` table (schema in `sql/002-neon-allotments.sql`). Auth is enforced at the API route level via Clerk — no database-level RLS.
 
-The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated: initial load reconciles with LWW on `meta.updatedAt`, saves push asynchronously to Supabase, and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
+The sync API route (`src/app/api/sync/route.ts`) provides GET (fetch), PUT (upsert), and DELETE operations, all authenticated via Clerk's `auth()`. The Neon client module (`src/lib/neon/client.ts`) uses `@neondatabase/serverless` with a server-only `DATABASE_URL` env var.
 
-The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonClient()`, `createAuthClient(token)`, and `isSupabaseConfigured()`. The sync service (`src/lib/supabase/sync.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()`.
+The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated: it calls `/api/sync` via fetch, reconciles with LWW on `meta.updatedAt`, and pushes changes asynchronously. Reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
 
-Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be created in the Clerk Dashboard (JWT Templates > New template > Supabase preset). The template claims should be `{ "aud": "authenticated", "role": "authenticated", "email": "{{user.primary_email_address}}" }` — do not include `sub` as it is a reserved claim that Clerk sets automatically to the user ID. The signing key must be the Supabase JWT Secret (Project Settings > API > JWT Secret), algorithm HS256. The RLS policies in `sql/001-allotments.sql` use `auth.jwt() ->> 'sub'` to match rows to users.
+The client-side sync transport (`src/lib/sync-client.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()` as thin wrappers around the API routes.
+
+Environment: `DATABASE_URL` (server-only, Neon pooled connection string).
 
 ### GDPR Compliance
 
-`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
+`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Neon database row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
 
 ### AI Advisor
 
