@@ -1,28 +1,23 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { fetchRemote, deleteRemote } from '@/lib/supabase/sync'
+import { fetchAllotment, deleteAllotment } from '@/lib/neon/client'
 
 /**
  * GET /api/account — Export user data (GDPR)
  */
 export async function GET() {
-  const { userId, getToken } = await auth()
+  const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const token = await getToken({ template: 'supabase' })
-    if (!token) {
-      return NextResponse.json({ error: 'Failed to get auth token' }, { status: 500 })
-    }
-
-    const remote = await fetchRemote(token, userId)
-    if (!remote) {
+    const result = await fetchAllotment(userId)
+    if (!result) {
       return NextResponse.json({ error: 'No data found' }, { status: 404 })
     }
 
-    return NextResponse.json(remote.data, {
+    return NextResponse.json(result.data, {
       headers: {
         'Content-Disposition': 'attachment; filename="bonnie-wee-plot-export.json"',
       },
@@ -37,18 +32,13 @@ export async function GET() {
  * DELETE /api/account — Delete user data (GDPR)
  */
 export async function DELETE() {
-  const { userId, getToken } = await auth()
+  const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const token = await getToken({ template: 'supabase' })
-    if (!token) {
-      return NextResponse.json({ error: 'Failed to get auth token' }, { status: 500 })
-    }
-
-    await deleteRemote(token, userId)
+    await deleteAllotment(userId)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[/api/account] Deletion failed:', err)

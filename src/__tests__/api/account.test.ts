@@ -5,15 +5,10 @@ vi.mock('@clerk/nextjs/server', () => ({
   auth: vi.fn(),
 }))
 
-// Mock Supabase sync
-vi.mock('@/lib/supabase/sync', () => ({
-  fetchRemote: vi.fn(),
-  deleteRemote: vi.fn(),
-}))
-
-// Mock Supabase client
-vi.mock('@/lib/supabase/client', () => ({
-  isSupabaseConfigured: vi.fn(() => true),
+// Mock Neon client
+vi.mock('@/lib/neon/client', () => ({
+  fetchAllotment: vi.fn(),
+  deleteAllotment: vi.fn(),
 }))
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Clerk auth() return type is complex; partial mock is sufficient for tests
@@ -35,14 +30,11 @@ describe('GET /api/account (export)', () => {
   it('returns user data as JSON when authenticated', async () => {
     vi.resetModules()
     const { auth } = await import('@clerk/nextjs/server')
-    vi.mocked(auth).mockResolvedValue({
-      userId: 'user-123',
-      getToken: vi.fn().mockResolvedValue('test-token'),
-    } as AuthReturn)
+    vi.mocked(auth).mockResolvedValue({ userId: 'user-123' } as AuthReturn)
 
-    const { fetchRemote } = await import('@/lib/supabase/sync')
-    vi.mocked(fetchRemote).mockResolvedValue({
-      data: { version: 16, meta: { name: 'Test' } } as unknown as import('@/types/unified-allotment').AllotmentData,
+    const { fetchAllotment } = await import('@/lib/neon/client')
+    vi.mocked(fetchAllotment).mockResolvedValue({
+      data: { version: 18, meta: { name: 'Test' } } as unknown as import('@/types/unified-allotment').AllotmentData,
       updatedAt: '2026-03-04T12:00:00Z',
     })
 
@@ -70,19 +62,16 @@ describe('DELETE /api/account', () => {
   it('deletes user data and returns success', async () => {
     vi.resetModules()
     const { auth } = await import('@clerk/nextjs/server')
-    vi.mocked(auth).mockResolvedValue({
-      userId: 'user-123',
-      getToken: vi.fn().mockResolvedValue('test-token'),
-    } as AuthReturn)
+    vi.mocked(auth).mockResolvedValue({ userId: 'user-123' } as AuthReturn)
 
-    const { deleteRemote } = await import('@/lib/supabase/sync')
-    vi.mocked(deleteRemote).mockResolvedValue(undefined)
+    const { deleteAllotment } = await import('@/lib/neon/client')
+    vi.mocked(deleteAllotment).mockResolvedValue(undefined)
 
     const { DELETE } = await import('@/app/api/account/route')
     const response = await DELETE()
     expect(response.status).toBe(200)
     const body = await response.json()
     expect(body.success).toBe(true)
-    expect(deleteRemote).toHaveBeenCalledWith('test-token', 'user-123')
+    expect(deleteAllotment).toHaveBeenCalledWith('user-123')
   })
 })
