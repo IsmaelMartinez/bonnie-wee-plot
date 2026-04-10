@@ -44,7 +44,7 @@
     "@sentry/nextjs": "^10.40.0",
     "@serwist/next": "^9.5.0",
     "@supabase/supabase-js": "^2.98.0",
-    "@upstash/redis": "^1.36.1",
+    "@upstash/redis": "^1.37.0",
     "driver.js": "^1.4.0",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.575.0",
