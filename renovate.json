@@ -13,8 +13,7 @@
         "react-dom",
         "react-grid-layout",
         "@types/react",
-        "@types/react-dom",
-        "@types/react-grid-layout"
+        "@types/react-dom"
       ]
     },
     {

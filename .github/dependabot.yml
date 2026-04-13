@@ -18,7 +18,6 @@ updates:
           - "react-grid-layout"
           - "@types/react"
           - "@types/react-dom"
-          - "@types/react-grid-layout"
       nextjs:
         patterns:
           - "next"
