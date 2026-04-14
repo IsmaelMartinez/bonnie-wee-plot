@@ -191,14 +191,9 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 - **PR #262** Fixed duplicate sow tasks appearing across beds.
 - **PRs #264, #265** Added the repo-butler consumer guide link to `CLAUDE.md` and community health files (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, issue and PR templates).
 - **PRs #266, #279, #281** Resolved npm audit findings across direct and transitive dependencies, including the Vite GHSA-p9ff-h696-f583 advisory.
-- **PR #267** Added `.github/dependabot.yml` alongside the existing `renovate.json` (only one is needed — see "Known Tech Debt" below).
+- **PR #267** Added `.github/dependabot.yml` as the single source of dependency automation (the earlier `renovate.json` was retired in favour of the GitHub-native tool).
 - **PRs #268–#277, #290** Grouped dependency bumps (react, nextjs, sentry, serwist, playwright, vitest, type-definitions, upstash, etc.) plus removal of the deprecated `@types/react-grid-layout`.
 - **PR #282** Removed the redundant Snyk workflow; the Snyk App handles security scanning.
-
-### Known Tech Debt
-
-- **Duplicate dependency automation:** both `renovate.json` and `.github/dependabot.yml` are active with near-identical groupings. One should be removed to avoid duplicate PRs. Recent dependency PRs have come from Dependabot; `renovate.json`'s auto-merge rule for dev minor/patch updates is the one feature missing from the Dependabot config.
-- **`compost-storage.ts` cleanup:** after schema v18 integrated compost into `AllotmentData`, the service's localStorage helpers are dead code; only its pure mutation functions (`addPile`, `addInput`, etc.) are still imported by `useCompost`. The mutation helpers should be moved into the unified storage layer and the file retired.
 
 ### Remaining Backlog
 

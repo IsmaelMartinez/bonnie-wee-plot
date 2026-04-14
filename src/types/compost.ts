@@ -69,11 +69,6 @@ export interface CompostData {
   updatedAt: string
 }
 
-// ============ STORAGE CONSTANTS ============
-
-export const COMPOST_STORAGE_KEY = 'compost-data'
-export const COMPOST_SCHEMA_VERSION = 1
-
 // ============ HELPER TYPES ============
 
 /**

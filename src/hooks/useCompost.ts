@@ -25,7 +25,7 @@ import {
   getPileById,
   getPilesByStatus,
   getActivePiles,
-} from '@/services/compost-storage'
+} from '@/services/compost-operations'
 import type { CompostData } from '@/types/compost'
 import type { AllotmentData } from '@/types/unified-allotment'
 import { useAllotmentData } from './allotment/useAllotmentData'

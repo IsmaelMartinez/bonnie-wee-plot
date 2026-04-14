@@ -24,7 +24,6 @@ Use a **feature-based component structure** where components are grouped by the 
 src/
 ├── components/
 │   ├── Navigation.tsx              # Shared global component
-│   ├── GuideCTA.tsx                # Shared CTA component for guides
 │   └── garden-planner/             # Feature-specific folder
 │       ├── BedOverview.tsx         # Overview grid showing all beds at a glance
 │       ├── GapSuggestions.tsx      # AI-powered gap fill suggestions
