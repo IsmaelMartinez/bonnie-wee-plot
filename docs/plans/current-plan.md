@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-03-06
+Last updated: 2026-04-14
 
 ## What's Been Completed
 
@@ -181,6 +181,19 @@ For each page, evaluate: does a new user need this on day one? Is it polished en
 
 12. `/ai-advisor` — hidden for first release (PR #255). Chat modal, floating button, and receive/share-via-code UI all disconnected from navigation. Underlying code preserved for future re-enablement. Onboarding "ask" path removed, Quick Actions replaced "Ask Aitor" with "Plant Guide". Tests skipped rather than deleted.
 13. `/allotment` — reviewed and simplified. Core workflow (add areas, record plantings, view details) kept intact. Hidden for first release: auto-rotate button and dialog, rotation count jargon (replaced with "beds not yet planted"), Short ID and Built-in-year fields in Add Area, care logs, and underplantings in permanent panels. All hidden via `src/config/release-visibility.ts` constants — flip to `true` to re-enable. Harvest tracking, rotation type dropdown, rotation guide banner, grid layout, notes, and cross-links all kept.
+
+### Post-Review Hardening (PRs #260–#290)
+
+After the page-by-page review, a batch of smaller fixes and housekeeping work landed:
+
+- **PR #260** Hid the rotation guide banner for the first release.
+- **PR #261** Removed the Excel workbook and import scripts.
+- **PR #262** Fixed duplicate sow tasks appearing across beds.
+- **PRs #264, #265** Added the repo-butler consumer guide link to `CLAUDE.md` and community health files (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, issue and PR templates).
+- **PRs #266, #279, #281** Resolved npm audit findings across direct and transitive dependencies, including the Vite GHSA-p9ff-h696-f583 advisory.
+- **PR #267** Added `.github/dependabot.yml` as the single source of dependency automation (the earlier `renovate.json` was retired in favour of the GitHub-native tool).
+- **PRs #268–#277, #290** Grouped dependency bumps (react, nextjs, sentry, serwist, playwright, vitest, type-definitions, upstash, etc.) plus removal of the deprecated `@types/react-grid-layout`.
+- **PR #282** Removed the redundant Snyk workflow; the Snyk App handles security scanning.
 
 ### Remaining Backlog
 

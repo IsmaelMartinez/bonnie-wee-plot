@@ -1,8 +1,8 @@
 /**
  * Storage Operations Utilities
  *
- * Shared utility functions for storage operations used by both
- * allotment-storage.ts and compost-storage.ts.
+ * Shared utility functions for localStorage operations used by the
+ * allotment storage modules in `src/services/`.
  */
 
 import { StorageResult } from '@/types/storage'

@@ -34,6 +34,7 @@ dist
 test-results/
 playwright-report/
 playwright/.cache/
+.playwright-mcp/
 
 # TypeScript
 *.tsbuildinfo

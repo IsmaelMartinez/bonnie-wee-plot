@@ -30,3 +30,6 @@ This directory contains Architecture Decision Records documenting significant te
 | [022](022-ai-inventory-function-calling.md) | AI Inventory Function Calling | Accepted |
 | [024](024-p2p-sync-architecture.md) | P2P Sync Architecture | Accepted |
 | [025](025-perennial-care-tips.md) | Perennial Care Tips | Accepted |
+| [026](026-guided-tours.md) | Guided Tours | Accepted |
+
+> ADR 023 is intentionally unused; the sequence skipped from 022 to 024.
