@@ -35,7 +35,9 @@ Comprehensive seed and plant management for our shorter growing season:
 - **Crop Rotation**: Smart rotation suggestions based on plant families
 
 ### 🤖 Your New AI Garden Buddy (Aitor)
-Think of it as having a horticultural genius in your pocket, one who understands that "full sun" means something different at 56°N latitude. Ask it anything:
+*Currently hidden for the first release to keep the experience focused — the code is preserved and will return in a future release.*
+
+Think of it as having a horticultural genius in your pocket, one who understands that "full sun" means something different at 56°N latitude. When enabled, Aitor can answer things like:
 - "Will this variety actually ripen before September?"
 - "Is blight inevitable or am I just paranoid?"
 - "How do I convince my tomatoes that 15°C is actually warm?"
@@ -56,7 +58,7 @@ Turn garden waste into black gold:
 - **Lucide Icons**: Tiny pictures that somehow make everything better
 - **AI Integration**: The robot overlords, but for plants (powered by OpenAI)
 
-## � Getting This Garden Party Started
+## 🚀 Getting This Garden Party Started
 
 *Warning: May cause excessive productivity and sudden urges to organize your tool shed*
 
@@ -91,7 +93,7 @@ src/
 │   ├── layout.tsx              # Root layout with navigation
 │   ├── page.tsx                # Today Dashboard (homepage)
 │   ├── allotment/              # Plot planner with year-by-year tracking
-│   ├── ai-advisor/             # AI chat redirect (opens modal)
+│   ├── ai-advisor/             # AI chat redirect — hidden from nav in first release
 │   ├── seeds/                  # Seed inventory and variety tracking
 │   ├── compost/                # Compost pile tracking
 │   ├── this-month/             # Seasonal calendar and tasks
@@ -147,8 +149,8 @@ Seasonal calendar showing what to plant, harvest, and maintain during the curren
 ### Plant Guide (`/plants`)
 Browse all 192 plants in the database with search and category filtering. Detail pages show planting calendars, care requirements, companion planting, and external links.
 
-### Aitor - AI Garden Advisor (`/ai-advisor`)
-Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Get personalized advice based on your plot data and Scottish growing conditions.
+### Aitor - AI Garden Advisor (`/ai-advisor`) — Hidden in first release
+Your personal garden guru that never sleeps, judges, or asks for payment in homegrown vegetables. Gives personalized advice based on your plot data and Scottish growing conditions. Currently disabled via `SHOW_AI_ADVISOR` in `src/config/release-visibility.ts`; underlying code remains in place for a future re-enablement.
 
 ### Settings (`/settings`)
 Manage app settings, export/import your data, and control guided tours. If signed in, you can also manage your account and cloud sync.

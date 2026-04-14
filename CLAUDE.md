@@ -12,17 +12,25 @@ Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered g
 ```bash
 npm run dev          # Start development server at localhost:3000
 npm run build        # Production build
+npm run start        # Start production server (after build)
+npm run analyze      # Build with bundle analyzer (ANALYZE=true)
 npm run lint         # ESLint
 npm run type-check   # TypeScript type checking (tsc --noEmit)
 ```
 
 ### Testing
 ```bash
-npm run test:unit           # Run Vitest unit tests (src/__tests__/)
-npm run test:unit:watch     # Unit tests in watch mode
-npm run test                # Run Playwright e2e tests (tests/)
-npm run test:headed         # Playwright with browser visible
-npm run test:all            # Run both unit and e2e tests
+npm run test:unit            # Run Vitest unit tests (src/__tests__/)
+npm run test:unit:watch      # Unit tests in watch mode
+npm run test:unit:coverage   # Unit tests with coverage report
+npm run test                 # Run Playwright e2e tests (tests/)
+npm run test:ui              # Playwright with the UI runner
+npm run test:debug           # Playwright in debug mode
+npm run test:headed          # Playwright with browser visible
+npm run test:chrome          # Playwright chromium project only
+npm run test:firefox         # Playwright firefox project only
+npm run test:webkit          # Playwright webkit project only
+npm run test:all             # Run both unit and e2e tests
 ```
 
 Run a single unit test:
@@ -149,7 +157,7 @@ The app supports sharing allotment data between devices via a simple share/recei
 - `src/app/receive/page.tsx` - Code entry and QR scanner (uses `html5-qrcode` for cross-browser compatibility)
 - `src/app/receive/[code]/page.tsx` - Preview and import confirmation
 
-**Settings Page:** `/settings` has three tabs: AI & Location (API key, geolocation), Data (transfer, share, danger zone with account deletion), and Help (guided tours).
+**Settings Page:** `/settings` has two tabs in the first release — Data (transfer, share, danger zone with account deletion) and Help (guided tours). A third "AI & Location" tab (API key, geolocation) is conditionally rendered when `SHOW_AI_ADVISOR` is `true` in `release-visibility.ts`.
 
 **Environment:** Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for the share feature.
 
@@ -179,10 +187,12 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 
 ### AI Advisor
 
+> **Note:** AI Advisor (Aitor) is currently **hidden for the first release** via `SHOW_AI_ADVISOR = false` in `src/config/release-visibility.ts`. The `/ai-advisor` route, chat modal, floating chat button, AI settings tab, and related onboarding paths are disconnected from navigation. The underlying code is preserved — flip the constant to `true` to re-enable.
+
 `src/app/api/ai-advisor/route.ts` is a Next.js API route that:
 - Accepts user messages and optional plant images
 - Proxies to OpenAI API (gpt-4o for vision, gpt-4o-mini for text)
-- Uses BYO token via `x-openai-token` header
+- Uses BYO token via `x-openai-token` header (or server-side `OPENAI_API_KEY` env var)
 - Includes allotment context in system prompt when provided
 - Supports function calling for data modification (add/update/remove plantings)
 
@@ -212,6 +222,18 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 ### Path Aliases
 
 `@/*` maps to `./src/*` (configured in tsconfig.json)
+
+### Release Visibility Config
+
+`src/config/release-visibility.ts` exports boolean constants that gate advanced features hidden for the first release. All constants are `false` for the first release; flip to `true` to re-enable:
+
+- `SHOW_ROTATION_SUGGESTIONS` — auto-rotate button/dialog and "X/Y to rotate" in season widget
+- `SHOW_ADVANCED_AREA_FIELDS` — Short ID and Built-in-year fields in Add Area form
+- `SHOW_CARE_LOGS` — care log section in permanent area detail panels
+- `SHOW_UNDERPLANTINGS` — underplantings list in permanent area detail panels
+- `SHOW_AI_ADVISOR` — AI Advisor (Aitor) chat modal, floating button, `/ai-advisor` route, and AI/Location settings tab
+
+Import the relevant constant and wrap advanced JSX in `{SHOW_X && (...)}`. Props, imports, state, and logic stay untouched — only rendering is gated.
 
 ## Migration and Backward Compatibility
 
