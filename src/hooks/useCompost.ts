@@ -25,7 +25,7 @@ import {
   getPileById,
   getPilesByStatus,
   getActivePiles,
-} from '@/services/compost-operations'
+} from '@/services/allotment-storage'
 import type { CompostData } from '@/types/compost'
 import type { AllotmentData } from '@/types/unified-allotment'
 import { useAllotmentData } from './allotment/useAllotmentData'
@@ -71,8 +71,8 @@ export interface UseCompostActions {
 export type UseCompostReturn = UseCompostState & UseCompostActions
 
 /**
- * Build a CompostData wrapper from AllotmentData for use with the existing
- * compost-storage pure functions (which operate on CompostData).
+ * Build a CompostData wrapper from AllotmentData for use with the
+ * compost-operations pure functions (which operate on CompostData).
  */
 function toCompostData(allotmentData: AllotmentData): CompostData {
   return {
@@ -105,7 +105,7 @@ export function useCompost(): UseCompostReturn {
     return toCompostData(allotmentData)
   }, [allotmentData])
 
-  // Helper: apply a compost-storage mutation and write back to AllotmentData
+  // Helper: apply a compost-operations mutation and write back to AllotmentData
   const applyCompostMutation = useCallback(
     (mutate: (cd: CompostData) => CompostData) => {
       if (!allotmentData) return

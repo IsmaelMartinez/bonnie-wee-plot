@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-04-14
+Last updated: 2026-04-16
 
 ## What's Been Completed
 
@@ -194,6 +194,11 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 - **PR #267** Added `.github/dependabot.yml` as the single source of dependency automation (the earlier `renovate.json` was retired in favour of the GitHub-native tool).
 - **PRs #268–#277, #290** Grouped dependency bumps (react, nextjs, sentry, serwist, playwright, vitest, type-definitions, upstash, etc.) plus removal of the deprecated `@types/react-grid-layout`.
 - **PR #282** Removed the redundant Snyk workflow; the Snyk App handles security scanning.
+
+### Tech Debt Cleanup (April 2026)
+
+- Confirmed `renovate.json` is gone; Dependabot (`.github/dependabot.yml`) is the sole dependency automation.
+- Retired `compost-storage.ts`: the pure mutation/query helpers live in `src/services/compost-operations.ts` and are now re-exported from the `allotment-storage` barrel. `useCompost` imports through the unified barrel and stale `compost-storage` comments were updated.
 
 ### Remaining Backlog
 

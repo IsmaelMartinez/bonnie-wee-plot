@@ -253,11 +253,9 @@ Data lives exclusively in localStorage. If a user clears browser data, everythin
 ### 6.3 Compost section integration
 
 The compost feature feels somewhat isolated from the rest of the app:
-- Dashboard has `CompostAlerts` but the compost data model (`compost-storage.ts`) is completely separate from `AllotmentData`
+- Schema v18 folded compost data into `AllotmentData.compost`, and the former `compost-storage.ts` service was replaced by pure helpers in `compost-operations.ts` (re-exported via the `allotment-storage` barrel). Export/import consistency is therefore resolved.
 - No integration with the AI Advisor (Aitor can't answer compost questions with context)
 - No link between compost piles and specific beds/areas
-
-This may be intentional (keep sections focused per "Simplicity First"), but it's worth considering whether compost data should be part of `AllotmentData` for export/import consistency.
 
 ### 6.4 Search/filter capabilities
 

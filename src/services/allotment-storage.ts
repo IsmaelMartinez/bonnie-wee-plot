@@ -159,6 +159,20 @@ export {
   removeMaintenanceTask,
 } from './task-operations'
 
+// Compost operations (pure mutations + queries over AllotmentData.compost)
+export {
+  addPile,
+  updatePile,
+  removePile,
+  addInput,
+  removeInput,
+  addEvent,
+  removeEvent,
+  getPileById,
+  getPilesByStatus,
+  getActivePiles,
+} from './compost-operations'
+
 // Generic localStorage utilities
 export {
   getStorageItem,
