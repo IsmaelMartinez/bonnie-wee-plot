@@ -15,16 +15,16 @@ import {
   NewCompostEvent,
 } from '@/types/compost'
 import {
-  addPile as storageAddPile,
-  updatePile as storageUpdatePile,
-  removePile as storageRemovePile,
-  addInput as storageAddInput,
-  removeInput as storageRemoveInput,
-  addEvent as storageAddEvent,
-  removeEvent as storageRemoveEvent,
-  getPileById,
-  getPilesByStatus,
-  getActivePiles,
+  addCompostPile as storageAddPile,
+  updateCompostPile as storageUpdatePile,
+  removeCompostPile as storageRemovePile,
+  addCompostInput as storageAddInput,
+  removeCompostInput as storageRemoveInput,
+  addCompostEvent as storageAddEvent,
+  removeCompostEvent as storageRemoveEvent,
+  getCompostPileById,
+  getCompostPilesByStatus,
+  getActiveCompostPiles,
 } from '@/services/allotment-storage'
 import type { CompostData } from '@/types/compost'
 import type { AllotmentData } from '@/types/unified-allotment'
@@ -135,17 +135,17 @@ export function useCompost(): UseCompostReturn {
 
   const getPile = useCallback((pileId: string) => {
     if (!compostData) return undefined
-    return getPileById(compostData, pileId)
+    return getCompostPileById(compostData, pileId)
   }, [compostData])
 
   const getPilesByStatusData = useCallback((status: CompostPile['status']) => {
     if (!compostData) return []
-    return getPilesByStatus(compostData, status)
+    return getCompostPilesByStatus(compostData, status)
   }, [compostData])
 
   const getActivePilesData = useCallback(() => {
     if (!compostData) return []
-    return getActivePiles(compostData)
+    return getActiveCompostPiles(compostData)
   }, [compostData])
 
   // ============ INPUT OPERATIONS ============

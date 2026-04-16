@@ -161,16 +161,16 @@ export {
 
 // Compost operations (pure mutations + queries over AllotmentData.compost)
 export {
-  addPile,
-  updatePile,
-  removePile,
-  addInput,
-  removeInput,
-  addEvent,
-  removeEvent,
-  getPileById,
-  getPilesByStatus,
-  getActivePiles,
+  addCompostPile,
+  updateCompostPile,
+  removeCompostPile,
+  addCompostInput,
+  removeCompostInput,
+  addCompostEvent,
+  removeCompostEvent,
+  getCompostPileById,
+  getCompostPilesByStatus,
+  getActiveCompostPiles,
 } from './compost-operations'
 
 // Generic localStorage utilities
