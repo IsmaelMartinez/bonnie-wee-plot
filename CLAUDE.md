@@ -94,6 +94,7 @@ Query functions in `src/lib/variety-queries.ts`:
 - `area-mutations.ts` — area CRUD, care logs, harvest tracking
 - `variety-operations.ts` — variety CRUD, seed inventory, supplier queries
 - `task-operations.ts` — custom tasks and maintenance tasks
+- `compost-operations.ts` — compost pile CRUD, inputs, events, and queries over `AllotmentData.compost`
 - `generic-storage.ts` — raw localStorage utilities
 
 All existing imports from `@/services/allotment-storage` continue to work unchanged via the barrel file. Immutable update patterns, Promise-based `flushSave()`, and automatic backup creation before imports are preserved.

@@ -15,26 +15,9 @@ This analysis identifies **no critical blockers** but surfaces actionable improv
 
 ## 1. Code Structure Improvements
 
-### 1.1 Split `allotment-storage.ts` (3,356 lines)
+### 1.1 Split `allotment-storage.ts` — ✅ Done (March 2026 Tech Debt Sprint)
 
-This is the single largest maintainability concern. The file contains schema validation, repair logic, 16 migration versions, and all CRUD operations in one place. This was already identified in `pre-production-strategic-plan.md` but not yet actioned.
-
-**Proposed split:**
-```
-src/services/allotment/
-├── index.ts              # Re-exports public API
-├── storage.ts            # Core load/save/flush operations
-├── validation.ts         # validateAllotmentData, repairAllotmentData
-├── migrations.ts         # migrateSchema (v1→v16) + migration helpers
-├── crud-areas.ts         # addArea, updateArea, removeArea
-├── crud-plantings.ts     # addPlanting, updatePlanting, removePlanting
-├── crud-seasons.ts       # addSeason, updateSeason helpers
-├── crud-varieties.ts     # addVariety, updateVariety, archiveVariety
-├── crud-maintenance.ts   # maintenance task operations
-└── stats.ts              # getStorageStats, diagnostic functions
-```
-
-**Impact:** Smaller files are easier to review, test, and maintain. Migration code (which rarely changes) stops cluttering the CRUD functions (which change often). Each module can have focused unit tests.
+Originally flagged as the largest maintainability concern (3,356 lines with schema validation, repair logic, migrations, and all CRUD in one file). Now split into focused modules under `src/services/` — `storage-core.ts`, `storage-validation.ts`, `storage-migrations.ts`, `season-operations.ts`, `planting-operations.ts`, `area-queries.ts`, `area-mutations.ts`, `variety-operations.ts`, `task-operations.ts`, `compost-operations.ts`, and `generic-storage.ts`. The original path re-exports everything via a barrel so existing imports continue to work. Current schema version is v18 (not v16).
 
 ### 1.2 Replace `console.log` with structured logger in storage service
 
@@ -253,11 +236,9 @@ Data lives exclusively in localStorage. If a user clears browser data, everythin
 ### 6.3 Compost section integration
 
 The compost feature feels somewhat isolated from the rest of the app:
-- Dashboard has `CompostAlerts` but the compost data model (`compost-storage.ts`) is completely separate from `AllotmentData`
+- Schema v18 folded compost data into `AllotmentData.compost`, and the former `compost-storage.ts` service was replaced by pure helpers in `compost-operations.ts` (re-exported via the `allotment-storage` barrel). Export/import consistency is therefore resolved.
 - No integration with the AI Advisor (Aitor can't answer compost questions with context)
 - No link between compost piles and specific beds/areas
-
-This may be intentional (keep sections focused per "Simplicity First"), but it's worth considering whether compost data should be part of `AllotmentData` for export/import consistency.
 
 ### 6.4 Search/filter capabilities
 

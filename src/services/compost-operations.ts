@@ -24,7 +24,7 @@ import { generateId } from '@/lib/utils/id'
 /**
  * Add a new compost pile
  */
-export function addPile(data: CompostData, pile: NewCompostPile): CompostData {
+export function addCompostPile(data: CompostData, pile: NewCompostPile): CompostData {
   const now = new Date().toISOString()
   const newPile: CompostPile = {
     ...pile,
@@ -45,7 +45,7 @@ export function addPile(data: CompostData, pile: NewCompostPile): CompostData {
 /**
  * Update a compost pile
  */
-export function updatePile(
+export function updateCompostPile(
   data: CompostData,
   pileId: string,
   updates: Partial<Omit<CompostPile, 'id' | 'inputs' | 'events' | 'createdAt'>>
@@ -66,7 +66,7 @@ export function updatePile(
 /**
  * Remove a compost pile
  */
-export function removePile(data: CompostData, pileId: string): CompostData {
+export function removeCompostPile(data: CompostData, pileId: string): CompostData {
   return {
     ...data,
     piles: data.piles.filter(pile => pile.id !== pileId),
@@ -79,7 +79,7 @@ export function removePile(data: CompostData, pileId: string): CompostData {
 /**
  * Add an input to a compost pile
  */
-export function addInput(
+export function addCompostInput(
   data: CompostData,
   pileId: string,
   input: NewCompostInput
@@ -104,7 +104,7 @@ export function addInput(
 /**
  * Remove an input from a compost pile
  */
-export function removeInput(
+export function removeCompostInput(
   data: CompostData,
   pileId: string,
   inputId: string
@@ -127,7 +127,7 @@ export function removeInput(
 /**
  * Add an event to a compost pile
  */
-export function addEvent(
+export function addCompostEvent(
   data: CompostData,
   pileId: string,
   event: NewCompostEvent
@@ -152,7 +152,7 @@ export function addEvent(
 /**
  * Remove an event from a compost pile
  */
-export function removeEvent(
+export function removeCompostEvent(
   data: CompostData,
   pileId: string,
   eventId: string
@@ -175,20 +175,20 @@ export function removeEvent(
 /**
  * Get a pile by ID
  */
-export function getPileById(data: CompostData, pileId: string): CompostPile | undefined {
+export function getCompostPileById(data: CompostData, pileId: string): CompostPile | undefined {
   return data.piles.find(pile => pile.id === pileId)
 }
 
 /**
  * Get piles by status
  */
-export function getPilesByStatus(data: CompostData, status: CompostPile['status']): CompostPile[] {
+export function getCompostPilesByStatus(data: CompostData, status: CompostPile['status']): CompostPile[] {
   return data.piles.filter(pile => pile.status === status)
 }
 
 /**
  * Get active piles (not yet applied)
  */
-export function getActivePiles(data: CompostData): CompostPile[] {
+export function getActiveCompostPiles(data: CompostData): CompostPile[] {
   return data.piles.filter(pile => pile.status !== 'applied')
 }

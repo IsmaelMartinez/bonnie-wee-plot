@@ -15,17 +15,17 @@ import {
   NewCompostEvent,
 } from '@/types/compost'
 import {
-  addPile as storageAddPile,
-  updatePile as storageUpdatePile,
-  removePile as storageRemovePile,
-  addInput as storageAddInput,
-  removeInput as storageRemoveInput,
-  addEvent as storageAddEvent,
-  removeEvent as storageRemoveEvent,
-  getPileById,
-  getPilesByStatus,
-  getActivePiles,
-} from '@/services/compost-operations'
+  addCompostPile as storageAddPile,
+  updateCompostPile as storageUpdatePile,
+  removeCompostPile as storageRemovePile,
+  addCompostInput as storageAddInput,
+  removeCompostInput as storageRemoveInput,
+  addCompostEvent as storageAddEvent,
+  removeCompostEvent as storageRemoveEvent,
+  getCompostPileById,
+  getCompostPilesByStatus,
+  getActiveCompostPiles,
+} from '@/services/allotment-storage'
 import type { CompostData } from '@/types/compost'
 import type { AllotmentData } from '@/types/unified-allotment'
 import { useAllotmentData } from './allotment/useAllotmentData'
@@ -71,8 +71,8 @@ export interface UseCompostActions {
 export type UseCompostReturn = UseCompostState & UseCompostActions
 
 /**
- * Build a CompostData wrapper from AllotmentData for use with the existing
- * compost-storage pure functions (which operate on CompostData).
+ * Build a CompostData wrapper from AllotmentData for use with the
+ * compost-operations pure functions (which operate on CompostData).
  */
 function toCompostData(allotmentData: AllotmentData): CompostData {
   return {
@@ -105,7 +105,7 @@ export function useCompost(): UseCompostReturn {
     return toCompostData(allotmentData)
   }, [allotmentData])
 
-  // Helper: apply a compost-storage mutation and write back to AllotmentData
+  // Helper: apply a compost-operations mutation and write back to AllotmentData
   const applyCompostMutation = useCallback(
     (mutate: (cd: CompostData) => CompostData) => {
       if (!allotmentData) return
@@ -135,17 +135,17 @@ export function useCompost(): UseCompostReturn {
 
   const getPile = useCallback((pileId: string) => {
     if (!compostData) return undefined
-    return getPileById(compostData, pileId)
+    return getCompostPileById(compostData, pileId)
   }, [compostData])
 
   const getPilesByStatusData = useCallback((status: CompostPile['status']) => {
     if (!compostData) return []
-    return getPilesByStatus(compostData, status)
+    return getCompostPilesByStatus(compostData, status)
   }, [compostData])
 
   const getActivePilesData = useCallback(() => {
     if (!compostData) return []
-    return getActivePiles(compostData)
+    return getActiveCompostPiles(compostData)
   }, [compostData])
 
   // ============ INPUT OPERATIONS ============
