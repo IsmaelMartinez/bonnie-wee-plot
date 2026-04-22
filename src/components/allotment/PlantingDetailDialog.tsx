@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   Droplets,
   Sun,
@@ -13,6 +13,7 @@ import {
   Info,
   Leaf,
   Star,
+  CheckCircle2,
 } from 'lucide-react'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import Tabs, { Tab } from '@/components/ui/Tabs'
@@ -44,6 +45,8 @@ export default function PlantingDetailDialog({
   const [localSowDate, setLocalSowDate] = useState(formatDateForInput(planting?.sowDate))
   const [localTransplantDate, setLocalTransplantDate] = useState(formatDateForInput(planting?.transplantDate))
   const [localHarvestDate, setLocalHarvestDate] = useState(formatDateForInput(planting?.actualHarvestStart))
+  const [savedFlash, setSavedFlash] = useState(false)
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setLocalNotes(planting?.notes || '')
@@ -51,6 +54,22 @@ export default function PlantingDetailDialog({
     setLocalTransplantDate(formatDateForInput(planting?.transplantDate))
     setLocalHarvestDate(formatDateForInput(planting?.actualHarvestStart))
   }, [planting?.id, planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart])
+
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current)
+    }
+  }, [])
+
+  const emitUpdate = useCallback(
+    (updates: PlantingUpdate) => {
+      onUpdate(updates)
+      setSavedFlash(true)
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current)
+      savedTimeoutRef.current = setTimeout(() => setSavedFlash(false), 1800)
+    },
+    [onUpdate]
+  )
 
   const veg = planting ? getVegetableById(planting.plantId) : null
   const { goods, bads } = planting
@@ -62,9 +81,9 @@ export default function PlantingDetailDialog({
 
   const handleNotesBlur = useCallback(() => {
     if (planting && localNotes !== planting.notes) {
-      onUpdate({ notes: localNotes || undefined })
+      emitUpdate({ notes: localNotes || undefined })
     }
-  }, [planting, localNotes, onUpdate])
+  }, [planting, localNotes, emitUpdate])
 
   /**
    * Helper to update planting fields and recalculate harvest dates when needed
@@ -72,30 +91,29 @@ export default function PlantingDetailDialog({
    */
   const handleUpdateAndRecalculate = useCallback(
     (updates: PlantingUpdate) => {
-      // Check if we need to recalculate harvest dates
+      // Gate on the post-update sow date so recalculation still fires when
+      // the user is adding a sow date to a planting that didn't have one.
+      const merged = planting ? { ...planting, ...updates } : null
       const needsRecalculation =
-        planting &&
-        veg &&
-        planting.sowDate &&
+        !!merged &&
+        !!veg &&
+        !!merged.sowDate &&
         (updates.sowDate !== undefined ||
           updates.transplantDate !== undefined ||
           updates.sowMethod !== undefined)
 
-      if (needsRecalculation) {
-        const updatedPlanting = populateExpectedHarvest(
-          { ...planting, ...updates },
-          veg
-        )
-        onUpdate({
+      if (needsRecalculation && merged && veg) {
+        const updatedPlanting = populateExpectedHarvest(merged, veg)
+        emitUpdate({
           ...updates,
           expectedHarvestStart: updatedPlanting.expectedHarvestStart,
           expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
         })
       } else {
-        onUpdate(updates)
+        emitUpdate(updates)
       }
     },
-    [onUpdate, planting, veg]
+    [emitUpdate, planting, veg]
   )
 
   const handleDateChange = useCallback(
@@ -118,9 +136,9 @@ export default function PlantingDetailDialog({
 
   const handleSuccessChange = useCallback(
     (success: Planting['success']) => {
-      onUpdate({ success: success || undefined })
+      emitUpdate({ success: success || undefined })
     },
-    [onUpdate]
+    [emitUpdate]
   )
 
   const handleDelete = useCallback(() => {
@@ -362,7 +380,18 @@ export default function PlantingDetailDialog({
                 {crossYearInfo.label}
               </span>
             )}
+            <span
+              className={`ml-auto inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-zen-moss-50 text-zen-moss-700 transition-opacity ${savedFlash ? 'opacity-100' : 'opacity-0'}`}
+              aria-live="polite"
+              role="status"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Saved
+            </span>
           </div>
+          <p className="text-xs text-zen-stone-500 mb-3">
+            Changes save automatically as you edit.
+          </p>
 
           {/* Tabs */}
           <div className="flex-1">

@@ -53,9 +53,12 @@ export default function BedDetailPanel({
   onArchiveArea,
 }: BedDetailPanelProps) {
   const [isEditMode, setIsEditMode] = useState(false)
-  const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
+  const [selectedPlantingId, setSelectedPlantingId] = useState<string | null>(null)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const [summaryPlantId, setSummaryPlantId] = useState<string | null>(null)
+  const selectedPlanting = selectedPlantingId
+    ? plantings.find(p => p.id === selectedPlantingId) || null
+    : null
   // Determine if this is a rotation bed (vs perennial bed)
   const isRotationBed = area.kind === 'rotation-bed'
 
@@ -220,7 +223,7 @@ export default function BedDetailPanel({
                 planting={p}
                 onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                 otherPlantings={plantings}
-                onClick={() => setSelectedPlanting(p)}
+                onClick={() => setSelectedPlantingId(p.id)}
                 onPlantInfo={setSummaryPlantId}
               />
             ))}
@@ -263,16 +266,16 @@ export default function BedDetailPanel({
     <PlantingDetailDialog
       planting={selectedPlanting}
       isOpen={!!selectedPlanting}
-      onClose={() => setSelectedPlanting(null)}
+      onClose={() => setSelectedPlantingId(null)}
       onUpdate={(updates) => {
-        if (selectedPlanting) {
-          onUpdatePlanting(selectedPlanting.id, updates)
+        if (selectedPlantingId) {
+          onUpdatePlanting(selectedPlantingId, updates)
         }
       }}
       onDelete={() => {
-        if (selectedPlanting) {
-          onDeletePlanting(selectedPlanting.id)
-          setSelectedPlanting(null)
+        if (selectedPlantingId) {
+          onDeletePlanting(selectedPlantingId)
+          setSelectedPlantingId(null)
         }
       }}
       otherPlantings={plantings}
