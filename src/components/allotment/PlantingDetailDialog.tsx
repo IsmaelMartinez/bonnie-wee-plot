@@ -80,7 +80,7 @@ export default function PlantingDetailDialog({
   const PhaseIcon = phaseInfo ? getPhaseIcon(phaseInfo.phase) : Leaf
 
   const handleNotesBlur = useCallback(() => {
-    if (planting && localNotes !== planting.notes) {
+    if (planting && localNotes !== (planting.notes || '')) {
       emitUpdate({ notes: localNotes || undefined })
     }
   }, [planting, localNotes, emitUpdate])
@@ -91,24 +91,28 @@ export default function PlantingDetailDialog({
    */
   const handleUpdateAndRecalculate = useCallback(
     (updates: PlantingUpdate) => {
-      // Gate on the post-update sow date so recalculation still fires when
-      // the user is adding a sow date to a planting that didn't have one.
+      // Key-presence check (not value check) so clearing a field still triggers
+      // recalc — handleDateChange passes `undefined` for empty strings.
+      const touchesHarvestInputs =
+        'sowDate' in updates || 'transplantDate' in updates || 'sowMethod' in updates
       const merged = planting ? { ...planting, ...updates } : null
-      const needsRecalculation =
-        !!merged &&
-        !!veg &&
-        !!merged.sowDate &&
-        (updates.sowDate !== undefined ||
-          updates.transplantDate !== undefined ||
-          updates.sowMethod !== undefined)
 
-      if (needsRecalculation && merged && veg) {
-        const updatedPlanting = populateExpectedHarvest(merged, veg)
-        emitUpdate({
-          ...updates,
-          expectedHarvestStart: updatedPlanting.expectedHarvestStart,
-          expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
-        })
+      if (merged && veg && touchesHarvestInputs) {
+        if (!merged.sowDate) {
+          // Sow date gone — drop the stale expected harvest window.
+          emitUpdate({
+            ...updates,
+            expectedHarvestStart: undefined,
+            expectedHarvestEnd: undefined,
+          })
+        } else {
+          const updatedPlanting = populateExpectedHarvest(merged, veg)
+          emitUpdate({
+            ...updates,
+            expectedHarvestStart: updatedPlanting.expectedHarvestStart,
+            expectedHarvestEnd: updatedPlanting.expectedHarvestEnd,
+          })
+        }
       } else {
         emitUpdate(updates)
       }

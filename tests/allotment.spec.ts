@@ -1084,14 +1084,22 @@ test.describe('Planting Detail Dialog - Editing', () => {
   }
 
   async function openPlantingDetailDialog(page: import('@playwright/test').Page) {
-    await selectRotationBed(page)
-    // Click the planting card to open the detail dialog
+    // Seeded data guarantees Test Bed A exists — select it directly rather than
+    // routing through selectRotationBed, whose ensureRotationBedExists helper
+    // can race hydration and create a second empty bed under a slow dev server.
+    const gridItem = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Test Bed A' }).first()
+    const mobileItem = page.getByRole('button').filter({ hasText: 'Test Bed A' }).first()
+    const bedTarget = (await gridItem.isVisible({ timeout: 5000 }).catch(() => false))
+      ? gridItem
+      : mobileItem
+    await expect(bedTarget).toBeVisible({ timeout: 10000 })
+    await bedTarget.click()
+
     const plantingCard = page.getByRole('button', { name: /View details for Carrot/i }).first()
-    await expect(plantingCard).toBeVisible({ timeout: 5000 })
+    await expect(plantingCard).toBeVisible({ timeout: 10000 })
     await plantingCard.click()
     const dialog = page.getByRole('dialog').filter({ hasText: /Carrot/i })
     await expect(dialog).toBeVisible({ timeout: 5000 })
-    // Switch to the Dates tab
     await dialog.getByRole('tab', { name: /Dates/i }).click()
     return dialog
   }
