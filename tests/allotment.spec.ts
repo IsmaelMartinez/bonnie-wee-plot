@@ -1019,6 +1019,167 @@ test.describe('Allotment Infrastructure Areas', () => {
   })
 })
 
+test.describe('Planting Detail Dialog - Editing', () => {
+  // Seeds a rotation bed containing a single planting with no sow date / method
+  // so the edit flow can be exercised without going through the Add dialog.
+  async function seedBedWithPlanting(page: import('@playwright/test').Page) {
+    await page.evaluate(() => {
+      const now = new Date().toISOString()
+      const currentYear = new Date().getFullYear()
+      const testData = {
+        version: 18,
+        meta: {
+          name: 'My Allotment',
+          location: 'Edinburgh, Scotland',
+          createdAt: now,
+          updatedAt: now,
+        },
+        layout: {
+          areas: [
+            {
+              id: 'test-bed-a',
+              name: 'Test Bed A',
+              kind: 'rotation-bed',
+              position: { x: 0, y: 0, w: 2, h: 2 },
+            },
+          ],
+        },
+        seasons: [
+          {
+            year: currentYear,
+            status: 'current',
+            areas: [
+              {
+                areaId: 'test-bed-a',
+                rotationGroup: 'roots',
+                plantings: [
+                  {
+                    id: 'planting-carrot-1',
+                    plantId: 'carrot',
+                    status: 'planned',
+                  },
+                ],
+                notes: [],
+              },
+            ],
+            createdAt: now,
+            updatedAt: now,
+          },
+        ],
+        currentYear,
+        maintenanceTasks: [],
+        varieties: [],
+        gardenEvents: [],
+      }
+      localStorage.setItem('allotment-unified-data', JSON.stringify(testData))
+      localStorage.setItem(
+        'bonnie-wee-plot-tours',
+        JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} })
+      )
+    })
+    await page.reload()
+    await page.waitForLoadState('domcontentloaded')
+    await page.locator('.animate-spin').waitFor({ state: 'hidden', timeout: 30000 }).catch(() => {})
+    await page.locator('h1').filter({ hasText: /Plot Layout/i }).waitFor({ state: 'visible', timeout: 30000 })
+  }
+
+  async function openPlantingDetailDialog(page: import('@playwright/test').Page) {
+    // Seeded data guarantees Test Bed A exists — select it directly rather than
+    // routing through selectRotationBed, whose ensureRotationBedExists helper
+    // can race hydration and create a second empty bed under a slow dev server.
+    const gridItem = page.locator('[class*="react-grid-item"]').filter({ hasText: 'Test Bed A' }).first()
+    const mobileItem = page.getByRole('button').filter({ hasText: 'Test Bed A' }).first()
+    const bedTarget = (await gridItem.isVisible({ timeout: 5000 }).catch(() => false))
+      ? gridItem
+      : mobileItem
+    await expect(bedTarget).toBeVisible({ timeout: 10000 })
+    await bedTarget.click()
+
+    const plantingCard = page.getByRole('button', { name: /View details for Carrot/i }).first()
+    await expect(plantingCard).toBeVisible({ timeout: 10000 })
+    await plantingCard.click()
+    const dialog = page.getByRole('dialog').filter({ hasText: /Carrot/i })
+    await expect(dialog).toBeVisible({ timeout: 5000 })
+    await dialog.getByRole('tab', { name: /Dates/i }).click()
+    return dialog
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/allotment')
+    await seedBedWithPlanting(page)
+  })
+
+  test('sow method dropdown reflects selection immediately', async ({ page }) => {
+    const dialog = await openPlantingDetailDialog(page)
+
+    const sowMethod = dialog.locator('#sow-method')
+    await expect(sowMethod).toHaveValue('')
+
+    // Select "outdoor" — before the id-based lookup fix this would persist to
+    // storage but the dropdown value stayed empty.
+    await sowMethod.selectOption('outdoor')
+    await expect(sowMethod).toHaveValue('outdoor')
+
+    // Change again to make sure subsequent edits also reflect.
+    await sowMethod.selectOption('indoor')
+    await expect(sowMethod).toHaveValue('indoor')
+
+    // And the storage layer got the update too.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const raw = localStorage.getItem('allotment-unified-data')
+          if (!raw) return null
+          const data = JSON.parse(raw)
+          return data.seasons?.[0]?.areas?.[0]?.plantings?.[0]?.sowMethod ?? null
+        })
+      )
+      .toBe('indoor')
+  })
+
+  test('adding a sow date on edit calculates expected harvest', async ({ page }) => {
+    const dialog = await openPlantingDetailDialog(page)
+
+    // No expected-harvest block yet since there's no sow date.
+    await expect(dialog.getByText('Expected Harvest')).toHaveCount(0)
+
+    // Pick outdoor sowing so the calculator has a method to work with.
+    await dialog.locator('#sow-method').selectOption('outdoor')
+
+    // Set a sow date — before the recalc gate fix this did NOT trigger
+    // populateExpectedHarvest because planting.sowDate (pre-update) was empty.
+    await dialog.locator('#sow-date').fill('2026-04-15')
+
+    await expect(dialog.getByText('Expected Harvest')).toBeVisible({ timeout: 3000 })
+
+    // Storage should contain populated expected-harvest fields too.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const raw = localStorage.getItem('allotment-unified-data')
+          if (!raw) return null
+          const p = JSON.parse(raw).seasons?.[0]?.areas?.[0]?.plantings?.[0]
+          return p?.expectedHarvestStart ?? null
+        })
+      )
+      .not.toBeNull()
+  })
+
+  test('shows Saved indicator after an edit', async ({ page }) => {
+    const dialog = await openPlantingDetailDialog(page)
+
+    // The indicator is always in the DOM but fades in via opacity-100 /
+    // opacity-0, so we assert on the class toggling.
+    const savedBadge = dialog.getByRole('status').filter({ hasText: 'Saved' })
+
+    await expect(savedBadge).toHaveClass(/opacity-0/)
+
+    await dialog.locator('#sow-method').selectOption('outdoor')
+
+    await expect(savedBadge).toHaveClass(/opacity-100/, { timeout: 2000 })
+  })
+})
+
 test.describe('Plant Database - New Scottish Plants', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')

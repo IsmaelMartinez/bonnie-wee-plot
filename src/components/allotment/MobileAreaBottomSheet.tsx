@@ -94,13 +94,16 @@ export default function MobileAreaBottomSheet({
   onArchiveArea,
   onClose,
 }: MobileAreaBottomSheetProps) {
-  const [selectedPlanting, setSelectedPlanting] = useState<Planting | null>(null)
+  const [selectedPlantingId, setSelectedPlantingId] = useState<string | null>(null)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const [summaryPlantId, setSummaryPlantId] = useState<string | null>(null)
 
   const area = selectedItemRef ? getArea(selectedItemRef.id) : undefined
   const areaSeason = area ? getAreaSeason(area.id) : null
   const plantings = area ? getPlantings(area.id) : []
+  const selectedPlanting = selectedPlantingId
+    ? plantings.find(p => p.id === selectedPlantingId) || null
+    : null
   const notes = area ? getAreaNotes(area.id) : []
   const previousYearRotation = area ? getPreviousYearRotation(area.id) : null
 
@@ -283,7 +286,7 @@ export default function MobileAreaBottomSheet({
                         planting={p}
                         onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                         otherPlantings={plantings}
-                        onClick={() => setSelectedPlanting(p)}
+                        onClick={() => setSelectedPlantingId(p.id)}
                         onPlantInfo={setSummaryPlantId}
                       />
                     ))}
@@ -347,16 +350,16 @@ export default function MobileAreaBottomSheet({
       <PlantingDetailDialog
         planting={selectedPlanting}
         isOpen={!!selectedPlanting}
-        onClose={() => setSelectedPlanting(null)}
+        onClose={() => setSelectedPlantingId(null)}
         onUpdate={(updates) => {
-          if (selectedPlanting) {
-            onUpdatePlanting(selectedPlanting.id, updates)
+          if (selectedPlantingId) {
+            onUpdatePlanting(selectedPlantingId, updates)
           }
         }}
         onDelete={() => {
-          if (selectedPlanting) {
-            onDeletePlanting(selectedPlanting.id)
-            setSelectedPlanting(null)
+          if (selectedPlantingId) {
+            onDeletePlanting(selectedPlantingId)
+            setSelectedPlantingId(null)
           }
         }}
         otherPlantings={plantings}
