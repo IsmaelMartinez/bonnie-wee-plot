@@ -1351,7 +1351,11 @@ describe('task-generator', () => {
 
       const waterTasks = tasks.filter((t) => t.generatedType === 'water')
       expect(waterTasks).toHaveLength(1)
-      expect(waterTasks[0].notes).toContain('Watered today')
+      // No "Watered today" prefix — the note should read as a generic
+      // reminder so it makes sense if the user restores it from Completed.
+      expect(waterTasks[0].notes).not.toContain('Watered today')
+      expect(waterTasks[0].notes).not.toContain('Watered 0 days')
+      expect(waterTasks[0].notes).toContain('moderate water need')
     })
 
     it('still emits a same-day-completed feed task so it can show in Completed', () => {
@@ -1369,7 +1373,9 @@ describe('task-generator', () => {
 
       const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
       expect(feedTasks).toHaveLength(1)
-      expect(feedTasks[0].notes).toContain('Fed today')
+      expect(feedTasks[0].notes).not.toContain('Fed today')
+      expect(feedTasks[0].notes).not.toContain('Last fed 0')
+      expect(feedTasks[0].notes).toContain('Apply general-purpose fertiliser')
     })
   })
 })

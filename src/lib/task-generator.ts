@@ -707,11 +707,11 @@ function createFeedTask(
   const displayName = variety ? `${area.name} (${variety})` : area.name
 
   let notes = 'Apply general-purpose fertiliser'
-  if (daysSinceLastFeed === 0) {
-    notes = 'Fed today'
-  } else if (daysSinceLastFeed !== undefined) {
+  if (daysSinceLastFeed !== undefined && daysSinceLastFeed > 0) {
     notes = `Last fed ${daysSinceLastFeed} day${daysSinceLastFeed === 1 ? '' : 's'} ago — apply general-purpose fertiliser`
   }
+  // daysSinceLastFeed === 0 (just tapped ✓) keeps the generic note so a
+  // restored task reads as a normal active reminder rather than "Fed today".
 
   return {
     id: `feed-${area.id}-${month}`,
@@ -742,9 +742,10 @@ function createWaterTask(
   const noteParts: string[] = []
   if (daysSinceLastWater === undefined) {
     noteParts.push('No watering recorded yet')
-  } else if (daysSinceLastWater === 0) {
-    noteParts.push('Watered today')
-  } else {
+  } else if (daysSinceLastWater > 0) {
+    // daysSinceLastWater === 0 happens when the user just tapped ✓ on this
+    // task — the prefix would read awkwardly if they later restored it from
+    // Completed, so we omit it and let rainfall + water need carry the note.
     noteParts.push(`Watered ${daysSinceLastWater} day${daysSinceLastWater === 1 ? '' : 's'} ago`)
   }
   if (rainfall) {
