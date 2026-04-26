@@ -463,7 +463,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 19 // Added 'water' CareLogType and coordinates for weather-aware watering
+export const CURRENT_SCHEMA_VERSION = 20 // Repair planting status drift (planted plantings stuck on 'planned')
 
 // ============ HELPER TYPES ============
 

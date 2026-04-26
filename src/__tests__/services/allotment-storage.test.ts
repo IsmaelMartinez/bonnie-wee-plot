@@ -478,6 +478,144 @@ describe('v16 to v18 migration', () => {
   })
 })
 
+describe('v20 migration: planting status repair', () => {
+  beforeEach(() => {
+    vi.mocked(localStorage.getItem).mockClear()
+    vi.mocked(localStorage.setItem).mockClear()
+  })
+
+  it('promotes stale planned plantings with sowDate to active', () => {
+    const v19Data = createValidAllotmentData({
+      version: 19,
+      customTasks: [],
+      seasons: [
+        {
+          year: TEST_CURRENT_YEAR,
+          status: 'current',
+          areas: [
+            {
+              areaId: 'bed-a',
+              rotationGroup: 'brassicas',
+              plantings: [
+                {
+                  id: 'p1',
+                  plantId: 'lettuce',
+                  status: 'planned',
+                  sowDate: '2026-04-06',
+                },
+              ],
+            },
+          ],
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v19Data))
+
+    const result = loadAllotmentData()
+
+    expect(result.success).toBe(true)
+    const planting = result.data?.seasons[0].areas[0].plantings[0]
+    expect(planting?.status).toBe('active')
+  })
+
+  it('preserves removed status during repair', () => {
+    const v19Data = createValidAllotmentData({
+      version: 19,
+      customTasks: [],
+      seasons: [
+        {
+          year: TEST_CURRENT_YEAR,
+          status: 'current',
+          areas: [
+            {
+              areaId: 'bed-a',
+              rotationGroup: 'brassicas',
+              plantings: [
+                {
+                  id: 'p1',
+                  plantId: 'lettuce',
+                  status: 'removed',
+                  sowDate: '2026-04-06',
+                },
+              ],
+            },
+          ],
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v19Data))
+
+    const result = loadAllotmentData()
+    expect(result.data?.seasons[0].areas[0].plantings[0].status).toBe('removed')
+  })
+
+  it('promotes plantings with actualHarvestEnd to harvested', () => {
+    const v19Data = createValidAllotmentData({
+      version: 19,
+      customTasks: [],
+      seasons: [
+        {
+          year: TEST_CURRENT_YEAR,
+          status: 'current',
+          areas: [
+            {
+              areaId: 'bed-a',
+              rotationGroup: 'brassicas',
+              plantings: [
+                {
+                  id: 'p1',
+                  plantId: 'lettuce',
+                  status: 'planned',
+                  sowDate: '2026-04-06',
+                  actualHarvestEnd: '2026-06-15',
+                },
+              ],
+            },
+          ],
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v19Data))
+
+    const result = loadAllotmentData()
+    expect(result.data?.seasons[0].areas[0].plantings[0].status).toBe('harvested')
+  })
+
+  it('leaves truly planned plantings (no dates) alone', () => {
+    const v19Data = createValidAllotmentData({
+      version: 19,
+      customTasks: [],
+      seasons: [
+        {
+          year: TEST_CURRENT_YEAR,
+          status: 'current',
+          areas: [
+            {
+              areaId: 'bed-a',
+              rotationGroup: 'brassicas',
+              plantings: [
+                { id: 'p1', plantId: 'lettuce', status: 'planned' },
+              ],
+            },
+          ],
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+    vi.mocked(localStorage.getItem).mockReturnValue(JSON.stringify(v19Data))
+
+    const result = loadAllotmentData()
+    expect(result.data?.seasons[0].areas[0].plantings[0].status).toBe('planned')
+  })
+})
+
 describe('Archive Functionality', () => {
   it('archives a variety', () => {
     const data = createValidAllotmentData({

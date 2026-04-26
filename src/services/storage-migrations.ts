@@ -8,6 +8,7 @@
 
 import {
   AllotmentData,
+  Planting,
   SeasonRecord,
   STORAGE_KEY,
   CURRENT_SCHEMA_VERSION,
@@ -122,8 +123,56 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
     return migrateSchema(migrated)
   }
 
+  // Version 19 -> 20: Repair planting status drift. Earlier versions of
+  // updatePlanting did a plain merge so plantings created without a sowDate
+  // (status='planned') and later edited to add a sowDate kept status='planned'.
+  // This excluded them from watering reminders. Walk every planting and
+  // promote stale 'planned' rows to 'active' / 'harvested' based on dates.
+  if (migrated.version < 20) {
+    const v20Data = migrateToV20(migrated)
+    v20Data.version = 20
+    logger.info('Schema migration complete', { from: 19, to: 20, change: 'repaired planting status drift for plantings with sow dates' })
+    return migrateSchema(v20Data)
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
   return migrated
+}
+
+/**
+ * Migrate from v19 to v20: Repair planting status drift.
+ *
+ * Walks every planting in every season and re-derives status from dates when
+ * the stored status is missing or stuck on 'planned' despite the planting
+ * having a sowDate / transplantDate / actualHarvestEnd. 'removed' is preserved
+ * (the user explicitly marked it removed). Other statuses are left alone.
+ */
+function migrateToV20(data: AllotmentData): AllotmentData {
+  let repaired = 0
+  const seasons = data.seasons.map(season => ({
+    ...season,
+    areas: (season.areas || []).map(area => ({
+      ...area,
+      plantings: (area.plantings || []).map(p => {
+        if (p.status === 'removed') return p
+        const hasDates = !!p.sowDate || !!p.transplantDate
+        const hasHarvestEnd = !!p.actualHarvestEnd
+        if (!hasDates && !hasHarvestEnd) return p
+        const inferred = hasHarvestEnd ? 'harvested' : 'active'
+        if (p.status === inferred) return p
+        // Only auto-correct undefined or stale 'planned'
+        if (p.status !== undefined && p.status !== 'planned') return p
+        repaired++
+        return { ...p, status: inferred as Planting['status'] }
+      }),
+    })),
+  }))
+
+  if (repaired > 0) {
+    logger.info('v20 migration: repaired planting statuses', { count: repaired })
+  }
+
+  return { ...data, seasons }
 }
 
 /**
