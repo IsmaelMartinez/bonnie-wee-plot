@@ -20,6 +20,7 @@ import {
 } from '@/types/unified-allotment'
 import { RotationGroup } from '@/types/garden-planner'
 import { generateId } from '@/lib/utils'
+import { inferStatusFromDates } from '@/lib/planting-utils'
 import { getSeasonByYear } from './season-operations'
 
 // ============ AREA SEASON OPERATIONS ============
@@ -231,6 +232,12 @@ export function addPlantings(
 
 /**
  * Update a planting (v10)
+ *
+ * When the update changes date fields (sowDate / transplantDate /
+ * actualHarvestEnd) without explicitly setting a status, we re-derive
+ * status from the merged dates so it doesn't drift out of sync. The
+ * exception is `'removed'` — once the user marks a planting removed,
+ * subsequent date edits shouldn't resurrect it as active.
  */
 export function updatePlanting(
   data: AllotmentData,
@@ -239,6 +246,10 @@ export function updatePlanting(
   plantingId: string,
   updates: PlantingUpdate
 ): AllotmentData {
+  const datesChanged =
+    'sowDate' in updates || 'transplantDate' in updates || 'actualHarvestEnd' in updates
+  const statusExplicitlySet = 'status' in updates
+
   return {
     ...data,
     seasons: data.seasons.map(season => {
@@ -252,9 +263,14 @@ export function updatePlanting(
 
           return {
             ...area,
-            plantings: area.plantings.map(p =>
-              p.id === plantingId ? { ...p, ...updates } : p
-            ),
+            plantings: area.plantings.map(p => {
+              if (p.id !== plantingId) return p
+              const merged: Planting = { ...p, ...updates }
+              if (datesChanged && !statusExplicitlySet && merged.status !== 'removed') {
+                merged.status = inferStatusFromDates(merged)
+              }
+              return merged
+            }),
           }
         }),
       }

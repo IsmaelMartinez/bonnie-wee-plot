@@ -359,6 +359,51 @@ export function getAllCareLogsForArea(
 }
 
 /**
+ * Find the most recent care log of a given type for an area.
+ * Searches across all years so feeds/waterings near year boundaries are found.
+ * Returns null when no matching entry exists.
+ */
+export function getLastCareLogOfType(
+  data: AllotmentData,
+  areaId: string,
+  type: CareLogEntry['type']
+): { year: number; entry: CareLogEntry } | null {
+  const all = getAllCareLogsForArea(data, areaId)
+  for (const item of all) {
+    if (item.entry.type === type) return item
+  }
+  return null
+}
+
+/**
+ * Days since the most recent care log of a given type for an area.
+ * Returns null when there is no prior log of that type.
+ *
+ * Both dates are normalised to local midnight before subtracting so DST
+ * transitions don't push the count off by one, and so the YYYY-MM-DD log
+ * date is interpreted in local time (not UTC, which `new Date(string)`
+ * would do for a date-only ISO string).
+ */
+export function getDaysSinceLastCareLog(
+  data: AllotmentData,
+  areaId: string,
+  type: CareLogEntry['type'],
+  now: Date = new Date()
+): number | null {
+  const last = getLastCareLogOfType(data, areaId, type)
+  if (!last) return null
+  const [yearStr, monthStr, dayStr] = last.entry.date.split('-')
+  const y = Number(yearStr)
+  const m = Number(monthStr)
+  const d = Number(dayStr)
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null
+  const startOfLast = new Date(y, m - 1, d)
+  const startOfNow = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const ms = startOfNow.getTime() - startOfLast.getTime()
+  return Math.round(ms / (24 * 60 * 60 * 1000))
+}
+
+/**
  * Log a harvest for any area (convenience function)
  */
 export function logHarvest(

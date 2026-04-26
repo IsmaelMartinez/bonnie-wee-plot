@@ -21,6 +21,7 @@ function buildCspHeader(): string {
       'https://api.openai.com',
       'https://api.bigdatacloud.net',
       'https://api-bdc.io',
+      'https://api.open-meteo.com',
       'https://*.clerk.accounts.dev',
       'https://*.supabase.co',
       'https://*.ingest.sentry.io',

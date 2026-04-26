@@ -572,6 +572,8 @@ export const brassicas: Vegetable[] = [
     ],
     maintenance: {
       feedMonths: [3],
+      feedFrequencyDays: 60,
+      waterFrequencyDays: 10,
       notes: ['Cover crowns to blanch shoots']
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima'

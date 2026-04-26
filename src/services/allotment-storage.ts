@@ -133,6 +133,8 @@ export {
   removeCareLogEntry,
   getCareLogsForArea,
   getAllCareLogsForArea,
+  getLastCareLogOfType,
+  getDaysSinceLastCareLog,
   logHarvest,
   getHarvestTotal,
   updateAreaHarvestTotal,
