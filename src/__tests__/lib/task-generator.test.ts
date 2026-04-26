@@ -1335,5 +1335,41 @@ describe('task-generator', () => {
       const waterTasks = tasks.filter((t) => t.generatedType === 'water')
       expect(waterTasks).toHaveLength(0)
     })
+
+    it('still emits a same-day-completed water task so it can show in Completed', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { water: 0 } }
+      )
+
+      const waterTasks = tasks.filter((t) => t.generatedType === 'water')
+      expect(waterTasks).toHaveLength(1)
+      expect(waterTasks[0].notes).toContain('Watered today')
+    })
+
+    it('still emits a same-day-completed feed task so it can show in Completed', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-06-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { feed: 0 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].notes).toContain('Fed today')
+    })
   })
 })

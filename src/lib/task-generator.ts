@@ -391,9 +391,13 @@ function generateMonthBasedTasks(
     if (vegetable.maintenance.feedMonths?.includes(currentMonth)) {
       const cadence = vegetable.maintenance.feedFrequencyDays
       const daysSinceFeed = careLogDays[area.id]?.feed
-      // Suppress month-based feed task if a frequency cadence is set and the
-      // area was fed recently enough — the cadence-aware reminder takes over.
-      const fedRecently = cadence !== undefined && daysSinceFeed !== undefined && daysSinceFeed < cadence
+      // Suppress only when fed yesterday or earlier within the cadence — same-
+      // day completions still emit so they can land in the "completed" section.
+      const fedRecently =
+        cadence !== undefined &&
+        daysSinceFeed !== undefined &&
+        daysSinceFeed >= 1 &&
+        daysSinceFeed < cadence
       if (!fedRecently) {
         tasks.push({
           ...createFeedTask(vegetable, area, currentMonth, daysSinceFeed),
@@ -703,7 +707,9 @@ function createFeedTask(
   const displayName = variety ? `${area.name} (${variety})` : area.name
 
   let notes = 'Apply general-purpose fertiliser'
-  if (daysSinceLastFeed !== undefined) {
+  if (daysSinceLastFeed === 0) {
+    notes = 'Fed today'
+  } else if (daysSinceLastFeed !== undefined) {
     notes = `Last fed ${daysSinceLastFeed} day${daysSinceLastFeed === 1 ? '' : 's'} ago — apply general-purpose fertiliser`
   }
 
@@ -734,10 +740,12 @@ function createWaterTask(
   const displayName = variety ? `${area.name} (${variety})` : area.name
 
   const noteParts: string[] = []
-  if (daysSinceLastWater !== undefined) {
-    noteParts.push(`Watered ${daysSinceLastWater} day${daysSinceLastWater === 1 ? '' : 's'} ago`)
-  } else {
+  if (daysSinceLastWater === undefined) {
     noteParts.push('No watering recorded yet')
+  } else if (daysSinceLastWater === 0) {
+    noteParts.push('Watered today')
+  } else {
+    noteParts.push(`Watered ${daysSinceLastWater} day${daysSinceLastWater === 1 ? '' : 's'} ago`)
   }
   if (rainfall) {
     const recent = rainfall.past3DaysMm + rainfall.todayMm
@@ -834,7 +842,11 @@ export function generateWateringTasks(
       water.vegetable.maintenance?.waterFrequencyDays ?? DEFAULT_WATER_CADENCE_DAYS[water.requirement]
 
     const daysSince = careLogDays[area.id]?.water
-    if (daysSince !== undefined && daysSince < cadence) continue
+    // Suppress only when the area was watered between yesterday and the cadence.
+    // Same-day waterings (daysSince === 0) still emit the task so that just-
+    // dismissed completions show up in the "completed" section instead of
+    // vanishing — the dismissed-task filter looks up by ID in this output.
+    if (daysSince !== undefined && daysSince >= 1 && daysSince < cadence) continue
 
     if (rainfall && shouldSkipWatering(water.requirement, rainfall)) continue
 
