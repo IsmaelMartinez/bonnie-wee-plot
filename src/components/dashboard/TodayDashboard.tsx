@@ -6,7 +6,6 @@ import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
 import CompostAlerts from './CompostAlerts'
-import LogCareActionDialog from './LogCareActionDialog'
 import LocationPromptBanner from './LocationPromptBanner'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
@@ -54,10 +53,7 @@ export default function TodayDashboard() {
     onDismissTask,
     onCompleteTask,
     onRestoreTask,
-    onLogCareEntry,
     onRequestLocation,
-    pendingCareLogTask,
-    closeCareLogDialog,
   } = useTodayData()
 
   const hasWaterTasks = generatedTasks.some((t) => t.generatedType === 'water')
@@ -141,18 +137,6 @@ export default function TodayDashboard() {
             onCompleteTask={onCompleteTask}
             onRestoreTask={onRestoreTask}
           />
-
-          {/* Care log dialog opens when the user marks a feed/water task done */}
-          {pendingCareLogTask && pendingCareLogTask.areaId && (
-            <LogCareActionDialog
-              isOpen={!!pendingCareLogTask}
-              type={pendingCareLogTask.generatedType === 'water' ? 'water' : 'feed'}
-              areaName={pendingCareLogTask.areaName || 'this area'}
-              taskDescription={pendingCareLogTask.description}
-              onClose={closeCareLogDialog}
-              onSubmit={(entry) => onLogCareEntry(pendingCareLogTask.areaId!, entry)}
-            />
-          )}
 
           {/* Compost Alerts */}
           <CompostAlerts />

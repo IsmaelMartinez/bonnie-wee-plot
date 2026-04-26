@@ -18,7 +18,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { generateTasksForMonth, GeneratedTask, CareLogDaysMap } from '@/lib/task-generator'
-import { CustomTask, NewCustomTask, MaintenanceTask, Planting, AreaSeason, NewCareLogEntry } from '@/types/unified-allotment'
+import { CustomTask, NewCustomTask, MaintenanceTask, Planting, AreaSeason, CareLogType } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
 import { loadDismissedTaskIds, dismissTask, restoreTask } from '@/lib/dismissed-tasks'
 import { getDaysSinceLastCareLog } from '@/services/allotment-storage'
@@ -42,16 +42,18 @@ export interface TodayData {
   onDismissTask: (taskId: string) => void
   onCompleteTask: (task: GeneratedTask) => void
   onRestoreTask: (taskId: string) => void
-  onLogCareEntry: (areaId: string, entry: NewCareLogEntry) => void
   onRequestLocation: () => void
-  pendingCareLogTask: GeneratedTask | null
-  closeCareLogDialog: () => void
   // Onboarding support - exposed to avoid duplicate useAllotment() calls
   showOnboarding: boolean
   completeOnboarding: () => void
 }
 
 const GEOLOCATION_DENIED_KEY = 'bwp-geolocation-denied'
+
+/** Local-time YYYY-MM-DD for the current day. */
+function todayLocal(): string {
+  return new Date().toLocaleDateString('en-CA')
+}
 
 /**
  * Hook that aggregates data for the Today Dashboard
@@ -206,29 +208,17 @@ export function useTodayData(): TodayData {
     [allGeneratedTasks, dismissedIds]
   )
 
-  // Care log dialog: opens for feed/water tasks so the user can record
-  // exactly what they did. Other generated tasks dismiss directly.
-  const [pendingCareLogTask, setPendingCareLogTask] = useState<GeneratedTask | null>(null)
-
+  // Tapping ✓ on a feed/water task is the user telling us they did it.
+  // Record a minimal care log entry (type + today) so the cadence engine
+  // can suppress reminders, and dismiss the task. Other generated tasks
+  // (harvest, sow, etc.) just dismiss.
   const onCompleteTask = useCallback((task: GeneratedTask) => {
     if ((task.generatedType === 'feed' || task.generatedType === 'water') && task.areaId) {
-      setPendingCareLogTask(task)
-      return
+      const careType: CareLogType = task.generatedType === 'water' ? 'water' : 'feed'
+      addCareLog(task.areaId, { type: careType, date: todayLocal() })
     }
     setDismissedIds(dismissTask(task.id, currentMonth, currentYear))
-  }, [currentMonth, currentYear])
-
-  const closeCareLogDialog = useCallback(() => {
-    setPendingCareLogTask(null)
-  }, [])
-
-  const onLogCareEntry = useCallback((areaId: string, entry: NewCareLogEntry) => {
-    addCareLog(areaId, entry)
-    if (pendingCareLogTask) {
-      setDismissedIds(dismissTask(pendingCareLogTask.id, currentMonth, currentYear))
-    }
-    setPendingCareLogTask(null)
-  }, [addCareLog, pendingCareLogTask, currentMonth, currentYear])
+  }, [addCareLog, currentMonth, currentYear])
 
   const onRequestLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return
@@ -290,10 +280,7 @@ export function useTodayData(): TodayData {
     onDismissTask,
     onCompleteTask,
     onRestoreTask,
-    onLogCareEntry,
     onRequestLocation,
-    pendingCareLogTask,
-    closeCareLogDialog,
     showOnboarding,
     completeOnboarding,
   }
