@@ -6,6 +6,8 @@ import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
 import CompostAlerts from './CompostAlerts'
+import LogCareActionDialog from './LogCareActionDialog'
+import LocationPromptBanner from './LocationPromptBanner'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
@@ -40,6 +42,8 @@ export default function TodayDashboard() {
     maintenanceTasks,
     generatedTasks,
     dismissedTasks,
+    rainfall,
+    hasCoordinates,
     isLoading,
     showOnboarding,
     completeOnboarding,
@@ -48,8 +52,16 @@ export default function TodayDashboard() {
     onUpdateCustomTask,
     onRemoveCustomTask,
     onDismissTask,
+    onCompleteTask,
     onRestoreTask,
+    onLogCareEntry,
+    onRequestLocation,
+    pendingCareLogTask,
+    closeCareLogDialog,
   } = useTodayData()
+
+  const hasWaterTasks = generatedTasks.some((t) => t.generatedType === 'water')
+  const showLocationPrompt = !hasCoordinates && hasWaterTasks
 
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
@@ -100,6 +112,20 @@ export default function TodayDashboard() {
           {/* Quick Actions */}
           <QuickActions />
 
+          {/* Optional banner: ask for location only when watering tasks exist
+              and we don't yet have coordinates for rainfall lookup. */}
+          {showLocationPrompt && (
+            <LocationPromptBanner onRequestLocation={onRequestLocation} />
+          )}
+
+          {/* Rainfall summary when available */}
+          {rainfall && hasCoordinates && (
+            <div className="text-xs text-zen-stone-500 -mt-4">
+              Rainfall: {rainfall.past3DaysMm.toFixed(1)}mm last 3 days
+              {rainfall.todayMm > 0 && `, ${rainfall.todayMm.toFixed(1)}mm forecast today`}
+            </div>
+          )}
+
           {/* Tasks - full width, includes harvest and sow tasks via status filtering */}
           <TaskList
             customTasks={customTasks}
@@ -112,8 +138,21 @@ export default function TodayDashboard() {
             onUpdateCustomTask={onUpdateCustomTask}
             onRemoveCustomTask={onRemoveCustomTask}
             onDismissTask={onDismissTask}
+            onCompleteTask={onCompleteTask}
             onRestoreTask={onRestoreTask}
           />
+
+          {/* Care log dialog opens when the user marks a feed/water task done */}
+          {pendingCareLogTask && pendingCareLogTask.areaId && (
+            <LogCareActionDialog
+              isOpen={!!pendingCareLogTask}
+              type={pendingCareLogTask.generatedType === 'water' ? 'water' : 'feed'}
+              areaName={pendingCareLogTask.areaName || 'this area'}
+              taskDescription={pendingCareLogTask.description}
+              onClose={closeCareLogDialog}
+              onSubmit={(entry) => onLogCareEntry(pendingCareLogTask.areaId!, entry)}
+            />
+          )}
 
           {/* Compost Alerts */}
           <CompostAlerts />

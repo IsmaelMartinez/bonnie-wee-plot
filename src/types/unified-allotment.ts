@@ -1,12 +1,13 @@
 /**
- * Unified Allotment Data Model (v16)
+ * Unified Allotment Data Model (v19)
  *
  * Single source of truth for all allotment data.
  *
  * v10 introduced a simplified unified Area type that consolidates
  * the previous BedArea, PermanentArea, and InfrastructureArea types.
  * All areas can now have plantings (strawberries under trees, flowers by shed, etc.)
- * The model has been extended through v16 with lifecycle tracking, variety management, and grid positioning.
+ * The model has been extended through v19 with lifecycle tracking, variety management,
+ * grid positioning, integrated compost, and watering feedback (water care logs + coordinates).
  */
 
 import type {
@@ -173,6 +174,15 @@ export interface AllotmentData {
 export interface AllotmentMeta {
   name: string                       // "My Edinburgh Allotment"
   location?: string                  // "Edinburgh, Scotland"
+  /**
+   * Geographic coordinates for the allotment. Used by the weather service
+   * to fetch rainfall data for watering recommendations. Detected via the
+   * geolocation API and persisted on first detect (or set manually).
+   */
+  coordinates?: {
+    latitude: number
+    longitude: number
+  }
   createdAt: string                  // ISO date string
   updatedAt: string                  // ISO date string
   setupCompleted?: boolean           // Whether the setup wizard has been completed
@@ -353,7 +363,7 @@ export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
 /**
  * Type of care log entry
  */
-export type CareLogType = 'prune' | 'feed' | 'mulch' | 'spray' | 'harvest' | 'observation' | 'other'
+export type CareLogType = 'prune' | 'feed' | 'water' | 'mulch' | 'spray' | 'harvest' | 'observation' | 'other'
 
 /**
  * Care log entry for an area in a specific year
@@ -453,7 +463,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 18 // Integrated compost data into AllotmentData
+export const CURRENT_SCHEMA_VERSION = 19 // Added 'water' CareLogType and coordinates for weather-aware watering
 
 // ============ HELPER TYPES ============
 

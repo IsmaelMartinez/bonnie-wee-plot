@@ -13,7 +13,7 @@ export const SHOW_ROTATION_SUGGESTIONS = false
 export const SHOW_ADVANCED_AREA_FIELDS = false
 
 /** Care log section in permanent area detail panels */
-export const SHOW_CARE_LOGS = false
+export const SHOW_CARE_LOGS = true
 
 /** Underplantings list in permanent area detail panels */
 export const SHOW_UNDERPLANTINGS = false

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Scissors, Droplets, Layers, Bug, Eye, Package, X, Check } from 'lucide-react'
+import { Plus, Scissors, Droplets, Sprout, Layers, Bug, Eye, Package, X, Check } from 'lucide-react'
 import { CareLogEntry, NewCareLogEntry, CareLogType } from '@/types/unified-allotment'
 
 interface CareLogSectionProps {
@@ -13,7 +13,8 @@ interface CareLogSectionProps {
 
 const CARE_TYPE_CONFIG: Record<CareLogType, { icon: typeof Scissors; label: string; color: string }> = {
   'prune': { icon: Scissors, label: 'Pruned', color: 'zen-sakura' },
-  'feed': { icon: Droplets, label: 'Fed', color: 'zen-water' },
+  'feed': { icon: Sprout, label: 'Fed', color: 'zen-bamboo' },
+  'water': { icon: Droplets, label: 'Watered', color: 'zen-water' },
   'mulch': { icon: Layers, label: 'Mulched', color: 'zen-kitsune' },
   'spray': { icon: Bug, label: 'Sprayed', color: 'zen-stone' },
   'harvest': { icon: Package, label: 'Harvested', color: 'zen-moss' },

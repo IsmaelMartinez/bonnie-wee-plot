@@ -1207,4 +1207,133 @@ describe('task-generator', () => {
       expect(careTipTasks[0].description).toBe('Winter prune while dormant — remove crossing branches')
     })
   })
+
+  describe('feed and water reminders', () => {
+    const raspberryArea: Area = {
+      id: 'raspberry-patch',
+      name: 'Raspberry Patch',
+      kind: 'berry',
+      canHavePlantings: true,
+      primaryPlant: { plantId: 'raspberry', variety: 'Glen Ample' },
+    }
+
+    const raspberryVeg = {
+      id: 'raspberry',
+      name: 'Raspberry',
+      planting: {
+        harvestMonths: [7, 8],
+        sowIndoorsMonths: [],
+        sowOutdoorsMonths: [],
+        transplantMonths: [],
+      },
+      care: { water: 'moderate' as const },
+      maintenance: {
+        feedMonths: [3, 6],
+        feedFrequencyDays: 21,
+      },
+    }
+
+    it('emits a feed task with last-fed note when due', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-06-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { feed: 30 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].notes).toContain('Last fed 30 days ago')
+    })
+
+    it('suppresses feed task when within feedFrequencyDays cadence', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-06-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { feed: 7 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(0)
+    })
+
+    it('generates a water task during the watering season', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-07-15'),
+        [],
+        2026
+      )
+
+      const waterTasks = tasks.filter((t) => t.generatedType === 'water')
+      expect(waterTasks).toHaveLength(1)
+      expect(waterTasks[0].notes).toContain('moderate water need')
+    })
+
+    it('does not generate water tasks outside the watering season', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        12 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-12-15'),
+        [],
+        2026
+      )
+
+      const waterTasks = tasks.filter((t) => t.generatedType === 'water')
+      expect(waterTasks).toHaveLength(0)
+    })
+
+    it('skips watering when recent rainfall meets the threshold', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 12, todayMm: 0, fetchedAt: '' }
+      )
+
+      const waterTasks = tasks.filter((t) => t.generatedType === 'water')
+      expect(waterTasks).toHaveLength(0)
+    })
+
+    it('suppresses watering when the area was watered within its cadence', () => {
+      mockGetVegetableById.mockReturnValue(raspberryVeg)
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { water: 1 } } // less than the moderate-default 4d cadence
+      )
+
+      const waterTasks = tasks.filter((t) => t.generatedType === 'water')
+      expect(waterTasks).toHaveLength(0)
+    })
+  })
 })

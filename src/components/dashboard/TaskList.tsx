@@ -15,6 +15,12 @@ interface TaskListProps {
   onUpdateCustomTask?: (taskId: string, description: string) => void
   onRemoveCustomTask?: (taskId: string) => void
   onDismissTask?: (taskId: string) => void
+  /**
+   * Optional richer handler for the task completion button. When provided,
+   * the check icon calls this with the full task instead of the simple
+   * dismiss handler — used to open the care log dialog for feed/water tasks.
+   */
+  onCompleteTask?: (task: GeneratedTask) => void
   onRestoreTask?: (taskId: string) => void
 }
 
@@ -33,7 +39,8 @@ const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; 
   'sow-outdoors': { icon: Leaf, label: 'Direct Sow', color: 'text-emerald-600' },
   'transplant': { icon: ArrowUpFromLine, label: 'Transplant', color: 'text-blue-600' },
   'prune': { icon: Scissors, label: 'Prune', color: 'text-violet-600' },
-  'feed': { icon: Droplets, label: 'Feed', color: 'text-cyan-600' },
+  'feed': { icon: Sprout, label: 'Feed', color: 'text-zen-bamboo-600' },
+  'water': { icon: Droplets, label: 'Water', color: 'text-zen-water-600' },
   'mulch': { icon: TreeDeciduous, label: 'Mulch', color: 'text-amber-700' },
   'succession': { icon: RotateCcw, label: 'Succession Sow', color: 'text-teal-600' },
   'care-tip': { icon: Sparkles, label: 'Care Tip', color: 'text-zen-bamboo-600' },
@@ -147,9 +154,25 @@ function MaintenanceTaskItem({ task }: { task: MaintenanceTask }) {
   )
 }
 
-function GeneratedTaskItem({ task, onDismiss }: { task: GeneratedTask; onDismiss?: (taskId: string) => void }) {
+function GeneratedTaskItem({
+  task,
+  onDismiss,
+  onComplete,
+}: {
+  task: GeneratedTask
+  onDismiss?: (taskId: string) => void
+  onComplete?: (task: GeneratedTask) => void
+}) {
   const config = GENERATED_TASK_CONFIG[task.generatedType] || GENERATED_TASK_CONFIG['harvest']
   const Icon = config.icon
+  const handleComplete = () => {
+    if (onComplete) {
+      onComplete(task)
+    } else if (onDismiss) {
+      onDismiss(task.id)
+    }
+  }
+  const showButton = !!onComplete || !!onDismiss
 
   // Determine badge text and style
   const getBadge = () => {
@@ -194,9 +217,9 @@ function GeneratedTaskItem({ task, onDismiss }: { task: GeneratedTask; onDismiss
             {badge.text}
           </span>
         )}
-        {onDismiss && (
+        {showButton && (
           <button
-            onClick={() => onDismiss(task.id)}
+            onClick={handleComplete}
             className="p-1 rounded-full text-zen-stone-300 hover:text-zen-moss-600 hover:bg-zen-moss-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
             title="Mark as done"
             aria-label={`Mark "${task.description}" as done`}
@@ -242,6 +265,7 @@ export default function TaskList({
   onToggleCustomTask,
   onRemoveCustomTask,
   onDismissTask,
+  onCompleteTask,
   onRestoreTask,
 }: TaskListProps) {
   const [showDismissed, setShowDismissed] = useState(false)
@@ -319,7 +343,12 @@ export default function TaskList({
 
         {/* Generated tasks (auto-generated from plantings) */}
         {displayGeneratedTasks.map((task) => (
-          <GeneratedTaskItem key={task.id} task={task} onDismiss={onDismissTask} />
+          <GeneratedTaskItem
+            key={task.id}
+            task={task}
+            onDismiss={onDismissTask}
+            onComplete={onCompleteTask}
+          />
         ))}
 
         {/* Manual maintenance tasks (user-created) */}

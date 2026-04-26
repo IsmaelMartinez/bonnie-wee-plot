@@ -128,6 +128,19 @@ export interface MaintenanceInfo {
   pruneMonths?: Month[]    // Months when pruning is recommended
   feedMonths?: Month[]     // Months when feeding is recommended
   mulchMonths?: Month[]    // Months when mulching is recommended
+  /**
+   * Cadence between feeds in days. When set with a recorded feed care log,
+   * task generator emits a date-based feed reminder once this many days have
+   * elapsed. Falls back to feedMonths when unset or no prior feed log.
+   */
+  feedFrequencyDays?: number
+  /**
+   * Cadence between waterings in days. Combined with the plant's
+   * `care.water` requirement and recent rainfall to produce date-based
+   * watering reminders. When unset, defaults are derived from `care.water`
+   * (high=2d, moderate=4d, low=7d).
+   */
+  waterFrequencyDays?: number
   notes?: string[]         // Additional maintenance tips
 }
 

@@ -1,0 +1,147 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { fetchRainfall, shouldSkipWatering, type RainfallSummary } from '@/lib/weather/open-meteo'
+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {}
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      store = {}
+    }),
+  }
+})()
+
+Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock })
+
+describe('shouldSkipWatering', () => {
+  const drySummary: RainfallSummary = {
+    past3DaysMm: 0,
+    todayMm: 0,
+    fetchedAt: new Date().toISOString(),
+  }
+
+  it('does not skip when there has been no rain', () => {
+    expect(shouldSkipWatering('low', drySummary)).toBe(false)
+    expect(shouldSkipWatering('moderate', drySummary)).toBe(false)
+    expect(shouldSkipWatering('high', drySummary)).toBe(false)
+  })
+
+  it('skips drought-tolerant plants after light rain (5mm)', () => {
+    const summary: RainfallSummary = { past3DaysMm: 5, todayMm: 0, fetchedAt: '' }
+    expect(shouldSkipWatering('low', summary)).toBe(true)
+    expect(shouldSkipWatering('moderate', summary)).toBe(false)
+    expect(shouldSkipWatering('high', summary)).toBe(false)
+  })
+
+  it('skips moderate plants only when total reaches 8mm', () => {
+    const summary: RainfallSummary = { past3DaysMm: 6, todayMm: 2, fetchedAt: '' }
+    expect(shouldSkipWatering('moderate', summary)).toBe(true)
+    expect(shouldSkipWatering('high', summary)).toBe(false)
+  })
+
+  it('skips thirsty plants only after heavy rain (>=12mm total)', () => {
+    const summary: RainfallSummary = { past3DaysMm: 8, todayMm: 4, fetchedAt: '' }
+    expect(shouldSkipWatering('high', summary)).toBe(true)
+  })
+
+  it('combines past and forecast rainfall', () => {
+    const summary: RainfallSummary = { past3DaysMm: 4, todayMm: 4, fetchedAt: '' }
+    expect(shouldSkipWatering('moderate', summary)).toBe(true)
+  })
+})
+
+describe('fetchRainfall', () => {
+  beforeEach(() => {
+    localStorageMock.clear()
+    vi.clearAllMocks()
+    vi.spyOn(globalThis, 'fetch')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns null and logs when the API responds with an error status', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response('error', { status: 500 })
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result).toBeNull()
+  })
+
+  it('returns null when the daily series is missing or short', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ daily: { precipitation_sum: [1, 2] } }), { status: 200 })
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result).toBeNull()
+  })
+
+  it('parses past 3 days and today rainfall from a valid response', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: {
+            time: ['d-3', 'd-2', 'd-1', 'today'],
+            precipitation_sum: [1.2, 0, 3.4, 2.1],
+          },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result).not.toBeNull()
+    expect(result!.past3DaysMm).toBeCloseTo(4.6, 1)
+    expect(result!.todayMm).toBeCloseTo(2.1, 1)
+  })
+
+  it('caches the result so a second call avoids the network', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: { precipitation_sum: [0, 0, 0, 0] },
+        }),
+        { status: 200 }
+      )
+    )
+
+    await fetchRainfall(55.95, -3.18)
+    const second = await fetchRainfall(55.95, -3.18)
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+    expect(second).not.toBeNull()
+  })
+
+  it('rounds coordinates to 2 decimals when keying the cache', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: { precipitation_sum: [0, 0, 0, 0] },
+        }),
+        { status: 200 }
+      )
+    )
+
+    await fetchRainfall(55.951, -3.182)
+    // Same coords rounded to 2 decimals -> hits the cache
+    const second = await fetchRainfall(55.953, -3.184)
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+    expect(second).not.toBeNull()
+  })
+
+  it('returns null when fetch throws (offline or aborted)', async () => {
+    vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('network down'))
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result).toBeNull()
+  })
+})

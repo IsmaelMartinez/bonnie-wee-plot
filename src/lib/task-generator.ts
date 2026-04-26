@@ -9,12 +9,35 @@
  */
 
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
-import { Vegetable, Month } from '@/types/garden-planner'
+import { Vegetable, Month, WaterRequirement } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
+import type { RainfallSummary } from '@/lib/weather/open-meteo'
+import { shouldSkipWatering } from '@/lib/weather/open-meteo'
 
-export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'mulch' | 'succession' | 'care-tip'
+export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'water' | 'mulch' | 'succession' | 'care-tip'
+
+/**
+ * Days-since-last-action map used by the task generator to decide whether
+ * a feed/water reminder is due. Keyed by area id.
+ */
+export interface CareLogDaysMap {
+  [areaId: string]: {
+    feed?: number
+    water?: number
+  }
+}
+
+/** Default cadence between waterings in days, by plant water requirement. */
+const DEFAULT_WATER_CADENCE_DAYS: Record<WaterRequirement, number> = {
+  high: 2,
+  moderate: 4,
+  low: 7,
+}
+
+/** Months where outdoor watering tasks are generated. */
+const WATERING_SEASON: Month[] = [4, 5, 6, 7, 8, 9]
 export type TaskUrgency = 'overdue' | 'today' | 'this-week' | 'upcoming' | 'later'
 
 export interface GeneratedTask {
@@ -294,7 +317,8 @@ function generateMonthBasedTasks(
   currentMonth: Month,
   plantings: PlantingWithContext[],
   areas: Area[],
-  currentYear: number
+  currentYear: number,
+  careLogDays: CareLogDaysMap = {}
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
 
@@ -365,7 +389,17 @@ function generateMonthBasedTasks(
     }
 
     if (vegetable.maintenance.feedMonths?.includes(currentMonth)) {
-      tasks.push({ ...createFeedTask(vegetable, area, currentMonth), calculatedFrom: 'calendar-month' })
+      const cadence = vegetable.maintenance.feedFrequencyDays
+      const daysSinceFeed = careLogDays[area.id]?.feed
+      // Suppress month-based feed task if a frequency cadence is set and the
+      // area was fed recently enough — the cadence-aware reminder takes over.
+      const fedRecently = cadence !== undefined && daysSinceFeed !== undefined && daysSinceFeed < cadence
+      if (!fedRecently) {
+        tasks.push({
+          ...createFeedTask(vegetable, area, currentMonth, daysSinceFeed),
+          calculatedFrom: 'calendar-month',
+        })
+      }
     }
 
     if (vegetable.maintenance.mulchMonths?.includes(currentMonth)) {
@@ -498,7 +532,9 @@ export function generateTasksForMonth(
   areas: Area[],
   today: Date = new Date(),
   varieties: StoredVariety[] = [],
-  currentYear: number = today.getFullYear()
+  currentYear: number = today.getFullYear(),
+  careLogDays: CareLogDaysMap = {},
+  rainfall: RainfallSummary | null = null
 ): GeneratedTask[] {
   // Get date-based tasks (high priority, personalized)
   const dateBasedTasks = generateDateBasedTasks(plantings, today)
@@ -506,14 +542,17 @@ export function generateTasksForMonth(
   // Get succession sowing reminders
   const successionTasks = generateSuccessionReminders(plantings, today)
 
+  // Get watering reminders (cadence + weather aware)
+  const wateringTasks = generateWateringTasks(currentMonth, plantings, areas, careLogDays, rainfall)
+
   // Get month-based tasks (fallback for plantings without dates)
-  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear)
+  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, careLogDays)
 
   // Get variety-based tasks (seeds user has but hasn't planted)
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear)
 
   // Merge all tasks, preferring date-based
-  const allDateBased = [...dateBasedTasks, ...successionTasks]
+  const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]
   const allMonthBased = [...monthBasedTasks, ...varietyTasks]
   const mergedTasks = mergeAndDeduplicateTasks(allDateBased, allMonthBased)
 
@@ -657,10 +696,16 @@ function createPruneTask(
 function createFeedTask(
   vegetable: Vegetable,
   area: Area,
-  month: Month
+  month: Month,
+  daysSinceLastFeed?: number
 ): GeneratedTask {
   const variety = area.primaryPlant?.variety
   const displayName = variety ? `${area.name} (${variety})` : area.name
+
+  let notes = 'Apply general-purpose fertiliser'
+  if (daysSinceLastFeed !== undefined) {
+    notes = `Last fed ${daysSinceLastFeed} day${daysSinceLastFeed === 1 ? '' : 's'} ago — apply general-purpose fertiliser`
+  }
 
   return {
     id: `feed-${area.id}-${month}`,
@@ -673,8 +718,139 @@ function createFeedTask(
     areaName: area.name,
     month,
     priority: 'low',
-    notes: 'Apply general-purpose fertiliser'
+    notes,
   }
+}
+
+function createWaterTask(
+  vegetable: Vegetable,
+  area: Area,
+  month: Month,
+  waterRequirement: WaterRequirement,
+  daysSinceLastWater: number | undefined,
+  rainfall: RainfallSummary | null
+): GeneratedTask {
+  const variety = area.primaryPlant?.variety
+  const displayName = variety ? `${area.name} (${variety})` : area.name
+
+  const noteParts: string[] = []
+  if (daysSinceLastWater !== undefined) {
+    noteParts.push(`Watered ${daysSinceLastWater} day${daysSinceLastWater === 1 ? '' : 's'} ago`)
+  } else {
+    noteParts.push('No watering recorded yet')
+  }
+  if (rainfall) {
+    const recent = rainfall.past3DaysMm + rainfall.todayMm
+    if (recent > 0) {
+      noteParts.push(`${recent.toFixed(1)}mm rain in last 3 days`)
+    } else {
+      noteParts.push('No recent rain')
+    }
+  }
+  noteParts.push(`${waterRequirement} water need`)
+
+  const priority: GeneratedTask['priority'] =
+    waterRequirement === 'high' || (daysSinceLastWater !== undefined && daysSinceLastWater >= 5)
+      ? 'medium'
+      : 'low'
+
+  return {
+    id: `water-${area.id}-${month}`,
+    type: 'other',
+    generatedType: 'water',
+    description: `Water ${displayName}`,
+    plantId: vegetable.id,
+    plantName: vegetable.name,
+    areaId: area.id,
+    areaName: area.name,
+    month,
+    priority,
+    notes: noteParts.join(' · '),
+  }
+}
+
+/**
+ * Determine the most demanding water requirement for an area, looking at
+ * its primary plant first then any active plantings in the current season.
+ */
+function getAreaWaterRequirement(
+  area: Area,
+  plantings: PlantingWithContext[]
+): { requirement: WaterRequirement; vegetable: Vegetable } | null {
+  if (area.primaryPlant?.plantId) {
+    const veg = getVegetableById(area.primaryPlant.plantId)
+    if (veg?.care?.water) return { requirement: veg.care.water, vegetable: veg }
+  }
+
+  const areaPlantings = plantings.filter(p => p.areaId === area.id)
+  if (areaPlantings.length === 0) return null
+
+  let topRequirement: WaterRequirement | null = null
+  let topVegetable: Vegetable | null = null
+  const order: WaterRequirement[] = ['low', 'moderate', 'high']
+
+  for (const { planting } of areaPlantings) {
+    const status = planting.status || 'active'
+    if (status === 'harvested' || status === 'removed' || status === 'planned') continue
+    const veg = getVegetableById(planting.plantId)
+    if (!veg?.care?.water) continue
+    if (!topRequirement || order.indexOf(veg.care.water) > order.indexOf(topRequirement)) {
+      topRequirement = veg.care.water
+      topVegetable = veg
+    }
+  }
+
+  if (!topRequirement || !topVegetable) return null
+  return { requirement: topRequirement, vegetable: topVegetable }
+}
+
+/**
+ * Generate watering reminders for areas with active plantings or perennials.
+ *
+ * Skipped when:
+ * - Outside the watering season (Apr-Sep) — perennial dormancy + autumn/winter rainfall.
+ * - The area has been watered recently (within its cadence).
+ * - Recent rainfall meets the threshold for the plant's water requirement.
+ */
+export function generateWateringTasks(
+  currentMonth: Month,
+  plantings: PlantingWithContext[],
+  areas: Area[],
+  careLogDays: CareLogDaysMap = {},
+  rainfall: RainfallSummary | null = null
+): GeneratedTask[] {
+  if (!WATERING_SEASON.includes(currentMonth)) return []
+
+  const tasks: GeneratedTask[] = []
+
+  for (const area of areas) {
+    if (area.isArchived) continue
+    if (area.kind === 'infrastructure') continue
+
+    const water = getAreaWaterRequirement(area, plantings)
+    if (!water) continue
+
+    const cadence =
+      water.vegetable.maintenance?.waterFrequencyDays ?? DEFAULT_WATER_CADENCE_DAYS[water.requirement]
+
+    const daysSince = careLogDays[area.id]?.water
+    if (daysSince !== undefined && daysSince < cadence) continue
+
+    if (rainfall && shouldSkipWatering(water.requirement, rainfall)) continue
+
+    tasks.push(
+      createWaterTask(
+        water.vegetable,
+        area,
+        currentMonth,
+        water.requirement,
+        daysSince,
+        rainfall
+      )
+    )
+  }
+
+  return tasks
 }
 
 function createMulchTask(
@@ -747,6 +923,7 @@ export function getTaskLabel(type: GeneratedTaskType): string {
     'transplant': 'Transplant',
     'prune': 'Prune',
     'feed': 'Feed',
+    'water': 'Water',
     'mulch': 'Mulch',
     'succession': 'Succession Sow',
     'care-tip': 'Care Tip'

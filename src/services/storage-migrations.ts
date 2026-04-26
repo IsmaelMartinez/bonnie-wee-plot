@@ -109,9 +109,17 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
   // Version 17 -> 18: Integrate compost data into AllotmentData
   if (migrated.version < 18) {
     const v18Data = migrateToV18(migrated)
-    v18Data.version = CURRENT_SCHEMA_VERSION
+    v18Data.version = 18
     logger.info('Schema migration complete', { from: 17, to: 18, change: 'integrated compost data into AllotmentData' })
-    return v18Data
+    return migrateSchema(v18Data)
+  }
+
+  // Version 18 -> 19: Added 'water' CareLogType and coordinates for weather-aware watering.
+  // No data transform needed — all new fields are optional.
+  if (migrated.version < 19) {
+    migrated.version = 19
+    logger.info('Schema migration complete', { from: 18, to: 19, change: 'added water care log type and coordinates for weather-aware watering' })
+    return migrateSchema(migrated)
   }
 
   migrated.version = CURRENT_SCHEMA_VERSION
