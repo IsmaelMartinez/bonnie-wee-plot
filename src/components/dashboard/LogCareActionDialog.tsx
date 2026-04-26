@@ -32,7 +32,7 @@ const PRESETS: Partial<Record<CareLogType, {
     defaultUnit: 'ml',
     quantityLabel: 'Amount',
     quantityPlaceholder: 'Optional',
-    iconColor: 'text-cyan-600',
+    iconColor: 'text-zen-bamboo-600',
   },
   water: {
     title: 'Log watering',
@@ -66,7 +66,10 @@ export default function LogCareActionDialog({
   onSubmit,
 }: LogCareActionDialogProps) {
   const preset = PRESETS[type] ?? FALLBACK_PRESET
-  const today = () => new Date().toISOString().split('T')[0]
+  // Use local-time YYYY-MM-DD so the date picker default and `max` constraint
+  // match the user's wall-clock day rather than UTC (which can be off by one
+  // around midnight in non-zero offsets). en-CA gives ISO-style formatting.
+  const today = () => new Date().toLocaleDateString('en-CA')
   const [date, setDate] = useState(today)
   const [product, setProduct] = useState('')
   const [quantity, setQuantity] = useState('')

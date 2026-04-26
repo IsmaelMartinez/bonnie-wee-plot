@@ -43,7 +43,7 @@ export default function LocationPromptBanner({ onRequestLocation }: LocationProm
           Use rainfall to skip unnecessary watering reminders
         </p>
         <p className="text-xs text-zen-stone-500 mt-1">
-          We&apos;ll fetch local rainfall from Open-Meteo. Your location stays on your device.
+          We&apos;ll fetch local rainfall from Open-Meteo. Coordinates are stored with your allotment data.
         </p>
         <div className="mt-3 flex gap-2">
           <button
