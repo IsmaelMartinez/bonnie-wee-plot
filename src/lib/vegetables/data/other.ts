@@ -40,6 +40,8 @@ export const other: Vegetable[] = [
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
+      feedFrequencyDays: 60,
+      waterFrequencyDays: 7,
       notes: ['Force under pot from January for early crop', 'Remove flower stalks immediately']
     },
     perennialInfo: {
@@ -162,6 +164,8 @@ export const other: Vegetable[] = [
     maintenance: {
       feedMonths: [3],
       mulchMonths: [11],
+      feedFrequencyDays: 60,
+      waterFrequencyDays: 7,
       notes: ['Cut down ferns in autumn', 'Weed regularly']
     },
     perennialInfo: {
@@ -201,6 +205,8 @@ export const other: Vegetable[] = [
     maintenance: {
       feedMonths: [3, 5],
       mulchMonths: [11],
+      feedFrequencyDays: 30,
+      waterFrequencyDays: 7,
       notes: ['Protect crowns with straw in winter']
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Globe_artichoke',

@@ -94,6 +94,8 @@ export const berries: Vegetable[] = [
       pruneMonths: [2, 8, 9],
       feedMonths: [3],
       mulchMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Summer types: cut fruited canes after harvest', 'Autumn types: cut all canes to ground in Feb']
     },
     perennialInfo: {
@@ -218,6 +220,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Prune to open goblet shape in winter', 'Watch for sawfly in spring']
     },
     perennialInfo: {
@@ -261,6 +265,8 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12],
       feedMonths: [3],
       mulchMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Remove a third of oldest wood each year after fruiting']
     },
     perennialInfo: {
@@ -302,6 +308,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Prune to open goblet shape like gooseberries']
     },
     perennialInfo: {
@@ -344,6 +352,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [8, 9],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Remove fruited canes after harvest']
     },
     perennialInfo: {
@@ -385,6 +395,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [8, 9],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Remove fruited canes after harvest']
     },
     perennialInfo: {
@@ -425,6 +437,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 5,
       notes: ['Minimal pruning needed - remove dead wood']
     },
     perennialInfo: {
@@ -462,6 +476,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 7,
       notes: ['Minimal pruning - remove dead wood only']
     },
     perennialInfo: {
@@ -500,6 +516,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [2, 3],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 7,
       notes: ['Control suckers to prevent spread']
     },
     perennialInfo: {
@@ -538,6 +556,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 7,
       notes: ['Minimal pruning needed']
     },
     perennialInfo: {
@@ -576,6 +596,8 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1],
       feedMonths: [3],
+      feedFrequencyDays: 28,
+      waterFrequencyDays: 7,
       notes: ['Prune to maintain size and shape']
     },
     perennialInfo: {
@@ -614,6 +636,7 @@ export const berries: Vegetable[] = [
     maintenance: {
       pruneMonths: [11, 12, 1],
       feedMonths: [],
+      waterFrequencyDays: 14,
       notes: ['Minimal care - very tough plant']
     },
     perennialInfo: {
