@@ -204,6 +204,16 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 
 - Automatic backup prompts
 
+### Competitor Learnings: Vercro (https://vercro.com)
+
+Reviewed Vercro, a UK/Ireland gardening task app with overlapping scope. Postcode/rainfall integration (their #1 differentiator) is already shipped here via Open-Meteo + schema v19. Remaining ideas worth considering:
+
+- **Plant Check — focused photo diagnosis.** Vercro's AI is a single-purpose "snap a sick plant → diagnosis" tool, not an open chat. Easier to explain and avoids the cold-start problem that contributed to hiding Aitor (`SHOW_AI_ADVISOR = false`). Could ship as a narrow feature alongside or instead of re-enabling the chat.
+- **Crop timeline visualisation.** Per-plant growth-stage strip showing where each planting sits between sow → expected harvest → actual harvest. We already store all the dates on `Planting`; this is purely a new view over existing data.
+- **"Boost this bed" affordance.** Per-bed positive-framing button surfacing concrete companion suggestions ("add marigolds to deter pests", "add broad beans to fix nitrogen"). We have `enhancedCompanions` data and a hidden `SHOW_ROTATION_SUGGESTIONS` flag — same data, friendlier framing than rotation constraints.
+- **Daily-plan positioning.** Their tagline ("Not a calendar. A plan.") leads users straight to today's tasks. Our Today dashboard already exists; mostly a marketing/landing-surface decision rather than a build.
+- **Social login.** Google/Apple one-tap via Clerk — config change, not a build.
+
 ### Future Phases (Contingent on User Adoption)
 
 These are from the pre-production strategic plan (`docs/research/pre-production-strategic-plan.md`):
