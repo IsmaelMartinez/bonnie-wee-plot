@@ -204,6 +204,21 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 
 - Automatic backup prompts
 
+### Vercro Learnings: Shipped
+
+Four of the five Vercro learnings landed on `claude/analyze-vercro-app-A6inL`:
+
+- **Today weather strip** (commit 865c986) — 3-tile today/tomorrow/+1 forecast on the Today dashboard. Open-Meteo query extended with `weathercode` + temps; `RainfallSummary.forecast` carries the daily tiles; WMO codes mapped to lucide icons in `src/lib/weather/wmo-icons.ts`.
+- **Crop progress strip** (commit e6bc285) — `<PlantingProgress>` rendered in `PlantingDetailDialog` showing sow → expected harvest window with actual harvest overlaid and a "today" line. Pure UI over existing `Planting` fields.
+- **Boost this bed** (commit f3897f8) — companion suggestions in `BedDetailPanel` for rotation beds with at least one planting. Ranked by seed availability → confidence → name; click pre-fills the Add Planting dialog with the suggested variety. Logic in `src/lib/boost-suggestions.ts` with full unit coverage.
+- **Aitor re-enable** (commit e744f33) — replaced `SHOW_AI_ADVISOR` flag with Clerk `isSignedIn` gate via `AitorAuthGate`. Settings "AI & Location" tab gated the same way. Anonymous users see no AI surfaces; signed-in users get the chat back.
+
+Follow-ups still on the roadmap:
+
+- **Aitor polish** — per-user `meta.aiAdvisorEnabled` opt-in (schema v20), photo-diagnosis pre-seed entry-point, refreshed prompt suggestions in `QuickTopics.tsx`.
+- **Boost this bed on mobile** — port to `MobileAreaBottomSheet` (skipped for tightness in the first PR).
+- **Social login** — verify Google/Apple are enabled in the Clerk Dashboard. Pure config.
+
 ### Competitor Learnings: Vercro (https://vercro.com)
 
 Reviewed Vercro, a UK/Ireland gardening task app with overlapping scope. Postcode/rainfall integration (their headline differentiator) is already shipped here via Open-Meteo + schema v19, `LocationPromptBanner`, and `generateWateringTasks`. Remaining ideas, ordered by leverage:
