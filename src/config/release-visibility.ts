@@ -17,6 +17,3 @@ export const SHOW_CARE_LOGS = true
 
 /** Underplantings list in permanent area detail panels */
 export const SHOW_UNDERPLANTINGS = false
-
-/** AI Advisor (Aitor) settings tab, including API key and location */
-export const SHOW_AI_ADVISOR = false

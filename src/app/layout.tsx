@@ -8,6 +8,7 @@ import OfflineIndicator from '@/components/ui/OfflineIndicator'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 import { WebVitalsReporter } from '@/components/web-vitals'
 import { AitorChatProvider } from '@/contexts/AitorChatContext'
+import AitorAuthGate from '@/components/ai-advisor/AitorAuthGate'
 import TourProvider from '@/components/onboarding/TourProvider'
 import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
 import './globals.css'
@@ -58,7 +59,8 @@ export default function RootLayout({
           </footer>
           <InstallPrompt />
           <WebVitalsReporter />
-          {/* AitorChatButton and AitorChatModal hidden for first release */}
+          {/* Aitor (AI advisor) is rendered for signed-in users only — see AitorAuthGate. */}
+          <AitorAuthGate />
           <TourKeyboardShortcut />
           </TourProvider>
         </AitorChatProvider>

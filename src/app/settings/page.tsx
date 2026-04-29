@@ -11,7 +11,6 @@ import DataTab from '@/components/settings/DataTab'
 import PageTour from '@/components/onboarding/PageTour'
 import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
-import { SHOW_AI_ADVISOR } from '@/config/release-visibility'
 
 export default function SettingsPage() {
   const { isSignedIn, signOut, userEmail } = useOptionalAuth()
@@ -59,7 +58,7 @@ export default function SettingsPage() {
         <Tabs
           defaultTab="data"
           tabs={[
-            ...(SHOW_AI_ADVISOR ? [{
+            ...(isSignedIn ? [{
               id: 'ai-location',
               label: 'AI & Location',
               icon: <Leaf className="w-4 h-4" />,
