@@ -95,6 +95,15 @@ function AllotmentPageContent() {
   } = useAllotment()
 
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [addDialogPrefilledPlantId, setAddDialogPrefilledPlantId] = useState<string | undefined>(undefined)
+  const openAddDialog = useCallback((prefilledPlantId?: string) => {
+    setAddDialogPrefilledPlantId(prefilledPlantId)
+    setShowAddDialog(true)
+  }, [])
+  const closeAddDialog = useCallback(() => {
+    setShowAddDialog(false)
+    setAddDialogPrefilledPlantId(undefined)
+  }, [])
   const [showAddAreaDialog, setShowAddAreaDialog] = useState(false)
   const [showEditAreaDialog, setShowEditAreaDialog] = useState(false)
   const [yearToDelete, setYearToDelete] = useState<number | null>(null)
@@ -448,7 +457,8 @@ function AllotmentPageContent() {
               getCareLogs={getCareLogs}
               getHarvestTotal={getHarvestTotal}
               selectedYear={selectedYear}
-              onAddPlanting={() => setShowAddDialog(true)}
+              varieties={data?.varieties || []}
+              onAddPlanting={openAddDialog}
               onAddPlantingToArea={addPlanting}
               onDeletePlanting={handleDeletePlanting}
               onRemovePlantingFromArea={removePlanting}
@@ -475,7 +485,7 @@ function AllotmentPageContent() {
         return (
           <Dialog
             isOpen={showAddDialog}
-            onClose={() => setShowAddDialog(false)}
+            onClose={closeAddDialog}
             title="Add Planting"
             description="Add a new planting to this bed for the current season."
           >
@@ -483,11 +493,12 @@ function AllotmentPageContent() {
               onSubmit={(planting) => {
                 handleAddPlanting(planting)
               }}
-              onCancel={() => setShowAddDialog(false)}
+              onCancel={closeAddDialog}
               existingPlantings={selectedPlantings}
               selectedYear={selectedYear}
               varieties={data?.varieties || []}
               initialCategoryFilter={selectedArea?.kind === 'berry' ? 'berries' : 'all'}
+              initialPlantId={addDialogPrefilledPlantId}
             />
           </Dialog>
         )
@@ -532,7 +543,7 @@ function AllotmentPageContent() {
       {isMobile && (
         <MobileFloatingActions
           onAddArea={() => setShowAddAreaDialog(true)}
-          onAddPlanting={selectedBedId ? () => setShowAddDialog(true) : undefined}
+          onAddPlanting={selectedBedId ? () => openAddDialog() : undefined}
           hasSelectedArea={!!selectedBedId}
         />
       )}
@@ -547,7 +558,7 @@ function AllotmentPageContent() {
           getAreaNotes={getAreaNotes}
           getPreviousYearRotation={getPreviousRotation}
           selectedYear={selectedYear}
-          onAddPlanting={() => setShowAddDialog(true)}
+          onAddPlanting={() => openAddDialog()}
           onDeletePlanting={handleDeletePlanting}
           onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
           onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}

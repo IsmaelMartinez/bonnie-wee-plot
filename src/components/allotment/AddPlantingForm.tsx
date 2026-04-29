@@ -18,6 +18,8 @@ interface AddPlantingFormProps {
   selectedYear: number
   varieties?: StoredVariety[]
   initialCategoryFilter?: VegetableCategory | 'all'
+  /** Optional plant ID to pre-select (e.g. from a "Boost this bed" suggestion). */
+  initialPlantId?: string
 }
 
 // Helper to check if variety has seeds for year
@@ -31,9 +33,10 @@ export default function AddPlantingForm({
   existingPlantings = [],
   selectedYear,
   varieties = [],
-  initialCategoryFilter = 'all'
+  initialCategoryFilter = 'all',
+  initialPlantId,
 }: AddPlantingFormProps) {
-  const [plantId, setVegetableId] = useState('')
+  const [plantId, setVegetableId] = useState(initialPlantId ?? '')
   const [varietyName, setVarietyName] = useState('')
   const [sowMethod, setSowMethod] = useState<SowMethod>('outdoor')
   const [sowMethodRecommendation, setSowMethodRecommendation] = useState<SowMethodRecommendation | null>(null)

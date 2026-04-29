@@ -7,8 +7,9 @@ import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import { RotationGroup } from '@/types/garden-planner'
-import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate, StoredVariety } from '@/types/unified-allotment'
 import BedNotes from '@/components/allotment/BedNotes'
+import BoostThisBed from '@/components/allotment/BoostThisBed'
 import PlantingCard from '@/components/allotment/PlantingCard'
 import PlantingDetailDialog from '@/components/allotment/PlantingDetailDialog'
 import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
@@ -22,7 +23,8 @@ interface BedDetailPanelProps {
   notes: AreaNote[]
   selectedYear: number
   previousYearRotation?: RotationGroup | null
-  onAddPlanting: () => void
+  varieties?: StoredVariety[]
+  onAddPlanting: (prefilledPlantId?: string) => void
   onDeletePlanting: (plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
   onAddNote: (note: NewAreaNote) => void
@@ -41,6 +43,7 @@ export default function BedDetailPanel({
   notes,
   selectedYear,
   previousYearRotation,
+  varieties = [],
   onAddPlanting,
   onDeletePlanting,
   onUpdatePlanting,
@@ -187,6 +190,16 @@ export default function BedDetailPanel({
         />
       </div>
 
+      {/* Boost this bed — companion suggestions for the current plantings */}
+      {isRotationBed && plantings.length > 0 && (
+        <BoostThisBed
+          plantings={plantings}
+          varieties={varieties}
+          selectedYear={selectedYear}
+          onAddSuggestion={onAddPlanting}
+        />
+      )}
+
       {/* Plantings Section */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -206,7 +219,7 @@ export default function BedDetailPanel({
               </button>
             )}
             <button
-              onClick={onAddPlanting}
+              onClick={() => onAddPlanting()}
               className="flex items-center gap-1.5 text-xs px-3 py-2.5 min-h-[44px] bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
             >
               <Plus className="w-4 h-4" />
