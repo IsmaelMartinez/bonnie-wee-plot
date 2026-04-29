@@ -235,11 +235,22 @@ Vercro frames companion planting as a positive next action ("add marigolds to de
 - Cross-reference `data.varieties[*].seedsByYear` to prefer companions the user already has seed for. Click → `AddPlantingForm` pre-filled with that variety.
 - Independent from the existing `SHOW_ROTATION_SUGGESTIONS` flag — this is positive-framed and shippable on day one; rotation suggestions can stay hidden.
 
-#### 4. Social login
+#### 4. Weather strip on Today (today / tomorrow / +1)
+
+Small forecast tiles above the existing rainfall line — icon, max/min temp, precipitation. Reuses everything that already exists: `fetchRainfall()` plumbing in `src/lib/weather/open-meteo.ts`, the localStorage cache, the coordinate gate, and `LocationPromptBanner`. Only changes:
+
+- Extend the Open-Meteo query with `weathercode`, `temperature_2m_max`, `temperature_2m_min` and bump `forecast_days` to 2 or 3.
+- Widen `RainfallSummary` (or split it) into a `WeatherSummary` with a `daily` array.
+- Map WMO weather codes to `lucide-react` icons (`Sun`, `Cloud`, `CloudRain`, `CloudSnow`, `CloudLightning`, `CloudDrizzle`).
+- New `<WeatherStrip>` component on `TodayDashboard.tsx`, ~3 tiles, hidden when `hasCoordinates` is false.
+
+Effort: ~1–2 hours; all infrastructure is already in place.
+
+#### 5. Social login
 
 Verify Google/Apple are enabled in the Clerk Dashboard for this project. Pure config; no code change. Worth doing alongside the Aitor re-enable since it lifts the friction on the auth gate that's about to do real work.
 
-#### 5. Drop: daily-plan positioning
+#### 6. Drop: daily-plan positioning
 
 Today is already the landing route, the onboarding wizard already covers the "open, follow, done" framing, and the marketing surface is small. No build to do.
 
