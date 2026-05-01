@@ -56,3 +56,13 @@ updates:
       type-definitions:
         patterns:
           - "@types/node"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/London"
+    labels:
+      - "dependencies"
