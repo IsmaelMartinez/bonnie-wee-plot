@@ -250,6 +250,7 @@ export default function CompostPage() {
                                 setEditingName(null)
                               }}
                               onKeyDown={(e) => {
+                                if (e.nativeEvent.isComposing) return
                                 if (e.key === 'Enter') {
                                   e.currentTarget.blur()
                                 } else if (e.key === 'Escape') {
@@ -261,10 +262,10 @@ export default function CompostPage() {
                             <button
                               type="button"
                               onClick={() => setEditingName(pile.id)}
-                              className="inline-flex items-center gap-1.5 hover:text-zen-moss-700 transition-colors text-left max-w-full"
+                              className="inline-flex items-center gap-1.5 hover:text-zen-moss-700 transition-colors text-left max-w-full min-w-0"
                               aria-label={`Rename ${pile.name}`}
                             >
-                              <h3 className="font-medium text-lg text-zen-ink-800 truncate">{pile.name}</h3>
+                              <span className="font-medium text-lg text-zen-ink-800 truncate">{pile.name}</span>
                               <Pencil className="w-3 h-3 text-zen-stone-400 flex-shrink-0" />
                             </button>
                           )}
