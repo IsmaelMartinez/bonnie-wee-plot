@@ -241,7 +241,9 @@ export default function CompostPage() {
                               type="text"
                               defaultValue={pile.name}
                               autoFocus
+                              aria-label="Edit pile name"
                               className="zen-input font-medium text-lg w-full"
+                              onFocus={(e) => e.currentTarget.select()}
                               onBlur={(e) => {
                                 const next = e.target.value.trim()
                                 if (next && next !== pile.name) {
@@ -254,6 +256,7 @@ export default function CompostPage() {
                                 if (e.key === 'Enter') {
                                   e.currentTarget.blur()
                                 } else if (e.key === 'Escape') {
+                                  e.currentTarget.value = pile.name
                                   setEditingName(null)
                                 }
                               }}
