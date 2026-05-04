@@ -586,7 +586,7 @@
 ## 8. Navigation
 
 ### Desktop Navigation
-- ✅ Primary nav items visible (Today, This Month, Seeds, Compost, Allotment)
+- ✅ Primary nav items visible (Today, This Month, Plant Guide, Compost, Allotment)
 - ✅ "More" dropdown button visible
 - ✅ Dropdown opens on click
 - ✅ Settings link in dropdown
