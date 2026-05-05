@@ -46,14 +46,14 @@ function NavAuthSection({
 const primaryNavLinks = [
   { href: '/', label: 'Today' },
   { href: '/this-month', label: 'This Month' },
-  { href: '/seeds', label: 'Seeds' },
+  { href: '/plants', label: 'Plant Guide' },
   { href: '/compost', label: 'Compost' },
   { href: '/allotment', label: 'Allotment' },
 ]
 
 // Secondary links shown in "More" dropdown
 export const secondaryLinks = [
-  { href: '/plants', label: 'Plant Guide', description: 'Growing info & tips' },
+  { href: '/seeds', label: 'Seeds', description: 'Inventory & varieties' },
   { href: '/settings', label: 'Settings', description: 'Sync & preferences' },
 ]
 
