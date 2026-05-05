@@ -79,6 +79,7 @@ export default function CompostPage() {
   const [pileToDelete, setPileToDelete] = useState<string | null>(null)
   const [expandedPiles, setExpandedPiles] = useState<Set<string>>(new Set())
   const [editingStartDate, setEditingStartDate] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState<string | null>(null)
   const [showCareTips, setShowCareTips] = useState(false)
 
   // Form state for new pile
@@ -234,8 +235,43 @@ export default function CompostPage() {
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <span className="text-2xl sm:text-3xl flex-shrink-0">{getSystemEmoji(pile.systemType)}</span>
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-lg text-zen-ink-800 truncate">{pile.name}</h3>
+                        <div className="min-w-0 flex-1">
+                          {editingName === pile.id ? (
+                            <input
+                              type="text"
+                              defaultValue={pile.name}
+                              autoFocus
+                              aria-label="Edit pile name"
+                              className="zen-input font-medium text-lg w-full"
+                              onFocus={(e) => e.currentTarget.select()}
+                              onBlur={(e) => {
+                                const next = e.target.value.trim()
+                                if (next && next !== pile.name) {
+                                  updatePile(pile.id, { name: next })
+                                }
+                                setEditingName(null)
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.nativeEvent.isComposing) return
+                                if (e.key === 'Enter') {
+                                  e.currentTarget.blur()
+                                } else if (e.key === 'Escape') {
+                                  e.currentTarget.value = pile.name
+                                  setEditingName(null)
+                                }
+                              }}
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setEditingName(pile.id)}
+                              className="inline-flex items-center gap-1.5 hover:text-zen-moss-700 transition-colors text-left max-w-full min-w-0"
+                              aria-label={`Rename ${pile.name}`}
+                            >
+                              <span className="font-medium text-lg text-zen-ink-800 truncate">{pile.name}</span>
+                              <Pencil className="w-3 h-3 text-zen-stone-400 flex-shrink-0" />
+                            </button>
+                          )}
                           <p className="text-sm text-zen-stone-500">{SYSTEM_TYPES.find(s => s.value === pile.systemType)?.label}</p>
                         </div>
                       </div>
