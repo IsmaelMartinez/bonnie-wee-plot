@@ -204,70 +204,40 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 
 - Automatic backup prompts
 
-### Vercro Learnings: Shipped
+### Research-Driven Improvements: Shipped
 
-Four of the five Vercro learnings landed on `claude/analyze-vercro-app-A6inL`:
+A round of research into adjacent gardening apps surfaced four small UI bets, all landed on `claude/analyze-vercro-app-A6inL`:
 
-- **Today weather strip** (commit 865c986) — 3-tile today/tomorrow/+1 forecast on the Today dashboard. Open-Meteo query extended with `weathercode` + temps; `RainfallSummary.forecast` carries the daily tiles; WMO codes mapped to lucide icons in `src/lib/weather/wmo-icons.ts`.
-- **Crop progress strip** (commit e6bc285) — `<PlantingProgress>` rendered in `PlantingDetailDialog` showing sow → expected harvest window with actual harvest overlaid and a "today" line. Pure UI over existing `Planting` fields.
-- **Boost this bed** (commit f3897f8) — companion suggestions in `BedDetailPanel` for rotation beds with at least one planting. Ranked by seed availability → confidence → name; click pre-fills the Add Planting dialog with the suggested variety. Logic in `src/lib/boost-suggestions.ts` with full unit coverage.
-- **Aitor re-enable** (commit e744f33) — replaced `SHOW_AI_ADVISOR` flag with Clerk `isSignedIn` gate via `AitorAuthGate`. Settings "AI & Location" tab gated the same way. Anonymous users see no AI surfaces; signed-in users get the chat back.
+- **Today weather strip** (commit 76ff0ef) — 3-tile today/tomorrow/+1 forecast on the Today dashboard. Open-Meteo query extended with `weathercode` + temps; `RainfallSummary.forecast` carries the daily tiles; WMO codes mapped to lucide icons in `src/lib/weather/wmo-icons.ts`.
+- **Crop progress strip** (commit a197ad4) — `<PlantingProgress>` rendered in `PlantingDetailDialog` showing sow → expected harvest window with actual harvest overlaid and a "today" line. Pure UI over existing `Planting` fields.
+- **Boost this bed** (commit 2ba4c67) — companion suggestions in `BedDetailPanel` for rotation beds with at least one planting. Ranked by seed availability → confidence → name; click pre-fills the Add Planting dialog with the suggested variety. Logic in `src/lib/boost-suggestions.ts` with full unit coverage.
+- **Aitor re-enable** (commit 5255f4c) — replaced `SHOW_AI_ADVISOR` flag with Clerk `isSignedIn` gate via `AitorAuthGate`. Settings "AI & Location" tab gated the same way. Anonymous users see no AI surfaces; signed-in users get the chat back.
 
-Follow-ups still on the roadmap:
+### Frost & Climate Data (research)
 
-- **Aitor polish** — per-user `meta.aiAdvisorEnabled` opt-in (schema v20), photo-diagnosis pre-seed entry-point, refreshed prompt suggestions in `QuickTopics.tsx`.
-- **Boost this bed on mobile** — port to `MobileAreaBottomSheet` (skipped for tightness in the first PR).
-- **Social login** — verify Google/Apple are enabled in the Clerk Dashboard. Pure config.
+`docs/research/frost-and-climate-data.md` — fresh research into what we could do with frost and broader climate data on top of the existing Open-Meteo plumbing. Recommended track: frost dot on the WeatherStrip → `hardiness` field on `Vegetable` → last/first-frost dates cached on `meta.frostDates` from the Open-Meteo Climate API → frost-aware sow-date validation. ~12–18 hours total, very high leverage on UK/Scotland sowing decisions.
 
-### Competitor Learnings: Vercro (https://vercro.com)
+### Research-Driven Improvements: Backlog
 
-Reviewed Vercro, a UK/Ireland gardening task app with overlapping scope. Postcode/rainfall integration (their headline differentiator) is already shipped here via Open-Meteo + schema v19, `LocationPromptBanner`, and `generateWateringTasks`. Remaining ideas, ordered by leverage:
+Follow-ups from the same research round, in order of leverage:
 
-#### 1. Aitor as a signed-in, opt-in companion (re-enable, do not narrow)
+#### 1. Aitor as a signed-in, opt-in companion (polish on top of the re-enable)
 
-Vercro's AI is a single-purpose "snap a sick plant → diagnosis" tool. We already have richer infrastructure: tool-calling for data modifications (`ai-tool-executor.ts`), photo upload (`route.ts` accepts plant images, gpt-4o vision), BYO API key, and a global chat modal. Re-enable rather than re-scope, but constrain who sees it and how it's introduced:
+The chat is back for signed-in users via `AitorAuthGate`. Remaining polish:
 
-- **Replace the global flag with per-user gating.** `SHOW_AI_ADVISOR = false` is binary; swap it for `SignedIn` (Clerk) plus a per-user opt-in preference (`AllotmentData.meta.aiAdvisorEnabled`, default false). Anonymous users never see it; signed-in users see a one-time "Try Aitor?" banner on Today.
-- **Surface photo diagnosis as the lead use case.** Add a "Diagnose a plant" button next to the chat-launcher that opens `AitorChatModal` pre-seeded with an image picker and a system prompt focused on diagnosis — closes the cold-start gap that drove hiding the chat in the first place.
-- **Add prompt suggestions in `QuickTopics.tsx`.** "What can I plant in May?" / "Diagnose this leaf" / "Plan my next rotation" / "Why is my chard bolting?" — concrete entries beat a blank input.
-- **Files:** `src/config/release-visibility.ts` (remove `SHOW_AI_ADVISOR`), `src/app/layout.tsx` (gate `AitorChatButton`/`AitorChatModal` on `SignedIn` + preference), `src/app/settings/page.tsx` (move AI tab out from behind the flag, gate on `SignedIn`), `src/components/dashboard/TodayDashboard.tsx` (one-time invite banner), `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`).
+- **Per-user opt-in.** Add `meta.aiAdvisorEnabled` (schema migration v20, default false). Show a one-time "Try Aitor?" banner on Today that flips it on. Replaces the implicit "signed-in == opted-in" with an explicit choice.
+- **Photo-diagnosis lead path.** Add a "Diagnose a plant" entry-point next to the chat launcher that opens `AitorChatModal` pre-seeded with an image picker and a system prompt focused on diagnosis — closes the cold-start gap that drove hiding the chat in the first place. The API route already accepts plant images via gpt-4o vision.
+- **Refresh `QuickTopics.tsx` prompts.** "What can I plant in May?" / "Diagnose this leaf" / "Plan my next rotation" / "Why is my chard bolting?" — concrete entries beat a blank input.
+- **Files:** `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`), `src/services/storage-migrations.ts` (v20), `src/components/ai-advisor/AitorAuthGate.tsx`, `src/components/dashboard/TodayDashboard.tsx` (one-time banner), `src/components/ai-advisor/QuickTopics.tsx`, `src/components/ai-advisor/AitorChatButton.tsx`.
 - **Risk to weigh:** server-side fallback (`OPENAI_API_KEY`) becomes a real cost line once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
 
-#### 2. Crop timeline visualisation
+#### 2. "Boost this bed" on mobile
 
-Per-plant growth-stage strip (sow → emergence → growing → expected harvest window → actual harvests). All data already lives on `Planting`. Two surface options, low cost either way:
+Port the `<BoostThisBed>` section from `BedDetailPanel.tsx` to `MobileAreaBottomSheet.tsx`. Skipped in the first PR for tightness; same data, same component.
 
-- Add a `<PlantingTimeline>` strip at the top of `PlantingDetailDialog` (the tabbed dialog already exists).
-- Add a compact sparkline to each item in Today's "Growing" section so users see at-a-glance where each plant sits in its arc.
+#### 3. Social login
 
-Lifecycle stage derives from `sowDate`, `expectedHarvestStart/End`, and `actualHarvestDates`; perennials can reuse `calculatePerennialStatus()`.
-
-#### 3. "Boost this bed" — companion suggestions in area panel
-
-Vercro frames companion planting as a positive next action ("add marigolds to deter pests"). We have richer data already: `EnhancedCompanion` carries `mechanism` (`pest_repellent`, `nitrogen_fixation`, `disease_suppression`, …) and `confidence` — perfect for the "why" copy.
-
-- Add a "Boost this bed" section to `BedDetailPanel.tsx` and `MobileAreaBottomSheet.tsx`. For each current planting in the bed, surface up to 3 high-confidence companions with mechanism-derived copy, deduped across the bed.
-- Cross-reference `data.varieties[*].seedsByYear` to prefer companions the user already has seed for. Click → `AddPlantingForm` pre-filled with that variety.
-- Independent from the existing `SHOW_ROTATION_SUGGESTIONS` flag — this is positive-framed and shippable on day one; rotation suggestions can stay hidden.
-
-#### 4. Weather strip on Today (today / tomorrow / +1)
-
-Small forecast tiles above the existing rainfall line — icon, max/min temp, precipitation. Reuses everything that already exists: `fetchRainfall()` plumbing in `src/lib/weather/open-meteo.ts`, the localStorage cache, the coordinate gate, and `LocationPromptBanner`. Only changes:
-
-- Extend the Open-Meteo query with `weathercode`, `temperature_2m_max`, `temperature_2m_min` and bump `forecast_days` to 2 or 3.
-- Widen `RainfallSummary` (or split it) into a `WeatherSummary` with a `daily` array.
-- Map WMO weather codes to `lucide-react` icons (`Sun`, `Cloud`, `CloudRain`, `CloudSnow`, `CloudLightning`, `CloudDrizzle`).
-- New `<WeatherStrip>` component on `TodayDashboard.tsx`, ~3 tiles, hidden when `hasCoordinates` is false.
-
-Effort: ~1–2 hours; all infrastructure is already in place.
-
-#### 5. Social login
-
-Verify Google/Apple are enabled in the Clerk Dashboard for this project. Pure config; no code change. Worth doing alongside the Aitor re-enable since it lifts the friction on the auth gate that's about to do real work.
-
-#### 6. Drop: daily-plan positioning
-
-Today is already the landing route, the onboarding wizard already covers the "open, follow, done" framing, and the marketing surface is small. No build to do.
+Verify Google/Apple are enabled in the Clerk Dashboard for this project. Pure config; no code change.
 
 ### Future Phases (Contingent on User Adoption)
 
