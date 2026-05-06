@@ -9,7 +9,7 @@ import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
-import PlantingTimeline from './PlantingTimeline'
+import SowDateValidator from './SowDateValidator'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
@@ -350,9 +350,10 @@ export default function AddPlantingForm({
                   </div>
                 )}
 
-                {/* Planting Timeline Preview */}
+                {/* Sow-date validator: shows the calculated harvest window
+                    and any warnings for the chosen sow date / method. */}
                 {selectedVegetable && sowDate && (
-                  <PlantingTimeline
+                  <SowDateValidator
                     sowDate={sowDate}
                     sowMethod={sowMethod}
                     vegetable={selectedVegetable}

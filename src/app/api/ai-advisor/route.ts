@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { aiAdvisorRequestSchema } from '@/lib/validations/ai-advisor'
 import { logger } from '@/lib/logger'
 import {
@@ -153,6 +154,20 @@ function buildApiConfig(apiKey: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Aitor is gated on a signed-in Clerk session. The chat UI is hidden for
+    // anonymous users via AitorAuthGate; matching that gate at the route
+    // level prevents the env-key fallback (OPENAI_API_KEY) from being
+    // drained by unauthenticated callers. When Clerk is not configured at
+    // all, auth() returns { userId: null } and we reject — matching the UI,
+    // which also stays hidden.
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Sign in to use Aitor.' },
+        { status: 401 }
+      )
+    }
+
     // Parse and validate request body with Zod
     const body = await request.json()
     const validationResult = aiAdvisorRequestSchema.safeParse(body)

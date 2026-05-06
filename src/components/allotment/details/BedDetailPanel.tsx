@@ -190,8 +190,12 @@ export default function BedDetailPanel({
         />
       </div>
 
-      {/* Boost this bed — companion suggestions for the current plantings */}
-      {isRotationBed && plantings.length > 0 && (
+      {/* Boost this bed — companion suggestions for the current plantings.
+          Renders for any bed with at least one planting; perennial beds
+          (e.g. asparagus + tomato) benefit from companions just as much as
+          rotation beds do. The component itself returns null when there
+          are no companion data for the plantings present. */}
+      {plantings.length > 0 && (
         <BoostThisBed
           plantings={plantings}
           varieties={varieties}
