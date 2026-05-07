@@ -53,7 +53,7 @@ Completed across PRs #151, #153, #167, #169, #171, #180-188. Each section review
 - Grid: AllotmentGrid, AllotmentMobileView, BedItem
 - Forms: AddAreaForm, EditAreaForm, AddPlantingForm, PlantCombobox
 - Details: BedDetailPanel, PermanentDetailPanel, InfrastructureDetailPanel, ItemDetailSwitcher
-- Plantings: PlantingCard, PlantingDetailDialog, PlantingTimeline, PerennialStatusBadge
+- Plantings: PlantingCard, PlantingDetailDialog, PlantingProgress, SowDateValidator, PerennialStatusBadge
 - Notes: BedNotes, CareLogSection, HarvestTracker, UnderplantingsList
 - Status: SeasonStatusWidget
 **Key Questions:**

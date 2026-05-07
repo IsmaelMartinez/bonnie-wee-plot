@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import Tabs, { Tab } from '@/components/ui/Tabs'
+import PlantingProgress from './PlantingProgress'
 import { Planting, PlantingUpdate, SowMethod } from '@/types/unified-allotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
@@ -396,6 +397,9 @@ export default function PlantingDetailDialog({
           <p className="text-xs text-zen-stone-500 mb-3">
             Changes save automatically as you edit.
           </p>
+
+          {/* Lifecycle progress strip — only renders when sowDate + expected harvest exist */}
+          <PlantingProgress planting={planting} />
 
           {/* Tabs */}
           <div className="flex-1">

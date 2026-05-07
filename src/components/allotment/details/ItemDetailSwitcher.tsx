@@ -2,7 +2,7 @@
 
 import { Map } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
-import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate, NewPlanting, CareLogEntry, NewCareLogEntry } from '@/types/unified-allotment'
+import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate, NewPlanting, CareLogEntry, NewCareLogEntry, StoredVariety } from '@/types/unified-allotment'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
 import InfrastructureDetailPanel from './InfrastructureDetailPanel'
@@ -26,7 +26,8 @@ interface ItemDetailSwitcherProps {
   getHarvestTotal: (areaId: string) => { quantity: number; unit: string } | null
   // Event handlers
   selectedYear: number
-  onAddPlanting: () => void
+  varieties?: StoredVariety[]
+  onAddPlanting: (prefilledPlantId?: string) => void
   onAddPlantingToArea: (areaId: string, planting: NewPlanting) => void
   onDeletePlanting: (plantingId: string) => void
   onRemovePlantingFromArea: (areaId: string, plantingId: string) => void
@@ -86,6 +87,7 @@ export default function ItemDetailSwitcher({
   getCareLogs,
   getHarvestTotal,
   selectedYear,
+  varieties,
   onAddPlanting,
   onAddPlantingToArea,
   onDeletePlanting,
@@ -129,6 +131,7 @@ export default function ItemDetailSwitcher({
         notes={getAreaNotes(area.id)}
         selectedYear={selectedYear}
         previousYearRotation={getPreviousYearRotation(area.id)}
+        varieties={varieties}
         onAddPlanting={onAddPlanting}
         onDeletePlanting={onDeletePlanting}
         onUpdatePlanting={onUpdatePlanting}

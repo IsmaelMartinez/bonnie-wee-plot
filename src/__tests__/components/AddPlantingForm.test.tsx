@@ -95,9 +95,9 @@ vi.mock('@/components/allotment/PlantCombobox', () => ({
   ),
 }))
 
-// Mock PlantingTimeline
-vi.mock('@/components/allotment/PlantingTimeline', () => ({
-  default: () => <div data-testid="planting-timeline">Timeline preview</div>,
+// Mock SowDateValidator
+vi.mock('@/components/allotment/SowDateValidator', () => ({
+  default: () => <div data-testid="sow-date-validator">Sow-date validator</div>,
 }))
 
 describe('AddPlantingForm Component', () => {

@@ -144,4 +144,47 @@ describe('fetchRainfall', () => {
     const result = await fetchRainfall(55.95, -3.18)
     expect(result).toBeNull()
   })
+
+  it('builds forecast tiles when the response includes weathercode and temps', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: {
+            time: ['d-3', 'd-2', 'd-1', '2026-04-29', '2026-04-30', '2026-05-01'],
+            precipitation_sum: [0, 1, 2, 3, 0, 0.5],
+            weathercode: [0, 0, 0, 61, 3, 2],
+            temperature_2m_max: [10, 11, 12, 14.4, 16, 15],
+            temperature_2m_min: [4, 5, 6, 7.2, 8, 7],
+          },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result?.forecast).toHaveLength(3)
+    expect(result?.forecast?.[0]).toEqual({
+      date: '2026-04-29',
+      weatherCode: 61,
+      tempMaxC: 14.4,
+      tempMinC: 7.2,
+      precipitationMm: 3,
+    })
+    expect(result?.forecast?.[2].date).toBe('2026-05-01')
+  })
+
+  it('omits forecast when the response lacks weathercode or temperature series', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: { precipitation_sum: [0, 0, 0, 0] },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result).not.toBeNull()
+    expect(result?.forecast).toBeUndefined()
+  })
 })

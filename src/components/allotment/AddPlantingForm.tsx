@@ -9,7 +9,7 @@ import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import PlantCombobox from './PlantCombobox'
-import PlantingTimeline from './PlantingTimeline'
+import SowDateValidator from './SowDateValidator'
 
 interface AddPlantingFormProps {
   onSubmit: (planting: NewPlanting) => void
@@ -18,6 +18,8 @@ interface AddPlantingFormProps {
   selectedYear: number
   varieties?: StoredVariety[]
   initialCategoryFilter?: VegetableCategory | 'all'
+  /** Optional plant ID to pre-select (e.g. from a "Boost this bed" suggestion). */
+  initialPlantId?: string
 }
 
 // Helper to check if variety has seeds for year
@@ -31,9 +33,10 @@ export default function AddPlantingForm({
   existingPlantings = [],
   selectedYear,
   varieties = [],
-  initialCategoryFilter = 'all'
+  initialCategoryFilter = 'all',
+  initialPlantId,
 }: AddPlantingFormProps) {
-  const [plantId, setVegetableId] = useState('')
+  const [plantId, setVegetableId] = useState(initialPlantId ?? '')
   const [varietyName, setVarietyName] = useState('')
   const [sowMethod, setSowMethod] = useState<SowMethod>('outdoor')
   const [sowMethodRecommendation, setSowMethodRecommendation] = useState<SowMethodRecommendation | null>(null)
@@ -347,9 +350,10 @@ export default function AddPlantingForm({
                   </div>
                 )}
 
-                {/* Planting Timeline Preview */}
+                {/* Sow-date validator: shows the calculated harvest window
+                    and any warnings for the chosen sow date / method. */}
                 {selectedVegetable && sowDate && (
-                  <PlantingTimeline
+                  <SowDateValidator
                     sowDate={sowDate}
                     sowMethod={sowMethod}
                     vegetable={selectedVegetable}

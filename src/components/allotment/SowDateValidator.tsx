@@ -10,7 +10,7 @@ import {
   getGerminationDays,
 } from '@/lib/date-calculator'
 
-interface PlantingTimelineProps {
+interface SowDateValidatorProps {
   sowDate: string
   sowMethod: SowMethod
   vegetable: Vegetable
@@ -21,12 +21,12 @@ interface PlantingTimelineProps {
  * Displays calculated harvest timeline and validation warnings
  * when a user enters sow date information in the planting form.
  */
-export default function PlantingTimeline({
+export default function SowDateValidator({
   sowDate,
   sowMethod,
   vegetable,
   transplantDate,
-}: PlantingTimelineProps) {
+}: SowDateValidatorProps) {
   // Calculate dates and validation
   const { dates, validation, germination } = useMemo(() => {
     const calculatedDates = calculatePlantingDates({

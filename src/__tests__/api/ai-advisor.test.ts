@@ -6,7 +6,17 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST } from '@/app/api/ai-advisor/route'
+
+// Mock Clerk's server-side auth() — every test except the "unauthenticated"
+// case runs as a signed-in user. The unauthenticated test overrides this.
+const mockAuth = vi.fn<() => Promise<{ userId: string | null }>>(async () => ({
+  userId: 'user_test_123',
+}))
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: () => mockAuth(),
+}))
+
+const { POST } = await import('@/app/api/ai-advisor/route')
 
 // Mock fetch - necessary for API route testing
 const mockFetch = vi.fn()
@@ -15,7 +25,23 @@ global.fetch = mockFetch
 describe('AI Advisor API - Validation & Error Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockAuth.mockResolvedValue({ userId: 'user_test_123' })
     vi.stubEnv('OPENAI_API_KEY', '')
+  })
+
+  describe('Authentication', () => {
+    it('rejects requests from unauthenticated callers with 401', async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null })
+      vi.stubEnv('OPENAI_API_KEY', 'sk-test-valid-key-12345678901234')
+
+      const response = await POST(createRequest({ message: 'Hello' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(401)
+      expect(data.error).toMatch(/sign in/i)
+      // The env key must not have been used.
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
   })
 
   function createRequest(

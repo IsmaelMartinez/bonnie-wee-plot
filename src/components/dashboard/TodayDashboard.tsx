@@ -7,6 +7,7 @@ import TaskList from './TaskList'
 import QuickActions from './QuickActions'
 import CompostAlerts from './CompostAlerts'
 import LocationPromptBanner from './LocationPromptBanner'
+import WeatherStrip from './WeatherStrip'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
@@ -114,8 +115,12 @@ export default function TodayDashboard() {
             <LocationPromptBanner onRequestLocation={onRequestLocation} />
           )}
 
-          {/* Rainfall summary when available */}
-          {rainfall && hasCoordinates && (
+          {/* Forecast strip (today / tomorrow / +1) when we have rich data,
+              otherwise fall back to the rainfall summary line. */}
+          {rainfall && hasCoordinates && rainfall.forecast && (
+            <WeatherStrip forecast={rainfall.forecast} />
+          )}
+          {rainfall && hasCoordinates && !rainfall.forecast && (
             <div className="text-xs text-zen-stone-500 -mt-4">
               Rainfall: {rainfall.past3DaysMm.toFixed(1)}mm last 3 days
               {rainfall.todayMm > 0 && `, ${rainfall.todayMm.toFixed(1)}mm forecast today`}
