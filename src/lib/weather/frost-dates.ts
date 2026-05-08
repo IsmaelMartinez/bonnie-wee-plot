@@ -2,8 +2,10 @@ import { logger } from '@/lib/logger'
 
 const ENDPOINT = 'https://climate-api.open-meteo.com/v1/climate'
 const CACHE_PREFIX = 'bwp-frost-dates-'
-const START_DATE = '2010-01-01'
-const END_DATE = '2024-12-31'
+// Sliding 15-year window ending one year before the current year, so the
+// data stays fresh as time passes. Open-Meteo's Climate API publishes
+// historicals with some delay, hence end_year = current - 1.
+const CLIMATE_WINDOW_YEARS = 15
 const MODEL = 'ECMWF_IFS'
 const FROST_THRESHOLD_C = 0
 // Climate endpoint is slower than the forecast API; allow more headroom but
@@ -145,7 +147,11 @@ export async function fetchFrostDates(
   const cached = readCache(key)
   if (cached) return cached
 
-  const url = `${ENDPOINT}?latitude=${latitude}&longitude=${longitude}&start_date=${START_DATE}&end_date=${END_DATE}&models=${MODEL}&daily=temperature_2m_min`
+  const endYear = new Date().getUTCFullYear() - 1
+  const startYear = endYear - CLIMATE_WINDOW_YEARS + 1
+  const startDate = `${startYear}-01-01`
+  const endDate = `${endYear}-12-31`
+  const url = `${ENDPOINT}?latitude=${latitude}&longitude=${longitude}&start_date=${startDate}&end_date=${endDate}&models=${MODEL}&daily=temperature_2m_min`
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
