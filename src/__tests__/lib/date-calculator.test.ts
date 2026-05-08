@@ -332,6 +332,50 @@ describe('validateSowDate', () => {
   })
 })
 
+describe('validateSowDate (frost awareness)', () => {
+  // Tomato fixture extended with outdoor months so the frost check is reachable.
+  const tenderTomato: Vegetable = {
+    ...testTomato,
+    hardiness: 'H2',
+    planting: { ...testTomato.planting, sowOutdoorsMonths: [5, 6] },
+  }
+  const hardyCarrot: Vegetable = {
+    ...testCarrot,
+    hardiness: 'H4',
+  }
+  const frostDates = {
+    lastSpring: '2025-05-15',
+    firstAutumn: '2025-10-12',
+    fetchedAt: '2025-01-01T00:00:00.000Z',
+  }
+
+  it('warns when a tender crop is sown outdoors before the average last spring frost', () => {
+    const result = validateSowDate('2025-05-10', 'outdoor', tenderTomato, { frostDates })
+    expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(true)
+    expect(result.warnings.some(w => w.includes('15 May') || w.includes('2025-05-15'))).toBe(true)
+  })
+
+  it('does not warn when a tender crop is sown outdoors after the last spring frost', () => {
+    const result = validateSowDate('2025-05-20', 'outdoor', tenderTomato, { frostDates })
+    expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(false)
+  })
+
+  it('does not warn for hardy crops sown before the last spring frost', () => {
+    const result = validateSowDate('2025-04-15', 'outdoor', hardyCarrot, { frostDates })
+    expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(false)
+  })
+
+  it('does not warn for indoor sowings of tender crops before the last spring frost', () => {
+    const result = validateSowDate('2025-04-01', 'indoor', tenderTomato, { frostDates })
+    expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(false)
+  })
+
+  it('preserves existing behaviour when no frostDates are provided', () => {
+    const result = validateSowDate('2025-04-15', 'outdoor', tenderTomato)
+    expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(false)
+  })
+})
+
 describe('populateExpectedHarvest', () => {
   it('populates expected harvest dates from sow date', () => {
     const planting: Planting = {
