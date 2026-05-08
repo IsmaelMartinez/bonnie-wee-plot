@@ -16,13 +16,18 @@ vi.mock('@/hooks/useOptionalAuth', () => ({
   }),
 }))
 
-// Mock Supabase sync
+// Mock Supabase sync — keep contentSnapshot/isLocalStructurallySmaller real
+// since they are pure helpers that the hook depends on for its logic.
 const mockFetchRemote = vi.fn()
 const mockPushToRemote = vi.fn()
-vi.mock('@/lib/supabase/sync', () => ({
-  fetchRemote: (...args: unknown[]) => mockFetchRemote(...args),
-  pushToRemote: (...args: unknown[]) => mockPushToRemote(...args),
-}))
+vi.mock('@/lib/supabase/sync', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/supabase/sync')>('@/lib/supabase/sync')
+  return {
+    ...actual,
+    fetchRemote: (...args: unknown[]) => mockFetchRemote(...args),
+    pushToRemote: (...args: unknown[]) => mockPushToRemote(...args),
+  }
+})
 
 // Mock Supabase client
 vi.mock('@/lib/supabase/client', () => ({
@@ -197,7 +202,11 @@ describe('useSyncedStorage', () => {
     )
 
     const localData = makeTestData(pastSyncTime) // local unchanged since last sync
-    const remoteData = makeTestData('2026-03-10T14:00:00Z')
+    // Remote has different content (an extra variety) so the content
+    // short-circuit doesn't fire — we want the LWW newer-wins path.
+    const remoteData = makeTestData('2026-03-10T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
+    })
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
@@ -221,10 +230,14 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    const localData = makeTestData('2026-03-10T14:00:00Z')
+    // Local has extra content vs remote so it isn't structurally smaller —
+    // the safety check requires local >= remote on every axis to push.
+    const localData = makeTestData('2026-03-10T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
+    })
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
-      data: makeTestData(pastSyncTime), // remote unchanged
+      data: makeTestData(pastSyncTime), // remote unchanged, different content
       updatedAt: pastSyncTime,
     })
     mockPushToRemote.mockResolvedValue(undefined)
@@ -247,8 +260,12 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    const localData = makeTestData('2026-03-05T10:00:00Z')
-    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    const localData = makeTestData('2026-03-05T10:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
+    })
+    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
+    })
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
@@ -276,8 +293,12 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    const localData = makeTestData('2026-03-05T10:00:00Z')
-    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    const localData = makeTestData('2026-03-05T10:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
+    })
+    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
+    })
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
@@ -307,8 +328,12 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    const localData = makeTestData('2026-03-05T10:00:00Z')
-    const remoteData = makeTestData('2026-03-05T14:00:00Z')
+    const localData = makeTestData('2026-03-05T10:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
+    })
+    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
+    })
     mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
@@ -329,6 +354,43 @@ describe('useSyncedStorage', () => {
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
     expect(result.current.syncStatus).toBe('synced')
     expect(result.current.syncConflict).toBeNull()
+  })
+
+  // Cloud-overwrite incident regression: a stale local with a newer timestamp
+  // (e.g. fooled by saveAllotmentData's old unconditional bump or a
+  // load-time migration) must NOT silently overwrite a richer cloud snapshot.
+  it('routes through conflict when local is structurally smaller than remote despite a newer local timestamp', async () => {
+    const pastSyncTime = '2026-03-01T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: pastSyncTime })
+    )
+
+    // Local has a newer updatedAt but FEWER varieties than remote.
+    const localData = makeTestData('2026-03-10T14:00:00Z', {
+      varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
+    })
+    const remoteData = makeTestData(pastSyncTime, {
+      varieties: [
+        { id: 'v1', name: 'Tomato' },
+        { id: 'v2', name: 'Pea' },
+        { id: 'v3', name: 'Carrot' },
+      ] as unknown as AllotmentData['varieties'],
+    })
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: pastSyncTime,
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+    expect(mockPushToRemote).not.toHaveBeenCalled()
+    expect(result.current.syncConflict?.local).toBe(localData)
+    expect(result.current.syncConflict?.remote).toBe(remoteData)
   })
 
   it('ignores stale initial-sync results when user changes mid-request', async () => {

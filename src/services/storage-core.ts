@@ -142,23 +142,21 @@ export function saveAllotmentData(data: AllotmentData): StorageResult<void> {
   }
 
   try {
-    // Update the updatedAt timestamp
-    const dataToSave: AllotmentData = {
-      ...data,
-      meta: {
-        ...data.meta,
-        updatedAt: new Date().toISOString(),
-      },
-    }
-
-    const jsonString = JSON.stringify(dataToSave)
+    // Persist exactly what was passed in. Mutations that represent a real
+    // user content change set `meta.updatedAt` themselves (see area-mutations
+    // and planting-operations). Bumping the timestamp here on every save
+    // would also bump it for load-time side effects (schema migrations,
+    // validation/repair, currentYear auto-update), which fooled LWW sync
+    // into thinking local was newer than the cloud and silently overwrote
+    // remote work — see the cloud-overwrite incident on 2026-05-08.
+    const jsonString = JSON.stringify(data)
 
     try {
       localStorage.setItem(STORAGE_KEY, jsonString)
       return { success: true }
     } catch (error) {
       if (isQuotaExceededError(error)) {
-        const dataSize = formatBytes(getDataSizeBytes(dataToSave))
+        const dataSize = formatBytes(getDataSizeBytes(data))
         logger.error('localStorage quota exceeded', { dataSize })
 
         return {

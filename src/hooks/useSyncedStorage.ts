@@ -15,7 +15,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useOptionalAuth } from './useOptionalAuth'
 import { usePersistedStorage, UsePersistedStorageOptions, UsePersistedStorageReturn } from './usePersistedStorage'
 import { useNetworkStatus } from './useNetworkStatus'
-import { fetchRemote, pushToRemote } from '@/lib/supabase/sync'
+import {
+  fetchRemote,
+  pushToRemote,
+  contentSnapshot,
+  isLocalStructurallySmaller,
+} from '@/lib/supabase/sync'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import type { AllotmentData } from '@/types/unified-allotment'
 import type { SyncStatus } from '@/types/storage'
@@ -92,7 +97,10 @@ export function useSyncedStorage(
     activeUserIdRef.current !== expectedUserId
 
   const applyRemoteSnapshot = (remoteData: AllotmentData) => {
-    const snapshot = JSON.stringify(remoteData)
+    // Use content-only fingerprint so a subsequent local save (which may
+    // re-stamp meta.updatedAt) doesn't look like a content change to the
+    // push effect.
+    const snapshot = contentSnapshot(remoteData)
     pulledSnapshotRef.current = snapshot
     local.setData(remoteData)
     lastPushedRef.current = snapshot
@@ -123,7 +131,7 @@ export function useSyncedStorage(
         const token = await getSupabaseToken()
         if (token && !isStaleSyncUser(syncUserId)) {
           await pushToRemote(token, syncUserId, conflict.local)
-          lastPushedRef.current = JSON.stringify(conflict.local)
+          lastPushedRef.current = contentSnapshot(conflict.local)
         }
       } catch (err) {
         console.error('[useSyncedStorage] Failed to push after conflict resolution:', err)
@@ -171,7 +179,7 @@ export function useSyncedStorage(
           // First-time cloud user — push local data up
           await pushToRemote(token, syncUserId, local.data!)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = JSON.stringify(local.data)
+          lastPushedRef.current = contentSnapshot(local.data!)
           markSynced(syncUserId)
           setSyncStatus('synced')
           setSyncError(null)
@@ -199,6 +207,19 @@ export function useSyncedStorage(
         const localChanged = localTime > lastSyncTime
         const remoteChanged = remoteTime > lastSyncTime
 
+        // Content-level short-circuit: if local and remote serialise to the
+        // same content (ignoring meta.updatedAt), there is nothing to push
+        // or pull. Just refresh the sync flag and move on.
+        const localSnap = contentSnapshot(localData)
+        const remoteSnap = contentSnapshot(remote.data)
+        if (localSnap === remoteSnap) {
+          lastPushedRef.current = localSnap
+          markSynced(syncUserId)
+          setSyncStatus('synced')
+          setSyncError(null)
+          return
+        }
+
         if (localChanged && remoteChanged) {
           // Both sides changed since last sync — conflict
           setSyncConflict({
@@ -214,13 +235,26 @@ export function useSyncedStorage(
           // Only remote changed, or remote is newer
           applyRemoteSnapshot(remote.data)
         } else if (localChanged || localTime > remoteTime) {
-          // Only local changed, or local is newer
+          // Local appears newer. Belt-and-braces: if local is structurally
+          // smaller than remote on any axis (plantings/areas/varieties),
+          // route through the conflict UI rather than silently overwriting
+          // the cloud — this is the failure mode that cost the user a few
+          // days of activity in the 2026-05-08 incident.
+          if (isLocalStructurallySmaller(localData, remote.data)) {
+            setSyncConflict({
+              local: localData,
+              remote: remote.data,
+              remoteUpdatedAt: remote.updatedAt,
+            })
+            setSyncStatus('conflict')
+            return
+          }
           await pushToRemote(token, syncUserId, local.data!)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = JSON.stringify(local.data)
+          lastPushedRef.current = contentSnapshot(local.data!)
         } else {
           // Same timestamp — already in sync
-          lastPushedRef.current = JSON.stringify(local.data)
+          lastPushedRef.current = contentSnapshot(local.data!)
         }
 
         markSynced(syncUserId)
@@ -253,7 +287,7 @@ export function useSyncedStorage(
     if (syncInProgressRef.current) return
     if (!initialSyncDoneRef.current) return
 
-    const serialized = JSON.stringify(local.data)
+    const serialized = contentSnapshot(local.data)
 
     // Skip push if this save matches the snapshot we just pulled from cloud
     if (pulledSnapshotRef.current && serialized === pulledSnapshotRef.current) {
@@ -307,7 +341,7 @@ export function useSyncedStorage(
         if (!remote) {
           await pushToRemote(token, syncUserId, local.data!)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = JSON.stringify(local.data)
+          lastPushedRef.current = contentSnapshot(local.data!)
         } else {
           const localData = local.data!
           const localTime = toTimestamp(localData.meta?.updatedAt)
@@ -317,6 +351,17 @@ export function useSyncedStorage(
 
           const localChanged = localTime > lastSyncTime
           const remoteChanged = remoteTime > lastSyncTime
+
+          // Content-level short-circuit: nothing to do if both sides match.
+          const localSnap = contentSnapshot(localData)
+          const remoteSnap = contentSnapshot(remote.data)
+          if (localSnap === remoteSnap) {
+            lastPushedRef.current = localSnap
+            markSynced(syncUserId)
+            setSyncStatus('synced')
+            setSyncError(null)
+            return
+          }
 
           if (localChanged && remoteChanged) {
             setSyncConflict({
@@ -331,9 +376,20 @@ export function useSyncedStorage(
           if (remoteChanged || remoteTime > localTime) {
             applyRemoteSnapshot(remote.data)
           } else {
+            // Local appears newer — but bail to a conflict if it looks like a
+            // stale or freshly-initialised copy that would shrink the cloud.
+            if (isLocalStructurallySmaller(localData, remote.data)) {
+              setSyncConflict({
+                local: localData,
+                remote: remote.data,
+                remoteUpdatedAt: remote.updatedAt,
+              })
+              setSyncStatus('conflict')
+              return
+            }
             await pushToRemote(token, syncUserId, local.data!)
             if (isStaleSyncUser(syncUserId)) return
-            lastPushedRef.current = JSON.stringify(local.data)
+            lastPushedRef.current = contentSnapshot(local.data!)
           }
         }
         markSynced(syncUserId)

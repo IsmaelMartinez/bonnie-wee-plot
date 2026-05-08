@@ -7,6 +7,46 @@ export interface RemoteData {
 }
 
 /**
+ * Stable content fingerprint for an AllotmentData blob with `meta.updatedAt`
+ * blanked out. Used by the sync layer to decide whether two snapshots are the
+ * same regardless of timestamp drift — schema migrations, data repair, and
+ * other load-time side effects can churn `updatedAt` without changing any
+ * meaningful content, and we don't want that to trigger a cloud push.
+ */
+export function contentSnapshot(data: AllotmentData): string {
+  return JSON.stringify({ ...data, meta: { ...data.meta, updatedAt: '' } })
+}
+
+/**
+ * Heuristic: does `local` look structurally smaller than `remote` on any of
+ * the user-facing axes (plantings, areas, varieties)? Used as a safety net on
+ * initial sync — if LWW says "push local" but local has fewer plantings/areas/
+ * varieties than remote, treat it as a conflict instead of silently
+ * overwriting cloud data with what is probably a stale or freshly-initialised
+ * local copy.
+ */
+export function isLocalStructurallySmaller(local: AllotmentData, remote: AllotmentData): boolean {
+  const countPlantings = (d: AllotmentData) =>
+    (d.seasons || []).reduce(
+      (sum, s) => sum + (s.areas || []).reduce((a, area) => a + (area.plantings?.length || 0), 0),
+      0
+    )
+  const localPlantings = countPlantings(local)
+  const remotePlantings = countPlantings(remote)
+  if (localPlantings < remotePlantings) return true
+
+  const localAreas = local.layout?.areas?.length || 0
+  const remoteAreas = remote.layout?.areas?.length || 0
+  if (localAreas < remoteAreas) return true
+
+  const localVarieties = local.varieties?.length || 0
+  const remoteVarieties = remote.varieties?.length || 0
+  if (localVarieties < remoteVarieties) return true
+
+  return false
+}
+
+/**
  * Fetch the user's allotment from Supabase.
  * Returns null if no row exists (first-time user).
  */
