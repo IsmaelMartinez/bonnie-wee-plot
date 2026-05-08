@@ -38,6 +38,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/parsley/grow-your-own',
     botanicalName: 'Petroselinum crispum',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Petroselinum_crispum'
   },
   {
@@ -72,6 +73,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/coriander/grow-your-own',
     botanicalName: 'Coriandrum sativum',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Coriandrum_sativum'
   },
   {
@@ -108,6 +110,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/mint/grow-your-own',
     botanicalName: 'Mentha spp.',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mentha'
   },
   {
@@ -139,6 +142,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/chives/grow-your-own',
     botanicalName: 'Allium schoenoprasum',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Chives',
     enhancedAvoid: []
   },
@@ -174,6 +178,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/rosemary/grow-your-own',
     botanicalName: 'Salvia rosmarinus',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rosmarinus_officinalis',
     enhancedAvoid: []
   },
@@ -206,6 +211,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/thyme/grow-your-own',
     botanicalName: 'Thymus vulgaris',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Thymus_vulgaris',
     enhancedAvoid: []
   },
@@ -234,6 +240,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lovage',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -266,6 +273,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sorrel',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -298,6 +306,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/oregano/grow-your-own',
     botanicalName: 'Origanum vulgare',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Origanum_vulgare',
     enhancedAvoid: []
   },
@@ -334,6 +343,7 @@ export const herbs: Vegetable[] = [
     enhancedAvoid: [],
     rhsUrl: 'https://www.rhs.org.uk/herbs/sage/grow-your-own',
     botanicalName: 'Salvia officinalis',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Salvia_officinalis'
   },
   {
@@ -362,6 +372,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tarragon',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -399,6 +410,7 @@ export const herbs: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/dill/grow-your-own',
     botanicalName: 'Anethum graveolens',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Dill'
   },
   {
@@ -431,6 +443,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'dill', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy' }
     ],
     botanicalName: 'Foeniculum vulgare',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Fennel'
   },
   {
@@ -460,6 +473,7 @@ export const herbs: Vegetable[] = [
     },
     enhancedCompanions: [],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Melissa_officinalis',
+    hardiness: 'H7',
     enhancedAvoid: []
   },
   {
@@ -488,6 +502,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Marjoram',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -521,6 +536,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Laurus_nobilis',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -552,6 +568,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Borage',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -584,6 +601,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Chamomile',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -616,6 +634,7 @@ export const herbs: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Satureja_montana',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -649,6 +668,7 @@ export const herbs: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Hyssopus_officinalis'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Hyssopus_officinalis',
+    hardiness: 'H4'
   }
 ]

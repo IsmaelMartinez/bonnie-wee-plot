@@ -36,6 +36,7 @@ export const perennialFlowers: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/herbs/lavender/grow-your-own',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lavandula',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -68,6 +69,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Echinacea',
+    hardiness: 'H7',
     enhancedAvoid: []
   },
   {
@@ -100,6 +102,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'sedum', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rudbeckia',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -133,6 +136,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sedum',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -165,6 +169,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Geranium',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -197,6 +202,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'echinacea', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Salvia',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -228,6 +234,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Achillea_millefolium',
+    hardiness: 'H7',
     enhancedAvoid: []
   },
   {
@@ -259,6 +266,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Monarda',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -291,6 +299,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'squash', confidence: 'traditional', mechanism: 'unknown', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Comfrey',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -322,6 +331,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tansy',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -354,6 +364,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'salvia', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Nepeta',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -385,6 +396,7 @@ export const perennialFlowers: Vegetable[] = [
       { plantId: 'squash', confidence: 'traditional', mechanism: 'beneficial_attraction', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Agastache',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

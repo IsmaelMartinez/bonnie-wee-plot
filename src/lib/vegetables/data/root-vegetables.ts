@@ -42,6 +42,7 @@ export const rootVegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/carrots/grow-your-own',
     botanicalName: 'Daucus carota',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Daucus_carota'
   },
   {
@@ -78,6 +79,7 @@ export const rootVegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/beetroot/grow-your-own',
     botanicalName: 'Beta vulgaris',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Beetroot'
   },
   {
@@ -115,6 +117,7 @@ export const rootVegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/parsnips/grow-your-own',
     botanicalName: 'Pastinaca sativa',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pastinaca_sativa'
   },
   {
@@ -146,6 +149,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tragopogon_porrifolius',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -176,6 +180,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Petroselinum_crispum',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -213,6 +218,7 @@ export const rootVegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/florence-fennel/grow-your-own',
     botanicalName: 'Foeniculum vulgare var. azoricum',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Fennel'
   },
   {
@@ -248,7 +254,8 @@ export const rootVegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Daikon'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Daikon',
+    hardiness: 'H4'
   },
   {
     id: 'black-radish',
@@ -283,7 +290,8 @@ export const rootVegetables: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Radish'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Radish',
+    hardiness: 'H4'
   },
   {
     id: 'scorzonera',
@@ -315,6 +323,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Scorzonera_hispanica',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -346,6 +355,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Horseradish',
+    hardiness: 'H7',
     enhancedAvoid: []
   },
   {
@@ -377,6 +387,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'jerusalem-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Stachys_affinis',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -408,6 +419,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Yac%C3%B3n',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -445,6 +457,7 @@ export const rootVegetables: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/celeriac/grow-your-own',
     botanicalName: 'Apium graveolens var. rapaceum',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Celeriac'
   },
   {
@@ -477,6 +490,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sium_sisarum',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -509,6 +523,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Oxalis_tuberosa',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -541,6 +556,7 @@ export const rootVegetables: Vegetable[] = [
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Ullucus',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

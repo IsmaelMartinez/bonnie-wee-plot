@@ -79,6 +79,14 @@ export type GrowingRequirement = 'outdoor' | 'greenhouse' | 'windowsill' | 'poly
 // Month type (1-12)
 export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
+/**
+ * RHS hardiness rating. H1a–H3 are frost-tender (need protection in UK winters
+ * or shoulder seasons). H4 (hardy) is the default and covers most UK crops.
+ *
+ * Reference: https://www.rhs.org.uk/plants/trials-awards/award-of-garden-merit/rhs-hardiness-rating
+ */
+export type Hardiness = 'H1a' | 'H1b' | 'H1c' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6' | 'H7'
+
 // Planting information
 export interface PlantingInfo {
   sowIndoorsMonths: Month[]      // Months to start seeds indoors
@@ -119,6 +127,7 @@ export interface Vegetable {
   rhsUrl?: string                          // RHS grow-your-own guide URL
   wikipediaUrl?: string                    // Wikipedia article URL
   botanicalName?: string                   // Scientific/Latin name
+  hardiness?: Hardiness                    // RHS H1a–H7 rating; undefined treated as H4
   enhancedCompanions: EnhancedCompanion[]  // Companion relationships with metadata
   enhancedAvoid: EnhancedCompanion[]       // Avoid relationships with metadata
 }

@@ -32,6 +32,7 @@ export const mushrooms: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pleurotus_ostreatus',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -61,6 +62,7 @@ export const mushrooms: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lentinula_edodes',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -90,6 +92,7 @@ export const mushrooms: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Hericium_erinaceus',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -119,6 +122,7 @@ export const mushrooms: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pleurotus_eryngii',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -148,6 +152,7 @@ export const mushrooms: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Agaricus_bisporus',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   }
