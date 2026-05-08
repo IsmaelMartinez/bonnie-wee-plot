@@ -558,7 +558,8 @@ function AllotmentPageContent() {
           getAreaNotes={getAreaNotes}
           getPreviousYearRotation={getPreviousRotation}
           selectedYear={selectedYear}
-          onAddPlanting={() => openAddDialog()}
+          varieties={data?.varieties || []}
+          onAddPlanting={openAddDialog}
           onDeletePlanting={handleDeletePlanting}
           onUpdatePlanting={(plantingId, updates) => selectedBedId && updatePlanting(selectedBedId, plantingId, updates)}
           onAddNote={(note) => selectedBedId && addAreaNote(selectedBedId, note)}
