@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-04-16
+Last updated: 2026-05-08
 
 ## What's Been Completed
 
@@ -215,61 +215,42 @@ A round of research into adjacent gardening apps surfaced four small UI bets, al
 
 ### Frost & Climate Data (research)
 
-`docs/research/frost-and-climate-data.md` — fresh research into extending the existing Open-Meteo plumbing with frost-aware features. The full background is in the research doc; the actionable tracks are in the backlog below.
+`docs/research/frost-and-climate-data.md` — fresh research into extending the existing Open-Meteo plumbing with frost-aware features. The full background is in the research doc; the actionable tracks are split between Shipped and Backlog below.
+
+### Frost Track: Shipped (PR #328, 2026-05-08)
+
+The full frost track from items 1–5 of the research-driven backlog landed in a single squash-merged PR (`f53c155`). Plan: `docs/superpowers/plans/2026-05-08-frost-track.md`.
+
+- **Frost indicators on WeatherStrip** — `Snowflake` icon when `tempMinC ≤ 0`, faint dot when `≤ 3`. Pure UI on the existing 3-day forecast.
+- **`hardiness` field on `Vegetable`** — RHS H1a–H7 ratings populated on all 192 plant entries across the 17 category files; new `Hardiness` type and `isFrostTender` helper in `src/lib/hardiness.ts` (defaults `undefined` to `H4`).
+- **Climate-API frost dates** — `fetchFrostDates(lat, lng)` in `src/lib/weather/frost-dates.ts` hits Open-Meteo's `/v1/climate` for a sliding 15-year window of `temperature_2m_min`, derives average last spring / first autumn frost, caches in memory + localStorage, and is wired through `useTodayData` to populate `meta.frostDates` lazily once coordinates are known. 15s timeout + AbortController, matching the `open-meteo.ts` convention.
+- **Schema v20 → v21** — added `meta.frostDates` (optional). No-op data transform.
+- **Tonight's frost banner** — `FrostWarningBanner` mounts on Today between `LocationPromptBanner` and `WeatherStrip`, lists tender (H1a–H3) plantings in active beds whenever `forecast[0].tempMinC ≤ 0`. Per-day dismiss via `toLocaleDateString('en-CA')` so it rolls over at the user's local midnight (matches the `todayLocal()` helper convention from #304).
+- **Frost-aware `validateSowDate()`** — accepts an optional `SowDateValidationContext` carrying `frostDates`; warns when a frost-tender crop is sown outdoors before the user's average last spring frost. Existing fall-factor warning preserved.
 
 ### Research-Driven Improvements: Backlog
 
 Follow-ups from the same research round, in order of leverage:
 
-#### 1. Frost dot on WeatherStrip (~1 h)
+#### 1. Soil temperature for sowing tasks (~2–3 h)
 
-Pure UI. We already pull `temperature_2m_min` for the next 3 days but don't surface frost risk. Render a `Snowflake` (lucide) on any forecast tile where `tempMinC ≤ 0` (definite) or a faint dot for `tempMinC ≤ 3` (risk). No API change.
+Add `soil_temperature_0_to_7cm` to the existing forecast call. Suppress sow tasks when soil temp is below the species threshold (peas/carrots: 7°C, beans: 12°C, sweetcorn: 13°C). Still YAGNI for most plants — hold until adoption tells us it matters.
 
-- **Files:** `src/components/dashboard/WeatherStrip.tsx`, `src/__tests__/lib/weather/wmo-icons.test.ts` if the icon goes through the mapping.
-
-#### 2. `hardiness` field on `Vegetable` (~3–4 h)
-
-RHS H1a–H7 ratings on every plant. Manual but mechanical data fill across 17 category files. Defaults to `'H4'` (hardy) when unset, which under-warns for tender crops — the safe failure direction. Unblocks every targeted frost warning that follows.
-
-- **Files:** `src/types/garden-planner.ts` (add field), `src/lib/vegetables/data/*.ts` (17 files, ~30 s each), companion-validation fixtures may need a touch.
-
-#### 3. Last/first frost dates from Open-Meteo Climate API (~4–6 h)
-
-New `fetchFrostDates(lat, lng)` helper that hits `api.open-meteo.com/v1/climate` for daily `temperature_2m_min` over a 15-year window, derives average last spring frost and first autumn frost dates, caches forever (or 1-year TTL), and stores the result on `meta.frostDates` so the whole app can read it without refetching. Free, no key.
-
-- **Files:** `src/lib/weather/open-meteo.ts` (new function + cache), `src/types/unified-allotment.ts` (`meta.frostDates`), `src/services/storage-migrations.ts` (schema v20 if we add the meta field at the same time as Aitor opt-in).
-
-#### 4. Tonight's frost warning banner (~2 h, depends on #2 + #3)
-
-When `forecast[0].tempMinC ≤ 0` and the user has any planting whose `hardiness` is H2 or warmer, show a yellow banner on Today: *"Frost tonight — protect your tender crops"* with the affected beds listed.
-
-- **Files:** new `src/components/dashboard/FrostWarningBanner.tsx`, `src/components/dashboard/TodayDashboard.tsx` (mount next to `LocationPromptBanner`).
-
-#### 5. Frost-aware `validateSowDate()` (~2 h, depends on #2 + #3)
-
-`validateSowDate()` currently only checks the plant's database calendar. With `hardiness` populated and frost dates cached, replace text-based warnings ("after last frost") with date-driven ones: *"Cucumber is H2 (frost tender). Your average last frost is 14 May; sowing outdoors before then risks frost damage."* Form copy already renders validation warnings in `AddPlantingForm`.
-
-- **Files:** `src/lib/date-calculator.ts`.
-
-#### 6. Soil temperature for sowing tasks (~2–3 h)
-
-Add `soil_temperature_0_to_7cm` to the existing forecast call. Suppress sow tasks when soil temp is below the species threshold (peas/carrots: 7°C, beans: 12°C, sweetcorn: 13°C). YAGNI for most plants — hold until #1–5 are in and adoption tells us it matters.
-
-#### 7. Aitor as a signed-in, opt-in companion (polish on top of the re-enable)
+#### 2. Aitor as a signed-in, opt-in companion (polish on top of the re-enable)
 
 The chat is back for signed-in users via `AitorAuthGate`. Remaining polish:
 
-- **Per-user opt-in.** Add `meta.aiAdvisorEnabled` (schema migration v20, default false). Show a one-time "Try Aitor?" banner on Today that flips it on. Replaces the implicit "signed-in == opted-in" with an explicit choice.
+- **Per-user opt-in.** Add `meta.aiAdvisorEnabled` (schema migration v22, default false). Show a one-time "Try Aitor?" banner on Today that flips it on. Replaces the implicit "signed-in == opted-in" with an explicit choice.
 - **Photo-diagnosis lead path.** Add a "Diagnose a plant" entry-point next to the chat launcher that opens `AitorChatModal` pre-seeded with an image picker and a system prompt focused on diagnosis — closes the cold-start gap that drove hiding the chat in the first place. The API route already accepts plant images via gpt-4o vision.
 - **Refresh `QuickTopics.tsx` prompts.** "What can I plant in May?" / "Diagnose this leaf" / "Plan my next rotation" / "Why is my chard bolting?" — concrete entries beat a blank input.
-- **Files:** `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`), `src/services/storage-migrations.ts` (v20), `src/components/ai-advisor/AitorAuthGate.tsx`, `src/components/dashboard/TodayDashboard.tsx` (one-time banner), `src/components/ai-advisor/QuickTopics.tsx`, `src/components/ai-advisor/AitorChatButton.tsx`.
+- **Files:** `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`), `src/services/storage-migrations.ts` (v22), `src/components/ai-advisor/AitorAuthGate.tsx`, `src/components/dashboard/TodayDashboard.tsx` (one-time banner), `src/components/ai-advisor/QuickTopics.tsx`, `src/components/ai-advisor/AitorChatButton.tsx`.
 - **Risk to weigh:** server-side fallback (`OPENAI_API_KEY`) becomes a real cost line once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
 
-#### 8. "Boost this bed" on mobile
+#### 3. "Boost this bed" on mobile
 
 Port the `<BoostThisBed>` section from `BedDetailPanel.tsx` to `MobileAreaBottomSheet.tsx`. Skipped in the first PR for tightness; same data, same component.
 
-#### 9. Social login
+#### 4. Social login
 
 Verify Google/Apple are enabled in the Clerk Dashboard for this project. Pure config; no code change.
 
