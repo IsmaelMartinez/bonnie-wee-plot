@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Plus, Pencil, X, Sprout, Leaf, TreeDeciduous, Warehouse, ArrowRight, Trash2 } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
-import { Area, AreaSeason, Planting, PlantingUpdate, AreaNote, NewAreaNote, AreaNoteUpdate } from '@/types/unified-allotment'
+import { Area, AreaSeason, Planting, PlantingUpdate, AreaNote, NewAreaNote, AreaNoteUpdate, StoredVariety } from '@/types/unified-allotment'
 import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
@@ -12,6 +12,7 @@ import PlantingCard from './PlantingCard'
 import PlantingDetailDialog from './PlantingDetailDialog'
 import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
 import BedNotes from './BedNotes'
+import BoostThisBed from './BoostThisBed'
 import { ConfirmDialog } from '@/components/ui/Dialog'
 
 interface MobileAreaBottomSheetProps {
@@ -22,7 +23,8 @@ interface MobileAreaBottomSheetProps {
   getAreaNotes: (areaId: string) => AreaNote[]
   getPreviousYearRotation: (areaId: string) => RotationGroup | null
   selectedYear: number
-  onAddPlanting: () => void
+  varieties: StoredVariety[]
+  onAddPlanting: (prefilledPlantId?: string) => void
   onDeletePlanting: (plantingId: string) => void
   onUpdatePlanting: (plantingId: string, updates: PlantingUpdate) => void
   onAddNote: (note: NewAreaNote) => void
@@ -82,6 +84,7 @@ export default function MobileAreaBottomSheet({
   getAreaNotes,
   getPreviousYearRotation,
   selectedYear,
+  varieties,
   onAddPlanting,
   onDeletePlanting,
   onUpdatePlanting,
@@ -261,6 +264,19 @@ export default function MobileAreaBottomSheet({
               />
             )}
 
+            {/* Boost this bed — companion suggestions for the current plantings.
+                Returns null when there are no companion data for the plantings
+                present, so it's safe to render unconditionally on beds that
+                already have at least one planting. */}
+            {plantings.length > 0 && (
+              <BoostThisBed
+                plantings={plantings}
+                varieties={varieties}
+                selectedYear={selectedYear}
+                onAddSuggestion={onAddPlanting}
+              />
+            )}
+
             {/* Plantings Section */}
             {canAddPlantings && (
               <div>
@@ -270,7 +286,7 @@ export default function MobileAreaBottomSheet({
                     {selectedYear} Plantings
                   </h3>
                   <button
-                    onClick={onAddPlanting}
+                    onClick={() => onAddPlanting()}
                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-zen-moss-600 text-white rounded-zen hover:bg-zen-moss-700 transition text-sm font-medium"
                   >
                     <Plus className="w-4 h-4" />
