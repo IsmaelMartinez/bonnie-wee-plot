@@ -13,6 +13,7 @@
 
 import { Vegetable, VegetableCategory } from '@/types/garden-planner'
 import { SowMethod, Planting, NewPlanting } from '@/types/unified-allotment'
+import { isFrostTender } from '@/lib/hardiness'
 
 // ============ CONSTANTS ============
 
@@ -349,6 +350,14 @@ export function calculateSowDateForHarvest(
   }
 }
 
+export interface SowDateValidationContext {
+  frostDates?: {
+    lastSpring: string
+    firstAutumn: string
+    fetchedAt: string
+  }
+}
+
 /**
  * Validate a sow date against the vegetable's recommended sowing window
  * Returns warnings for suboptimal dates and errors for impossible dates
@@ -356,7 +365,8 @@ export function calculateSowDateForHarvest(
 export function validateSowDate(
   sowDate: string,
   sowMethod: SowMethod,
-  vegetable: Vegetable
+  vegetable: Vegetable,
+  context: SowDateValidationContext = {}
 ): SowDateValidation {
   const date = parseDate(sowDate)
   const month = getMonth(date)
@@ -365,6 +375,24 @@ export function validateSowDate(
   const warnings: string[] = []
   const errors: string[] = []
   let isValid = true
+
+  // Frost-tender warning: only outdoor or transplant-out for tender crops,
+  // and only when the user has cached frost dates available. Run before the
+  // empty-months early return so it fires for tender crops that have no
+  // recommended outdoor month at all (e.g. tomatoes).
+  const frostDates = context.frostDates
+  if (
+    frostDates &&
+    sowMethod !== 'indoor' &&
+    isFrostTender(vegetable.hardiness)
+  ) {
+    const lastSpring = parseDate(applySowYear(frostDates.lastSpring, date))
+    if (date < lastSpring) {
+      warnings.push(
+        `${vegetable.name} is ${vegetable.hardiness ?? 'H4'} (frost tender). Average last spring frost is ${formatHumanDate(lastSpring)} (${frostDates.lastSpring}); sowing outdoors before then risks frost damage.`
+      )
+    }
+  }
 
   // Determine which months are valid for this sow method
   const validMonths = sowMethod === 'indoor'
@@ -417,6 +445,20 @@ export function validateSowDate(
   }
 
   return { isValid, warnings, errors }
+}
+
+/**
+ * frostDates.lastSpring is stored against the calendar year it was fetched in.
+ * Re-anchor to the user's sow year so comparisons work consistently across years.
+ */
+function applySowYear(isoDate: string, sowDate: Date): string {
+  const sowYear = sowDate.getFullYear()
+  return `${sowYear}-${isoDate.slice(5)}`
+}
+
+function formatHumanDate(date: Date): string {
+  const formatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' })
+  return formatter.format(date)
 }
 
 /**

@@ -43,6 +43,7 @@ export const legumes: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/runner-beans/grow-your-own',
     botanicalName: 'Phaseolus coccineus',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_coccineus'
   },
   {
@@ -79,6 +80,7 @@ export const legumes: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/french-beans/grow-your-own',
     botanicalName: 'Phaseolus vulgaris',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_vulgaris'
   },
   {
@@ -118,6 +120,7 @@ export const legumes: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broad-beans/grow-your-own',
     botanicalName: 'Vicia faba',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Vicia_faba'
   },
   {
@@ -146,6 +149,7 @@ export const legumes: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/peas/grow-your-own',
     botanicalName: 'Pisum sativum',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pisum_sativum',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
@@ -189,7 +193,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_vulgaris'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Phaseolus_vulgaris',
+    hardiness: 'H2'
   },
   {
     id: 'borlotti-beans',
@@ -223,7 +228,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Borlotti_bean'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Borlotti_bean',
+    hardiness: 'H2'
   },
   {
     id: 'edamame',
@@ -257,7 +263,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Soybean'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Soybean',
+    hardiness: 'H2'
   },
   {
     id: 'mangetout',
@@ -293,7 +300,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snow_pea'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snow_pea',
+    hardiness: 'H4'
   },
   {
     id: 'sugar-snap-peas',
@@ -329,7 +337,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snap_pea'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Snap_pea',
+    hardiness: 'H4'
   },
   {
     id: 'asparagus-peas',
@@ -363,7 +372,8 @@ export const legumes: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tetragonolobus_purpureus'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tetragonolobus_purpureus',
+    hardiness: 'H2'
   },
   {
     id: 'black-turtle-beans',
@@ -397,7 +407,8 @@ export const legumes: Vegetable[] = [
       { plantId: 'onion', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'garlic', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Black_turtle_bean'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Black_turtle_bean',
+    hardiness: 'H2'
   },
   {
     id: 'fenugreek',
@@ -425,6 +436,7 @@ export const legumes: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Fenugreek',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -457,6 +469,7 @@ export const legumes: Vegetable[] = [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Apios_americana',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

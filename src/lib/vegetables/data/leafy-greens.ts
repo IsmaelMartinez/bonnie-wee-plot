@@ -38,6 +38,7 @@ export const leafyGreens: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/lettuce/grow-your-own',
     botanicalName: 'Lactuca sativa',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lactuca_sativa',
     enhancedAvoid: []
   },
@@ -72,6 +73,7 @@ export const leafyGreens: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/spinach/grow-your-own',
     botanicalName: 'Spinacia oleracea',
+    hardiness: 'H5',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Spinacia_oleracea',
     enhancedAvoid: []
   },
@@ -105,6 +107,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Chard',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -133,6 +136,7 @@ export const leafyGreens: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/kale/grow-your-own',
     botanicalName: 'Brassica oleracea var. sabellica',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Kale',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -175,6 +179,7 @@ export const leafyGreens: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/swiss-chard/grow-your-own',
     botanicalName: 'Beta vulgaris subsp. cicla',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Chard',
     enhancedAvoid: []
   },
@@ -209,6 +214,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     botanicalName: 'Eruca vesicaria',
+    hardiness: 'H5',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Eruca_vesicaria',
     enhancedAvoid: []
   },
@@ -243,6 +249,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     botanicalName: 'Brassica rapa var. nipposinica',
+    hardiness: 'H5',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_rapa',
     enhancedAvoid: []
   },
@@ -275,6 +282,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Barbarea_verna',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -306,6 +314,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'spinach', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Valerianella_locusta',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -336,6 +345,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Claytonia_perfoliata',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -369,6 +379,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'radish', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mustard_greens',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -400,6 +411,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'mint', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Watercress',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -432,6 +444,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'oregano', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sanguisorba_minor',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -464,6 +477,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Atriplex_hortensis',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -496,6 +510,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tetragonia_tetragonioides',
+    hardiness: 'H2',
     enhancedAvoid: []
   },
   {
@@ -528,6 +543,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'asparagus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Blitum_bonus-henricus',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -560,6 +576,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Radicchio',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -592,6 +609,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Endive',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -623,6 +641,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'winter-purslane', confidence: 'traditional', mechanism: 'unknown', bidirectional: false }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mesembryanthemum_crystallinum',
+    hardiness: 'H7',
     enhancedAvoid: []
   },
   {
@@ -659,6 +678,7 @@ export const leafyGreens: Vegetable[] = [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     botanicalName: 'Brassica rapa subsp. chinensis',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Bok_choy'
   },
   {
@@ -694,6 +714,7 @@ export const leafyGreens: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Kale'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Kale',
+    hardiness: 'H6'
   }
 ]

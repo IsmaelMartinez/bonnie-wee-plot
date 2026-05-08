@@ -54,6 +54,7 @@ export const berries: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/strawberries/grow-your-own',
     botanicalName: 'Fragaria × ananassa',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Fragaria_%C3%97_ananassa'
   },
   {
@@ -112,6 +113,7 @@ export const berries: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/raspberries/grow-your-own',
     botanicalName: 'Rubus idaeus',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rubus_idaeus'
   },
   {
@@ -152,6 +154,7 @@ export const berries: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/blackberries/grow-your-own',
     botanicalName: 'Rubus fruticosus',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Blackberry'
   },
   {
@@ -185,6 +188,7 @@ export const berries: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/blueberries/grow-your-own',
     botanicalName: 'Vaccinium corymbosum',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Vaccinium_corymbosum',
     enhancedCompanions: [],
     enhancedAvoid: []
@@ -230,6 +234,7 @@ export const berries: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/gooseberries/grow-your-own',
     botanicalName: 'Ribes uva-crispa',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Gooseberry',
     enhancedAvoid: []
   },
@@ -274,6 +279,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 10, max: 15 }
     },
     botanicalName: 'Ribes nigrum',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Blackcurrant',
     enhancedAvoid: []
   },
@@ -317,6 +323,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 15, max: 20 }
     },
     botanicalName: 'Ribes rubrum',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Redcurrant',
     enhancedAvoid: []
   },
@@ -361,6 +368,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 10, max: 15 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tayberry',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -404,6 +412,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 10, max: 15 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Loganberry',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -446,6 +455,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 15, max: 20 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Jostaberry',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -485,6 +495,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lonicera_caerulea',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -525,6 +536,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 15, max: 20 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Goji',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -565,6 +577,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Aronia',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -605,6 +618,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sambucus',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -644,6 +658,7 @@ export const berries: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Hippophae',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   }

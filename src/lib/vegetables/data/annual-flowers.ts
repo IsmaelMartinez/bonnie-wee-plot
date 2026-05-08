@@ -35,6 +35,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Cosmos_(plant)',
+    hardiness: 'H2',
     enhancedAvoid: []
   },
   {
@@ -68,7 +69,8 @@ export const annualFlowers: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Helianthus_annuus'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Helianthus_annuus',
+    hardiness: 'H3'
   },
   {
     id: 'zinnia',
@@ -99,6 +101,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Zinnia',
+    hardiness: 'H2',
     enhancedAvoid: []
   },
   {
@@ -131,6 +134,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tagetes',
+    hardiness: 'H3',
     enhancedAvoid: []
   },
   {
@@ -163,6 +167,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Calendula_officinalis',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -197,6 +202,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tropaeolum',
+    hardiness: 'H2',
     enhancedAvoid: []
   },
   {
@@ -225,6 +231,7 @@ export const annualFlowers: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Centaurea_cyanus',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -258,6 +265,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'lettuce', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lobularia_maritima',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -289,6 +297,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Phacelia',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -320,6 +329,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Cleome',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -353,6 +363,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Nigella_damascena',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -385,6 +396,7 @@ export const annualFlowers: Vegetable[] = [
       { plantId: 'calendula', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Papaver_rhoeas',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

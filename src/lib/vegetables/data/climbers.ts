@@ -37,6 +37,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lathyrus_odoratus',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -68,6 +69,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'honeysuckle', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Clematis',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -99,6 +101,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'clematis', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Honeysuckle',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -130,6 +133,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Ipomoea',
+    hardiness: 'H2',
     enhancedAvoid: []
   },
   {
@@ -161,6 +165,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Humulus_lupulus',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -193,6 +198,7 @@ export const climbers: Vegetable[] = [
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Actinidia_arguta',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

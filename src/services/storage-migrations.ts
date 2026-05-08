@@ -135,6 +135,15 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
     return migrateSchema(v20Data)
   }
 
+  // Version 20 -> 21: Added meta.frostDates for frost-aware planning.
+  // No data transform needed — the field is optional and is populated lazily
+  // by the weather hook the first time coordinates are available.
+  if (migrated.version < 21) {
+    migrated.version = 21
+    logger.info('Schema migration complete', { from: 20, to: 21, change: 'added meta.frostDates for frost-aware planning' })
+    return migrateSchema(migrated)
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
   return migrated
 }

@@ -32,6 +32,7 @@ export const solanaceae: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/potatoes/grow-your-own',
     botanicalName: 'Solanum tuberosum',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum',
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'likely', mechanism: 'nitrogen_fixation', bidirectional: false },
@@ -76,7 +77,8 @@ export const solanaceae: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum',
+    hardiness: 'H3'
   },
   {
     id: 'second-early-potato',
@@ -112,7 +114,8 @@ export const solanaceae: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum',
+    hardiness: 'H3'
   },
   {
     id: 'maincrop-potato',
@@ -148,7 +151,8 @@ export const solanaceae: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_tuberosum',
+    hardiness: 'H3'
   },
   {
     id: 'cherry-tomato',
@@ -185,6 +189,7 @@ export const solanaceae: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
     botanicalName: 'Solanum lycopersicum',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
   },
   {
@@ -221,7 +226,8 @@ export const solanaceae: Vegetable[] = [
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum',
+    hardiness: 'H2'
   },
   {
     id: 'blight-resistant-tomato',
@@ -257,7 +263,8 @@ export const solanaceae: Vegetable[] = [
       { plantId: 'potato', confidence: 'proven', mechanism: 'disease_suppression', bidirectional: true, source: 'Both susceptible to late blight (Phytophthora infestans)' }
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/tomatoes/grow-your-own',
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Solanum_lycopersicum',
+    hardiness: 'H2'
   },
   {
     id: 'tomatillo',
@@ -290,6 +297,7 @@ export const solanaceae: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tomatillo'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Tomatillo',
+    hardiness: 'H2'
   }
 ]

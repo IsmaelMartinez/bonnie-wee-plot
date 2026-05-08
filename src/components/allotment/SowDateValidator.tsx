@@ -8,6 +8,7 @@ import {
   calculatePlantingDates,
   validateSowDate,
   getGerminationDays,
+  type SowDateValidationContext,
 } from '@/lib/date-calculator'
 
 interface SowDateValidatorProps {
@@ -15,6 +16,7 @@ interface SowDateValidatorProps {
   sowMethod: SowMethod
   vegetable: Vegetable
   transplantDate?: string
+  frostDates?: SowDateValidationContext['frostDates']
 }
 
 /**
@@ -26,6 +28,7 @@ export default function SowDateValidator({
   sowMethod,
   vegetable,
   transplantDate,
+  frostDates,
 }: SowDateValidatorProps) {
   // Calculate dates and validation
   const { dates, validation, germination } = useMemo(() => {
@@ -36,7 +39,7 @@ export default function SowDateValidator({
       transplantDate,
     })
 
-    const sowValidation = validateSowDate(sowDate, sowMethod, vegetable)
+    const sowValidation = validateSowDate(sowDate, sowMethod, vegetable, { frostDates })
     const germinationDays = getGerminationDays(vegetable.category)
 
     return {
@@ -44,7 +47,7 @@ export default function SowDateValidator({
       validation: sowValidation,
       germination: germinationDays,
     }
-  }, [sowDate, sowMethod, vegetable, transplantDate])
+  }, [sowDate, sowMethod, vegetable, transplantDate, frostDates])
 
   // Format date for display
   const formatDisplayDate = (dateStr: string): string => {

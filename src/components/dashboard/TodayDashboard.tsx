@@ -1,13 +1,17 @@
 'use client'
 
 import { useTodayData } from '@/hooks/useTodayData'
+import { useAllotment } from '@/hooks/useAllotment'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
+import { isFrostTender } from '@/lib/hardiness'
+import { getVegetableByIdCached } from '@/lib/vegetable-loader'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
 import CompostAlerts from './CompostAlerts'
 import LocationPromptBanner from './LocationPromptBanner'
 import WeatherStrip from './WeatherStrip'
+import FrostWarningBanner, { FrostAffectedArea } from './FrostWarningBanner'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
@@ -59,6 +63,37 @@ export default function TodayDashboard() {
 
   const hasWaterTasks = generatedTasks.some((t) => t.generatedType === 'water')
   const showLocationPrompt = !hasCoordinates && hasWaterTasks
+
+  // Frost banner: tonight's forecast minimum + tender plantings in current season.
+  const { data } = useAllotment()
+  // Use local calendar day (en-CA gives YYYY-MM-DD) so the dismiss key rolls
+  // over at the user's local midnight, not UTC midnight. Matches the
+  // todayLocal() helper in useTodayData.ts.
+  const todayIso = new Date().toLocaleDateString('en-CA')
+  const tonightMinC = rainfall?.forecast?.[0]?.tempMinC ?? Infinity
+  const currentSeason = data?.seasons.find((s) => s.year === data.currentYear)
+  const layoutAreas = data?.layout.areas ?? []
+  const affectedAreas: FrostAffectedArea[] = []
+  if (tonightMinC <= 0 && currentSeason) {
+    for (const areaSeason of currentSeason.areas || []) {
+      const tenderNames: string[] = []
+      for (const planting of areaSeason.plantings || []) {
+        if (planting.status === 'removed' || planting.status === 'harvested') continue
+        const veg = getVegetableByIdCached(planting.plantId)
+        if (veg && isFrostTender(veg.hardiness)) {
+          tenderNames.push(veg.name)
+        }
+      }
+      if (tenderNames.length > 0) {
+        const layoutArea = layoutAreas.find((a) => a.id === areaSeason.areaId)
+        affectedAreas.push({
+          areaId: areaSeason.areaId,
+          areaName: layoutArea?.name ?? areaSeason.areaId,
+          plantNames: Array.from(new Set(tenderNames)),
+        })
+      }
+    }
+  }
 
   const season = getCurrentSeason(currentMonth - 1) // useTodayData returns 1-indexed month
   const theme = getSeasonalTheme(season)
@@ -114,6 +149,13 @@ export default function TodayDashboard() {
           {showLocationPrompt && (
             <LocationPromptBanner onRequestLocation={onRequestLocation} />
           )}
+
+          {/* Frost warning: tonight's forecast min ≤ 0 °C and at least one tender crop active. */}
+          <FrostWarningBanner
+            forecastMinC={tonightMinC}
+            affectedAreas={affectedAreas}
+            todayIso={todayIso}
+          />
 
           {/* Forecast strip (today / tomorrow / +1) when we have rich data,
               otherwise fall back to the rainfall summary line. */}

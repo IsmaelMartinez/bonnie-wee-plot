@@ -23,6 +23,7 @@ import { Month } from '@/types/garden-planner'
 import { loadDismissedTaskIds, dismissTask, restoreTask } from '@/lib/dismissed-tasks'
 import { getDaysSinceLastCareLog } from '@/services/allotment-storage'
 import { fetchRainfall, RainfallSummary } from '@/lib/weather/open-meteo'
+import { fetchFrostDates } from '@/lib/weather/frost-dates'
 
 export interface TodayData {
   currentMonth: number
@@ -181,6 +182,24 @@ export function useTodayData(): TodayData {
       cancelled = true
     }
   }, [coords])
+
+  // Populate average frost dates the first time we see coordinates. The
+  // result is cached in-memory + localStorage by frost-dates.ts and persisted
+  // on meta.frostDates so the rest of the app (validateSowDate, etc.) can
+  // read it without refetching.
+  const haveFrostDates = !!data?.meta?.frostDates
+  useEffect(() => {
+    if (!coords) return
+    if (haveFrostDates) return
+    let cancelled = false
+    fetchFrostDates(coords.latitude, coords.longitude).then((result) => {
+      if (cancelled || !result) return
+      updateMeta({ frostDates: result })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [coords, haveFrostDates, updateMeta])
 
   // Generate automatic tasks based on plantings, varieties, and month
   const allGeneratedTasks = useMemo(() => {

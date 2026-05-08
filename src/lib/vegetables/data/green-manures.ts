@@ -32,6 +32,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Trifolium_incarnatum',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -61,6 +62,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Trifolium_repens',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -90,6 +92,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Vicia_faba',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -119,6 +122,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rye',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -148,6 +152,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Buckwheat',
+    hardiness: 'H2',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -177,6 +182,7 @@ export const greenManures: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mustard_plant',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   }

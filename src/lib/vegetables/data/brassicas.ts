@@ -41,6 +41,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/swede/grow-your-own',
     botanicalName: 'Brassica napus',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rutabaga'
   },
   {
@@ -76,6 +77,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/turnips/grow-your-own',
     botanicalName: 'Brassica rapa',
+    hardiness: 'H5',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Turnip'
   },
   {
@@ -113,6 +115,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/radish/grow-your-own',
     botanicalName: 'Raphanus sativus',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Radish'
   },
   {
@@ -141,6 +144,7 @@ export const brassicas: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own',
     botanicalName: 'Brassica oleracea var. capitata',
+    hardiness: 'H5',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_oleracea',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -178,6 +182,7 @@ export const brassicas: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own',
     botanicalName: 'Brassica oleracea var. italica',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Broccoli',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -220,7 +225,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Broccoli'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Broccoli',
+    hardiness: 'H6'
   },
   {
     id: 'cauliflower',
@@ -256,6 +262,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cauliflowers/grow-your-own',
     botanicalName: 'Brassica oleracea var. botrytis',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Cauliflower'
   },
   {
@@ -292,6 +299,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/brussels-sprouts/grow-your-own',
     botanicalName: 'Brassica oleracea var. gemmifera',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Brussels_sprout'
   },
   {
@@ -328,6 +336,7 @@ export const brassicas: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/kohlrabi/grow-your-own',
     botanicalName: 'Brassica oleracea var. gongylodes',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Kohlrabi'
   },
   {
@@ -363,7 +372,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Savoy_cabbage'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Savoy_cabbage',
+    hardiness: 'H5'
   },
   {
     id: 'red-cabbage',
@@ -398,7 +408,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Red_cabbage'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Red_cabbage',
+    hardiness: 'H5'
   },
   {
     id: 'chinese-broccoli',
@@ -433,7 +444,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Gai_lan'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Gai_lan',
+    hardiness: 'H4'
   },
   {
     id: 'romanesco',
@@ -468,7 +480,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Romanesco_broccoli'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Romanesco_broccoli',
+    hardiness: 'H4'
   },
   {
     id: 'turnip-tops',
@@ -503,7 +516,8 @@ export const brassicas: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rapini'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Rapini',
+    hardiness: 'H4'
   },
   {
     id: 'mibuna',
@@ -536,6 +550,7 @@ export const brassicas: Vegetable[] = [
       { plantId: 'mizuna', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Brassica_rapa',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -576,6 +591,7 @@ export const brassicas: Vegetable[] = [
       waterFrequencyDays: 10,
       notes: ['Cover crowns to blanch shoots']
     },
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima',
+    hardiness: 'H7'
   }
 ]

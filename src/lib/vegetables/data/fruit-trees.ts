@@ -61,6 +61,7 @@ export const fruitTrees: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/apples/grow-your-own',
     botanicalName: 'Malus domestica',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Malus_domestica'
   },
   {
@@ -106,6 +107,7 @@ export const fruitTrees: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/cherries/grow-your-own',
     botanicalName: 'Prunus avium',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Prunus_avium',
     enhancedAvoid: []
   },
@@ -151,6 +153,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Damson',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -196,6 +199,7 @@ export const fruitTrees: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/plums/grow-your-own',
     botanicalName: 'Prunus domestica',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Prunus_domestica',
     enhancedAvoid: []
   },
@@ -242,6 +246,7 @@ export const fruitTrees: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/fruit/pears/grow-your-own',
     botanicalName: 'Pyrus communis',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pyrus_communis',
     enhancedAvoid: []
   },
@@ -287,6 +292,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 20, max: 30 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Greengages',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -331,6 +337,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 30, max: 50 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Medlar',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -375,6 +382,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 30, max: 50 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Quince',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -418,6 +426,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 30, max: 50 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Common_fig',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -462,6 +471,7 @@ export const fruitTrees: Vegetable[] = [
       productiveYears: { min: 50, max: 100 }
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mulberry',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

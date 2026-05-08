@@ -219,6 +219,23 @@ describe('vegetable care data', () => {
   })
 })
 
+describe('vegetable hardiness coverage', () => {
+  const validRatings = new Set(['H1a', 'H1b', 'H1c', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'])
+
+  it('every vegetable has a hardiness rating', () => {
+    const missing = vegetables.filter(v => v.hardiness === undefined).map(v => v.id)
+    expect(missing).toEqual([])
+  })
+
+  it('every hardiness rating is one of the RHS values', () => {
+    for (const veg of vegetables) {
+      if (veg.hardiness !== undefined) {
+        expect(validRatings.has(veg.hardiness)).toBe(true)
+      }
+    }
+  })
+})
+
 
 
 

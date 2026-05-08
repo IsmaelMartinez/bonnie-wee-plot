@@ -36,6 +36,7 @@ export const other: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/rhubarb/grow-your-own',
     botanicalName: 'Rheum rhabarbarum',
+    hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Rhubarb',
     maintenance: {
       feedMonths: [3],
@@ -90,7 +91,8 @@ export const other: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Jerusalem_artichoke'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Jerusalem_artichoke',
+    hardiness: 'H6'
   },
   {
     id: 'sweetcorn',
@@ -124,6 +126,7 @@ export const other: Vegetable[] = [
     enhancedAvoid: [],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/sweetcorn/grow-your-own',
     botanicalName: 'Zea mays',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Maize'
   },
   {
@@ -160,6 +163,7 @@ export const other: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/asparagus/grow-your-own',
     botanicalName: 'Asparagus officinalis',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Asparagus_officinalis',
     maintenance: {
       feedMonths: [3],
@@ -210,6 +214,7 @@ export const other: Vegetable[] = [
       notes: ['Protect crowns with straw in winter']
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Globe_artichoke',
+    hardiness: 'H3',
     enhancedAvoid: []
   },
   {
@@ -247,6 +252,7 @@ export const other: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/celery/grow-your-own',
     botanicalName: 'Apium graveolens',
+    hardiness: 'H3',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Celery'
   },
   {
@@ -279,6 +285,7 @@ export const other: Vegetable[] = [
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Cardoon',
+    hardiness: 'H4',
     enhancedAvoid: []
   },
   {
@@ -310,6 +317,7 @@ export const other: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tropaeolum_tuberosum',
+    hardiness: 'H4',
     enhancedAvoid: []
   }
 ]

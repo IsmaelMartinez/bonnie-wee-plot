@@ -40,6 +40,7 @@ export const cucurbits: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/courgettes/grow-your-own',
     botanicalName: 'Cucurbita pepo',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Zucchini'
   },
   {
@@ -76,6 +77,7 @@ export const cucurbits: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/squash/grow-your-own',
     botanicalName: 'Cucurbita maxima',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Cucurbita'
   },
   {
@@ -111,6 +113,7 @@ export const cucurbits: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/pumpkins/grow-your-own',
     botanicalName: 'Cucurbita pepo',
+    hardiness: 'H2',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Pumpkin'
   },
   {
@@ -146,7 +149,8 @@ export const cucurbits: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pattypan_squash'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Pattypan_squash',
+    hardiness: 'H2'
   },
   {
     id: 'butternut-squash',
@@ -181,7 +185,8 @@ export const cucurbits: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Butternut_squash'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Butternut_squash',
+    hardiness: 'H2'
   },
   {
     id: 'spaghetti-squash',
@@ -216,7 +221,8 @@ export const cucurbits: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Spaghetti_squash'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Spaghetti_squash',
+    hardiness: 'H2'
   },
   {
     id: 'acorn-squash',
@@ -251,6 +257,7 @@ export const cucurbits: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'likely', mechanism: 'disease_suppression', bidirectional: false }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Acorn_squash'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Acorn_squash',
+    hardiness: 'H2'
   }
 ]

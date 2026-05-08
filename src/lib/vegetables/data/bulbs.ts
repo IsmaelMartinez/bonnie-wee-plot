@@ -35,6 +35,7 @@ export const bulbs: Vegetable[] = [
       { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tulip',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -67,6 +68,7 @@ export const bulbs: Vegetable[] = [
       { plantId: 'crocus', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Narcissus_(plant)',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -95,6 +97,7 @@ export const bulbs: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   },
@@ -127,6 +130,7 @@ export const bulbs: Vegetable[] = [
       { plantId: 'daffodil', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Crocus',
+    hardiness: 'H6',
     enhancedAvoid: []
   },
   {
@@ -155,6 +159,7 @@ export const bulbs: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Dahlia',
+    hardiness: 'H3',
     enhancedCompanions: [],
     enhancedAvoid: []
   }

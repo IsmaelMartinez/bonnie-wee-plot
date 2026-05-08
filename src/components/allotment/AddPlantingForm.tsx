@@ -8,6 +8,7 @@ import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting
 import { populateExpectedHarvest } from '@/lib/date-calculator'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
+import { useAllotment } from '@/hooks/useAllotment'
 import PlantCombobox from './PlantCombobox'
 import SowDateValidator from './SowDateValidator'
 
@@ -46,6 +47,9 @@ export default function AddPlantingForm({
   const [categoryFilter, setCategoryFilter] = useState<VegetableCategory | 'all'>(initialCategoryFilter)
   const [showDateDetails, setShowDateDetails] = useState(false)
   const [lastAdded, setLastAdded] = useState<string | null>(null)
+
+  const { data } = useAllotment()
+  const frostDates = data?.meta.frostDates
 
   // Get current month for sow method recommendation
   const currentMonth = new Date().getMonth() + 1 // 1-12
@@ -358,6 +362,7 @@ export default function AddPlantingForm({
                     sowMethod={sowMethod}
                     vegetable={selectedVegetable}
                     transplantDate={transplantDate || undefined}
+                    frostDates={frostDates}
                   />
                 )}
               </div>

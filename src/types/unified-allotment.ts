@@ -183,6 +183,17 @@ export interface AllotmentMeta {
     latitude: number
     longitude: number
   }
+  /**
+   * Average last spring frost / first autumn frost, derived once from the
+   * Open-Meteo Climate API and cached forever (or until the user moves
+   * coordinates). Optional — undefined means the data has not been fetched
+   * yet, callers should fall back to defaults.
+   */
+  frostDates?: {
+    lastSpring: string   // ISO date in current year, e.g. "2026-05-15"
+    firstAutumn: string  // ISO date in current year, e.g. "2026-10-31"
+    fetchedAt: string    // ISO timestamp
+  }
   createdAt: string                  // ISO date string
   updatedAt: string                  // ISO date string
   setupCompleted?: boolean           // Whether the setup wizard has been completed
@@ -463,7 +474,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 20 // Repair planting status drift (planted plantings stuck on 'planned')
+export const CURRENT_SCHEMA_VERSION = 21 // Add meta.frostDates for frost-aware planning
 
 // ============ HELPER TYPES ============
 

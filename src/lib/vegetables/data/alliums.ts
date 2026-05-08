@@ -32,6 +32,7 @@ export const alliums: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/onions/grow-your-own',
     botanicalName: 'Allium cepa',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_cepa',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Classic pairing - onion scent may deter carrot fly (mixed research)' },
@@ -70,6 +71,7 @@ export const alliums: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/garlic/grow-your-own',
     botanicalName: 'Allium sativum',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_sativum',
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
@@ -105,6 +107,7 @@ export const alliums: Vegetable[] = [
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own',
     botanicalName: 'Allium ampeloprasum',
+    hardiness: 'H6',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_ampeloprasum',
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true, source: 'Leek scent may deter carrot fly' },
@@ -150,6 +153,7 @@ export const alliums: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/spring-onions/grow-your-own',
     botanicalName: 'Allium fistulosum',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_fistulosum'
   },
   {
@@ -188,6 +192,7 @@ export const alliums: Vegetable[] = [
     ],
     rhsUrl: 'https://www.rhs.org.uk/vegetables/shallots/grow-your-own',
     botanicalName: 'Allium cepa var. aggregatum',
+    hardiness: 'H4',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Shallot'
   },
   {
@@ -223,7 +228,8 @@ export const alliums: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_fistulosum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_fistulosum',
+    hardiness: 'H4'
   },
   {
     id: 'elephant-garlic',
@@ -255,7 +261,8 @@ export const alliums: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Elephant_garlic'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Elephant_garlic',
+    hardiness: 'H4'
   },
   {
     id: 'walking-onion',
@@ -290,7 +297,8 @@ export const alliums: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_%C3%97_proliferum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_%C3%97_proliferum',
+    hardiness: 'H4'
   },
   {
     id: 'potato-onion',
@@ -325,7 +333,8 @@ export const alliums: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Potato_onion'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Potato_onion',
+    hardiness: 'H4'
   },
   {
     id: 'garlic-chives',
@@ -359,7 +368,8 @@ export const alliums: Vegetable[] = [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
-    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_tuberosum'
+    wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_tuberosum',
+    hardiness: 'H4'
   },
   {
     id: 'ramps',
@@ -387,6 +397,7 @@ export const alliums: Vegetable[] = [
       ]
     },
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Allium_tricoccum',
+    hardiness: 'H4',
     enhancedCompanions: [],
     enhancedAvoid: []
   }
