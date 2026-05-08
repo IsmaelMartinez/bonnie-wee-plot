@@ -219,10 +219,10 @@ A round of research into adjacent gardening apps surfaced four small UI bets, al
 
 ### Frost Track: Shipped (PR #328, 2026-05-08)
 
-The full frost track from items 1–5 of the research-driven backlog landed in a single squash-merged PR (`f53c155`). Plan: `docs/superpowers/plans/2026-05-08-frost-track.md`.
+The full frost track from items 1–5 of the research-driven backlog landed in a single squash-merged PR (`f53c155`).
 
 - **Frost indicators on WeatherStrip** — `Snowflake` icon when `tempMinC ≤ 0`, faint dot when `≤ 3`. Pure UI on the existing 3-day forecast.
-- **`hardiness` field on `Vegetable`** — RHS H1a–H7 ratings populated on all 192 plant entries across the 17 category files; new `Hardiness` type and `isFrostTender` helper in `src/lib/hardiness.ts` (defaults `undefined` to `H4`).
+- **`hardiness` field on `Vegetable`** — RHS H1a–H7 ratings populated on all 192 plant entries across the 17 category files; new `Hardiness` type in `src/types/garden-planner.ts` and an `isFrostTender` helper in `src/lib/hardiness.ts` (defaults `undefined` to `H4`).
 - **Climate-API frost dates** — `fetchFrostDates(lat, lng)` in `src/lib/weather/frost-dates.ts` hits Open-Meteo's `/v1/climate` for a sliding 15-year window of `temperature_2m_min`, derives average last spring / first autumn frost, caches in memory + localStorage, and is wired through `useTodayData` to populate `meta.frostDates` lazily once coordinates are known. 15s timeout + AbortController, matching the `open-meteo.ts` convention.
 - **Schema v20 → v21** — added `meta.frostDates` (optional). No-op data transform.
 - **Tonight's frost banner** — `FrostWarningBanner` mounts on Today between `LocationPromptBanner` and `WeatherStrip`, lists tender (H1a–H3) plantings in active beds whenever `forecast[0].tempMinC ≤ 0`. Per-day dismiss via `toLocaleDateString('en-CA')` so it rolls over at the user's local midnight (matches the `todayLocal()` helper convention from #304).
