@@ -8,6 +8,7 @@ import {
   Trash2, AlertTriangle, CheckCircle, RefreshCw, Shield,
 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/Dialog'
+import CloudHistorySection from './CloudHistorySection'
 
 interface DataTabProps {
   data: ReturnType<typeof useAllotment>['data']
@@ -141,6 +142,9 @@ export default function DataTab({ data, flushSave, reload, isSignedIn, onDeleteA
           </div>
         )}
       </section>
+
+      {/* Cloud history (signed-in only) */}
+      {isSignedIn && <CloudHistorySection onDataImported={reload} />}
 
       {/* Danger Zone */}
       <section className="pt-6 border-t border-zen-stone-200">
