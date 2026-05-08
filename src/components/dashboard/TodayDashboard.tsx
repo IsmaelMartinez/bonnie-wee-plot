@@ -66,7 +66,10 @@ export default function TodayDashboard() {
 
   // Frost banner: tonight's forecast minimum + tender plantings in current season.
   const { data } = useAllotment()
-  const todayIso = new Date().toISOString().slice(0, 10)
+  // Use local calendar day (en-CA gives YYYY-MM-DD) so the dismiss key rolls
+  // over at the user's local midnight, not UTC midnight. Matches the
+  // todayLocal() helper in useTodayData.ts.
+  const todayIso = new Date().toLocaleDateString('en-CA')
   const tonightMinC = rainfall?.forecast?.[0]?.tempMinC ?? Infinity
   const currentSeason = data?.seasons.find((s) => s.year === data.currentYear)
   const layoutAreas = data?.layout.areas ?? []

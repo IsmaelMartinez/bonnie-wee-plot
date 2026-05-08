@@ -6,6 +6,9 @@ const START_DATE = '2010-01-01'
 const END_DATE = '2024-12-31'
 const MODEL = 'ECMWF_IFS'
 const FROST_THRESHOLD_C = 0
+// Climate endpoint is slower than the forecast API; allow more headroom but
+// still bound the wait so a hung request can't pin the hook.
+const FETCH_TIMEOUT_MS = 15000
 
 export interface FrostDates {
   /** ISO date (YYYY-MM-DD) for average last spring frost (Jan–Jun). */
@@ -144,8 +147,11 @@ export async function fetchFrostDates(
 
   const url = `${ENDPOINT}?latitude=${latitude}&longitude=${longitude}&start_date=${START_DATE}&end_date=${END_DATE}&models=${MODEL}&daily=temperature_2m_min`
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
   try {
-    const res = await fetch(url)
+    const res = await fetch(url, { signal: controller.signal })
     if (!res.ok) {
       logger.warn('frost-dates: API request failed', { status: res.status })
       return null
@@ -167,5 +173,7 @@ export async function fetchFrostDates(
   } catch (error) {
     logger.warn('frost-dates: fetch error', { error: String(error) })
     return null
+  } finally {
+    clearTimeout(timeout)
   }
 }
