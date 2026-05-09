@@ -40,6 +40,13 @@ export interface RainfallSummary {
   fetchedAt: string
   /** Optional forecast tiles for today and the next two days. */
   forecast?: ForecastDay[]
+  /**
+   * Today's mean soil temperature at 0–7cm depth in °C, averaged across the
+   * hourly readings for the local day. Undefined when the API didn't return
+   * the soil-temp series. Used by the task generator to gate outdoor sowing
+   * tasks for cold-sensitive crops.
+   */
+  soilTempC?: number
 }
 
 interface OpenMeteoResponse {
@@ -49,6 +56,10 @@ interface OpenMeteoResponse {
     weathercode?: number[]
     temperature_2m_max?: number[]
     temperature_2m_min?: number[]
+  }
+  hourly?: {
+    time?: string[]
+    soil_temperature_0_to_7cm?: number[]
   }
 }
 
@@ -106,7 +117,7 @@ export async function fetchRainfall(
   const cached = readCache(key)
   if (cached) return cached
 
-  const url = `${ENDPOINT}?latitude=${latitude}&longitude=${longitude}&daily=precipitation_sum,weathercode,temperature_2m_max,temperature_2m_min&past_days=3&forecast_days=3&timezone=auto`
+  const url = `${ENDPOINT}?latitude=${latitude}&longitude=${longitude}&daily=precipitation_sum,weathercode,temperature_2m_max,temperature_2m_min&hourly=soil_temperature_0_to_7cm&past_days=3&forecast_days=3&timezone=auto`
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
@@ -132,6 +143,7 @@ export async function fetchRainfall(
       todayMm: round1(today),
       fetchedAt: new Date().toISOString(),
       forecast: buildForecast(data.daily),
+      soilTempC: deriveTodaySoilTemp(data.hourly, data.daily?.time?.[3]),
     }
     writeCache(key, summary)
     return summary
@@ -171,6 +183,30 @@ function buildForecast(daily?: OpenMeteoResponse['daily']): ForecastDay[] | unde
 
 function round1(value: number): number {
   return Math.round(value * 10) / 10
+}
+
+/**
+ * Average the hourly soil-temperature series for today's date and return a
+ * single °C reading. Returns undefined when the series is missing or no
+ * hourly entries match today, so callers fall back to ungated behaviour.
+ */
+function deriveTodaySoilTemp(
+  hourly: OpenMeteoResponse['hourly'],
+  todayIso: string | undefined
+): number | undefined {
+  if (!hourly?.time || !hourly.soil_temperature_0_to_7cm || !todayIso) return undefined
+  const { time, soil_temperature_0_to_7cm: temps } = hourly
+  let sum = 0
+  let count = 0
+  for (let i = 0; i < time.length; i++) {
+    if (!time[i].startsWith(todayIso)) continue
+    const t = temps[i]
+    if (typeof t !== 'number' || Number.isNaN(t)) continue
+    sum += t
+    count++
+  }
+  if (count === 0) return undefined
+  return round1(sum / count)
 }
 
 /**

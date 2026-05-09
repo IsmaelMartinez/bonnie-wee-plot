@@ -1378,4 +1378,202 @@ describe('task-generator', () => {
       expect(feedTasks[0].notes).toContain('Apply general-purpose fertiliser')
     })
   })
+
+  describe('soil temperature gating for sow-outdoors tasks', () => {
+    const peasVeg = {
+      id: 'peas',
+      name: 'Peas',
+      planting: {
+        harvestMonths: [6, 7, 8],
+        sowIndoorsMonths: [3, 4],
+        sowOutdoorsMonths: [3, 4, 5],
+        transplantMonths: [],
+      },
+    }
+
+    const peasPlanting: Planting = {
+      id: 'planting-peas',
+      plantId: 'peas',
+    }
+
+    it('emits sow-outdoors task for peas when soil is warm enough (8°C)', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-04-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 8 }
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(1)
+      expect(sowOutdoors[0].plantId).toBe('peas')
+    })
+
+    it('suppresses sow-outdoors task for peas when soil is too cold (5°C)', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-04-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 5 }
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(0)
+    })
+
+    it('emits sow-outdoors task for peas when soil temp is unavailable (fallback)', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-04-15'),
+        [],
+        2026,
+        {},
+        null // no rainfall/soil data at all
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(1)
+    })
+
+    it('emits sow-outdoors task for peas when rainfall has no soilTempC field', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-04-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '' } // no soilTempC
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(1)
+    })
+
+    it('does not affect sow-indoors task for peas even when soil is cold', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const tasks = generateTasksForMonth(
+        3 as Month,
+        [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-03-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 2 }
+      )
+
+      const sowIndoors = tasks.filter((t) => t.generatedType === 'sow-indoors')
+      expect(sowIndoors).toHaveLength(1)
+      expect(sowIndoors[0].plantId).toBe('peas')
+      // outdoor should be suppressed though
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(0)
+    })
+
+    it('does not gate plants without a threshold (e.g. lettuce)', () => {
+      const lettuceVeg = {
+        id: 'lettuce',
+        name: 'Lettuce',
+        planting: {
+          harvestMonths: [5, 6, 7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [4, 5, 6],
+          transplantMonths: [],
+        },
+      }
+      mockGetVegetableById.mockReturnValue(lettuceVeg)
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [{ planting: { id: 'p1', plantId: 'lettuce' }, areaId: 'bed-a', areaName: 'Bed A' }],
+        [],
+        new Date('2026-04-15'),
+        [],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 0 }
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(1)
+    })
+
+    it('suppresses variety-driven sow-outdoors for peas when soil is too cold', () => {
+      const peasVarietyOnlyVeg = {
+        ...peasVeg,
+        planting: {
+          ...peasVeg.planting,
+          sowIndoorsMonths: [], // force outdoor-only so variety task picks outdoor
+        },
+      }
+      mockGetVegetableById.mockReturnValue(peasVarietyOnlyVeg)
+
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'peas',
+        name: 'Kelvedon Wonder',
+        seedsByYear: { 2026: 'have' },
+      }
+
+      const tasks = generateTasksForMonth(
+        4 as Month,
+        [],
+        [],
+        new Date('2026-04-15'),
+        [variety],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 5 }
+      )
+
+      const sowOutdoors = tasks.filter((t) => t.generatedType === 'sow-outdoors')
+      expect(sowOutdoors).toHaveLength(0)
+    })
+
+    it('does not suppress variety-driven sow-indoors when soil is cold', () => {
+      mockGetVegetableById.mockReturnValue(peasVeg)
+
+      const variety: StoredVariety = {
+        id: 'v1',
+        plantId: 'peas',
+        name: 'Kelvedon Wonder',
+        seedsByYear: { 2026: 'have' },
+      }
+
+      const tasks = generateTasksForMonth(
+        3 as Month,
+        [],
+        [],
+        new Date('2026-03-15'),
+        [variety],
+        2026,
+        {},
+        { past3DaysMm: 0, todayMm: 0, fetchedAt: '', soilTempC: 2 }
+      )
+
+      const sowIndoors = tasks.filter((t) => t.generatedType === 'sow-indoors')
+      expect(sowIndoors).toHaveLength(1)
+    })
+  })
 })

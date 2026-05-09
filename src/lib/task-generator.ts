@@ -15,6 +15,7 @@ import { getGerminationDays } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
 import type { RainfallSummary } from '@/lib/weather/open-meteo'
 import { shouldSkipWatering } from '@/lib/weather/open-meteo'
+import { shouldSuppressOutdoorSow } from '@/lib/sowing-thresholds'
 
 export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'water' | 'mulch' | 'succession' | 'care-tip'
 
@@ -318,7 +319,8 @@ function generateMonthBasedTasks(
   plantings: PlantingWithContext[],
   areas: Area[],
   currentYear: number,
-  careLogDays: CareLogDaysMap = {}
+  careLogDays: CareLogDaysMap = {},
+  soilTempC: number | undefined = undefined
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
 
@@ -356,10 +358,12 @@ function generateMonthBasedTasks(
       }
     }
 
-    // Sow outdoors tasks — one per plant
+    // Sow outdoors tasks — one per plant. Suppressed for cold-sensitive
+    // crops when today's soil is below their threshold; missing soil temp
+    // never suppresses (falls back to the calendar-month behaviour).
     if (vegetable.planting.sowOutdoorsMonths.includes(currentMonth)) {
       const key = `sow-outdoors-${vegetable.id}`
-      if (!seenSowTasks.has(key)) {
+      if (!seenSowTasks.has(key) && !shouldSuppressOutdoorSow(vegetable.id, soilTempC)) {
         seenSowTasks.add(key)
         const task = createSowOutdoorsTask(vegetable, currentMonth)
         tasks.push({ ...task, calculatedFrom: 'calendar-month' })
@@ -461,7 +465,8 @@ export function generateVarietyTasks(
   currentMonth: Month,
   varieties: StoredVariety[],
   plantings: PlantingWithContext[],
-  currentYear: number
+  currentYear: number,
+  soilTempC: number | undefined = undefined
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
 
@@ -487,7 +492,11 @@ export function generateVarietyTasks(
     if (!vegetable) continue
 
     const canSowIndoors = vegetable.planting.sowIndoorsMonths.includes(currentMonth)
-    const canSowOutdoors = vegetable.planting.sowOutdoorsMonths.includes(currentMonth)
+    // Soil-temp gate only suppresses the outdoor option; indoor sowing is
+    // unaffected because the soil reading reflects outdoor conditions only.
+    const soilBlocksOutdoor = shouldSuppressOutdoorSow(vegetable.id, soilTempC)
+    const canSowOutdoors =
+      vegetable.planting.sowOutdoorsMonths.includes(currentMonth) && !soilBlocksOutdoor
 
     if (!canSowIndoors && !canSowOutdoors) continue
 
@@ -549,11 +558,14 @@ export function generateTasksForMonth(
   // Get watering reminders (cadence + weather aware)
   const wateringTasks = generateWateringTasks(currentMonth, plantings, areas, careLogDays, rainfall)
 
-  // Get month-based tasks (fallback for plantings without dates)
-  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, careLogDays)
+  // Get month-based tasks (fallback for plantings without dates).
+  // Pass today's soil temp through so cold-sensitive sow-outdoors tasks can
+  // be suppressed for crops with a threshold (peas, beans, sweetcorn, …).
+  const soilTempC = rainfall?.soilTempC
+  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, careLogDays, soilTempC)
 
   // Get variety-based tasks (seeds user has but hasn't planted)
-  const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear)
+  const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear, soilTempC)
 
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]
