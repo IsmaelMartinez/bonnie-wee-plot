@@ -393,6 +393,44 @@ describe('useSyncedStorage', () => {
     expect(result.current.syncConflict?.remote).toBe(remoteData)
   })
 
+  // Regression: when local and remote have identical timestamps but their
+  // CONTENT disagrees (typically a one-sided load-time data repair), the
+  // old code path silently kept local. With the content-snapshot
+  // short-circuit at the top, we know we only reach the equal-timestamp
+  // branch when content has already diverged — so route to conflict.
+  it('routes through conflict when timestamps are equal but content differs', async () => {
+    const sharedTime = '2026-03-04T12:00:00Z'
+    localStorage.setItem(
+      'bonnie-synced-user-123',
+      JSON.stringify({ lastSyncedAt: sharedTime })
+    )
+
+    const localData = makeTestData(sharedTime, {
+      varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
+    })
+    const remoteData = makeTestData(sharedTime, {
+      varieties: [
+        { id: 'v1', name: 'Tomato' },
+        { id: 'v2', name: 'Pea' },
+      ] as unknown as AllotmentData['varieties'],
+    })
+    mockLocalData = localData
+    mockFetchRemote.mockResolvedValue({
+      data: remoteData,
+      updatedAt: sharedTime,
+    })
+
+    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+
+    await waitFor(() => {
+      expect(result.current.syncStatus).toBe('conflict')
+    })
+    expect(mockPushToRemote).not.toHaveBeenCalled()
+    expect(mockSetData).not.toHaveBeenCalled()
+    expect(result.current.syncConflict?.local).toBe(localData)
+    expect(result.current.syncConflict?.remote).toBe(remoteData)
+  })
+
   it('ignores stale initial-sync results when user changes mid-request', async () => {
     const localData = makeTestData('2026-03-04T14:00:00Z')
     const staleRemoteData = makeTestData('2026-03-04T18:00:00Z')

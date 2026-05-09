@@ -253,8 +253,20 @@ export function useSyncedStorage(
           if (isStaleSyncUser(syncUserId)) return
           lastPushedRef.current = contentSnapshot(local.data!)
         } else {
-          // Same timestamp — already in sync
-          lastPushedRef.current = contentSnapshot(local.data!)
+          // Equal timestamps but the content snapshots disagree (otherwise
+          // we'd have short-circuited above). Neither side claims to have
+          // changed since the last sync, yet they no longer match — most
+          // likely a load-time data repair / migration on one device that
+          // didn't make it to the other. Surface a conflict so the user
+          // picks rather than silently keeping local; that's exactly the
+          // class of silent overwrite the rest of this PR is closing.
+          setSyncConflict({
+            local: localData,
+            remote: remote.data,
+            remoteUpdatedAt: remote.updatedAt,
+          })
+          setSyncStatus('conflict')
+          return
         }
 
         markSynced(syncUserId)
