@@ -144,6 +144,15 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
     return migrateSchema(migrated)
   }
 
+  // Version 21 -> 22: Added meta.aiAdvisorEnabled and meta.aiAdvisorPromptDismissedAt
+  // for per-user Aitor opt-in. No data transform needed — both fields are optional
+  // and default to undefined (treated as opted-out / not yet prompted).
+  if (migrated.version < 22) {
+    migrated.version = 22
+    logger.info('Schema migration complete', { from: 21, to: 22, change: 'added meta.aiAdvisorEnabled / aiAdvisorPromptDismissedAt for Aitor opt-in' })
+    return migrateSchema(migrated)
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
   return migrated
 }

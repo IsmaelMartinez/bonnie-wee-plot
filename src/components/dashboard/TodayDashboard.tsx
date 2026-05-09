@@ -12,9 +12,11 @@ import CompostAlerts from './CompostAlerts'
 import LocationPromptBanner from './LocationPromptBanner'
 import WeatherStrip from './WeatherStrip'
 import FrostWarningBanner, { FrostAffectedArea } from './FrostWarningBanner'
+import AitorOptInBanner from './AitorOptInBanner'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 
 function LoadingSkeleton() {
   return (
@@ -65,7 +67,12 @@ export default function TodayDashboard() {
   const showLocationPrompt = !hasCoordinates && hasWaterTasks
 
   // Frost banner: tonight's forecast minimum + tender plantings in current season.
-  const { data } = useAllotment()
+  const { data, updateMeta } = useAllotment()
+  const { isSignedIn } = useOptionalAuth()
+  const showAitorOptIn =
+    isSignedIn &&
+    data?.meta?.aiAdvisorEnabled !== true &&
+    !data?.meta?.aiAdvisorPromptDismissedAt
   // Use local calendar day (en-CA gives YYYY-MM-DD) so the dismiss key rolls
   // over at the user's local midnight, not UTC midnight. Matches the
   // todayLocal() helper in useTodayData.ts.
@@ -143,6 +150,21 @@ export default function TodayDashboard() {
 
           {/* Quick Actions */}
           <QuickActions />
+
+          {/* One-time Aitor opt-in banner for signed-in users. */}
+          {showAitorOptIn && (
+            <AitorOptInBanner
+              onEnable={() =>
+                updateMeta({
+                  aiAdvisorEnabled: true,
+                  aiAdvisorPromptDismissedAt: new Date().toISOString(),
+                })
+              }
+              onDismiss={() =>
+                updateMeta({ aiAdvisorPromptDismissedAt: new Date().toISOString() })
+              }
+            />
+          )}
 
           {/* Optional banner: ask for location only when watering tasks exist
               and we don't yet have coordinates for rainfall lookup. */}

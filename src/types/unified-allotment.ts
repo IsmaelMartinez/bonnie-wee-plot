@@ -197,6 +197,14 @@ export interface AllotmentMeta {
   createdAt: string                  // ISO date string
   updatedAt: string                  // ISO date string
   setupCompleted?: boolean           // Whether the setup wizard has been completed
+  /**
+   * Per-user opt-in for the Aitor AI advisor (v22). When undefined or false,
+   * the chat launcher stays hidden even for signed-in users. The Today
+   * dashboard shows a one-time banner that flips this on.
+   */
+  aiAdvisorEnabled?: boolean
+  /** ISO timestamp of when the user dismissed the Aitor opt-in banner. */
+  aiAdvisorPromptDismissedAt?: string
 }
 
 /**
@@ -474,7 +482,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 21 // Add meta.frostDates for frost-aware planning
+export const CURRENT_SCHEMA_VERSION = 22 // Add meta.aiAdvisorEnabled / aiAdvisorPromptDismissedAt for Aitor opt-in
 
 // ============ HELPER TYPES ============
 
