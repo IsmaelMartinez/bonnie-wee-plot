@@ -173,6 +173,53 @@ describe('fetchRainfall', () => {
     expect(result?.forecast?.[2].date).toBe('2026-05-01')
   })
 
+  it('derives todays mean soil temperature from the hourly series', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: {
+            time: ['d-3', 'd-2', 'd-1', '2026-04-29'],
+            precipitation_sum: [0, 0, 0, 0],
+          },
+          hourly: {
+            time: [
+              '2026-04-28T22:00',
+              '2026-04-28T23:00',
+              '2026-04-29T00:00',
+              '2026-04-29T06:00',
+              '2026-04-29T12:00',
+              '2026-04-29T18:00',
+              '2026-04-30T00:00',
+            ],
+            soil_temperature_0_to_7cm: [4, 4, 6, 8, 12, 10, 5],
+          },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    // Mean of today's four entries: (6+8+12+10)/4 = 9
+    expect(result?.soilTempC).toBe(9)
+  })
+
+  it('leaves soilTempC undefined when the hourly series is missing', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          daily: {
+            time: ['d-3', 'd-2', 'd-1', '2026-04-29'],
+            precipitation_sum: [0, 0, 0, 0],
+          },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const result = await fetchRainfall(55.95, -3.18)
+    expect(result?.soilTempC).toBeUndefined()
+  })
+
   it('omits forecast when the response lacks weathercode or temperature series', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValueOnce(
       new Response(

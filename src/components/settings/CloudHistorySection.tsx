@@ -1,11 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Clock, History, RefreshCw, AlertTriangle, RotateCcw } from 'lucide-react'
+import { Clock, History, RefreshCw, AlertTriangle, RotateCcw, Eye } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import { fetchHistoryList, fetchHistorySnapshot, type HistoryEntry } from '@/lib/supabase/sync'
 import { saveAllotmentData } from '@/services/allotment-storage'
 import { ConfirmDialog } from '@/components/ui/Dialog'
+import CloudHistoryDiffDialog from './CloudHistoryDiffDialog'
+import { summariseDiff, type AllotmentDiff } from '@/lib/allotment-diff'
 
 interface CloudHistorySectionProps {
   /** Called after a successful restore so the parent can re-read localStorage. */
@@ -46,6 +48,11 @@ export default function CloudHistorySection({ onDataImported }: CloudHistorySect
   const [error, setError] = useState<string | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
   const [confirmRestoreId, setConfirmRestoreId] = useState<number | null>(null)
+  const [diffDialogId, setDiffDialogId] = useState<number | null>(null)
+  // Cache of computed diffs by base snapshot id, used for the inline hint
+  // once the user has opened the dialog at least once. We deliberately do
+  // not pre-fetch — only entries the user has inspected get a hint.
+  const [diffCache, setDiffCache] = useState<Record<number, AllotmentDiff>>({})
 
   const refresh = useCallback(async () => {
     if (!isSignedIn || !userId) return
@@ -141,38 +148,72 @@ export default function CloudHistorySection({ onDataImported }: CloudHistorySect
 
       {entries.length > 0 && (
         <ul className="space-y-2">
-          {entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="border border-gray-200 rounded-lg p-3 flex items-center gap-3"
-            >
-              <Clock className="w-4 h-4 text-zen-stone-500 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-zen-ink-800">
-                  {relativeTime(entry.archivedAt)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {ABSOLUTE_FORMATTER.format(new Date(entry.archivedAt))}
-                  {entry.summary && (
-                    <>
-                      {' · '}
-                      {entry.summary.areas} area{entry.summary.areas === 1 ? '' : 's'}
-                      {' · '}
-                      {entry.summary.varieties} variet{entry.summary.varieties === 1 ? 'y' : 'ies'}
-                    </>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => setConfirmRestoreId(entry.id)}
-                disabled={restoringId !== null}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-sm bg-zen-water-600 text-white rounded-lg hover:bg-zen-water-700 transition disabled:opacity-50"
+          {entries.map((entry, index) => {
+            const cachedDiff = diffCache[entry.id]
+            return (
+              <li
+                key={entry.id}
+                className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 flex-wrap sm:flex-nowrap"
               >
-                <RotateCcw className="w-4 h-4" />
-                {restoringId === entry.id ? 'Restoring...' : 'Restore'}
-              </button>
-            </li>
-          ))}
+                <Clock className="w-4 h-4 text-zen-stone-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zen-ink-800">
+                    {relativeTime(entry.archivedAt)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {ABSOLUTE_FORMATTER.format(new Date(entry.archivedAt))}
+                    {entry.summary && (
+                      <>
+                        {' · '}
+                        {entry.summary.areas} area{entry.summary.areas === 1 ? '' : 's'}
+                        {' · '}
+                        {entry.summary.varieties} variet{entry.summary.varieties === 1 ? 'y' : 'ies'}
+                      </>
+                    )}
+                  </p>
+                  {cachedDiff && (
+                    <p className="text-xs text-zen-stone-600 mt-1">
+                      {summariseDiff(cachedDiff)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setDiffDialogId(entry.id)}
+                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-sm bg-zen-stone-100 text-zen-ink-700 rounded-zen hover:bg-zen-stone-200 transition"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View changes
+                  </button>
+                  <button
+                    onClick={() => setConfirmRestoreId(entry.id)}
+                    disabled={restoringId !== null}
+                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-sm bg-zen-water-600 text-white rounded-lg hover:bg-zen-water-700 transition disabled:opacity-50"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    {restoringId === entry.id ? 'Restoring...' : 'Restore'}
+                  </button>
+                </div>
+                {/* Mount the diff dialog only for the entry the user clicked,
+                    so we never fetch eagerly. The dialog handles its own
+                    load state when isOpen flips. */}
+                {diffDialogId === entry.id && userId && (
+                  <CloudHistoryDiffDialog
+                    isOpen={true}
+                    onClose={() => setDiffDialogId(null)}
+                    baseId={entry.id}
+                    newerId={index === 0 ? undefined : entries[index - 1].id}
+                    archivedAt={entry.archivedAt}
+                    getToken={getToken}
+                    userId={userId}
+                    onDiffComputed={(diff) =>
+                      setDiffCache((prev) => ({ ...prev, [entry.id]: diff }))
+                    }
+                  />
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
 
