@@ -315,17 +315,23 @@ Schema bumped to v22 with a no-op v21→v22 migration. Added `meta.aiAdvisorEnab
 
 Settings → Data tab now surfaces a yellow `<BackupReminderCallout>` when more than 30 days have passed since the user's last JSON export. The callout offers a Download backup button (routes through the existing `useDataTransfer.handleExport`) and a Dismiss for 30 days button. Both stamp ISO timestamps onto two new optional fields on `AllotmentMeta` (`lastBackupExportAt`, `backupReminderDismissedAt`). No schema bump — both fields are optional with `undefined` meaning "never". Visibility lives in a tiny pure predicate `shouldShowBackupReminder(meta, syncStatus, now)` in `src/lib/backup-reminder.ts` with 9 unit tests covering all the cases. Cloud-synced signed-in users (`syncStatus === 'synced'`) are excluded — they have a recovery floor already. The Gemini review flagged two real issues both applied: gating the predicate on non-null `data` to stop the callout flashing during initial load, and computing the relative time inside a `useEffect` to avoid SSR/CSR hydration drift around day boundaries. The branch was rebased onto post-#342 `main` to add its two meta fields alongside Aitor's two; conflict resolved by keeping all four optional fields plus the v22 schema bump.
 
+### Phase 8 (partial): Gemini free tier — PR open
+
+Closes the loop on the Aitor opt-in: signed-in users who haven't added their own OpenAI key get a 30-requests-per-month free tier backed by Google's Gemini API (default `gemini-2.5-flash`, override via `GEMINI_MODEL` env). New `src/lib/ai/gemini.ts` adapter handles chat + vision in OpenAI-shaped requests; tools are deliberately carved out on the Gemini path (OpenAI keeps tool-calling). Per-user quota tracked in a new `ai_usage` Supabase table (`sql/003-ai-usage.sql`) with RLS so each user only reads their own counter; the route checks before each call and increments after a successful response. Settings → AI & Location surfaces a `<AiQuotaSection>` showing "X / 30 free this month" with the BYO upgrade hint. Chat error UX recognises the 429 quota-exhausted message and renders a friendly two-options message.
+
+Operator setup: add `GEMINI_API_KEY` to Vercel env, optionally `GEMINI_MODEL=gemini-3-flash` once that model is confirmed live, and run `sql/003-ai-usage.sql` in the Supabase SQL Editor (same operator workflow as #332).
+
+Risks the plan still tracks: per-user quota of 30/month is the policy call to revisit if the project's daily Gemini quota gets close to the cap; tool-calling on Gemini path is a follow-up if/when users miss it.
+
 ### Research-Driven Improvements: Backlog
 
-Follow-ups from earlier research rounds. Soil temperature, Aitor opt-in polish, and backup reminders all shipped above. What remains is the longer-tail Aitor work that didn't fit in this sprint:
-
-- Server-side fallback cost-line risk (`OPENAI_API_KEY`) once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
+Soil temperature, Aitor opt-in polish, and backup reminders all shipped earlier; the Gemini free tier above closes the cost-line risk that was previously parked here.
 
 ### Future Phases (Contingent on User Adoption)
 
-These are from the pre-production strategic plan (`docs/research/pre-production-strategic-plan.md`):
+From the pre-production strategic plan (`docs/research/pre-production-strategic-plan.md`):
 
-- Phase 8: Multi-Provider AI - Gemini support, server-side free tier after auth, pgvector for semantic search
+- Phase 8 cont'd — pgvector for semantic search of plantings/notes once the Gemini path has real usage data.
 
 Product roadmap phases 2-4 (Feature Discovery, Power Users, Community & Scale) are also contingent on Phase 1 metrics and user feedback.
 
