@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-09 (post-merge of #335/#332/#331; push debounce in flight)
+Last updated: 2026-05-09 (post-merge of #338/#339/#340/#341/#342)
 
 ## What's Been Completed
 
@@ -202,7 +202,7 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 
 ### Remaining Backlog
 
-- Automatic backup prompts
+(Empty — see "Backup Reminder" below for the previously-listed item, now shipped.)
 
 ### Research-Driven Improvements: Shipped
 
@@ -267,24 +267,17 @@ After #332 + #331 landed, the production cloud-history list grew faster than exp
 
 Two layered dampeners, in order of leverage. The first has shipped; the others remain backlog.
 
-##### 1. Push-side debounce in `useSyncedStorage` — PR #338 open (branch `feat/sync-push-debounce`)
+##### 1. Push-side debounce in `useSyncedStorage` — Shipped (PR #338, `fde0599`)
 
-The push effect now schedules pushes via a 30 s `PUSH_DEBOUNCE_MS` timer instead of firing on every `local.saveStatus === 'saved'` transition. Each new save during the window resets the timer and updates `pendingPushDataRef`; only the latest snapshot survives. A new `flushPush()` is exposed from `useSyncedStorage` (and re-exported through `useAllotmentData` and `useAllotment`) which cancels the timer and pushes immediately, returning a Promise.
+The push effect now schedules pushes via a 30 s `PUSH_DEBOUNCE_MS` timer instead of firing on every `local.saveStatus === 'saved'` transition. Each new save during the window resets the timer and updates `pendingPushDataRef`; only the latest snapshot survives. A new `flushPush()` is exposed from `useSyncedStorage` (and re-exported through `useAllotmentData` and `useAllotment`) which cancels the timer and pushes immediately, returning a Promise. The disabled-state effect also clears the timer and pending refs when the user signs out so the pending push doesn't leak across an auth transition.
 
-Unload safety net: `useSyncedStorage` registers a `pagehide` + `beforeunload` listener that runs `local.flushSave()` first (to ensure the latest data is in localStorage as the recovery floor) and then `flushPush()` synchronously bypasses the debounce. The plan deliberately rejected the simpler "just call `flushSave()` on unload" approach because flushing the local layer would re-trigger the push effect and start a fresh 30 s timer that the user is no longer around for.
-
-The disabled-state effect also clears the timer + pending refs when the user signs out, so the pending push doesn't leak across an auth transition. New tests in `src/__tests__/hooks/useSyncedStorage.test.ts` cover all three guarantees: a burst of three saves coalesces to one push of the latest snapshot, `flushPush()` cancels the timer and pushes immediately, and a `beforeunload` event triggers the push. All 940 unit tests pass and lint/type-check are clean.
+Unload safety net: `useSyncedStorage` registers a `pagehide` + `beforeunload` listener that runs `local.flushSave()` first (to ensure the latest data is in localStorage as the recovery floor) and then `flushPush()` bypasses the debounce. The simpler "just call `flushSave()` on unload" approach was rejected because flushing the local layer would re-trigger the push effect and start a fresh 30 s timer that the user is no longer around for. The unload network call itself is best-effort — the LWW reconciliation on next load is the actual recovery floor if the in-flight push is killed.
 
 Tradeoff: cloud lags local by up to 30 s. Fine for a single-user app — the local cache is always current and the restore-from-history floor handles the worst case.
 
-##### 2. Snapshot diff UI (future, larger task)
+##### 2. Snapshot diff UI — Shipped (PR #340, `83c077b`)
 
-The current restore list shows date + areas + varieties counts but no indication of *what changed* between adjacent snapshots. Once the debounce reduces volume to a manageable level, add a "View changes" affordance per row that diffs that snapshot against the next-newer one (or against current). Useful diff dimensions: areas added/removed/renamed, plantings added/removed/edited, varieties added/removed, schema version bumps. Could render inline in the row (tiny "+2 plantings, −1 variety" hint) or open a dedicated dialog.
-
-This is a heavier piece of work — needs a JSONB diff routine that understands the `AllotmentData` shape rather than a generic deep-diff (otherwise the noise from `meta.updatedAt`, `lastSyncedAt`, etc. would drown the meaningful changes). Worth doing once the debounce has reduced volume so the diff actually has something interesting to compare against.
-
-- **Files:** new `src/lib/allotment-diff.ts`, extend `<CloudHistorySection>` to show diff hints + a dialog component, possibly fetch two snapshots in parallel.
-- **Spike first:** decide on diff library (jsondiffpatch, deep-diff, or a hand-rolled walker tuned to AllotmentData shape).
+`<CloudHistorySection>` now exposes a "View changes" button per row that opens `<CloudHistoryDiffDialog>`. The dialog fetches the snapshot for that row and the next-newer one in parallel (or diffs against current local data when the row is the most recent), then renders concrete added/removed/renamed lists for areas and varieties, counts for plantings, and a schema-version-bump line for meta. The diff routine itself lives in `src/lib/allotment-diff.ts` as a hand-rolled walker keyed on `id` for areas/varieties (so renames register) and on `${year}|${areaId}|${plantingId}` for plantings (so an edit-in-place is distinguished from a move across seasons). `summariseDiff()` returns a one-line inline hint that the parent renders lazily under the row's existing summary once the dialog has computed the diff. 17 unit tests cover the diff cases plus the no-meaningful-changes (timestamp-only churn) path.
 
 ##### 3. Trigger-side coalesce / retention (optional, defer)
 
@@ -306,23 +299,27 @@ Spike outline for the new session, in order:
 
 This is a multi-day effort and is *not* the priority for the next session. The next session's priority is landing #332 then #331 and watching the cloud history table fill up. The Yjs revisit comes after — once we're sure the bleeding has stopped and we have evidence about whether users actually exercise the "restore" UI.
 
+### Parallel PR Sprint: Shipped (2026-05-09)
+
+A four-PR sprint dispatched in parallel agent worktrees, all addressed and merged the same day.
+
+#### Soil temperature for sow tasks — PR #339 (`c1ab516`)
+
+Added `soil_temperature_0_to_7cm` to the Open-Meteo hourly forecast call and surfaced today's mean as `soilTempC?: number` on `RainfallSummary`. New `src/lib/sowing-thresholds.ts` carries the per-species table (peas / sugar-snap-peas / carrot at 7°C; the four bean variants at 12°C; sweetcorn at 13°C) plus the pure `getMinOutdoorSowSoilTempC()` and `shouldSuppressOutdoorSow()` helpers. The task generator now passes `rainfall?.soilTempC` through and suppresses `sow-outdoors` emissions when soil is below the threshold. Indoor sowing, plants without a threshold, and `undefined` soil temp all preserve the existing month-based behaviour. New tests cover the threshold module, the soil-temp derivation in `open-meteo`, and a fresh "soil temperature gating" block in `task-generator.test.ts`.
+
+#### Aitor opt-in polish — PR #342 (`87bc612`)
+
+Schema bumped to v22 with a no-op v21→v22 migration. Added `meta.aiAdvisorEnabled` and `meta.aiAdvisorPromptDismissedAt` as optional fields. `AitorAuthGate` now requires both `isSignedIn` and `meta.aiAdvisorEnabled === true` instead of just `isSignedIn` — the implicit "signed-in == opted-in" became an explicit choice. A new `<AitorOptInBanner>` on TodayDashboard shows once for signed-in-but-not-opted-in users with "Try Aitor" / "Maybe later" actions wired through `updateMeta`. Next to the existing chat launcher, a secondary "Diagnose a plant" button opens `AitorChatModal` via a new `initialMode: 'diagnose'` carried through `AitorChatContext`; the modal prepends a diagnosis-focused hint to the system prompt and passes `autoOpenFilePicker` to `ChatInput`, which clicks the hidden file input on mount. `QuickTopics` swapped to the four refreshed prompts ("What can I plant now?", "Diagnose this leaf", "Plan my next rotation", "Why is my chard bolting?"). The Gemini review caught a real bug in the first cut — an `autoOpenedRef` blocked the second-and-later diagnose-button click while the modal stayed mounted; fixed by relying on the dep array alone.
+
+#### Backup reminder — PR #341 (`10f8083`)
+
+Settings → Data tab now surfaces a yellow `<BackupReminderCallout>` when more than 30 days have passed since the user's last JSON export. The callout offers a Download backup button (routes through the existing `useDataTransfer.handleExport`) and a Dismiss for 30 days button. Both stamp ISO timestamps onto two new optional fields on `AllotmentMeta` (`lastBackupExportAt`, `backupReminderDismissedAt`). No schema bump — both fields are optional with `undefined` meaning "never". Visibility lives in a tiny pure predicate `shouldShowBackupReminder(meta, syncStatus, now)` in `src/lib/backup-reminder.ts` with 9 unit tests covering all the cases. Cloud-synced signed-in users (`syncStatus === 'synced'`) are excluded — they have a recovery floor already. The Gemini review flagged two real issues both applied: gating the predicate on non-null `data` to stop the callout flashing during initial load, and computing the relative time inside a `useEffect` to avoid SSR/CSR hydration drift around day boundaries. The branch was rebased onto post-#342 `main` to add its two meta fields alongside Aitor's two; conflict resolved by keeping all four optional fields plus the v22 schema bump.
+
 ### Research-Driven Improvements: Backlog
 
-Follow-ups from the frost research round, in order of leverage:
+Follow-ups from earlier research rounds. Soil temperature, Aitor opt-in polish, and backup reminders all shipped above. What remains is the longer-tail Aitor work that didn't fit in this sprint:
 
-#### 1. Soil temperature for sowing tasks (~2–3 h)
-
-Add `soil_temperature_0_to_7cm` to the existing forecast call. Suppress sow tasks when soil temp is below the species threshold (peas/carrots: 7°C, beans: 12°C, sweetcorn: 13°C). Still YAGNI for most plants — hold until adoption tells us it matters.
-
-#### 2. Aitor as a signed-in, opt-in companion (polish on top of the re-enable)
-
-The chat is back for signed-in users via `AitorAuthGate`. Remaining polish:
-
-- **Per-user opt-in.** Add `meta.aiAdvisorEnabled` (schema migration v22, default false). Show a one-time "Try Aitor?" banner on Today that flips it on. Replaces the implicit "signed-in == opted-in" with an explicit choice.
-- **Photo-diagnosis lead path.** Add a "Diagnose a plant" entry-point next to the chat launcher that opens `AitorChatModal` pre-seeded with an image picker and a system prompt focused on diagnosis — closes the cold-start gap that drove hiding the chat in the first place. The API route already accepts plant images via gpt-4o vision.
-- **Refresh `QuickTopics.tsx` prompts.** "What can I plant in May?" / "Diagnose this leaf" / "Plan my next rotation" / "Why is my chard bolting?" — concrete entries beat a blank input.
-- **Files:** `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`), `src/services/storage-migrations.ts` (v22), `src/components/ai-advisor/AitorAuthGate.tsx`, `src/components/dashboard/TodayDashboard.tsx` (one-time banner), `src/components/ai-advisor/QuickTopics.tsx`, `src/components/ai-advisor/AitorChatButton.tsx`.
-- **Risk to weigh:** server-side fallback (`OPENAI_API_KEY`) becomes a real cost line once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
+- Server-side fallback cost-line risk (`OPENAI_API_KEY`) once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
 
 ### Future Phases (Contingent on User Adoption)
 
