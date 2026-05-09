@@ -79,20 +79,34 @@ export interface HistoryEntry {
   id: number
   archivedAt: string
   /**
-   * Lightweight summary computed client-side from the snapshot. The full
-   * snapshot is only fetched on demand via fetchHistorySnapshot.
+   * Lightweight summary computed from a partial-JSON projection of the
+   * snapshot — only `data->layout->areas` and `data->varieties` are pulled
+   * so the list query stays cheap even when individual snapshots are large.
+   * The plantings count would require walking `seasons[].areas[].plantings`
+   * which is the bulk of the JSONB blob, so it's intentionally omitted from
+   * the summary; users can still restore and inspect the full snapshot.
    */
   summary?: {
-    plantings: number
     areas: number
     varieties: number
   }
 }
 
+interface HistoryListRow {
+  id: number
+  archived_at: string
+  // PostgREST returns the last path segment as the key when you select with
+  // `data->layout->areas` / `data->varieties` — both arrive as JSON arrays.
+  areas: unknown[] | null
+  varieties: unknown[] | null
+}
+
 /**
  * List the most recent N history snapshots for the given user. Returns
- * lightweight metadata (id + archivedAt) — fetch the full snapshot via
- * fetchHistorySnapshot when the user picks one to restore.
+ * lightweight metadata (id + archivedAt + small summary). The full
+ * snapshot is fetched on demand via fetchHistorySnapshot when the user
+ * picks one to restore — that keeps this list query bounded in size even
+ * for accounts with several hundred KB of allotment data.
  */
 export async function fetchHistoryList(
   token: string,
@@ -102,7 +116,7 @@ export async function fetchHistoryList(
   const client = createAuthClient(token)
   const { data, error } = await client
     .from('allotment_history')
-    .select('id, archived_at, data')
+    .select('id, archived_at, areas:data->layout->areas, varieties:data->varieties')
     .eq('user_id', userId)
     .order('archived_at', { ascending: false })
     .limit(limit)
@@ -110,22 +124,14 @@ export async function fetchHistoryList(
   if (error) throw new Error(error.message)
   if (!Array.isArray(data)) return []
 
-  return data.map((row) => {
-    const snapshot = row.data as AllotmentData
-    const plantings = (snapshot.seasons || []).reduce(
-      (sum, s) => sum + (s.areas || []).reduce((a, area) => a + (area.plantings?.length || 0), 0),
-      0
-    )
-    return {
-      id: row.id as number,
-      archivedAt: row.archived_at as string,
-      summary: {
-        plantings,
-        areas: snapshot.layout?.areas?.length || 0,
-        varieties: snapshot.varieties?.length || 0,
-      },
-    }
-  })
+  return (data as unknown as HistoryListRow[]).map((row) => ({
+    id: row.id,
+    archivedAt: row.archived_at,
+    summary: {
+      areas: Array.isArray(row.areas) ? row.areas.length : 0,
+      varieties: Array.isArray(row.varieties) ? row.varieties.length : 0,
+    },
+  }))
 }
 
 /**

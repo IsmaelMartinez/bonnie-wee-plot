@@ -156,8 +156,6 @@ export default function CloudHistorySection({ onDataImported }: CloudHistorySect
                   {entry.summary && (
                     <>
                       {' · '}
-                      {entry.summary.plantings} planting{entry.summary.plantings === 1 ? '' : 's'}
-                      {' · '}
                       {entry.summary.areas} area{entry.summary.areas === 1 ? '' : 's'}
                       {' · '}
                       {entry.summary.varieties} variet{entry.summary.varieties === 1 ? 'y' : 'ies'}

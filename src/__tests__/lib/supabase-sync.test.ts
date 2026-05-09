@@ -118,24 +118,16 @@ describe('deleteRemote', () => {
 describe('fetchHistoryList', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('queries allotment_history with ordering, limit, and user filter', async () => {
+  it('queries allotment_history with partial JSON projection, ordering, limit and user filter', async () => {
+    // PostgREST returns the aliased JSON paths as top-level columns.
     const mockOrder = vi.fn().mockReturnThis()
     const mockLimit = vi.fn().mockResolvedValue({
       data: [
         {
           id: 7,
           archived_at: '2026-05-08T10:00:00Z',
-          data: {
-            ...mockData,
-            seasons: [
-              {
-                year: 2026,
-                areas: [{ areaId: 'a', plantings: [{ id: 'p1' }, { id: 'p2' }] }],
-              },
-            ],
-            layout: { areas: [{ id: 'a' }] },
-            varieties: [{ id: 'v1' }],
-          },
+          areas: [{ id: 'a' }, { id: 'b' }],
+          varieties: [{ id: 'v1' }],
         },
       ],
       error: null,
@@ -149,7 +141,12 @@ describe('fetchHistoryList', () => {
     const result = await fetchHistoryList('token', 'user-123', 5)
 
     expect(mockFrom).toHaveBeenCalledWith('allotment_history')
-    expect(mockSelectHist).toHaveBeenCalledWith('id, archived_at, data')
+    // Crucially the select does NOT include the full `data` blob — only the
+    // narrow `data->layout->areas` and `data->varieties` projections — so
+    // the list query stays bounded even for large allotments.
+    expect(mockSelectHist).toHaveBeenCalledWith(
+      'id, archived_at, areas:data->layout->areas, varieties:data->varieties'
+    )
     expect(mockEqHist).toHaveBeenCalledWith('user_id', 'user-123')
     expect(mockOrder).toHaveBeenCalledWith('archived_at', { ascending: false })
     expect(mockLimit).toHaveBeenCalledWith(5)
@@ -157,8 +154,25 @@ describe('fetchHistoryList', () => {
       {
         id: 7,
         archivedAt: '2026-05-08T10:00:00Z',
-        summary: { plantings: 2, areas: 1, varieties: 1 },
+        summary: { areas: 2, varieties: 1 },
       },
+    ])
+  })
+
+  it('treats missing JSON projections as zero counts', async () => {
+    const mockLimit = vi.fn().mockResolvedValue({
+      data: [{ id: 1, archived_at: '2026-05-08T10:00:00Z', areas: null, varieties: null }],
+      error: null,
+    })
+    const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit })
+    const mockEqHist = vi.fn().mockReturnValue({ order: mockOrder })
+    const mockSelectHist = vi.fn().mockReturnValue({ eq: mockEqHist })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockFrom.mockReturnValueOnce({ select: mockSelectHist } as any)
+
+    const result = await fetchHistoryList('token', 'user-123')
+    expect(result).toEqual([
+      { id: 1, archivedAt: '2026-05-08T10:00:00Z', summary: { areas: 0, varieties: 0 } },
     ])
   })
 

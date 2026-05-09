@@ -39,11 +39,20 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- COALESCE guards the archive timestamp against a NULL OLD.updated_at.
+  -- The current schema has updated_at NOT NULL DEFAULT now() so this is
+  -- impossible today, but defence in depth keeps the trigger working if
+  -- that constraint is ever relaxed.
   INSERT INTO allotment_history (user_id, data, archived_at)
-  VALUES (OLD.user_id, OLD.data, OLD.updated_at);
+  VALUES (OLD.user_id, OLD.data, COALESCE(OLD.updated_at, now()));
   RETURN NEW;
 END;
 $$;
+
+-- If you've already deployed an earlier version of this trigger, re-run the
+-- CREATE OR REPLACE FUNCTION block above on its own. Postgres swaps the
+-- function in place and the existing trigger picks up the new body
+-- automatically — no need to drop and recreate the trigger.
 
 CREATE TRIGGER trg_archive_allotment_before_update
   BEFORE UPDATE ON allotments
