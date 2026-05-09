@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useDataTransfer } from '@/hooks/useDataTransfer'
 import { useAllotment } from '@/hooks/useAllotment'
 import {
@@ -9,11 +9,16 @@ import {
 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/Dialog'
 import CloudHistorySection from './CloudHistorySection'
+import BackupReminderCallout from './BackupReminderCallout'
+import { shouldShowBackupReminder } from '@/lib/backup-reminder'
+import type { SyncStatus } from '@/types/storage'
 
 interface DataTabProps {
   data: ReturnType<typeof useAllotment>['data']
   flushSave: ReturnType<typeof useAllotment>['flushSave']
   reload: ReturnType<typeof useAllotment>['reload']
+  updateMeta: ReturnType<typeof useAllotment>['updateMeta']
+  syncStatus: SyncStatus
   isSignedIn?: boolean
   onDeleteAccount?: () => Promise<void>
   userEmail?: string
@@ -22,12 +27,27 @@ interface DataTabProps {
 /**
  * Data tab with Transfer and Danger Zone sections.
  */
-export default function DataTab({ data, flushSave, reload, isSignedIn, onDeleteAccount, userEmail }: DataTabProps) {
+export default function DataTab({
+  data, flushSave, reload, updateMeta, syncStatus,
+  isSignedIn, onDeleteAccount, userEmail,
+}: DataTabProps) {
   const {
     handleExport, exportSuccess,
     handleImport, importError, fileInputRef, lastBackupKey, handleRestoreBackup,
     handleClear, showClearConfirm, setShowClearConfirm,
   } = useDataTransfer({ data, onDataImported: reload, flushSave })
+
+  // Wrap export so a successful download stamps lastBackupExportAt.
+  const handleExportWithStamp = useCallback(() => {
+    handleExport()
+    updateMeta({ lastBackupExportAt: new Date().toISOString() })
+  }, [handleExport, updateMeta])
+
+  const handleDismissBackupReminder = useCallback(() => {
+    updateMeta({ backupReminderDismissedAt: new Date().toISOString() })
+  }, [updateMeta])
+
+  const showBackupReminder = !!data && shouldShowBackupReminder(data.meta, syncStatus, new Date())
 
   const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
@@ -35,6 +55,14 @@ export default function DataTab({ data, flushSave, reload, isSignedIn, onDeleteA
 
   return (
     <div className="space-y-8">
+      {showBackupReminder && (
+        <BackupReminderCallout
+          lastBackupExportAt={data?.meta.lastBackupExportAt}
+          onDownload={handleExportWithStamp}
+          onDismiss={handleDismissBackupReminder}
+        />
+      )}
+
       {/* Transfer Data Section */}
       <section data-tour="data-management">
         <div className="flex items-center gap-2 mb-2">
@@ -57,7 +85,7 @@ export default function DataTab({ data, flushSave, reload, isSignedIn, onDeleteA
             </p>
             <div className="mt-1 flex items-center gap-2">
               <button
-                onClick={handleExport}
+                onClick={handleExportWithStamp}
                 disabled={!data}
                 className="flex items-center gap-2 px-4 py-2 bg-zen-moss-600 text-white rounded-lg hover:bg-zen-moss-700 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
               >

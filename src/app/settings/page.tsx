@@ -14,7 +14,7 @@ import Tabs from '@/components/ui/Tabs'
 
 export default function SettingsPage() {
   const { isSignedIn, signOut, userEmail } = useOptionalAuth()
-  const { data, flushSave, reload } = useAllotment()
+  const { data, flushSave, reload, updateMeta, syncStatus } = useAllotment()
   const { token, saveToken, clearToken } = useApiToken()
   const { userLocation, locationError, detectUserLocation, isDetecting } = useLocation()
   const [tempToken, setTempToken] = useState('')
@@ -180,6 +180,8 @@ export default function SettingsPage() {
                   data={data}
                   flushSave={flushSave}
                   reload={reload}
+                  updateMeta={updateMeta}
+                  syncStatus={syncStatus}
                   isSignedIn={isSignedIn}
                   onDeleteAccount={isSignedIn ? handleDeleteAccount : undefined}
                   userEmail={userEmail}
