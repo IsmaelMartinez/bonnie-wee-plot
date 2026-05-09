@@ -34,6 +34,11 @@ const ABSOLUTE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   timeStyle: 'short',
 })
 
+function formatArchivedAt(archivedAt: string): string {
+  const d = new Date(archivedAt)
+  return Number.isNaN(d.getTime()) ? archivedAt : ABSOLUTE_FORMATTER.format(d)
+}
+
 export default function CloudHistoryDiffDialog({
   isOpen,
   onClose,
@@ -125,7 +130,7 @@ export default function CloudHistoryDiffDialog({
       isOpen={isOpen}
       onClose={onClose}
       title="What changed"
-      description={`Snapshot from ${ABSOLUTE_FORMATTER.format(new Date(archivedAt))} compared with ${
+      description={`Snapshot from ${formatArchivedAt(archivedAt)} compared with ${
         newerId === undefined ? 'your current allotment' : 'the next-newer snapshot'
       }.`}
       maxWidth="lg"

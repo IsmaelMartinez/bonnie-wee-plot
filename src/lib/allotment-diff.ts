@@ -67,55 +67,29 @@ function indexById<T extends { id: string }>(items: readonly T[] | undefined): M
   return map
 }
 
-function diffAreas(oldAreas: readonly Area[] | undefined, newAreas: readonly Area[] | undefined) {
-  const oldMap = indexById(oldAreas)
-  const newMap = indexById(newAreas)
-  const added: string[] = []
-  const removed: string[] = []
-  const renamed: RenameEntry[] = []
-
-  for (const [id, area] of newMap) {
-    if (!oldMap.has(id)) {
-      added.push(area.name)
-    } else {
-      const prev = oldMap.get(id)!
-      if (prev.name !== area.name) {
-        renamed.push({ id, from: prev.name, to: area.name })
-      }
-    }
-  }
-  for (const [id, area] of oldMap) {
-    if (!newMap.has(id)) {
-      removed.push(area.name)
-    }
-  }
-
-  return { added, removed, renamed }
-}
-
-function diffVarieties(
-  oldVarieties: readonly StoredVariety[] | undefined,
-  newVarieties: readonly StoredVariety[] | undefined,
+function diffNamedItems<T extends { id: string; name: string }>(
+  oldItems: readonly T[] | undefined,
+  newItems: readonly T[] | undefined,
 ) {
-  const oldMap = indexById(oldVarieties)
-  const newMap = indexById(newVarieties)
+  const oldMap = indexById(oldItems)
+  const newMap = indexById(newItems)
   const added: string[] = []
   const removed: string[] = []
   const renamed: RenameEntry[] = []
 
-  for (const [id, variety] of newMap) {
+  for (const [id, item] of newMap) {
     if (!oldMap.has(id)) {
-      added.push(variety.name)
+      added.push(item.name)
     } else {
       const prev = oldMap.get(id)!
-      if (prev.name !== variety.name) {
-        renamed.push({ id, from: prev.name, to: variety.name })
+      if (prev.name !== item.name) {
+        renamed.push({ id, from: prev.name, to: item.name })
       }
     }
   }
-  for (const [id, variety] of oldMap) {
+  for (const [id, item] of oldMap) {
     if (!newMap.has(id)) {
-      removed.push(variety.name)
+      removed.push(item.name)
     }
   }
 
@@ -124,22 +98,21 @@ function diffVarieties(
 
 /**
  * Two plantings are considered "edited" when any non-id field differs.
- * Stable JSON comparison over the whole record (minus id) is good enough —
- * the Planting shape has no nested objects of consequence beyond simple
- * scalars, so key ordering will be stable.
+ * The Planting shape is all scalars (strings, numbers, enum strings — see
+ * src/types/unified-allotment.ts), so a shallow comparison with nullish
+ * coalescing handles all real cases. We unify undefined and null because
+ * JSONB roundtrips through Supabase don't preserve the distinction.
  */
 function plantingsEqual(a: Planting, b: Planting): boolean {
-  // Compare excluding id (we already matched on id)
-  const keysA = Object.keys(a).filter((k) => k !== 'id').sort()
-  const keysB = Object.keys(b).filter((k) => k !== 'id').sort()
-  if (keysA.length !== keysB.length) return false
-  for (let i = 0; i < keysA.length; i++) {
-    if (keysA[i] !== keysB[i]) return false
-  }
-  for (const key of keysA) {
+  // Union of all keys (excluding id) so a key that exists on only one side
+  // counts as a difference rather than being silently skipped.
+  const keys = new Set<string>()
+  for (const k of Object.keys(a)) if (k !== 'id') keys.add(k)
+  for (const k of Object.keys(b)) if (k !== 'id') keys.add(k)
+  for (const key of keys) {
     const valA = (a as unknown as Record<string, unknown>)[key]
     const valB = (b as unknown as Record<string, unknown>)[key]
-    if (JSON.stringify(valA) !== JSON.stringify(valB)) return false
+    if ((valA ?? null) !== (valB ?? null)) return false
   }
   return true
 }
@@ -203,8 +176,8 @@ function diffPlantings(oldData: AllotmentData, newData: AllotmentData) {
 export function diffAllotment(oldData: AllotmentData, newData: AllotmentData): AllotmentDiff {
   const diff = emptyDiff()
 
-  diff.areas = diffAreas(oldData.layout?.areas, newData.layout?.areas)
-  diff.varieties = diffVarieties(oldData.varieties, newData.varieties)
+  diff.areas = diffNamedItems<Area>(oldData.layout?.areas, newData.layout?.areas)
+  diff.varieties = diffNamedItems<StoredVariety>(oldData.varieties, newData.varieties)
   diff.plantings = diffPlantings(oldData, newData)
 
   if (
