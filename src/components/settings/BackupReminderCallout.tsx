@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { AlertCircle, Download, X } from 'lucide-react'
 
 interface BackupReminderCalloutProps {
@@ -9,11 +10,11 @@ interface BackupReminderCalloutProps {
   onDismiss: () => void
 }
 
-function formatRelative(iso: string | undefined): string {
+function formatRelative(iso: string | undefined, now: number): string {
   if (!iso) return 'never'
   const t = Date.parse(iso)
   if (Number.isNaN(t)) return 'never'
-  const days = Math.floor((Date.now() - t) / (24 * 60 * 60 * 1000))
+  const days = Math.floor((now - t) / (24 * 60 * 60 * 1000))
   if (days <= 0) return 'today'
   if (days === 1) return 'yesterday'
   if (days < 30) return `${days} days ago`
@@ -34,6 +35,13 @@ export default function BackupReminderCallout({
   onDownload,
   onDismiss,
 }: BackupReminderCalloutProps) {
+  // Compute relative time on the client only to avoid SSR/CSR hydration drift
+  // around day boundaries (server renders "today", client hydrates "yesterday").
+  const [relative, setRelative] = useState<string | null>(null)
+  useEffect(() => {
+    setRelative(formatRelative(lastBackupExportAt, Date.now()))
+  }, [lastBackupExportAt])
+
   return (
     <div
       className="bg-zen-bamboo-50 border border-zen-bamboo-200 rounded-lg p-4 flex items-start gap-3"
@@ -46,7 +54,7 @@ export default function BackupReminderCallout({
           Time to back up your allotment
         </p>
         <p className="text-xs text-zen-stone-600 mt-1">
-          Last export: {formatRelative(lastBackupExportAt)}. Download a backup file so you don&apos;t lose your data if this device is lost or cleared.
+          Last export: {relative ?? '…'}. Download a backup file so you don&apos;t lose your data if this device is lost or cleared.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button

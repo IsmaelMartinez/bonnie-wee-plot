@@ -47,7 +47,7 @@ export default function DataTab({
     updateMeta({ backupReminderDismissedAt: new Date().toISOString() })
   }, [updateMeta])
 
-  const showBackupReminder = shouldShowBackupReminder(data?.meta, syncStatus, new Date())
+  const showBackupReminder = !!data && shouldShowBackupReminder(data.meta, syncStatus, new Date())
 
   const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
