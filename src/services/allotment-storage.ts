@@ -173,6 +173,10 @@ export {
   getCompostPileById,
   getCompostPilesByStatus,
   getActiveCompostPiles,
+  getCompostPilesNeedingTurn,
+  pileNeedsTurning,
+  getLastActivityDate,
+  NEEDS_TURNING_THRESHOLD_DAYS,
 } from './compost-operations'
 
 // Generic localStorage utilities
