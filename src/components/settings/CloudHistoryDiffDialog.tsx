@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import Dialog from '@/components/ui/Dialog'
 import { fetchHistorySnapshot } from '@/lib/supabase/sync'
@@ -52,6 +52,17 @@ export default function CloudHistoryDiffDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [diff, setDiff] = useState<AllotmentDiff | null>(null)
+
+  // Hold the latest onDiffComputed in a ref so the load effect can call the
+  // freshest callback without needing it as a dep. Parents typically pass an
+  // inline arrow that's recreated every render — including it in deps would
+  // refire the effect after each setDiff → parent setState → rerender →
+  // fresh callback ref → loop, which is what made "View changes" appear
+  // stuck on a permanent loading spinner.
+  const onDiffComputedRef = useRef(onDiffComputed)
+  useEffect(() => {
+    onDiffComputedRef.current = onDiffComputed
+  }, [onDiffComputed])
 
   useEffect(() => {
     if (!isOpen) {
@@ -109,7 +120,7 @@ export default function CloudHistoryDiffDialog({
 
         const computed = diffAllotment(base, comparedAgainst)
         setDiff(computed)
-        onDiffComputed?.(computed)
+        onDiffComputedRef.current?.(computed)
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load snapshot')
@@ -123,7 +134,7 @@ export default function CloudHistoryDiffDialog({
     return () => {
       cancelled = true
     }
-  }, [isOpen, baseId, newerId, getToken, userId, onDiffComputed])
+  }, [isOpen, baseId, newerId, getToken, userId])
 
   return (
     <Dialog
