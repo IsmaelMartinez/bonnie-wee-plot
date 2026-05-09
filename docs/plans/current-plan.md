@@ -267,7 +267,7 @@ After #332 + #331 landed, the production cloud-history list grew faster than exp
 
 Two layered dampeners, in order of leverage. The first has shipped; the others remain backlog.
 
-##### 1. Push-side debounce in `useSyncedStorage` — Shipped (PR #TBD, branch `feat/sync-push-debounce`)
+##### 1. Push-side debounce in `useSyncedStorage` — PR #338 open (branch `feat/sync-push-debounce`)
 
 The push effect now schedules pushes via a 30 s `PUSH_DEBOUNCE_MS` timer instead of firing on every `local.saveStatus === 'saved'` transition. Each new save during the window resets the timer and updates `pendingPushDataRef`; only the latest snapshot survives. A new `flushPush()` is exposed from `useSyncedStorage` (and re-exported through `useAllotmentData` and `useAllotment`) which cancels the timer and pushes immediately, returning a Promise.
 
