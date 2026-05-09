@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-09
+Last updated: 2026-05-09 (post-merge of #335/#332/#331)
 
 ## What's Been Completed
 
@@ -258,6 +258,35 @@ Branch: `fix/sync-overwrite-safety`. Three layered fixes that ship together:
 Includes regression test in `useSyncedStorage.test.ts` that asserts a stale-but-newer-stamped local with fewer varieties than remote routes to conflict, never calls `pushToRemote`. Also tightens five existing LWW tests that were using timestamp-only differences (now correctly short-circuited by fix 2) to use real content differences.
 
 Land #332 first so users have a recovery path while #331 is rolling out, then land #331. They don't conflict; #331 is content-only and #332 is additive (new table, new component).
+
+**Status:** Both #332 (`83ee236`) and #331 (`99dd858`) are merged on `main` as of 2026-05-09. #331 was rebased onto post-#332 main; the conflict in `src/__tests__/lib/supabase-sync.test.ts` was resolved by keeping all four test groups (fetchHistory* from #332 + contentSnapshot/isLocalStructurallySmaller from #331) plus a unified import.
+
+#### Cloud history follow-ups (next-session priority — observed in production)
+
+After #332 + #331 landed, the production cloud-history list grew faster than expected: ~4 snapshots within a single 1–2 minute window of activity, e.g. four "08:41 · 28 areas · 32 varieties" rows back-to-back. Root cause: every `setData` in the app triggers a debounced local save, every save fires the push effect in `useSyncedStorage` (`src/hooks/useSyncedStorage.ts`), every push hits the `BEFORE UPDATE` trigger on `allotments`, and so every meaningful in-app interaction (toggling a task, editing a name, dismissing a banner) creates one history row. This is the architecture working as designed — but it makes the restore list noisy and grows the history table fast.
+
+Two layered dampeners, in order of leverage:
+
+##### 1. Push-side debounce in `useSyncedStorage` (~20 lines, est. 80% reduction in noise)
+
+Currently the push effect fires on every `local.saveStatus === 'saved'` transition with no further coalescing. Add a ~30s timer: when a save lands, schedule the push for now+30s; if another save arrives during the window, reset the timer; only the last call wins. Net effect — a burst of changes within the window collapses to one push and one history row. Also wire `flushSave()` (already exposed by `usePersistedStorage`) into a `beforeunload` listener so closing the tab forces an immediate push rather than dropping the pending burst.
+
+- **Files:** `src/hooks/useSyncedStorage.ts` (timer + ref for the pending push), possibly a small `useFlushOnUnload` hook.
+- **Tests to add:** `useSyncedStorage.test.ts` — assert that 3 rapid `saveStatus='saved'` transitions within the window result in exactly one `pushToRemote` call; assert that `beforeunload` flushes immediately.
+- **Tradeoff:** cloud lags local by up to 30s. Fine for a single-user app; the local cache is always current.
+
+##### 2. Snapshot diff UI (future, larger task)
+
+The current restore list shows date + areas + varieties counts but no indication of *what changed* between adjacent snapshots. Once the debounce reduces volume to a manageable level, add a "View changes" affordance per row that diffs that snapshot against the next-newer one (or against current). Useful diff dimensions: areas added/removed/renamed, plantings added/removed/edited, varieties added/removed, schema version bumps. Could render inline in the row (tiny "+2 plantings, −1 variety" hint) or open a dedicated dialog.
+
+This is a heavier piece of work — needs a JSONB diff routine that understands the `AllotmentData` shape rather than a generic deep-diff (otherwise the noise from `meta.updatedAt`, `lastSyncedAt`, etc. would drown the meaningful changes). Worth doing once the debounce has reduced volume so the diff actually has something interesting to compare against.
+
+- **Files:** new `src/lib/allotment-diff.ts`, extend `<CloudHistorySection>` to show diff hints + a dialog component, possibly fetch two snapshots in parallel.
+- **Spike first:** decide on diff library (jsondiffpatch, deep-diff, or a hand-rolled walker tuned to AllotmentData shape).
+
+##### 3. Trigger-side coalesce / retention (optional, defer)
+
+If the client-side debounce is enough, skip this. If the history table still grows too fast, the SQL trigger can UPDATE the most recent history row in place when its `archived_at` is less than ~30s old, and the retention SQL in `sql/002-allotment-history.sql` can bucket older snapshots (one per 5-minute window after an hour, one per hour after a day, etc). Keep commented in the SQL file until volume justifies it.
 
 #### Future: revisit the sync engine (ADR 027 — not started)
 
