@@ -23,11 +23,9 @@ export default function ChatInput({ onSubmit, isLoading, rateLimitInfo, autoOpen
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const autoOpenedRef = useRef(false)
 
   useEffect(() => {
-    if (autoOpenFilePicker && !autoOpenedRef.current) {
-      autoOpenedRef.current = true
+    if (autoOpenFilePicker) {
       fileInputRef.current?.click()
     }
   }, [autoOpenFilePicker])

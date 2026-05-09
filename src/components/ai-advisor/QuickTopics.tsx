@@ -16,8 +16,8 @@ interface QuickPrompt {
 const PROMPTS: QuickPrompt[] = [
   {
     icon: Calendar,
-    title: 'What can I plant in May?',
-    query: 'What can I plant in May?',
+    title: 'What can I plant now?',
+    query: 'What can I plant now?',
     borderColor: 'border-l-emerald-400',
   },
   {
