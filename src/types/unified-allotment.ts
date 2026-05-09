@@ -205,6 +205,17 @@ export interface AllotmentMeta {
   aiAdvisorEnabled?: boolean
   /** ISO timestamp of when the user dismissed the Aitor opt-in banner. */
   aiAdvisorPromptDismissedAt?: string
+  /**
+   * ISO timestamp of the last successful JSON backup export. Drives the
+   * Settings backup reminder. Optional — undefined means "never exported".
+   * No schema migration: consumer code treats undefined as "never".
+   */
+  lastBackupExportAt?: string
+  /**
+   * ISO timestamp of when the user last dismissed the backup reminder.
+   * Optional — undefined means "never dismissed".
+   */
+  backupReminderDismissedAt?: string
 }
 
 /**
