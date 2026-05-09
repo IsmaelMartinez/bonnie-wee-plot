@@ -269,10 +269,12 @@ Two layered dampeners, in order of leverage:
 
 ##### 1. Push-side debounce in `useSyncedStorage` (~20 lines, est. 80% reduction in noise)
 
-Currently the push effect fires on every `local.saveStatus === 'saved'` transition with no further coalescing. Add a ~30s timer: when a save lands, schedule the push for now+30s; if another save arrives during the window, reset the timer; only the last call wins. Net effect — a burst of changes within the window collapses to one push and one history row. Also wire `flushSave()` (already exposed by `usePersistedStorage`) into a `beforeunload` listener so closing the tab forces an immediate push rather than dropping the pending burst.
+Currently the push effect fires on every `local.saveStatus === 'saved'` transition with no further coalescing. Add a ~30s timer: when a save lands, schedule the push for now+30s; if another save arrives during the window, reset the timer; only the last call wins. Net effect — a burst of changes within the window collapses to one push and one history row. Also expose a `flushPush()` from `useSyncedStorage` and wire it into a `beforeunload` listener so closing the tab forces an immediate push of the pending data rather than dropping the burst.
 
-- **Files:** `src/hooks/useSyncedStorage.ts` (timer + ref for the pending push), possibly a small `useFlushOnUnload` hook.
-- **Tests to add:** `useSyncedStorage.test.ts` — assert that 3 rapid `saveStatus='saved'` transitions within the window result in exactly one `pushToRemote` call; assert that `beforeunload` flushes immediately.
+Important: just calling `usePersistedStorage.flushSave()` on unload is **not** sufficient on its own — that flushes the local persistence layer, which would then trigger the sync effect, which would then start a *new* 30s timer and the user would still have left before the push fires. The unload path needs to bypass the debounce: call `flushSave()` first to ensure the latest data is in localStorage, then synchronously cancel the pending debounce timer and call `pushToRemote(...)` directly (using `navigator.sendBeacon` if we want survivability of an actual unload, or a synchronous `fetch` keepalive).
+
+- **Files:** `src/hooks/useSyncedStorage.ts` (timer + ref for the pending push, new `flushPush()` exported), small `useFlushOnUnload` hook that wires `beforeunload`/`pagehide` and chains `flushSave()` → `flushPush()`.
+- **Tests to add:** `useSyncedStorage.test.ts` — assert that 3 rapid `saveStatus='saved'` transitions within the window result in exactly one `pushToRemote` call; assert that `flushPush()` cancels the pending timer and pushes immediately; assert that `beforeunload` triggers `flushPush()`.
 - **Tradeoff:** cloud lags local by up to 30s. Fine for a single-user app; the local cache is always current.
 
 ##### 2. Snapshot diff UI (future, larger task)
@@ -287,6 +289,8 @@ This is a heavier piece of work — needs a JSONB diff routine that understands 
 ##### 3. Trigger-side coalesce / retention (optional, defer)
 
 If the client-side debounce is enough, skip this. If the history table still grows too fast, the SQL trigger can UPDATE the most recent history row in place when its `archived_at` is less than ~30s old, and the retention SQL in `sql/002-allotment-history.sql` can bucket older snapshots (one per 5-minute window after an hour, one per hour after a day, etc). Keep commented in the SQL file until volume justifies it.
+
+The UPDATE must be strictly scoped to the user — pseudo-SQL: `UPDATE allotment_history SET data = OLD.data, archived_at = COALESCE(OLD.updated_at, now()) WHERE id = (SELECT id FROM allotment_history WHERE user_id = OLD.user_id AND archived_at > now() - INTERVAL '30 seconds' ORDER BY archived_at DESC LIMIT 1)`. Without the `WHERE user_id = OLD.user_id` filter on the inner SELECT, two different users saving within the same 30s window could merge each other's snapshots, which would be a much worse incident than the verbosity it's trying to fix.
 
 #### Future: revisit the sync engine (ADR 027 — not started)
 
