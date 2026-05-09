@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-09 (post-merge of #335/#332/#331)
+Last updated: 2026-05-09 (post-merge of #335/#332/#331; push debounce in flight)
 
 ## What's Been Completed
 
@@ -261,21 +261,21 @@ Land #332 first so users have a recovery path while #331 is rolling out, then la
 
 **Status:** Both #332 (`83ee236`) and #331 (`99dd858`) are merged on `main` as of 2026-05-09. #331 was rebased onto post-#332 main; the conflict in `src/__tests__/lib/supabase-sync.test.ts` was resolved by keeping all four test groups (fetchHistory* from #332 + contentSnapshot/isLocalStructurallySmaller from #331) plus a unified import.
 
-#### Cloud history follow-ups (next-session priority — observed in production)
+#### Cloud history follow-ups
 
 After #332 + #331 landed, the production cloud-history list grew faster than expected: ~4 snapshots within a single 1–2 minute window of activity, e.g. four "08:41 · 28 areas · 32 varieties" rows back-to-back. Root cause: every `setData` in the app triggers a debounced local save, every save fires the push effect in `useSyncedStorage` (`src/hooks/useSyncedStorage.ts`), every push hits the `BEFORE UPDATE` trigger on `allotments`, and so every meaningful in-app interaction (toggling a task, editing a name, dismissing a banner) creates one history row. This is the architecture working as designed — but it makes the restore list noisy and grows the history table fast.
 
-Two layered dampeners, in order of leverage:
+Two layered dampeners, in order of leverage. The first has shipped; the others remain backlog.
 
-##### 1. Push-side debounce in `useSyncedStorage` (~20 lines, est. 80% reduction in noise)
+##### 1. Push-side debounce in `useSyncedStorage` — PR #338 open (branch `feat/sync-push-debounce`)
 
-Currently the push effect fires on every `local.saveStatus === 'saved'` transition with no further coalescing. Add a ~30s timer: when a save lands, schedule the push for now+30s; if another save arrives during the window, reset the timer; only the last call wins. Net effect — a burst of changes within the window collapses to one push and one history row. Also expose a `flushPush()` from `useSyncedStorage` and wire it into a `beforeunload` listener so closing the tab forces an immediate push of the pending data rather than dropping the burst.
+The push effect now schedules pushes via a 30 s `PUSH_DEBOUNCE_MS` timer instead of firing on every `local.saveStatus === 'saved'` transition. Each new save during the window resets the timer and updates `pendingPushDataRef`; only the latest snapshot survives. A new `flushPush()` is exposed from `useSyncedStorage` (and re-exported through `useAllotmentData` and `useAllotment`) which cancels the timer and pushes immediately, returning a Promise.
 
-Important: just calling `usePersistedStorage.flushSave()` on unload is **not** sufficient on its own — that flushes the local persistence layer, which would then trigger the sync effect, which would then start a *new* 30s timer and the user would still have left before the push fires. The unload path needs to bypass the debounce: call `flushSave()` first to ensure the latest data is in localStorage, then synchronously cancel the pending debounce timer and call `pushToRemote(...)` directly (using `navigator.sendBeacon` if we want survivability of an actual unload, or a synchronous `fetch` keepalive).
+Unload safety net: `useSyncedStorage` registers a `pagehide` + `beforeunload` listener that runs `local.flushSave()` first (to ensure the latest data is in localStorage as the recovery floor) and then `flushPush()` synchronously bypasses the debounce. The plan deliberately rejected the simpler "just call `flushSave()` on unload" approach because flushing the local layer would re-trigger the push effect and start a fresh 30 s timer that the user is no longer around for.
 
-- **Files:** `src/hooks/useSyncedStorage.ts` (timer + ref for the pending push, new `flushPush()` exported), small `useFlushOnUnload` hook that wires `beforeunload`/`pagehide` and chains `flushSave()` → `flushPush()`.
-- **Tests to add:** `useSyncedStorage.test.ts` — assert that 3 rapid `saveStatus='saved'` transitions within the window result in exactly one `pushToRemote` call; assert that `flushPush()` cancels the pending timer and pushes immediately; assert that `beforeunload` triggers `flushPush()`.
-- **Tradeoff:** cloud lags local by up to 30s. Fine for a single-user app; the local cache is always current.
+The disabled-state effect also clears the timer + pending refs when the user signs out, so the pending push doesn't leak across an auth transition. New tests in `src/__tests__/hooks/useSyncedStorage.test.ts` cover all three guarantees: a burst of three saves coalesces to one push of the latest snapshot, `flushPush()` cancels the timer and pushes immediately, and a `beforeunload` event triggers the push. All 940 unit tests pass and lint/type-check are clean.
+
+Tradeoff: cloud lags local by up to 30 s. Fine for a single-user app — the local cache is always current and the restore-from-history floor handles the worst case.
 
 ##### 2. Snapshot diff UI (future, larger task)
 

@@ -71,6 +71,7 @@ export interface UseAllotmentDataReturn {
   getYears: () => number[]
   reload: () => void
   flushSave: () => Promise<boolean>
+  flushPush: () => Promise<void>
   clearSaveError: () => void
   cancelPendingSave: () => void
   updateMeta: (updates: Partial<AllotmentData['meta']>) => void
@@ -97,6 +98,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     lastSavedAt,
     reload: baseReload,
     flushSave,
+    flushPush,
     clearSaveError,
     cancelPendingSave,
     syncStatus,
@@ -185,6 +187,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     getYears,
     reload,
     flushSave,
+    flushPush,
     clearSaveError,
     cancelPendingSave,
     updateMeta,

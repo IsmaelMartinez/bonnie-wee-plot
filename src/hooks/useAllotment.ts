@@ -184,6 +184,7 @@ export interface UseAllotmentActions {
   // Data operations
   reload: () => void
   flushSave: () => Promise<boolean>  // Force immediate save of pending data, returns true if successful
+  flushPush: () => Promise<void>  // Force immediate cloud push, bypassing the push debounce
   clearSaveError: () => void  // Clear any save error
   cancelPendingSave: () => void  // Cancel pending debounced save (use before direct localStorage writes)
 
@@ -217,6 +218,7 @@ export function useAllotment(): UseAllotmentReturn {
     getYears,
     reload,
     flushSave,
+    flushPush,
     clearSaveError,
     cancelPendingSave,
     updateMeta,
@@ -460,6 +462,7 @@ export function useAllotment(): UseAllotmentReturn {
     // Data operations
     reload,
     flushSave,
+    flushPush,
     clearSaveError,
     cancelPendingSave,
 
