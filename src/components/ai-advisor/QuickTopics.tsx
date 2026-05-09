@@ -1,85 +1,71 @@
 'use client'
 
-import { useTodayData } from '@/hooks/useTodayData'
-import { generateAISuggestions, hasPersonalizedData, type AISuggestion } from '@/lib/ai-suggestions'
+import { Calendar, Camera, RotateCcw, Sprout, type LucideIcon } from 'lucide-react'
 
 interface QuickTopicsProps {
   onSelectTopic: (query: string) => void
 }
 
-function TopicButton({ suggestion, onSelect }: { suggestion: AISuggestion; onSelect: () => void }) {
-  const Icon = suggestion.icon
+interface QuickPrompt {
+  icon: LucideIcon
+  title: string
+  query: string
+  borderColor: string
+}
 
-  // Category-based styling
-  const categoryStyles: Record<AISuggestion['category'], string> = {
-    seasonal: 'border-l-amber-400',
-    harvest: 'border-l-orange-400',
-    planting: 'border-l-emerald-400',
-    maintenance: 'border-l-violet-400',
-    general: 'border-l-gray-300',
-  }
+const PROMPTS: QuickPrompt[] = [
+  {
+    icon: Calendar,
+    title: 'What can I plant now?',
+    query: 'What can I plant now?',
+    borderColor: 'border-l-emerald-400',
+  },
+  {
+    icon: Camera,
+    title: 'Diagnose this leaf',
+    query: 'Diagnose this leaf',
+    borderColor: 'border-l-violet-400',
+  },
+  {
+    icon: RotateCcw,
+    title: 'Plan my next rotation',
+    query: 'Plan my next rotation',
+    borderColor: 'border-l-amber-400',
+  },
+  {
+    icon: Sprout,
+    title: 'Why is my chard bolting?',
+    query: 'Why is my chard bolting?',
+    borderColor: 'border-l-orange-400',
+  },
+]
 
+function TopicButton({ prompt, onSelect }: { prompt: QuickPrompt; onSelect: () => void }) {
+  const Icon = prompt.icon
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`bg-white p-3 sm:p-4 rounded-lg shadow-md border border-l-4 ${categoryStyles[suggestion.category]} hover:shadow-lg transition text-left group min-h-[88px]`}
+      className={`bg-white p-3 sm:p-4 rounded-lg shadow-md border border-l-4 ${prompt.borderColor} hover:shadow-lg transition text-left group min-h-[88px]`}
     >
       <div className="flex items-center mb-2">
-        <Icon className="w-5 h-5 text-zen-moss-600 mr-2 group-hover:scale-110 transition-transform flex-shrink-0" />
-        <span className="font-medium text-sm sm:text-base text-gray-800">{suggestion.title}</span>
+        <Icon className="w-5 h-5 text-zen-moss-600 mr-2 group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
+        <span className="font-medium text-sm sm:text-base text-zen-ink-800">{prompt.title}</span>
       </div>
-      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{suggestion.query}</p>
     </button>
   )
 }
 
 export default function QuickTopics({ onSelectTopic }: QuickTopicsProps) {
-  const todayData = useTodayData()
-
-  const suggestions = generateAISuggestions({
-    seasonalPhase: todayData.seasonalPhase,
-    currentMonth: todayData.currentMonth,
-    maintenanceTasks: todayData.maintenanceTasks,
-  })
-
-  const isPersonalized = hasPersonalizedData({
-    seasonalPhase: todayData.seasonalPhase,
-    currentMonth: todayData.currentMonth,
-    maintenanceTasks: todayData.maintenanceTasks,
-  })
-
-  if (todayData.isLoading) {
-    return (
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">🌿 Suggested Topics</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-gray-100 rounded-lg h-24 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">
-          {isPersonalized ? '🎯 Suggested for You' : '🌿 Popular Topics'}
-        </h2>
-        {isPersonalized && (
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            Based on your allotment
-          </span>
-        )}
-      </div>
+      <h2 className="text-xl font-semibold mb-4 text-zen-ink-800">Popular Topics</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {suggestions.map((suggestion, index) => (
+        {PROMPTS.map((prompt) => (
           <TopicButton
-            key={`${suggestion.category}-${index}`}
-            suggestion={suggestion}
-            onSelect={() => onSelectTopic(suggestion.query)}
+            key={prompt.title}
+            prompt={prompt}
+            onSelect={() => onSelectTopic(prompt.query)}
           />
         ))}
       </div>

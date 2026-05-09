@@ -51,7 +51,7 @@ const imageToBase64 = (file: File): Promise<string> => {
 }
 
 export default function AitorChatModal() {
-  const { isOpen, closeChat, initialMessage, clearInitialMessage } = useAitorChat()
+  const { isOpen, closeChat, initialMessage, clearInitialMessage, initialMode, clearInitialMode } = useAitorChat()
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
@@ -84,6 +84,12 @@ export default function AitorChatModal() {
     if (!allotmentData) return ''
 
     const lines: string[] = []
+
+    // Diagnose-mode hint: focuses the model on photo-based symptom diagnosis.
+    if (initialMode === 'diagnose') {
+      lines.push('FOCUS: Focus this conversation on diagnosing plant symptoms from the user\'s photo.')
+      lines.push('')
+    }
 
     // Basic info
     lines.push(`ALLOTMENT: ${allotmentData.meta.name}`)
@@ -122,7 +128,7 @@ export default function AitorChatModal() {
     lines.push(`PERMANENT PLANTINGS: ${[...treeAreas, ...berryAreas].map(p => p.name).join(', ')}`)
 
     return lines.join('\n')
-  }, [allotmentData, currentSeason, selectedYear, getAreasByKind])
+  }, [allotmentData, currentSeason, selectedYear, getAreasByKind, initialMode])
 
   // Update rate limit state
   const updateRateLimitState = useCallback(() => {
@@ -406,7 +412,10 @@ export default function AitorChatModal() {
     <>
       <Dialog
         isOpen={isOpen}
-        onClose={closeChat}
+        onClose={() => {
+          clearInitialMode()
+          closeChat()
+        }}
         title="Ask Aitor"
         maxWidth="2xl"
         fullContent
@@ -477,6 +486,7 @@ export default function AitorChatModal() {
               onSubmit={handleSubmit}
               isLoading={isLoading}
               rateLimitInfo={rateLimitInfo}
+              autoOpenFilePicker={isOpen && initialMode === 'diagnose'}
             />
           </div>
         </div>

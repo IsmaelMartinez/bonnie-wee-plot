@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Send, Camera, X, Clock } from 'lucide-react'
 import Image from 'next/image'
 
@@ -13,14 +13,22 @@ interface ChatInputProps {
   onSubmit: (message: string, image?: File) => void
   isLoading: boolean
   rateLimitInfo?: RateLimitInfo
+  /** When true, auto-opens the file picker once after mount (diagnose mode). */
+  autoOpenFilePicker?: boolean
 }
 
-export default function ChatInput({ onSubmit, isLoading, rateLimitInfo }: ChatInputProps) {
+export default function ChatInput({ onSubmit, isLoading, rateLimitInfo, autoOpenFilePicker }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (autoOpenFilePicker) {
+      fileInputRef.current?.click()
+    }
+  }, [autoOpenFilePicker])
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValidationError(null)
