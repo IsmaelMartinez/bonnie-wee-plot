@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-08
+Last updated: 2026-05-09
 
 ## What's Been Completed
 
@@ -228,9 +228,54 @@ The full frost track from items 1–5 of the research-driven backlog landed in a
 - **Tonight's frost banner** — `FrostWarningBanner` mounts on Today between `LocationPromptBanner` and `WeatherStrip`, lists tender (H1a–H3) plantings in active beds whenever `forecast[0].tempMinC ≤ 0`. Per-day dismiss via `toLocaleDateString('en-CA')` so it rolls over at the user's local midnight (matches the `todayLocal()` helper convention from #304).
 - **Frost-aware `validateSowDate()`** — accepts an optional `SowDateValidationContext` carrying `frostDates`; warns when a frost-tender crop is sown outdoors before the user's average last spring frost. Existing fall-factor warning preserved.
 
+### Mobile + Auth Polish: Shipped
+
+- **PR #330 (`795e600`, 2026-05-08)** — Boost this bed on mobile. Ported the `<BoostThisBed>` section from `BedDetailPanel` into `MobileAreaBottomSheet`. Same gating (any bed with at least one planting), same prop wiring; required widening `onAddPlanting` from `() => void` to `(prefilledPlantId?: string) => void` and threading `varieties` through from the allotment page.
+- **Social login (Clerk Dashboard config)** — confirmed enabled by the user in the Clerk Dashboard. Pure config, no code change. Google/Apple buttons render automatically above the email field on `/sign-in`.
+
+### Cloud Sync Hardening (post-incident, May 2026)
+
+On 2026-05-08, signing in on a second window silently overwrote several days of cloud activity. Root cause: `saveAllotmentData` in `src/services/storage-core.ts` bumped `meta.updatedAt` to NOW on every save — including load-time side effects (schema migrations, validation/repair, currentYear auto-update) — which fooled `useSyncedStorage`'s LWW comparison into pushing a stale-content / now-stamped local up to Supabase. The Supabase free tier has no point-in-time recovery and the upsert overwrites the row, so the prior cloud snapshot was unrecoverable.
+
+Two PRs are open and ready to land. They are independent of each other but should both ship.
+
+#### PR #332 — Server-side cloud history with restore UI (LAND FIRST)
+
+Branch: `feat/cloud-history`. Adds an `allotment_history` table in Supabase with a `BEFORE UPDATE` trigger on `allotments` that archives the old row before each upsert (`SECURITY DEFINER` so the insert bypasses RLS). RLS on the history table only lets users SELECT and DELETE their own rows. App side: `fetchHistoryList` and `fetchHistorySnapshot` in `src/lib/supabase/sync.ts`, plus a new `<CloudHistorySection>` rendered in Settings → Data tab (signed-in only) that lists the most recent 20 snapshots with relative + absolute timestamps and a `plantings · areas · varieties` summary; Restore opens a confirm dialog and writes the snapshot back to localStorage, then `reload()` triggers the next sync (which re-archives the just-replaced version, so a restore is itself reversible).
+
+The SQL migration (`sql/002-allotment-history.sql`) was already run in the Supabase SQL Editor on 2026-05-09, plus a one-off backfill that inserted a baseline row per existing allotment so every current user has a recovery point. Verify before merge that the table + trigger exist and both backfilled rows are present (`SELECT count(*) FROM allotment_history;` should return 2).
+
+This PR is the "basics first" win — it gives every user a recovery path independent of which sync architecture we end up with, and the history table doubles as the audit trail if/when we revisit the sync engine.
+
+#### PR #331 — Forward fix for the silent-overwrite bug
+
+Branch: `fix/sync-overwrite-safety`. Three layered fixes that ship together:
+
+1. **Drop the unconditional `meta.updatedAt` bump in `saveAllotmentData`.** Each real mutation (`area-mutations`, `planting-operations`, `variety-operations`) already sets `updatedAt` explicitly. The blanket bump was the bug.
+2. **Content-equality short-circuit before any push.** New `contentSnapshot()` in `src/lib/supabase/sync.ts` serialises the data with `meta.updatedAt` blanked out — a stable fingerprint that ignores timestamp drift. `useSyncedStorage` uses it for `lastPushedRef` / `pulledSnapshotRef` and skips the push when local and remote match.
+3. **Initial-sync overwrite safety net.** New `isLocalStructurallySmaller(local, remote)` helper. If LWW says "push local" but local has fewer plantings/areas/varieties than remote, route through the existing conflict dialog instead of silently pushing.
+
+Includes regression test in `useSyncedStorage.test.ts` that asserts a stale-but-newer-stamped local with fewer varieties than remote routes to conflict, never calls `pushToRemote`. Also tightens five existing LWW tests that were using timestamp-only differences (now correctly short-circuited by fix 2) to use real content differences.
+
+Land #332 first so users have a recovery path while #331 is rolling out, then land #331. They don't conflict; #331 is content-only and #332 is additive (new table, new component).
+
+#### Future: revisit the sync engine (ADR 027 — not started)
+
+The current architecture (local-first JSONB + LWW on `meta.updatedAt`) is the same shape that produced the incident. ADR 024 documents that the original sync attempt was Yjs over PeerJS/WebRTC, abandoned because WebRTC was unreliable — *not* because Yjs was wrong. The "shareable by ID, auto-sync, conflict-free" library the user remembered is exactly Yjs (or its modern cousin AutomergeRepo). With a websocket relay (y-websocket against a tiny Node service, a Cloudflare Durable Object, or even a Supabase Realtime channel) the WebRTC failure mode disappears and the LWW machinery — and a whole class of future incidents — goes with it.
+
+Spike outline for the new session, in order:
+
+1. Write a new ADR `docs/adrs/027-sync-revisit.md`. Reference 024. Capture the post-incident decision: "Yjs is back on the table once we have a non-WebRTC transport." Survey the transport options (y-websocket on Fly/Cloudflare, Supabase Realtime, Liveblocks). Pick one for the spike — likely y-websocket on a Cloudflare Worker for cost + latency.
+2. Spike branch: convert `AllotmentData` to a Yjs document. The 192-entry vegetable database is static and stays as TypeScript modules — only mutable user state moves. Map the top-level shape to `Y.Doc` with `Y.Map` for `meta`, `Y.Array` for `seasons`, etc. Rough sizing: a few days of work, not hours.
+3. Replace `useSyncedStorage` with a `useYjsDoc` hook. Keep `usePersistedStorage` semantics (local cache via `y-indexeddb`) so offline-first still works.
+4. Migrate live users: write a one-shot import that reads each user's current `allotments.data` row, hydrates a Yjs doc, snapshots the binary state, and stores it in a new `allotment_yjs` table (or replaces the JSONB blob with the Yjs binary update). The history table from #332 is the safety net during the migration.
+5. Retire `useSyncedStorage`, the LWW comparison, the conflict dialog. Keep the share/receive flow as-is (it serves a different purpose — one-shot transfer to a new device without sign-in).
+
+This is a multi-day effort and is *not* the priority for the next session. The next session's priority is landing #332 then #331 and watching the cloud history table fill up. The Yjs revisit comes after — once we're sure the bleeding has stopped and we have evidence about whether users actually exercise the "restore" UI.
+
 ### Research-Driven Improvements: Backlog
 
-Follow-ups from the same research round, in order of leverage:
+Follow-ups from the frost research round, in order of leverage:
 
 #### 1. Soil temperature for sowing tasks (~2–3 h)
 
@@ -245,14 +290,6 @@ The chat is back for signed-in users via `AitorAuthGate`. Remaining polish:
 - **Refresh `QuickTopics.tsx` prompts.** "What can I plant in May?" / "Diagnose this leaf" / "Plan my next rotation" / "Why is my chard bolting?" — concrete entries beat a blank input.
 - **Files:** `src/types/unified-allotment.ts` (`meta.aiAdvisorEnabled`), `src/services/storage-migrations.ts` (v22), `src/components/ai-advisor/AitorAuthGate.tsx`, `src/components/dashboard/TodayDashboard.tsx` (one-time banner), `src/components/ai-advisor/QuickTopics.tsx`, `src/components/ai-advisor/AitorChatButton.tsx`.
 - **Risk to weigh:** server-side fallback (`OPENAI_API_KEY`) becomes a real cost line once auth-gated users opt in en masse — keep BYO key as the default and only allow server-side for a future paid/free-tier when ready.
-
-#### 3. "Boost this bed" on mobile
-
-Port the `<BoostThisBed>` section from `BedDetailPanel.tsx` to `MobileAreaBottomSheet.tsx`. Skipped in the first PR for tightness; same data, same component.
-
-#### 4. Social login
-
-Verify Google/Apple are enabled in the Clerk Dashboard for this project. Pure config; no code change.
 
 ### Future Phases (Contingent on User Adoption)
 
