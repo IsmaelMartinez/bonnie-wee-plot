@@ -500,4 +500,165 @@ describe('useSyncedStorage', () => {
 
     expect(result.current.syncStatus).toBe('offline')
   })
+
+  // Push debounce: a burst of saves within PUSH_DEBOUNCE_MS (30s) should
+  // collapse to a single push of the latest snapshot. This is the dampener
+  // for the cloud-history "4 snapshots in 1 minute" noise observed in
+  // production after #332/#331 landed.
+  describe('push debounce', () => {
+    // Drive useSyncedStorage past initial sync so the push effect arms.
+    // Returns a `triggerSave(data)` helper that updates mockLocalData and
+    // walks saveStatus through saving → saved so the push effect refires.
+    const setupSyncedHook = async () => {
+      const initialData = makeTestData('2026-04-01T12:00:00Z')
+      mockLocalData = initialData
+      // Past sync flag — subsequent-sync path
+      const pastSyncTime = '2026-03-01T12:00:00Z'
+      localStorage.setItem(
+        'bonnie-synced-user-123',
+        JSON.stringify({ lastSyncedAt: pastSyncTime })
+      )
+      // Remote matches initial local content so the content short-circuit
+      // fires; no push happens during initial sync.
+      mockFetchRemote.mockResolvedValue({
+        data: initialData,
+        updatedAt: '2026-04-01T12:00:00Z',
+      })
+      mockPushToRemote.mockResolvedValue(undefined)
+
+      const hook = renderHook(() => useSyncedStorage(hookOptions))
+      await waitFor(() => {
+        expect(hook.result.current.syncStatus).toBe('synced')
+      })
+      // Initial sync did not push (content matched), so the push counter
+      // starts at zero for the debounce assertions below.
+      expect(mockPushToRemote).not.toHaveBeenCalled()
+
+      const triggerSave = async (data: AllotmentData) => {
+        mockLocalData = data
+        mockSaveStatus = 'saving'
+        hook.rerender()
+        mockSaveStatus = 'saved'
+        hook.rerender()
+        // Let any microtasks queued by the effect drain
+        await Promise.resolve()
+      }
+
+      return { ...hook, triggerSave }
+    }
+
+    it('coalesces a burst of 3 rapid saves into a single push of the latest snapshot', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        const { triggerSave } = await setupSyncedHook()
+
+        const v1 = makeTestData('2026-04-01T12:00:01Z', {
+          varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
+        })
+        const v2 = makeTestData('2026-04-01T12:00:02Z', {
+          varieties: [
+            { id: 'v1', name: 'Tomato' },
+            { id: 'v2', name: 'Pea' },
+          ] as unknown as AllotmentData['varieties'],
+        })
+        const v3 = makeTestData('2026-04-01T12:00:03Z', {
+          varieties: [
+            { id: 'v1', name: 'Tomato' },
+            { id: 'v2', name: 'Pea' },
+            { id: 'v3', name: 'Carrot' },
+          ] as unknown as AllotmentData['varieties'],
+        })
+
+        await act(async () => {
+          await triggerSave(v1)
+          vi.advanceTimersByTime(5_000)
+          await triggerSave(v2)
+          vi.advanceTimersByTime(5_000)
+          await triggerSave(v3)
+        })
+        // Still inside the debounce window — no push yet
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+
+        // Advance past the 30s debounce window
+        await act(async () => {
+          vi.advanceTimersByTime(30_000)
+          // Drain the async push chain
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+
+        await waitFor(() => {
+          expect(mockPushToRemote).toHaveBeenCalledTimes(1)
+        })
+        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v3)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('flushPush() cancels the pending debounce and pushes immediately', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        const { result, triggerSave } = await setupSyncedHook()
+
+        const v1 = makeTestData('2026-04-01T12:00:01Z', {
+          varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
+        })
+
+        await act(async () => {
+          await triggerSave(v1)
+        })
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+
+        await act(async () => {
+          await result.current.flushPush()
+        })
+
+        expect(mockPushToRemote).toHaveBeenCalledTimes(1)
+        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v1)
+
+        // Timer should be cancelled — advancing past the window must not
+        // produce a second push.
+        await act(async () => {
+          vi.advanceTimersByTime(60_000)
+          await Promise.resolve()
+        })
+        expect(mockPushToRemote).toHaveBeenCalledTimes(1)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('beforeunload triggers a flush of the pending push', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        const { triggerSave } = await setupSyncedHook()
+
+        const v1 = makeTestData('2026-04-01T12:00:01Z', {
+          varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
+        })
+
+        await act(async () => {
+          await triggerSave(v1)
+        })
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+
+        await act(async () => {
+          window.dispatchEvent(new Event('beforeunload'))
+          // flushSave is awaited inside the listener; drain the chain
+          await Promise.resolve()
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+
+        await waitFor(() => {
+          expect(mockPushToRemote).toHaveBeenCalledTimes(1)
+        })
+        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v1)
+        expect(mockFlushSave).toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+  })
 })

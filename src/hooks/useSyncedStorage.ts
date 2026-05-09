@@ -38,7 +38,23 @@ export interface UseSyncedStorageReturn<T> extends UsePersistedStorageReturn<T> 
   syncError: string | null
   syncConflict: SyncConflict | null
   resolveConflict: (choice: 'cloud' | 'local') => void
+  /**
+   * Cancel the pending push debounce (if any) and immediately push the latest
+   * pending snapshot to the cloud. Resolves once the push completes (or
+   * immediately if there is nothing pending). Used by the unload listener and
+   * exposed for callers that need to force a flush before navigating away.
+   */
+  flushPush: () => Promise<void>
 }
+
+/**
+ * How long to coalesce push-to-cloud calls after a local save. A burst of
+ * `setData` calls (e.g. toggling tasks, editing a name) all collapse to one
+ * push and one history row instead of one per save. Cloud lags local by up
+ * to this much, which is fine for a single-user app — the local cache is
+ * always current.
+ */
+const PUSH_DEBOUNCE_MS = 30_000
 
 // Per-user sync flag stored in localStorage
 interface SyncFlag {
@@ -86,6 +102,9 @@ export function useSyncedStorage(
   const pulledSnapshotRef = useRef<string | null>(null)
   const lastPushedRef = useRef<string | null>(null)
   const activeUserIdRef = useRef<string | null>(userId)
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingPushDataRef = useRef<AllotmentData | null>(null)
+  const pendingPushUserRef = useRef<string | null>(null)
 
   const canSync = isSignedIn && isSupabaseConfigured() && isOnline
 
@@ -292,7 +311,49 @@ export function useSyncedStorage(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canSync, userId, local.isLoading, hasLocalData])
 
-  // Push to cloud after local save completes (only after initial sync is done)
+  // Perform a push immediately. Used by the debounce timer, flushPush, and the
+  // unload listener. Updates lastPushedRef + sync status on success.
+  const performPush = useCallback(async (dataToPush: AllotmentData, syncUserId: string) => {
+    try {
+      setSyncStatus('syncing')
+      const token = await getSupabaseToken()
+      if (isStaleSyncUser(syncUserId)) return
+      if (!token) return
+
+      await pushToRemote(token, syncUserId, dataToPush)
+      if (isStaleSyncUser(syncUserId)) return
+      lastPushedRef.current = contentSnapshot(dataToPush)
+      markSynced(syncUserId)
+      setSyncStatus('synced')
+      setSyncError(null)
+    } catch (err) {
+      if (isStaleSyncUser(syncUserId)) return
+      console.error('[useSyncedStorage] Push failed:', err)
+      setSyncStatus('error')
+      setSyncError(err instanceof Error ? err.message : 'Sync failed')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Cancel the pending debounce timer (if any) and push whatever is queued
+  // immediately. Safe to call when nothing is pending — resolves to a no-op.
+  const flushPush = useCallback(async (): Promise<void> => {
+    if (pushTimerRef.current) {
+      clearTimeout(pushTimerRef.current)
+      pushTimerRef.current = null
+    }
+    const dataToPush = pendingPushDataRef.current
+    const syncUserId = pendingPushUserRef.current
+    pendingPushDataRef.current = null
+    pendingPushUserRef.current = null
+    if (!dataToPush || !syncUserId) return
+    if (isStaleSyncUser(syncUserId)) return
+    await performPush(dataToPush, syncUserId)
+  }, [performPush])
+
+  // Push to cloud after local save completes (only after initial sync is done).
+  // Coalesces a burst of saves into a single push via PUSH_DEBOUNCE_MS — every
+  // new save resets the timer; the latest data wins.
   useEffect(() => {
     if (!canSync || !userId || !local.data) return
     if (local.saveStatus !== 'saved') return
@@ -310,31 +371,57 @@ export function useSyncedStorage(
 
     if (serialized === lastPushedRef.current) return
 
-    const pushAsync = async () => {
-      const syncUserId = userId
-      try {
-        setSyncStatus('syncing')
-        const token = await getSupabaseToken()
-        if (isStaleSyncUser(syncUserId)) return
-        if (!token) return
-
-        await pushToRemote(token, syncUserId, local.data!)
-        if (isStaleSyncUser(syncUserId)) return
-        lastPushedRef.current = serialized
-        markSynced(syncUserId)
-        setSyncStatus('synced')
-        setSyncError(null)
-      } catch (err) {
-        if (isStaleSyncUser(syncUserId)) return
-        console.error('[useSyncedStorage] Push failed:', err)
-        setSyncStatus('error')
-        setSyncError(err instanceof Error ? err.message : 'Sync failed')
-      }
+    // Schedule (or reset) the debounced push. Capture the latest data + user
+    // in refs so the timer always pushes the most recent snapshot.
+    pendingPushDataRef.current = local.data
+    pendingPushUserRef.current = userId
+    if (pushTimerRef.current) {
+      clearTimeout(pushTimerRef.current)
     }
-
-    pushAsync()
+    pushTimerRef.current = setTimeout(() => {
+      pushTimerRef.current = null
+      const dataToPush = pendingPushDataRef.current
+      const syncUserId = pendingPushUserRef.current
+      pendingPushDataRef.current = null
+      pendingPushUserRef.current = null
+      if (!dataToPush || !syncUserId) return
+      if (isStaleSyncUser(syncUserId)) return
+      void performPush(dataToPush, syncUserId)
+    }, PUSH_DEBOUNCE_MS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [local.saveStatus, canSync, userId])
+
+  // Cleanup pending timer on unmount so stray timers don't fire after the
+  // component is gone (would set state on an unmounted hook).
+  useEffect(() => {
+    return () => {
+      if (pushTimerRef.current) {
+        clearTimeout(pushTimerRef.current)
+        pushTimerRef.current = null
+      }
+    }
+  }, [])
+
+  // Flush both local persistence and the pending cloud push when the tab is
+  // closing. Just calling local.flushSave() is not sufficient — that would
+  // trigger the push effect, which would start a fresh PUSH_DEBOUNCE_MS timer
+  // the user is no longer around for. So flush the local cache first, then
+  // bypass the debounce by calling flushPush() directly.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!canSync) return
+
+    const handleUnload = () => {
+      void local.flushSave().then(() => flushPush())
+    }
+    window.addEventListener('pagehide', handleUnload)
+    window.addEventListener('beforeunload', handleUnload)
+    return () => {
+      window.removeEventListener('pagehide', handleUnload)
+      window.removeEventListener('beforeunload', handleUnload)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSync, flushPush])
 
   // Reconnect sync
   useEffect(() => {
@@ -424,6 +511,14 @@ export function useSyncedStorage(
       setSyncStatus('disabled')
       syncInProgressRef.current = false
       initialSyncDoneRef.current = false
+      // Drop any pending debounced push — the user is no longer signed in,
+      // so the push has nowhere to go.
+      if (pushTimerRef.current) {
+        clearTimeout(pushTimerRef.current)
+        pushTimerRef.current = null
+      }
+      pendingPushDataRef.current = null
+      pendingPushUserRef.current = null
     } else if (!isOnline) {
       setSyncStatus('offline')
       syncInProgressRef.current = false
@@ -436,5 +531,6 @@ export function useSyncedStorage(
     syncError,
     syncConflict,
     resolveConflict,
+    flushPush,
   }
 }
