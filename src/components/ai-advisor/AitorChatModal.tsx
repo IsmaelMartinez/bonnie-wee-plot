@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Leaf } from 'lucide-react'
+import { Leaf, PowerOff } from 'lucide-react'
 import type { ChatMessage as ChatMessageType } from '@/types/api'
 
 // Extracted hooks
@@ -70,7 +70,13 @@ export default function AitorChatModal() {
 
   // Load allotment data for context
   const allotment = useAllotment()
-  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind, reload: reloadAllotment } = allotment
+  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind, reload: reloadAllotment, updateMeta } = allotment
+
+  const handleDisableAitor = useCallback(() => {
+    updateMeta({ aiAdvisorEnabled: false })
+    clearInitialMode()
+    closeChat()
+  }, [updateMeta, clearInitialMode, closeChat])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -189,10 +195,9 @@ export default function AitorChatModal() {
     updateRateLimitState()
 
     try {
-      // Check if token is provided
-      if (!token) {
-        throw new Error('Please configure your OpenAI API key in Settings to use Aitor')
-      }
+      // No early-throw on empty token: signed-in users hit the server-side
+      // free-tier Gemini path when no BYO key is set. The /api/ai-advisor
+      // route returns a friendly error if the free tier itself is unavailable.
 
       // Prepare enhanced message with location context
       let enhancedQuery = query
@@ -427,17 +432,28 @@ export default function AitorChatModal() {
         <div className="flex flex-col h-[70vh] md:h-[600px]">
           {/* Header info */}
           <div className="px-4 py-3 border-b border-zen-stone-100 bg-zen-moss-50/50 shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Leaf className="w-4 h-4 text-zen-moss-600" />
-                <span className="text-sm text-zen-moss-700">Your gardening companion</span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Leaf className="w-4 h-4 text-zen-moss-600 shrink-0" />
+                <span className="text-sm text-zen-moss-700 truncate">Your gardening companion</span>
               </div>
-              <LocationStatus
-                userLocation={userLocation}
-                locationError={locationError}
-                onRetry={detectUserLocation}
-                isDetecting={isDetecting}
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <LocationStatus
+                  userLocation={userLocation}
+                  locationError={locationError}
+                  onRetry={detectUserLocation}
+                  isDetecting={isDetecting}
+                />
+                <button
+                  onClick={handleDisableAitor}
+                  className="flex items-center gap-1 text-xs text-zen-stone-500 hover:text-zen-kitsune-600 transition-colors px-2 py-1 min-h-[44px] md:min-h-0"
+                  aria-label="Turn off Aitor — you can re-enable it from Settings"
+                  title="Turn off Aitor (re-enable from Settings)"
+                >
+                  <PowerOff className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Turn off</span>
+                </button>
+              </div>
             </div>
           </div>
 
