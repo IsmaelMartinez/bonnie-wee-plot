@@ -54,17 +54,6 @@ $$;
 -- function in place and the existing trigger picks up the new body
 -- automatically — no need to drop and recreate the trigger.
 
--- Lock down direct callers. The function is only intended to fire via the
--- BEFORE UPDATE trigger on `allotments`, not as a PostgREST RPC. Triggers
--- run with the table owner's privileges regardless of the function ACL,
--- so revoking EXECUTE here does NOT break the trigger — it only stops the
--- function from being reachable at /rest/v1/rpc/archive_allotment_before_update.
--- If you've already deployed the function without these revokes, re-run just
--- the REVOKE statements below on the existing database.
-REVOKE EXECUTE ON FUNCTION public.archive_allotment_before_update() FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.archive_allotment_before_update() FROM anon;
-REVOKE EXECUTE ON FUNCTION public.archive_allotment_before_update() FROM authenticated;
-
 CREATE TRIGGER trg_archive_allotment_before_update
   BEFORE UPDATE ON allotments
   FOR EACH ROW
