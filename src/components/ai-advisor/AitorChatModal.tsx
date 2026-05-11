@@ -36,8 +36,55 @@ import Dialog from '@/components/ui/Dialog'
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
 
+// Vercel caps request bodies at ~4.5 MB; an unprocessed phone photo as base64
+// blows past that and the route handler never runs (FUNCTION_PAYLOAD_TOO_LARGE).
+// 1600px JPEG @ 0.85 lands well under 1 MB and is plenty for plant diagnosis.
+const MAX_UPLOAD_DIMENSION = 1600
+const UPLOAD_QUALITY = 0.85
+
+// Downscale + re-encode as JPEG so the base64 payload fits under Vercel's
+// request body cap. Returns a Blob that callers can feed into imageToBase64.
+const downscaleImage = (file: File): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const longest = Math.max(img.width, img.height)
+        const scale = longest > MAX_UPLOAD_DIMENSION ? MAX_UPLOAD_DIMENSION / longest : 1
+        const width = Math.round(img.width * scale)
+        const height = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Canvas 2D context unavailable'))
+          return
+        }
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Failed to encode resized image'))
+              return
+            }
+            resolve(blob)
+          },
+          'image/jpeg',
+          UPLOAD_QUALITY,
+        )
+      }
+      img.onerror = () => reject(new Error('Failed to load image for resize'))
+      img.src = reader.result as string
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
 // Convert image to base64 for API
-const imageToBase64 = (file: File): Promise<string> => {
+const imageToBase64 = (file: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
@@ -230,10 +277,11 @@ export default function AitorChatModal() {
       // Prepare image data if provided
       let imageData: { data: string; type: string } | undefined
       if (image) {
-        const imageBase64 = await imageToBase64(image)
+        const downscaled = await downscaleImage(image)
+        const imageBase64 = await imageToBase64(downscaled)
         imageData = {
           data: imageBase64,
-          type: image.type
+          type: 'image/jpeg'
         }
       }
 
