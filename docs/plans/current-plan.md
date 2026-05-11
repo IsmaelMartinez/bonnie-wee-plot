@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-09 (post-merge of #338/#339/#340/#341/#342)
+Last updated: 2026-05-11 (post-merge of #345/#349; Aitor free-tier client bug logged)
 
 ## What's Been Completed
 
@@ -315,13 +315,26 @@ Schema bumped to v22 with a no-op v21→v22 migration. Added `meta.aiAdvisorEnab
 
 Settings → Data tab now surfaces a yellow `<BackupReminderCallout>` when more than 30 days have passed since the user's last JSON export. The callout offers a Download backup button (routes through the existing `useDataTransfer.handleExport`) and a Dismiss for 30 days button. Both stamp ISO timestamps onto two new optional fields on `AllotmentMeta` (`lastBackupExportAt`, `backupReminderDismissedAt`). No schema bump — both fields are optional with `undefined` meaning "never". Visibility lives in a tiny pure predicate `shouldShowBackupReminder(meta, syncStatus, now)` in `src/lib/backup-reminder.ts` with 9 unit tests covering all the cases. Cloud-synced signed-in users (`syncStatus === 'synced'`) are excluded — they have a recovery floor already. The Gemini review flagged two real issues both applied: gating the predicate on non-null `data` to stop the callout flashing during initial load, and computing the relative time inside a `useEffect` to avoid SSR/CSR hydration drift around day boundaries. The branch was rebased onto post-#342 `main` to add its two meta fields alongside Aitor's two; conflict resolved by keeping all four optional fields plus the v22 schema bump.
 
-### Phase 8 (partial): Gemini free tier — PR open
+### Phase 8 (partial): Gemini free tier — Shipped (PR #345, `3ac2636`)
 
 Closes the loop on the Aitor opt-in: signed-in users who haven't added their own OpenAI key get a 30-requests-per-month free tier backed by Google's Gemini API (default `gemini-2.5-flash`, override via `GEMINI_MODEL` env). New `src/lib/ai/gemini.ts` adapter handles chat + vision in OpenAI-shaped requests; tools are deliberately carved out on the Gemini path (OpenAI keeps tool-calling). Per-user quota tracked in a new `ai_usage` Supabase table (`sql/003-ai-usage.sql`) with RLS so each user only reads their own counter; the route checks before each call and increments after a successful response. Settings → AI & Location surfaces a `<AiQuotaSection>` showing "X / 30 free this month" with the BYO upgrade hint. Chat error UX recognises the 429 quota-exhausted message and renders a friendly two-options message.
 
 Operator setup: add `GEMINI_API_KEY` to Vercel env, optionally `GEMINI_MODEL=gemini-3-flash` once that model is confirmed live, and run `sql/003-ai-usage.sql` in the Supabase SQL Editor (same operator workflow as #332).
 
 Risks the plan still tracks: per-user quota of 30/month is the policy call to revisit if the project's daily Gemini quota gets close to the cap; tool-calling on Gemini path is a follow-up if/when users miss it.
+
+### Try Aitor button opens chat — Shipped (PR #349, `5f2abe7`)
+
+The opt-in banner's "Try Aitor" button used to only flip `meta.aiAdvisorEnabled` + `aiAdvisorPromptDismissedAt`, leaving the user with no visible feedback — the floating chat launcher at `bottom-6 right-6` is easy to miss on a long Today page, so the click felt like a no-op. `TodayDashboard` now imports `useAitorChat` and the banner's `onEnable` calls `openChat()` after `updateMeta`, so clicking Try Aitor opens the modal immediately. One-line UX fix, no schema or test changes.
+
+### Known issue: free-tier Gemini path unreachable from the client
+
+After clicking Try Aitor the modal still throws "Please configure your OpenAI API key in Settings to use Aitor" — the server-side Gemini free tier from PR #345 is never reached because the client bails before the fetch. Two guards on the client side both need to relax:
+
+1. `src/components/ai-advisor/AitorChatModal.tsx` early-throws when `!token` (around line 192) instead of letting the request hit `/api/ai-advisor` without an `x-openai-token` header (the `pickProvider` server logic falls through to Gemini in that case).
+2. `src/lib/openai-client.ts` validates the token pattern at the top of `callOpenAI` (around line 258) and would also reject an empty string; the header needs to be omitted entirely when there's no BYO token.
+
+Right shape of the fix: when `token` is empty, send the request with no `x-openai-token` header; let the server return either a Gemini response, the friendly "free tier requires JWT template" error (already worded for end users), or the 429 quota-exceeded path that the modal already handles. The error UX in `AitorChatModal` (free-quota-used / config error / generic) is already wired through `isConfigError` and `quotaExceeded` — only the early-return + token-pattern guard need to give way. No server change required.
 
 ### Research-Driven Improvements: Backlog
 
