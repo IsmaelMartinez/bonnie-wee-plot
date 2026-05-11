@@ -59,6 +59,7 @@ export interface OpenAIToolCall {
 }
 
 export interface OpenAIClientOptions {
+  /** OpenAI API key. Empty string routes through the server-side free-tier (Gemini). */
   apiToken: string
   message: string
   messages?: IncomingMessage[]
@@ -172,12 +173,18 @@ Your goal is to help every gardener succeed, whether they're just starting their
 export async function callOpenAI(options: OpenAIClientOptions): Promise<OpenAIResponse> {
   // Try API route first (works in local dev)
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+    // Only forward the BYO key when the user has actually provided one — an
+    // empty header would block the server from falling through to the
+    // free-tier Gemini path.
+    if (options.apiToken) {
+      headers['x-openai-token'] = options.apiToken
+    }
     const response = await fetch('/api/ai-advisor', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-openai-token': options.apiToken
-      },
+      headers,
       body: JSON.stringify({
         message: options.message,
         messages: options.messages,
@@ -253,7 +260,11 @@ Available tools:
 async function callOpenAIDirect(options: OpenAIClientOptions): Promise<OpenAIResponse> {
   const { apiToken, message, messages = [], image, allotmentContext, enableTools, tools } = options
 
-  // Validate token format
+  // Direct OpenAI calls require a BYO key (the server-side free tier is
+  // unavailable in static deployments).
+  if (!apiToken) {
+    throw new Error('OpenAI API key is required for this deployment. Add one in Settings → AI & Location.')
+  }
   const tokenPattern = /^[a-zA-Z0-9\-_]{20,}$/
   if (!tokenPattern.test(apiToken)) {
     throw new Error('Invalid OpenAI API token format. Token should be at least 20 characters long and contain only letters, numbers, dashes, and underscores.')
