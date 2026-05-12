@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-11 (post-merge of #345/#349; Aitor free-tier client bug logged)
+Last updated: 2026-05-12 (Aitor free-tier client bug fixed in PR #351; ADR 027 Yjs spike Step 2 is the next deliberate work)
 
 ## What's Been Completed
 
@@ -295,7 +295,7 @@ If the client-side debounce is enough, skip this. If the history table still gro
 
 The UPDATE must be strictly scoped to the user — pseudo-SQL: `UPDATE allotment_history SET data = OLD.data, archived_at = COALESCE(OLD.updated_at, now()) WHERE id = (SELECT id FROM allotment_history WHERE user_id = OLD.user_id AND archived_at > now() - INTERVAL '30 seconds' ORDER BY archived_at DESC LIMIT 1)`. Without the `WHERE user_id = OLD.user_id` filter on the inner SELECT, two different users saving within the same 30s window could merge each other's snapshots, which would be a much worse incident than the verbosity it's trying to fix.
 
-#### Future: revisit the sync engine (ADR 027 — not started)
+#### Future: revisit the sync engine (ADR 027 — Step 1 shipped, Step 2 is the next deliberate work)
 
 The current architecture (local-first JSONB + LWW on `meta.updatedAt`) is the same shape that produced the incident. ADR 024 documents that the original sync attempt was Yjs over PeerJS/WebRTC, abandoned because WebRTC was unreliable — *not* because Yjs was wrong. The "shareable by ID, auto-sync, conflict-free" library the user remembered is exactly Yjs (or its modern cousin AutomergeRepo). With a websocket relay (y-websocket against a tiny Node service, a Cloudflare Durable Object, or even a Supabase Realtime channel) the WebRTC failure mode disappears and the LWW machinery — and a whole class of future incidents — goes with it.
 
@@ -337,14 +337,13 @@ Risks the plan still tracks: per-user quota of 30/month is the policy call to re
 
 The opt-in banner's "Try Aitor" button used to only flip `meta.aiAdvisorEnabled` + `aiAdvisorPromptDismissedAt`, leaving the user with no visible feedback — the floating chat launcher at `bottom-6 right-6` is easy to miss on a long Today page, so the click felt like a no-op. `TodayDashboard` now imports `useAitorChat` and the banner's `onEnable` calls `openChat()` after `updateMeta`, so clicking Try Aitor opens the modal immediately. One-line UX fix, no schema or test changes.
 
-### Known issue: free-tier Gemini path unreachable from the client
+### Free-tier Gemini client path — Shipped (PR #351, `1f32e2b`)
 
-After clicking Try Aitor the modal still throws "Please configure your OpenAI API key in Settings to use Aitor" — the server-side Gemini free tier from PR #345 is never reached because the client bails before the fetch. Two guards on the client side both need to relax:
+After PR #345 added the server-side Gemini free tier, clicking Try Aitor still threw "Please configure your OpenAI API key in Settings" because two client-side guards bailed before the request reached `/api/ai-advisor`. PR #351 dropped the `!token` early-throw in `AitorChatModal.tsx`, wrapped the `x-openai-token` header in an `if (options.apiToken)` check inside `openai-client.ts`, and kept the `tokenPattern` validator only in the static-deployment `callOpenAIDirect` fallback (which genuinely needs a BYO key because GitHub Pages can't reach the Gemini path). Signed-in users without a BYO key now hit Gemini cleanly; the modal's quota-exceeded (429) and config-error branches still match the failure modes they were written for, while any other server error (including the "JWT template missing" path) falls through to the generic "Temporary Connection Issue" message.
 
-1. `src/components/ai-advisor/AitorChatModal.tsx` early-throws when `!token` (around line 192) instead of letting the request hit `/api/ai-advisor` without an `x-openai-token` header (the `pickProvider` server logic falls through to Gemini in that case).
-2. `src/lib/openai-client.ts` validates the token pattern at the top of `callOpenAI` (around line 258) and would also reject an empty string; the header needs to be omitted entirely when there's no BYO token.
+### Up Next: ADR 027 Yjs spike, Step 2
 
-Right shape of the fix: when `token` is empty, send the request with no `x-openai-token` header; let the server return either a Gemini response, the friendly "free tier requires JWT template" error (already worded for end users), or the 429 quota-exceeded path that the modal already handles. The error UX in `AitorChatModal` (free-quota-used / config error / generic) is already wired through `isConfigError` and `quotaExceeded` — only the early-return + token-pattern guard need to give way. No server change required.
+With the Aitor free-tier path working end-to-end and no other open backlog, the next deliberate piece of work is Step 2 of the spike outlined in `docs/adrs/027-sync-revisit.md`: convert `AllotmentData` to a Yjs document on a feature branch, keeping the 192-entry vegetable database as TypeScript modules and moving only mutable user state (`meta`, `seasons`, `varieties`, `customTasks`, `maintenanceTasks`, `gardenEvents`, `compost`) into the `Y.Doc`. The ADR also flagged evaluating a proxy wrapper (`valtio/yjs` or `synced-store`) early in this step to see whether the immutable-style read/write idiom can be preserved on top of Yjs. Rough sizing: a few days of work, not hours, because every consumer of `setData` learns to write through Yjs APIs. Steps 3-5 (replace `useSyncedStorage`, migrate live users, retire the LWW machinery) are gated on Step 2 producing the cost/latency/auth measurements the ADR's risk section enumerates.
 
 ### Research-Driven Improvements: Backlog
 
