@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Leaf } from 'lucide-react'
+import { Leaf, PowerOff } from 'lucide-react'
 import type { ChatMessage as ChatMessageType } from '@/types/api'
 
 // Extracted hooks
@@ -36,8 +36,45 @@ import Dialog from '@/components/ui/Dialog'
 // Extended message type with image support
 type ExtendedChatMessage = ChatMessageType & { image?: string }
 
+// Vercel caps request bodies at ~4.5 MB; an unprocessed phone photo as base64
+// blows past that and the route handler never runs (FUNCTION_PAYLOAD_TOO_LARGE).
+// 1600px JPEG @ 0.85 lands well under 1 MB and is plenty for plant diagnosis.
+const MAX_UPLOAD_DIMENSION = 1600
+const UPLOAD_QUALITY = 0.85
+
+// Downscale + re-encode as JPEG so the base64 payload fits under Vercel's
+// request body cap. Returns a Blob that callers can feed into imageToBase64.
+// Uses createImageBitmap with `imageOrientation: 'from-image'` so EXIF-rotated
+// phone photos land right-side up instead of sideways.
+const downscaleImage = async (file: File): Promise<Blob> => {
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+  try {
+    const longest = Math.max(bitmap.width, bitmap.height)
+    const scale = longest > MAX_UPLOAD_DIMENSION ? MAX_UPLOAD_DIMENSION / longest : 1
+    const width = Math.round(bitmap.width * scale)
+    const height = Math.round(bitmap.height * scale)
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      throw new Error('Canvas 2D context unavailable')
+    }
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Failed to encode resized image'))),
+        'image/jpeg',
+        UPLOAD_QUALITY,
+      )
+    })
+  } finally {
+    bitmap.close()
+  }
+}
+
 // Convert image to base64 for API
-const imageToBase64 = (file: File): Promise<string> => {
+const imageToBase64 = (file: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
@@ -70,7 +107,13 @@ export default function AitorChatModal() {
 
   // Load allotment data for context
   const allotment = useAllotment()
-  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind, reload: reloadAllotment } = allotment
+  const { data: allotmentData, currentSeason, selectedYear, getAreasByKind, reload: reloadAllotment, updateMeta } = allotment
+
+  const handleDisableAitor = useCallback(() => {
+    updateMeta({ aiAdvisorEnabled: false })
+    clearInitialMode()
+    closeChat()
+  }, [updateMeta, clearInitialMode, closeChat])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -189,10 +232,9 @@ export default function AitorChatModal() {
     updateRateLimitState()
 
     try {
-      // Check if token is provided
-      if (!token) {
-        throw new Error('Please configure your OpenAI API key in Settings to use Aitor')
-      }
+      // No early-throw on empty token: signed-in users hit the server-side
+      // free-tier Gemini path when no BYO key is set. The /api/ai-advisor
+      // route returns a friendly error if the free tier itself is unavailable.
 
       // Prepare enhanced message with location context
       let enhancedQuery = query
@@ -225,10 +267,11 @@ export default function AitorChatModal() {
       // Prepare image data if provided
       let imageData: { data: string; type: string } | undefined
       if (image) {
-        const imageBase64 = await imageToBase64(image)
+        const downscaled = await downscaleImage(image)
+        const imageBase64 = await imageToBase64(downscaled)
         imageData = {
           data: imageBase64,
-          type: image.type
+          type: 'image/jpeg'
         }
       }
 
@@ -279,13 +322,16 @@ export default function AitorChatModal() {
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       const isConfigError = errorMessage.includes('not configured') || errorMessage.includes('Invalid token') || errorMessage.includes('OpenAI API key')
+      const isQuotaError = errorMessage.includes('free Aitor requests')
 
       const errorResponse: ExtendedChatMessage = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: isConfigError
-          ? `**Getting Started**\n\nHi there! I'm Aitor, your gardening companion. I'd love to help you with your allotment questions, but I need an API key to get started.\n\n**How to set me up:**\n- Go to **Settings** from the navigation menu\n- Add your OpenAI API token in the "AI Assistant" section\n- Get your token from the OpenAI dashboard\n- Once configured, I'll be ready to help with all your gardening needs!\n\n**What I can help with:**\n- Plant selection and planting schedules\n- Pest and disease management\n- Seasonal gardening tasks\n- Composting systems and troubleshooting\n- Soil health and organic fertilizers\n- Weather-specific care tips\n\nLet's get growing together!`
-          : `**Temporary Connection Issue**\n\nOops! I'm having trouble connecting to my knowledge base right now. This happens sometimes and usually resolves quickly.\n\n**What you can try:**\n- Wait a moment and ask your question again\n- Check your internet connection\n- Verify your API token is still valid in settings\n\n**While you wait, here are some quick tips:**\n- Water early morning or evening to reduce evaporation\n- Mulch around plants to retain moisture and suppress weeds\n- Check your local frost dates before planting tender crops\n- Companion plant basil near tomatoes for better flavor`
+        content: isQuotaError
+          ? `**Free quota used up**\n\n${errorMessage}\n\n**Two ways forward:**\n- Add your own OpenAI API key in **Settings → AI & Location** for unlimited use.\n- Or check back on the 1st of next month — your free quota resets then.`
+          : isConfigError
+            ? `**Getting Started**\n\nHi there! I'm Aitor, your gardening companion. I'd love to help you with your allotment questions, but I need an API key to get started.\n\n**How to set me up:**\n- Go to **Settings** from the navigation menu\n- Add your OpenAI API token in the "AI Assistant" section\n- Get your token from the OpenAI dashboard\n- Once configured, I'll be ready to help with all your gardening needs!\n\n**What I can help with:**\n- Plant selection and planting schedules\n- Pest and disease management\n- Seasonal gardening tasks\n- Composting systems and troubleshooting\n- Soil health and organic fertilizers\n- Weather-specific care tips\n\nLet's get growing together!`
+            : `**Temporary Connection Issue**\n\nOops! I'm having trouble connecting to my knowledge base right now. This happens sometimes and usually resolves quickly.\n\n**What you can try:**\n- Wait a moment and ask your question again\n- Check your internet connection\n- Verify your API token is still valid in settings\n\n**While you wait, here are some quick tips:**\n- Water early morning or evening to reduce evaporation\n- Mulch around plants to retain moisture and suppress weeds\n- Check your local frost dates before planting tender crops\n- Companion plant basil near tomatoes for better flavor`
       }
 
       setMessages(prev => [...prev, errorResponse])
@@ -424,17 +470,28 @@ export default function AitorChatModal() {
         <div className="flex flex-col h-[70vh] md:h-[600px]">
           {/* Header info */}
           <div className="px-4 py-3 border-b border-zen-stone-100 bg-zen-moss-50/50 shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Leaf className="w-4 h-4 text-zen-moss-600" />
-                <span className="text-sm text-zen-moss-700">Your gardening companion</span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Leaf className="w-4 h-4 text-zen-moss-600 shrink-0" />
+                <span className="text-sm text-zen-moss-700 truncate">Your gardening companion</span>
               </div>
-              <LocationStatus
-                userLocation={userLocation}
-                locationError={locationError}
-                onRetry={detectUserLocation}
-                isDetecting={isDetecting}
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <LocationStatus
+                  userLocation={userLocation}
+                  locationError={locationError}
+                  onRetry={detectUserLocation}
+                  isDetecting={isDetecting}
+                />
+                <button
+                  onClick={handleDisableAitor}
+                  className="flex items-center gap-1 text-xs text-zen-stone-500 hover:text-zen-kitsune-600 transition-colors px-2 py-1 min-h-[44px] md:min-h-0"
+                  aria-label="Turn off Aitor — you can re-enable it from Settings"
+                  title="Turn off Aitor (re-enable from Settings)"
+                >
+                  <PowerOff className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Turn off</span>
+                </button>
+              </div>
             </div>
           </div>
 

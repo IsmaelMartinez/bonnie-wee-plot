@@ -7,6 +7,8 @@ import {
   type ToolCall,
   requiresConfirmation,
 } from '@/lib/ai-tools-schema'
+import { callGemini } from '@/lib/ai/gemini'
+import { FREE_TIER_MONTHLY_QUOTA, getCurrentUsage, incrementUsage } from '@/lib/supabase/ai-usage'
 
 // Feature flag for AI tools (function calling)
 // Set to true to enable AI-powered inventory management
@@ -118,26 +120,58 @@ Provide specific, actionable diagnosis and treatment recommendations based on vi
 Your goal is to help every gardener succeed, whether they're just starting their first vegetable patch or managing an established allotment plot.`
 }
 
-// Helper function to get and validate API key
-function getApiKey(request: NextRequest): { apiKey: string | null, isUserProvidedToken: boolean } {
-  const envOpenAIKey = process.env.OPENAI_API_KEY
-  const userOpenAIToken = request.headers.get('x-openai-token')
-  
-  // Priority: User-provided OpenAI token > Environment OpenAI key
-  const apiKey = userOpenAIToken || envOpenAIKey
-  const isUserProvidedToken = !!userOpenAIToken
-  
-  // Basic token format validation for user-provided tokens
-  if (isUserProvidedToken && apiKey) {
-    // Flexible validation for OpenAI tokens
-    // Modern OpenAI tokens can have various formats
-    const tokenPattern = /^[a-zA-Z0-9\-_]{20,}$/ // At least 20 alphanumeric/dash/underscore characters
-    if (!tokenPattern.test(apiKey)) {
-      throw new Error('Invalid OpenAI API token format. Token should be at least 20 characters long and contain only letters, numbers, dashes, and underscores.')
-    }
+type Provider = 'openai-byo' | 'openai-server' | 'gemini-server'
+
+interface ProviderSelection {
+  provider: Provider
+  /** OpenAI key (BYO or server). Empty when provider is gemini-server. */
+  openaiKey: string
+  /** Whether the OpenAI key came from the request header (BYO). */
+  isUserProvidedToken: boolean
+}
+
+class ProviderError extends Error {
+  constructor(message: string, public status: number) {
+    super(message)
+    this.name = 'ProviderError'
   }
-  
-  return { apiKey: apiKey || null, isUserProvidedToken }
+}
+
+/**
+ * Pick which AI provider to use for this request. Order:
+ * 1. BYO `x-openai-token` header — user pays their own bill, no quota.
+ * 2. Server-side `GEMINI_API_KEY` — free tier with per-user monthly quota.
+ * 3. Legacy server-side `OPENAI_API_KEY` — admin's call, no quota.
+ * 4. Nothing configured — error.
+ *
+ * Throws ProviderError with `status: 400` for client-side mistakes (bad token
+ * format) and `status: 500` for server misconfiguration.
+ */
+function pickProvider(request: NextRequest): ProviderSelection {
+  const userOpenAIToken = request.headers.get('x-openai-token')
+  if (userOpenAIToken) {
+    const tokenPattern = /^[a-zA-Z0-9\-_]{20,}$/
+    if (!tokenPattern.test(userOpenAIToken)) {
+      throw new ProviderError(
+        'Invalid OpenAI API token format. Token should be at least 20 characters long and contain only letters, numbers, dashes, and underscores.',
+        400,
+      )
+    }
+    return { provider: 'openai-byo', openaiKey: userOpenAIToken, isUserProvidedToken: true }
+  }
+
+  if (process.env.GEMINI_API_KEY) {
+    return { provider: 'gemini-server', openaiKey: '', isUserProvidedToken: false }
+  }
+
+  if (process.env.OPENAI_API_KEY) {
+    return { provider: 'openai-server', openaiKey: process.env.OPENAI_API_KEY, isUserProvidedToken: false }
+  }
+
+  throw new ProviderError(
+    'AI service not configured. Please provide an API token or configure environment variables.',
+    500,
+  )
 }
 
 // Helper function to build API request configuration
@@ -160,7 +194,7 @@ export async function POST(request: NextRequest) {
     // drained by unauthenticated callers. When Clerk is not configured at
     // all, auth() returns { userId: null } and we reject — matching the UI,
     // which also stays hidden.
-    const { userId } = await auth()
+    const { userId, getToken } = await auth()
     if (!userId) {
       return NextResponse.json(
         { error: 'Sign in to use Aitor.' },
@@ -186,25 +220,27 @@ export async function POST(request: NextRequest) {
     // Both the feature flag AND the request param must be true
     const useTools = AI_TOOLS_ENABLED && enableTools
 
-    // Get and validate API key
-    let apiKey, isUserProvidedToken
+    // Pick provider (BYO OpenAI → Gemini server → OpenAI server → error)
+    let selection: ProviderSelection
     try {
-      const result = getApiKey(request)
-      apiKey = result.apiKey
-      isUserProvidedToken = result.isUserProvidedToken
+      selection = pickProvider(request)
     } catch (error) {
+      if (error instanceof ProviderError) {
+        return NextResponse.json({ error: error.message }, { status: error.status })
+      }
       return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'Invalid token format provided.' },
-        { status: 400 }
-      )
-    }
-    
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'AI service not configured. Please provide an API token or configure environment variables.' },
+        { error: error instanceof Error ? error.message : 'AI provider not available.' },
         { status: 500 }
       )
     }
+    const { provider, openaiKey, isUserProvidedToken } = selection
+
+    // Tools are only available on the OpenAI path. Gemini-server users get
+    // chat + vision but no AI-initiated mutations on this PR.
+    if (provider === 'gemini-server' && useTools) {
+      logger.warn('AI tools requested but Gemini provider does not support them; disabling tools for this request')
+    }
+    const toolsAvailable = useTools && provider !== 'gemini-server'
 
     // Build system prompt with optional allotment context
     let systemPrompt = buildSystemPrompt()
@@ -215,7 +251,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add tools guidance to system prompt when tools are enabled
-    if (useTools) {
+    if (toolsAvailable) {
       systemPrompt += `
 
 🔧 TOOL USAGE GUIDELINES:
@@ -240,6 +276,68 @@ Important rules:
 - Only call remove_planting when the user explicitly wants to delete a planting`
     }
     
+    // Gemini server-side path: enforce per-user monthly quota, then call.
+    // Tools and the OpenAI message shape don't apply here.
+    if (provider === 'gemini-server') {
+      const supabaseToken = await getToken({ template: 'supabase' })
+      if (!supabaseToken) {
+        return NextResponse.json(
+          { error: 'Free tier requires the "supabase" Clerk JWT template. Add your own OpenAI key in Settings to skip this.' },
+          { status: 500 }
+        )
+      }
+
+      try {
+        const usage = await getCurrentUsage(supabaseToken, userId)
+        if (usage.remaining <= 0) {
+          return NextResponse.json(
+            {
+              error: `You've used your ${FREE_TIER_MONTHLY_QUOTA} free Aitor requests for this month. Add your own OpenAI key in Settings for unlimited use, or check back next month.`,
+              quotaExceeded: true,
+              usage,
+            },
+            { status: 429 }
+          )
+        }
+      } catch (err) {
+        logger.error('AI quota check failed', { error: String(err) })
+        return NextResponse.json(
+          { error: 'Could not check your free-tier quota. Try again in a moment.' },
+          { status: 500 }
+        )
+      }
+
+      try {
+        const result = await callGemini({
+          apiKey: process.env.GEMINI_API_KEY!,
+          systemPrompt,
+          history: messages.map((m: IncomingMessage) => ({ role: m.role, content: m.content })),
+          userMessage: userInputMessage,
+          image: image && image.data ? { type: image.type, data: image.data } : undefined,
+        })
+        // Increment after a successful response so failed requests don't
+        // burn the user's quota. Race window with the pre-call check is
+        // small and the consequence (one extra request) is acceptable.
+        await incrementUsage(supabaseToken, userId)
+        return NextResponse.json({
+          type: 'text',
+          response: result.text,
+          provider: 'gemini',
+          usage: result.usage,
+        })
+      } catch (err) {
+        logger.error('Gemini call failed', { error: String(err) })
+        const status = (err as { status?: number }).status ?? 500
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : 'Failed to get response from Aitor (Gemini)' },
+          { status }
+        )
+      }
+    }
+
+    // OpenAI path (BYO or server-side).
+    const apiKey = openaiKey
+
     // Prepare messages for AI API
     const apiMessages: OpenAIMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -288,8 +386,8 @@ Important rules:
       stream: false, // Ensure we get complete responses
     }
 
-    // Include tools when enabled
-    if (useTools) {
+    // Include tools when enabled (OpenAI path only — Gemini branch handled above)
+    if (toolsAvailable) {
       requestBody.tools = PLANTING_TOOLS
       requestBody.tool_choice = 'auto' // Let the model decide when to use tools
     }
@@ -350,7 +448,7 @@ Important rules:
     }
 
     // Check if the model wants to call tools
-    if (useTools && responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+    if (toolsAvailable && responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
       const toolCalls = responseMessage.tool_calls
 
       // Check if any tool calls require confirmation

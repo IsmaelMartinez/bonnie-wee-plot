@@ -17,6 +17,7 @@ import OnboardingWizard from '@/components/onboarding/OnboardingWizard'
 import PageTour from '@/components/onboarding/PageTour'
 import SignInPrompt from '@/components/auth/SignInPrompt'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { useAitorChat } from '@/contexts/AitorChatContext'
 
 function LoadingSkeleton() {
   return (
@@ -69,6 +70,7 @@ export default function TodayDashboard() {
   // Frost banner: tonight's forecast minimum + tender plantings in current season.
   const { data, updateMeta } = useAllotment()
   const { isSignedIn } = useOptionalAuth()
+  const { openChat } = useAitorChat()
   const showAitorOptIn =
     isSignedIn &&
     data?.meta?.aiAdvisorEnabled !== true &&
@@ -154,12 +156,13 @@ export default function TodayDashboard() {
           {/* One-time Aitor opt-in banner for signed-in users. */}
           {showAitorOptIn && (
             <AitorOptInBanner
-              onEnable={() =>
+              onEnable={() => {
                 updateMeta({
                   aiAdvisorEnabled: true,
                   aiAdvisorPromptDismissedAt: new Date().toISOString(),
                 })
-              }
+                openChat()
+              }}
               onDismiss={() =>
                 updateMeta({ aiAdvisorPromptDismissedAt: new Date().toISOString() })
               }

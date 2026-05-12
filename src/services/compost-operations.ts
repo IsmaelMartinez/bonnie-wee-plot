@@ -192,3 +192,52 @@ export function getCompostPilesByStatus(data: CompostData, status: CompostPile['
 export function getActiveCompostPiles(data: CompostData): CompostPile[] {
   return data.piles.filter(pile => pile.status !== 'applied')
 }
+
+// ============ NEEDS-TURNING PREDICATE ============
+
+/**
+ * Days of inactivity after which an active/maturing pile is considered to
+ * "need turning". Activity = a turn or harvest event, an input added, or the
+ * pile being created. Anything that signals the user has touched the pile
+ * resets the clock.
+ */
+export const NEEDS_TURNING_THRESHOLD_DAYS = 7
+
+/**
+ * Most recent timestamp (ISO string) at which the pile was meaningfully
+ * touched: turned, harvested, or had material added. Falls back to the
+ * pile's start date when nothing has happened yet.
+ */
+export function getLastActivityDate(pile: CompostPile): string {
+  let latest = pile.startDate
+  for (const event of pile.events) {
+    if ((event.type === 'turn' || event.type === 'harvest') && event.date > latest) {
+      latest = event.date
+    }
+  }
+  for (const input of pile.inputs) {
+    if (input.date > latest) {
+      latest = input.date
+    }
+  }
+  return latest
+}
+
+/**
+ * True when an active/maturing pile has not been touched for at least
+ * `NEEDS_TURNING_THRESHOLD_DAYS` days. Ready and applied piles never
+ * "need turning".
+ */
+export function pileNeedsTurning(pile: CompostPile, now: Date = new Date()): boolean {
+  if (pile.status !== 'active' && pile.status !== 'maturing') return false
+  const lastActivity = new Date(getLastActivityDate(pile))
+  const daysSince = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
+  return daysSince >= NEEDS_TURNING_THRESHOLD_DAYS
+}
+
+/**
+ * Active/maturing piles that have not been touched within the threshold.
+ */
+export function getCompostPilesNeedingTurn(data: CompostData, now: Date = new Date()): CompostPile[] {
+  return data.piles.filter(pile => pileNeedsTurning(pile, now))
+}

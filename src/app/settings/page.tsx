@@ -8,6 +8,7 @@ import { Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
+import AiQuotaSection from '@/components/settings/AiQuotaSection'
 import PageTour from '@/components/onboarding/PageTour'
 import TourManager from '@/components/onboarding/TourManager'
 import Tabs from '@/components/ui/Tabs'
@@ -72,9 +73,34 @@ export default function SettingsPage() {
                     </div>
 
                     <p className="text-sm text-gray-600 mb-4">
-                      Configure your OpenAI API key to use Aitor, your AI gardening assistant.
                       Aitor can help with planting advice, pest identification, and even add plants to your garden.
+                      Signed-in users get a free monthly quota; add your own OpenAI key below for unlimited use.
                     </p>
+
+                    <div className="flex items-center justify-between gap-3 mb-4 p-3 rounded-md bg-zen-stone-50 border border-zen-stone-200">
+                      <div className="text-sm text-zen-ink-700">
+                        <p className="font-medium">Aitor chat</p>
+                        <p className="text-xs text-zen-stone-500 mt-0.5">
+                          {data?.meta?.aiAdvisorEnabled
+                            ? 'Currently on. Floating chat launcher is visible on every page.'
+                            : 'Currently off. Turn on to use Aitor.'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => updateMeta({ aiAdvisorEnabled: !data?.meta?.aiAdvisorEnabled })}
+                        className={`px-3 py-2 min-h-[44px] text-sm rounded-zen transition-colors shrink-0 ${
+                          data?.meta?.aiAdvisorEnabled
+                            ? 'bg-zen-stone-200 hover:bg-zen-stone-300 text-zen-ink-700'
+                            : 'bg-zen-moss-600 hover:bg-zen-moss-700 text-white'
+                        }`}
+                      >
+                        {data?.meta?.aiAdvisorEnabled ? 'Turn off' : 'Turn on'}
+                      </button>
+                    </div>
+
+                    <div className="mb-4">
+                      <AiQuotaSection hasOwnToken={!!token} />
+                    </div>
 
                     <div className="space-y-4">
                       <div>
