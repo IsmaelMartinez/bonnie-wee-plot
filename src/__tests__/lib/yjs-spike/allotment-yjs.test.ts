@@ -160,6 +160,79 @@ describe('yjs-spike: allotment-yjs', () => {
       expect(result).toEqual(original)
     })
 
+    it('is idempotent — re-hydrating with the same data does not duplicate', () => {
+      const original = makeFixture()
+      const { store } = createAllotmentDoc()
+      hydrateFromJson(store, original)
+      hydrateFromJson(store, original)
+
+      const result = serializeToJson(store)
+      expect(result).toEqual(original)
+    })
+
+    it('replaces rather than appends when re-hydrating with different data', () => {
+      const first = makeFixture()
+      const second: AllotmentData = {
+        ...first,
+        layout: {
+          areas: [
+            {
+              id: 'bed-z',
+              name: 'New Layout — Bed Z',
+              kind: 'rotation-bed',
+              canHavePlantings: true,
+              createdAt: '2026-06-01T00:00:00.000Z',
+            },
+          ],
+        },
+        seasons: [],
+        varieties: [],
+        compost: [],
+      }
+      const { store } = createAllotmentDoc()
+      hydrateFromJson(store, first)
+      hydrateFromJson(store, second)
+
+      const result = serializeToJson(store)
+      expect(result.layout.areas).toHaveLength(1)
+      expect(result.layout.areas[0].id).toBe('bed-z')
+      expect(result.seasons).toHaveLength(0)
+      expect(result.varieties).toHaveLength(0)
+    })
+
+    it('normalises optional top-level undefined arrays to empty arrays', () => {
+      // SyncedStore cannot distinguish "field never set" from "field
+      // is an empty array" once hydrate runs — both leave a 0-length
+      // Y.Array. The canonical serialized form is the empty-array
+      // case, matching how the rest of the codebase treats these
+      // fields (`data.gardenEvents ?? []`). Asymmetric round-trip
+      // when the original input had these fields undefined.
+      const minimal: AllotmentData = {
+        version: 22,
+        currentYear: 2026,
+        meta: {
+          name: 'Minimal',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        layout: { areas: [] },
+        seasons: [],
+        varieties: [],
+        // customTasks, maintenanceTasks, gardenEvents, compost left undefined
+      }
+      const { store } = createAllotmentDoc()
+      hydrateFromJson(store, minimal)
+
+      const result = serializeToJson(store)
+      expect(result.customTasks).toEqual([])
+      expect(result.maintenanceTasks).toEqual([])
+      expect(result.gardenEvents).toEqual([])
+      expect(result.compost).toEqual([])
+      expect(result.seasons).toEqual([])
+      expect(result.varieties).toEqual([])
+      expect(result.layout.areas).toEqual([])
+    })
+
     it('drops undefined fields without throwing', () => {
       const original: AllotmentData = {
         ...makeFixture(),
@@ -233,10 +306,13 @@ describe('yjs-spike: allotment-yjs', () => {
       expect(result).toEqual(original)
     })
 
-    it('reports a binary size noticeably smaller than the JSON', () => {
-      // Smoke test for the cost line ADR 027 is worried about. We log
-      // the ratio rather than asserting a bound — the spike just needs
-      // a first-look number.
+    it('logs the binary-to-JSON size ratio (cost-line smoke test)', () => {
+      // Data point for the cost-line risk in ADR 027. The fixture is
+      // small (~2 KB) so the Yjs binary is expected to be larger than
+      // the JSON here — CRDT metadata is a fixed overhead that only
+      // amortises away on bigger documents. We log the ratio rather
+      // than asserting a bound; a realistic multi-season fixture is
+      // tracked separately.
       const original = makeFixture()
       const { store, doc } = createAllotmentDoc()
       hydrateFromJson(store, original)

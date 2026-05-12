@@ -87,10 +87,11 @@ export function createAllotmentDoc(doc: Y.Doc = new Y.Doc()): {
 }
 
 /**
- * Hydrate a freshly-created store from an existing AllotmentData JSON
- * snapshot. Must run inside a single Yjs transaction so all the bulk
- * inserts emit one update rather than dozens. Idempotent for the
- * "starting from empty" case; calling on a populated store will append.
+ * Hydrate a store from an existing AllotmentData JSON snapshot. Clears
+ * the existing collections first so a re-hydrate produces the same
+ * result as a hydrate of an empty store — calling this twice with the
+ * same input is a no-op rather than producing duplicates. Runs inside a
+ * single Yjs transaction so all the bulk inserts emit one update.
  */
 export function hydrateFromJson(
   store: AllotmentStoreShape,
@@ -99,6 +100,17 @@ export function hydrateFromJson(
   const doc = getYjsDoc(store)
 
   doc.transact(() => {
+    // Clear top-level collections so re-hydration replaces rather than
+    // appends. The state / meta maps are overwritten field-by-field
+    // below so they do not need explicit clearing.
+    store.areas.splice(0, store.areas.length)
+    store.seasons.splice(0, store.seasons.length)
+    store.customTasks.splice(0, store.customTasks.length)
+    store.maintenanceTasks.splice(0, store.maintenanceTasks.length)
+    store.gardenEvents.splice(0, store.gardenEvents.length)
+    store.varieties.splice(0, store.varieties.length)
+    store.compost.splice(0, store.compost.length)
+
     // Top-level primitives go into the `state` map.
     store.state.currentYear = data.currentYear
     store.state.schemaVersion = data.version
@@ -151,6 +163,15 @@ export function serializeToJson(store: AllotmentStoreShape): AllotmentData {
   // SyncedStore proxies are JSON-stringify-friendly, so a parse/stringify
   // round-trip is the lazy and correct way to detach the snapshot from
   // the live document.
+  //
+  // Asymmetry to know: optional top-level arrays in the legacy
+  // AllotmentData shape (`customTasks`, `maintenanceTasks`,
+  // `gardenEvents`, `compost`) are always emitted here, even when
+  // empty. SyncedStore cannot distinguish "field never set" from
+  // "field is an empty array" once hydrate has run — both leave a
+  // zero-length Y.Array — so the canonical serialized form normalises
+  // to the empty-array case. This matches how the rest of the
+  // codebase treats these fields (`data.gardenEvents ?? []`).
   const snapshot = JSON.parse(JSON.stringify(store)) as AllotmentStoreShape
 
   return {
