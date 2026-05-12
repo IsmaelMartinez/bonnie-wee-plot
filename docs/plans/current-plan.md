@@ -200,6 +200,16 @@ After the page-by-page review, a batch of smaller fixes and housekeeping work la
 - Confirmed `renovate.json` is gone; Dependabot (`.github/dependabot.yml`) is the sole dependency automation.
 - Retired `compost-storage.ts`: the pure mutation/query helpers live in `src/services/compost-operations.ts` and are now re-exported from the `allotment-storage` barrel. `useCompost` imports through the unified barrel and stale `compost-storage` comments were updated.
 
+### Deferred Major Dependency Upgrades (2026-05-12)
+
+Two Dependabot major-version PRs were closed without merging because their failures are not mechanical fixes. Both are dev-tooling bumps — neither affects runtime, neither is a security issue, and the current versions are still maintained.
+
+ESLint 9 → 10 (PR #334, closed 2026-05-12). Blocked on upstream: `eslint-plugin-react` (pulled in transitively via `eslint-config-next`) still calls `context.getFilename()` which was removed in ESLint 10 in favour of `context.filename`. The lint job crashes with `TypeError: contextOrFilename.getFilename is not a function`. Revisit when `eslint-plugin-react` ships an ESLint-10-compatible release; the bump will be mechanical at that point. This is the higher priority of the two to track since the fix is a single dependency release, not work on our end.
+
+Tailwind CSS 3 → 4 + TypeScript major bump (PR #313, closed 2026-05-12). Tailwind 4 is a different product wearing the same name — the PostCSS plugin renamed to `@tailwindcss/postcss`, configuration moved from `tailwind.config.js` into `@theme {}` blocks inside CSS, and some utility classes had semantic changes (default colour palette, opacity modifiers, the `screens` API). Migration is several hours of controlled work with visual-regression risk across every page. The TypeScript major bump bundled in the same PR is trivial in isolation (add `"ignoreDeprecations": "6.0"` to `tsconfig.json` or migrate `baseUrl` to `paths`), but Dependabot grouped them so neither could be merged independently. Revisit when there is appetite for an afternoon of Tailwind migration; the TS bump can be split out and landed separately at any time.
+
+Both PRs left `.github/dependabot.yml` alone for now. If they get re-proposed and become noisy, the answer is to add `ignore` entries with `update-types: ["version-update:semver-major"]` for `eslint` and `tailwindcss` rather than closing them by hand every time.
+
 ### Remaining Backlog
 
 (Empty — see "Backup Reminder" below for the previously-listed item, now shipped.)
