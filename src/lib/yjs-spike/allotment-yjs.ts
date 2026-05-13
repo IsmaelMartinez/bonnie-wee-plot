@@ -101,8 +101,13 @@ export function hydrateFromJson(
 
   doc.transact(() => {
     // Clear top-level collections so re-hydration replaces rather than
-    // appends. The state / meta maps are overwritten field-by-field
-    // below so they do not need explicit clearing.
+    // appends. `meta` is also cleared key-by-key: assignDefined skips
+    // undefined values, so without an explicit clear, fields present in
+    // the previous hydrate that are absent in the new input would
+    // silently persist (a hydrate of a backup without `aiAdvisorEnabled`
+    // should leave the proxy without that field, not preserve a stale
+    // `true`). `state` has a closed set of fields all written below, so
+    // it does not need clearing.
     store.areas.splice(0, store.areas.length)
     store.seasons.splice(0, store.seasons.length)
     store.customTasks.splice(0, store.customTasks.length)
@@ -110,6 +115,9 @@ export function hydrateFromJson(
     store.gardenEvents.splice(0, store.gardenEvents.length)
     store.varieties.splice(0, store.varieties.length)
     store.compost.splice(0, store.compost.length)
+    for (const key of Object.keys(store.meta)) {
+      delete (store.meta as unknown as Record<string, unknown>)[key]
+    }
 
     // Top-level primitives go into the `state` map.
     store.state.currentYear = data.currentYear

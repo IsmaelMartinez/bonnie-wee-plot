@@ -200,6 +200,41 @@ describe('yjs-spike: allotment-yjs', () => {
       expect(result.varieties).toHaveLength(0)
     })
 
+    it('clears meta keys absent from the new input on re-hydrate', () => {
+      // Re-hydration must reset stale meta fields, not preserve them.
+      // assignDefined skips undefined source values, so an explicit
+      // clear of the meta Y.Map is required for the missing-key case.
+      const withRichMeta: AllotmentData = {
+        ...makeFixture(),
+        meta: {
+          name: 'Edinburgh Allotment',
+          location: 'Edinburgh',
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2026-05-12T00:00:00.000Z',
+          aiAdvisorEnabled: true,
+          coordinates: { latitude: 55.95, longitude: -3.18 },
+        },
+      }
+      const withMinimalMeta: AllotmentData = {
+        ...withRichMeta,
+        meta: {
+          name: 'Renamed',
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2026-05-13T00:00:00.000Z',
+        },
+      }
+
+      const { store } = createAllotmentDoc()
+      hydrateFromJson(store, withRichMeta)
+      hydrateFromJson(store, withMinimalMeta)
+
+      const result = serializeToJson(store)
+      expect(result.meta.name).toBe('Renamed')
+      expect(result.meta.aiAdvisorEnabled).toBeUndefined()
+      expect(result.meta.coordinates).toBeUndefined()
+      expect(result.meta.location).toBeUndefined()
+    })
+
     it('normalises optional top-level undefined arrays to empty arrays', () => {
       // SyncedStore cannot distinguish "field never set" from "field
       // is an empty array" once hydrate runs — both leave a 0-length
