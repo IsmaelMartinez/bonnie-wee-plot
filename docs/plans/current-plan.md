@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-12 (Aitor free-tier client bug fixed in PR #351; ADR 027 Yjs spike Step 2 is the next deliberate work)
+Last updated: 2026-05-12 (ADR 027 Yjs spike Step 2 first cut on branch `spike/yjs-allotment`; Step 3 hook integration is the next deliberate work)
 
 ## What's Been Completed
 
@@ -341,9 +341,17 @@ The opt-in banner's "Try Aitor" button used to only flip `meta.aiAdvisorEnabled`
 
 After PR #345 added the server-side Gemini free tier, clicking Try Aitor still threw "Please configure your OpenAI API key in Settings" because two client-side guards bailed before the request reached `/api/ai-advisor`. PR #351 dropped the `!token` early-throw in `AitorChatModal.tsx`, wrapped the `x-openai-token` header in an `if (options.apiToken)` check inside `openai-client.ts`, and kept the `tokenPattern` validator only in the static-deployment `callOpenAIDirect` fallback (which genuinely needs a BYO key because GitHub Pages can't reach the Gemini path). Signed-in users without a BYO key now hit Gemini cleanly; the modal's quota-exceeded (429) and config-error branches still match the failure modes they were written for, while any other server error (including the "JWT template missing" path) falls through to the generic "Temporary Connection Issue" message.
 
-### Up Next: ADR 027 Yjs spike, Step 2
+### ADR 027 Yjs spike Step 2 — First cut shipped (branch `spike/yjs-allotment`)
 
-With the Aitor free-tier path working end-to-end and no other open backlog, the next deliberate piece of work is Step 2 of the spike outlined in `docs/adrs/027-sync-revisit.md`: convert `AllotmentData` to a Yjs document on a feature branch, keeping the 192-entry vegetable database as TypeScript modules and moving only mutable user state (`meta`, `seasons`, `varieties`, `customTasks`, `maintenanceTasks`, `gardenEvents`, `compost`) into the `Y.Doc`. The ADR also flagged evaluating a proxy wrapper (`valtio/yjs` or `synced-store`) early in this step to see whether the immutable-style read/write idiom can be preserved on top of Yjs. Rough sizing: a few days of work, not hours, because every consumer of `setData` learns to write through Yjs APIs. Steps 3-5 (replace `useSyncedStorage`, migrate live users, retire the LWW machinery) are gated on Step 2 producing the cost/latency/auth measurements the ADR's risk section enumerates.
+A proof-of-concept conversion of `AllotmentData` to a Yjs document landed on the spike branch on 2026-05-12. `src/lib/yjs-spike/allotment-yjs.ts` defines the top-level shape, a `hydrateFromJson` helper that seeds from an existing `AllotmentData` snapshot inside a single Yjs transaction, a `serializeToJson` mirror, and `encodeDocState` / `decodeDocState` for the BYTEA round-trip the migration step will need. 9 unit tests in `src/__tests__/lib/yjs-spike/allotment-yjs.test.ts` cover hydrate-serialize round-trip, proxy mutations, binary encoding, and the two CRDT-semantics cases (disjoint edits and same-field convergence).
+
+Proxy-wrapper decision: **SyncedStore** (`@syncedstore/core@^0.6`) over valtio-yjs. valtio-yjs is self-described as alpha; SyncedStore is production-tested in BlockNote and has the clean `shape` API plus a `getYjsDoc()` escape hatch. Two shape constraints worth flagging: top-level entries must be empty `{}` / `[]` (the validator throws otherwise), so `AllotmentData.layout.areas` is hoisted to a top-level `areas` Y.Array and `version` / `currentYear` are nested inside a `state` Y.Map. Neither change is user-visible — the legacy JSON shape is reconstructed at the serialization boundary. The other constraint: `undefined` values must be dropped before assignment (Yjs has no `undefined`), enforced by the `assignDefined` helper.
+
+First cost-line measurement: on a small fixture (one bed with 2 plantings, one tree, 2 varieties, one compost pile, ~2.1KB JSON), the Yjs binary is 2.6KB — a 1.21x ratio *larger* than JSON. CRDT metadata is a fixed overhead that only amortises away on bigger documents. The cost-line risk in the ADR remains open until measured on a realistic multi-season fixture.
+
+### Up Next: ADR 027 Yjs spike Step 3 — replace `useSyncedStorage` with `useYjsDoc`
+
+Step 3 is the integration cut: wire the SyncedStore shape from Step 2 into the existing `useAllotment` → `useAllotmentData` → `useSyncedStorage` → `usePersistedStorage` chain. The target is a new `useYjsDoc` hook that preserves the `data: AllotmentData | null` read API (callers of `useAllotment` should see no shape change) while routing every write through SyncedStore's proxy. `y-indexeddb` replaces raw localStorage for offline persistence; the Cloudflare Durable Object transport is deferred to Step 4 (the migration step) so Step 3 can be reviewed and merged independently. Open question Step 3 needs to answer: whether every consumer of `setData` in `useAllotmentAreas`, `useAllotmentPlantings`, `useAllotmentVarieties`, and the other domain hooks can be ported by replacing the immutable update with an in-place mutation through the proxy, or whether a thin `withDraft(store, fn)` wrapper (Immer-style) is needed to keep the existing code shape. Steps 4–5 (migrate live users, retire the LWW machinery) are unchanged from the ADR outline.
 
 ### Research-Driven Improvements: Backlog
 

@@ -42,6 +42,22 @@ The first step is this ADR (in flight). Subsequent steps live on a feature branc
 
 Step two converts `AllotmentData` to a Yjs document on a spike branch. The 192-entry vegetable database is static and stays as TypeScript modules — only mutable user state (`meta`, `seasons`, `varieties`, `customTasks`, `maintenanceTasks`, `gardenEvents`, `compost`) moves into the `Y.Doc`. The top-level shape maps to a `Y.Map` for `meta`, `Y.Array` for `seasons`, and so on. Rough sizing: a few days of work, not hours, mostly because every consumer of `setData` needs to learn to write through the Yjs APIs instead of replacing the root object. The spike should also evaluate a proxy wrapper such as `valtio/yjs` or `synced-store`, which let callers keep the existing immutable-style read/write idiom on top of Yjs and could cut the consumer refactor surface significantly if the developer experience holds up.
 
+### Step 2 first cut (2026-05-12, branch `spike/yjs-allotment`)
+
+A proof-of-concept landed in `src/lib/yjs-spike/allotment-yjs.ts` with 9 passing unit tests in `src/__tests__/lib/yjs-spike/`. Key decisions out of the cut:
+
+The proxy-wrapper question is resolved in favour of **SyncedStore** (`@syncedstore/core@^0.6`). The valtio-yjs alternative is explicitly self-described as alpha ("the experiment is finished, now it's in alpha") and would not be acceptable for a migration that touches every user's data. SyncedStore is production-tested via BlockNote, has a clean shape API, and its `getYjsDoc()` escape hatch keeps the raw Yjs surface available where needed.
+
+SyncedStore's shape validator imposes one constraint worth documenting up front: top-level entries must be exactly `{}`, `[]`, `"xml"`, or `"text"` — nested initializers throw `Root Object initializer must always be {}`. The legacy `AllotmentData.layout.areas` wrapper is therefore collapsed away in the Yjs shape (`areas` lifts to the top level) and reconstructed at the serialization boundary. The same constraint forces top-level primitives (`version`, `currentYear`) into a nested `state` Y.Map. Neither change is user-visible — the legacy JSON shape is preserved across the hydrate / serialize round-trip.
+
+`undefined` values must be dropped before assignment — Yjs cannot represent `undefined` and SyncedStore is inconsistent about whether it throws or silently drops. The `assignDefined` helper in the PoC walks the source object and skips undefined fields; the same discipline will apply to every write site in the Step 3 hook.
+
+Concurrent-edit semantics are confirmed in tests: two doc instances editing different plantings in the same bed merge cleanly; two doc instances editing the same field (an area name) converge to a deterministic single value. This is the headline win that the LWW machinery in `useSyncedStorage` cannot deliver.
+
+First binary-size measurement on a small fixture (one bed with 2 plantings, one tree, 2 varieties, one compost pile): JSON 2146B, Yjs binary 2594B, ratio 1.21. The Yjs payload is *larger* than the JSON at this size — CRDT metadata is a fixed overhead that only amortises away on bigger documents. The cost-line risk the ADR enumerates remains open until measured on a realistic multi-season fixture; the small-doc data point is a cautionary one for users who are barely past the onboarding wizard.
+
+Not addressed in this cut: integration with `useAllotment`, `y-indexeddb` persistence, Cloudflare Durable Object transport, Clerk JWT verification inside a Worker, and the dual-write migration. Step 3 picks up the integration; Steps 4–5 unchanged from the original outline.
+
 Step three replaces `useSyncedStorage` with a `useYjsDoc` hook. The `usePersistedStorage` semantics stay (local cache via `y-indexeddb` instead of raw localStorage) so the offline-first guarantee is preserved.
 
 Step four migrates live users. A one-shot import reads each user's current `allotments.data` JSONB row, hydrates a Yjs doc from it, and snapshots the binary state into a new `BYTEA` column (e.g. `allotments.yjs_state`) or a dedicated `allotment_yjs` table — `JSONB` cannot hold raw binary, so reusing `allotments.data` directly is not an option. The migration should run as a dual-write phase: keep updating both the legacy JSONB and the new Yjs binary for a short window so the cut-over is reversible per user if a decoding bug surfaces. The `allotment_history` table from #332 is the safety net during the migration — every user has at least one recovery point predating the migration.

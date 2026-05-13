@@ -44,6 +44,7 @@
     "@sentry/nextjs": "^10.52.0",
     "@serwist/next": "^9.5.11",
     "@supabase/supabase-js": "^2.105.4",
+    "@syncedstore/core": "^0.6.0",
     "@upstash/redis": "^1.38.0",
     "driver.js": "^1.4.0",
     "html5-qrcode": "^2.3.8",
@@ -56,6 +57,8 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "web-vitals": "^5.2.0",
+    "y-indexeddb": "^9.0.12",
+    "yjs": "^13.6.30",
     "zod": "^4.4.3"
   },
   "devDependencies": {
