@@ -182,6 +182,10 @@ The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonCl
 
 Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be created in the Clerk Dashboard (JWT Templates > New template > Supabase preset). The template claims should be `{ "aud": "authenticated", "role": "authenticated", "email": "{{user.primary_email_address}}" }` — do not include `sub` as it is a reserved claim that Clerk sets automatically to the user ID. The signing key must be the Supabase JWT Secret (Project Settings > API > JWT Secret), algorithm HS256. The RLS policies in `sql/001-allotments.sql` use `auth.jwt() ->> 'sub'` to match rows to users.
 
+### Yjs Sync Spike (ADR 027)
+
+`src/lib/yjs-spike/allotment-yjs.ts` is a proof-of-concept that maps `AllotmentData` onto a Yjs document via SyncedStore (`@syncedstore/core`). It exports `createAllotmentDoc`, `hydrateFromJson`, `serializeToJson`, and `encodeDocState` / `decodeDocState` for the eventual BYTEA round-trip. The module is **not wired into `useAllotment` yet** — Step 2 of ADR 027 ships the shape, hydrate/serialize, and CRDT-merge tests in isolation; Step 3 will replace `useSyncedStorage` with a `useYjsDoc` hook. Treat this directory as exploratory until that integration lands.
+
 ### GDPR Compliance
 
 `GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
