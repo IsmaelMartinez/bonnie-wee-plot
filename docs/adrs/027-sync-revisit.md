@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed (spike not yet started). Supersedes the cloud-sync portion of ADR 024 once accepted; the share/receive flow described there remains.
+Accepted, spike in flight (Step 1 ADR + Step 2 PoC merged in PR #364 on 2026-05-13; Steps 3–5 outstanding). Supersedes the cloud-sync portion of ADR 024 once Step 5 retires the LWW machinery; the share/receive flow described there remains.
 
 ## Date
 
@@ -42,15 +42,17 @@ The first step is this ADR (in flight). Subsequent steps live on a feature branc
 
 Step two converts `AllotmentData` to a Yjs document on a spike branch. The 192-entry vegetable database is static and stays as TypeScript modules — only mutable user state (`meta`, `seasons`, `varieties`, `customTasks`, `maintenanceTasks`, `gardenEvents`, `compost`) moves into the `Y.Doc`. The top-level shape maps to a `Y.Map` for `meta`, `Y.Array` for `seasons`, and so on. Rough sizing: a few days of work, not hours, mostly because every consumer of `setData` needs to learn to write through the Yjs APIs instead of replacing the root object. The spike should also evaluate a proxy wrapper such as `valtio/yjs` or `synced-store`, which let callers keep the existing immutable-style read/write idiom on top of Yjs and could cut the consumer refactor surface significantly if the developer experience holds up.
 
-### Step 2 first cut (2026-05-12, branch `spike/yjs-allotment`)
+### Step 2 shipped (2026-05-13, PR #364 `8b28818`)
 
-A proof-of-concept landed in `src/lib/yjs-spike/allotment-yjs.ts` with 9 passing unit tests in `src/__tests__/lib/yjs-spike/`. Key decisions out of the cut:
+A proof-of-concept landed on `main` in `src/lib/yjs-spike/allotment-yjs.ts` with 13 passing unit tests in `src/__tests__/lib/yjs-spike/`. Key decisions out of the cut:
 
 The proxy-wrapper question is resolved in favour of **SyncedStore** (`@syncedstore/core@^0.6`). The valtio-yjs alternative is explicitly self-described as alpha ("the experiment is finished, now it's in alpha") and would not be acceptable for a migration that touches every user's data. SyncedStore is production-tested via BlockNote, has a clean shape API, and its `getYjsDoc()` escape hatch keeps the raw Yjs surface available where needed.
 
 SyncedStore's shape validator imposes one constraint worth documenting up front: top-level entries must be exactly `{}`, `[]`, `"xml"`, or `"text"` — nested initializers throw `Root Object initializer must always be {}`. The legacy `AllotmentData.layout.areas` wrapper is therefore collapsed away in the Yjs shape (`areas` lifts to the top level) and reconstructed at the serialization boundary. The same constraint forces top-level primitives (`version`, `currentYear`) into a nested `state` Y.Map. Neither change is user-visible — the legacy JSON shape is preserved across the hydrate / serialize round-trip.
 
 `undefined` values must be dropped before assignment — Yjs cannot represent `undefined` and SyncedStore is inconsistent about whether it throws or silently drops. The `assignDefined` helper in the PoC walks the source object and skips undefined fields; the same discipline will apply to every write site in the Step 3 hook.
+
+Two correctness gotchas were found during review and now have tests. First, re-hydration has to clear *every* mutable container, not just the top-level Y.Arrays: the `meta` Y.Map needs an explicit key-by-key delete pass before `assignDefined` runs, otherwise a hydrate from a backup with fewer fields silently keeps the previous run's `aiAdvisorEnabled` / `coordinates` / etc. Second, SyncedStore cannot distinguish "field never set" from "empty array" once hydrate has run — both leave a zero-length Y.Array — so the canonical `serializeToJson` output normalises optional top-level arrays (`customTasks`, `maintenanceTasks`, `gardenEvents`, `compost`) to `[]` regardless of which shape the input had. Both behaviours are documented inline in `allotment-yjs.ts` and asserted by tests; Step 3 will need to thread the same discipline through every domain-hook write site.
 
 Concurrent-edit semantics are confirmed in tests: two doc instances editing different plantings in the same bed merge cleanly; two doc instances editing the same field (an area name) converge to a deterministic single value. This is the headline win that the LWW machinery in `useSyncedStorage` cannot deliver.
 

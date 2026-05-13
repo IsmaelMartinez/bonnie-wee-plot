@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-12 (ADR 027 Yjs spike Step 2 first cut on branch `spike/yjs-allotment`; Step 3 hook integration is the next deliberate work)
+Last updated: 2026-05-13 (ADR 027 Yjs spike Step 2 merged in PR #364; Step 3 hook integration is the next deliberate work)
 
 ## What's Been Completed
 
@@ -341,11 +341,13 @@ The opt-in banner's "Try Aitor" button used to only flip `meta.aiAdvisorEnabled`
 
 After PR #345 added the server-side Gemini free tier, clicking Try Aitor still threw "Please configure your OpenAI API key in Settings" because two client-side guards bailed before the request reached `/api/ai-advisor`. PR #351 dropped the `!token` early-throw in `AitorChatModal.tsx`, wrapped the `x-openai-token` header in an `if (options.apiToken)` check inside `openai-client.ts`, and kept the `tokenPattern` validator only in the static-deployment `callOpenAIDirect` fallback (which genuinely needs a BYO key because GitHub Pages can't reach the Gemini path). Signed-in users without a BYO key now hit Gemini cleanly; the modal's quota-exceeded (429) and config-error branches still match the failure modes they were written for, while any other server error (including the "JWT template missing" path) falls through to the generic "Temporary Connection Issue" message.
 
-### ADR 027 Yjs spike Step 2 — First cut shipped (branch `spike/yjs-allotment`)
+### ADR 027 Yjs spike Step 2 — Shipped (PR #364, `8b28818`)
 
-A proof-of-concept conversion of `AllotmentData` to a Yjs document landed on the spike branch on 2026-05-12. `src/lib/yjs-spike/allotment-yjs.ts` defines the top-level shape, a `hydrateFromJson` helper that seeds from an existing `AllotmentData` snapshot inside a single Yjs transaction, a `serializeToJson` mirror, and `encodeDocState` / `decodeDocState` for the BYTEA round-trip the migration step will need. 9 unit tests in `src/__tests__/lib/yjs-spike/allotment-yjs.test.ts` cover hydrate-serialize round-trip, proxy mutations, binary encoding, and the two CRDT-semantics cases (disjoint edits and same-field convergence).
+A proof-of-concept conversion of `AllotmentData` to a Yjs document landed on `main` on 2026-05-13. `src/lib/yjs-spike/allotment-yjs.ts` defines the top-level shape, a `hydrateFromJson` helper that seeds from an existing `AllotmentData` snapshot inside a single Yjs transaction, a `serializeToJson` mirror, and `encodeDocState` / `decodeDocState` for the BYTEA round-trip the migration step will need. 13 unit tests in `src/__tests__/lib/yjs-spike/allotment-yjs.test.ts` cover hydrate-serialize round-trip, idempotent re-hydration, replace-on-different-data semantics, meta-key-clear on re-hydrate, optional-array normalisation, proxy mutations, binary encoding, and the two CRDT-semantics cases (disjoint edits and same-field convergence).
 
 Proxy-wrapper decision: **SyncedStore** (`@syncedstore/core@^0.6`) over valtio-yjs. valtio-yjs is self-described as alpha; SyncedStore is production-tested in BlockNote and has the clean `shape` API plus a `getYjsDoc()` escape hatch. Two shape constraints worth flagging: top-level entries must be empty `{}` / `[]` (the validator throws otherwise), so `AllotmentData.layout.areas` is hoisted to a top-level `areas` Y.Array and `version` / `currentYear` are nested inside a `state` Y.Map. Neither change is user-visible — the legacy JSON shape is reconstructed at the serialization boundary. The other constraint: `undefined` values must be dropped before assignment (Yjs has no `undefined`), enforced by the `assignDefined` helper.
+
+Two correctness gotchas surfaced during review and are now covered by tests. First, `hydrateFromJson` has to clear the top-level Y.Arrays *and* the `meta` Y.Map before repopulating — without the clears, a second hydrate from a backup with fewer fields silently keeps stale data (the first-round Gemini review caught the array case; the second-round self-review caught the matching meta case). Second, SyncedStore cannot distinguish "field never set" from "empty array" once hydrate has run, so the canonical `serializeToJson` output normalises optional top-level arrays to `[]`. Both behaviours are documented inline and asserted by tests.
 
 First cost-line measurement: on a small fixture (one bed with 2 plantings, one tree, 2 varieties, one compost pile, ~2.1KB JSON), the Yjs binary is 2.6KB — a 1.21x ratio *larger* than JSON. CRDT metadata is a fixed overhead that only amortises away on bigger documents. The cost-line risk in the ADR remains open until measured on a realistic multi-season fixture.
 
