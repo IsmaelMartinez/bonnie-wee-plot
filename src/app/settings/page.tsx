@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import { Shield, MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
+import { MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
@@ -56,8 +56,12 @@ export default function SettingsPage() {
       </div>
 
       <div className="zen-card p-6" data-tour="settings-tabs">
+        {/* key remounts Tabs once Clerk auth resolves so `defaultTab` picks up
+            the correct landing tab. Tabs only reads defaultTab on initial
+            useState; without the remount, signed-in users would stay on Data. */}
         <Tabs
-          defaultTab="data"
+          key={isSignedIn ? 'signed-in' : 'signed-out'}
+          defaultTab={isSignedIn ? 'ai-location' : 'data'}
           tabs={[
             ...(isSignedIn ? [{
               id: 'ai-location',
@@ -116,7 +120,7 @@ export default function SettingsPage() {
                             onPaste={handlePaste}
                             placeholder="sk-..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
-                            aria-describedby="token-help-text token-privacy-notice"
+                            aria-describedby="token-help-text"
                             autoComplete="off"
                           />
                         </div>
@@ -133,18 +137,6 @@ export default function SettingsPage() {
                               Get one here
                             </a>
                           </p>
-                        </div>
-                      </div>
-
-                      <div id="token-privacy-notice" className="bg-yellow-50 border border-yellow-200 rounded-md p-3" role="note">
-                        <div className="flex items-start">
-                          <Shield className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                          <div className="ml-2">
-                            <p className="text-sm text-yellow-800">
-                              <strong>Privacy Notice:</strong> Your token is stored only in your browser session and never saved permanently.
-                              It&apos;s sent securely to OpenAI only when making requests.
-                            </p>
-                          </div>
                         </div>
                       </div>
 

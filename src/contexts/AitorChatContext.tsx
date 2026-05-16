@@ -1,66 +1,85 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  Dispatch,
+  SetStateAction,
+} from 'react'
+import type { ChatMessage as ChatMessageType } from '@/types/api'
 
-export type AitorChatMode = 'chat' | 'diagnose'
+export type ExtendedChatMessage = ChatMessageType & { image?: string }
 
 interface OpenChatOptions {
   initialMessage?: string
-  initialMode?: AitorChatMode
 }
 
 interface AitorChatContextType {
   isOpen: boolean
+  isMinimized: boolean
   openChat: (options?: OpenChatOptions | string) => void
   closeChat: () => void
+  minimizeChat: () => void
+  restoreChat: () => void
   initialMessage: string | null
   clearInitialMessage: () => void
-  initialMode: AitorChatMode
-  clearInitialMode: () => void
+  // Lifted out of the modal so close→reopen does not drop conversation
+  // history when AitorAuthGate unmounts the modal.
+  messages: ExtendedChatMessage[]
+  setMessages: Dispatch<SetStateAction<ExtendedChatMessage[]>>
 }
 
 const AitorChatContext = createContext<AitorChatContextType | null>(null)
 
 export function AitorChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
   const [initialMessage, setInitialMessage] = useState<string | null>(null)
-  const [initialMode, setInitialMode] = useState<AitorChatMode>('chat')
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
 
   const openChat = useCallback((options?: OpenChatOptions | string) => {
     if (typeof options === 'string') {
       setInitialMessage(options)
-      setInitialMode('chat')
-    } else if (options) {
-      if (options.initialMessage) setInitialMessage(options.initialMessage)
-      setInitialMode(options.initialMode ?? 'chat')
-    } else {
-      setInitialMode('chat')
+    } else if (options?.initialMessage) {
+      setInitialMessage(options.initialMessage)
     }
+    setIsMinimized(false)
     setIsOpen(true)
   }, [])
 
   const closeChat = useCallback(() => {
     setIsOpen(false)
+    setIsMinimized(false)
+  }, [])
+
+  const minimizeChat = useCallback(() => {
+    setIsMinimized(true)
+  }, [])
+
+  const restoreChat = useCallback(() => {
+    setIsMinimized(false)
   }, [])
 
   const clearInitialMessage = useCallback(() => {
     setInitialMessage(null)
   }, [])
 
-  const clearInitialMode = useCallback(() => {
-    setInitialMode('chat')
-  }, [])
-
   return (
     <AitorChatContext.Provider
       value={{
         isOpen,
+        isMinimized,
         openChat,
         closeChat,
+        minimizeChat,
+        restoreChat,
         initialMessage,
         clearInitialMessage,
-        initialMode,
-        clearInitialMode,
+        messages,
+        setMessages,
       }}
     >
       {children}
