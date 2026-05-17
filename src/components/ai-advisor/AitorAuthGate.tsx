@@ -9,10 +9,20 @@ import AitorChatButton from './AitorChatButton'
 // Lazy-load the heavy modal. It owns useAllotment/useApiToken/useLocation and a
 // hefty allotmentContext useMemo — none of which should run until the user
 // actually opens the chat. ssr:false avoids hydration overhead for a
-// client-only feature.
+// client-only feature. The launcher disappears the moment the user clicks
+// "Ask Aitor"; render a small spinner in the same corner so slow-network
+// users see visual continuity until the dialog appears.
 const AitorChatModal = dynamic(() => import('./AitorChatModal'), {
   ssr: false,
-  loading: () => null,
+  loading: () => (
+    <div
+      className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 bg-zen-moss-600 rounded-full shadow-lg"
+      role="status"
+      aria-label="Loading Aitor chat"
+    >
+      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
 })
 
 /**
