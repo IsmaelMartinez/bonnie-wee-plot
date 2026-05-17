@@ -40,6 +40,11 @@ interface SameTabUpdateDetail<T> {
   // accepted a fresher user write.
   seq: number
   data: T
+  // Pre-computed `JSON.stringify(data)` from the sender. Receivers store this
+  // directly into `latestSerializedRef` so the same string flows through both
+  // the write and the read path, avoiding a redundant stringify on each
+  // sibling.
+  serialized: string
 }
 
 type SameTabUpdateEvent<T> = CustomEvent<SameTabUpdateDetail<T>>
@@ -122,6 +127,41 @@ export function usePersistedStorage<T>(
   // per mount, giving each hook instance a distinct id.
   const [instanceId] = useState(() => `usp-${++instanceCounter}`)
 
+  // Records a value that has just been adopted from storage (own write or
+  // sibling broadcast). Seeds `latestSerializedRef` so the auto-save effect
+  // sees no diff between `data` and what's in storage and bumps
+  // `latestSeenSeqRef` so stale broadcasts already in flight (queued from a
+  // previous instance or an earlier sibling) are ignored.
+  const recordAdoptedState = useCallback(
+    (serialized: string, seq: number) => {
+      latestSerializedRef.current = serialized
+      if (seq > latestSeenSeqRef.current) {
+        latestSeenSeqRef.current = seq
+      }
+    },
+    []
+  )
+
+  // Records a value that we just wrote to localStorage ourselves and
+  // broadcasts it to sibling instances in the same tab. Used by
+  // `debouncedSave`, `flushSave`, and `retrySave` — they all share this exact
+  // post-save bookkeeping.
+  const recordSavedState = useCallback(
+    (serialized: string, dataToBroadcast: T) => {
+      const seq = nextSameTabSeq()
+      latestSerializedRef.current = serialized
+      latestSeenSeqRef.current = seq
+      dispatchSameTabUpdate<T>({
+        storageKey,
+        instanceId,
+        seq,
+        data: dataToBroadcast,
+        serialized,
+      })
+    },
+    [storageKey, instanceId]
+  )
+
   // Load data on mount
   useEffect(() => {
     const result = load()
@@ -130,14 +170,16 @@ export function usePersistedStorage<T>(
       // Record what we just loaded so the auto-save effect's first run knows
       // the data is already in storage and skips both the redundant write and
       // the resulting broadcast — siblings would otherwise echo each other's
-      // initial loads back into freshly-set user state.
-      latestSerializedRef.current = JSON.stringify(result.data)
+      // initial loads back into freshly-set user state. Also fast-forward
+      // `latestSeenSeqRef` to the current sequence so any stale broadcasts
+      // already queued from a previous instance are ignored.
+      recordAdoptedState(JSON.stringify(result.data), sameTabSeq)
       setError(null)
     } else {
       setError(result.error || 'Failed to load data')
     }
     setIsLoading(false)
-  }, [load])
+  }, [load, recordAdoptedState])
 
   // Multi-tab sync
   useEffect(() => {
@@ -153,6 +195,10 @@ export function usePersistedStorage<T>(
         const result = load()
         if (result.success && result.data) {
           setDataState(result.data)
+          // Seed the serialized snapshot so the next auto-save tick sees no
+          // diff and skips, instead of treating this remote-driven change as
+          // a fresh local edit and echoing it back through localStorage.
+          recordAdoptedState(JSON.stringify(result.data), sameTabSeq)
           onSync?.(result.data)
           setIsSyncedFromOtherTab(true)
           setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
@@ -183,6 +229,10 @@ export function usePersistedStorage<T>(
         const result = load()
         if (result.success && result.data) {
           setDataState(result.data)
+          // Seed the serialized snapshot so the next auto-save tick sees no
+          // diff and skips, instead of treating this remote-driven change as
+          // a fresh local edit and echoing it back through localStorage.
+          recordAdoptedState(JSON.stringify(result.data), sameTabSeq)
           onSync?.(result.data)
           setIsSyncedFromOtherTab(true)
           setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
@@ -199,6 +249,10 @@ export function usePersistedStorage<T>(
       const result = load()
       if (result.success && result.data) {
         setDataState(result.data)
+        // Seed the serialized snapshot so the next auto-save tick sees no
+        // diff and skips, instead of treating this remote-driven change as
+        // a fresh local edit and echoing it back through localStorage.
+        recordAdoptedState(JSON.stringify(result.data), sameTabSeq)
         onSync?.(result.data)
         setIsSyncedFromOtherTab(true)
         setTimeout(() => setIsSyncedFromOtherTab(false), 3000)
@@ -236,15 +290,21 @@ export function usePersistedStorage<T>(
           )
           return
         }
-        latestSeenSeqRef.current = detail.seq
-        latestSerializedRef.current = JSON.stringify(validation.data)
+        // Reuse the sender's pre-computed string when the validator returned
+        // the data unchanged; only re-stringify if the validator normalised
+        // the payload (different reference) so our serialized snapshot
+        // matches the data we actually adopted.
+        const adoptedSerialized =
+          validation.data === detail.data
+            ? detail.serialized
+            : JSON.stringify(validation.data)
+        recordAdoptedState(adoptedSerialized, detail.seq)
         setDataState(validation.data)
         onSync?.(validation.data)
         return
       }
 
-      latestSeenSeqRef.current = detail.seq
-      latestSerializedRef.current = JSON.stringify(detail.data)
+      recordAdoptedState(detail.serialized, detail.seq)
       setDataState(detail.data)
       onSync?.(detail.data)
     }
@@ -255,7 +315,7 @@ export function usePersistedStorage<T>(
       window.removeEventListener('sync-data-updated', handleSyncUpdate)
       window.removeEventListener(SAME_TAB_UPDATE_EVENT, handleSameTabUpdate)
     }
-  }, [storageKey, load, validate, onSync, instanceId])
+  }, [storageKey, load, validate, onSync, instanceId, recordAdoptedState])
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -313,23 +373,16 @@ export function usePersistedStorage<T>(
             // Clean up from recent saves after 1 second
             setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
             // Record our own write so the listener's seq guard recognises any
-            // stale sibling echoes as older and refuses them.
-            latestSerializedRef.current = serialized
-            const seq = nextSameTabSeq()
-            latestSeenSeqRef.current = seq
-            dispatchSameTabUpdate<T>({
-              storageKey,
-              instanceId,
-              seq,
-              data: dataToBroadcast,
-            })
+            // stale sibling echoes as older and refuses them, and broadcast
+            // to sibling instances.
+            recordSavedState(serialized, dataToBroadcast)
           }
           pendingDataRef.current = null
         }
         saveTimeoutRef.current = null
       }, SAVE_DEBOUNCE_MS)
     },
-    [save, storageKey, instanceId]
+    [save, recordSavedState]
   )
 
   // Auto-save on data change
@@ -406,15 +459,7 @@ export function usePersistedStorage<T>(
         setLastSavedAt(new Date())
         setTimeout(() => setSaveStatus('idle'), 2000)
         setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
-        latestSerializedRef.current = serialized
-        const seq = nextSameTabSeq()
-        latestSeenSeqRef.current = seq
-        dispatchSameTabUpdate<T>({
-          storageKey,
-          instanceId,
-          seq,
-          data: dataToSave,
-        })
+        recordSavedState(serialized, dataToSave)
         return true
       } else {
         setSaveError('Verification failed: data did not persist correctly')
@@ -428,7 +473,7 @@ export function usePersistedStorage<T>(
       setSaveStatus('error')
       return false
     }
-  }, [save, load, storageKey, instanceId])
+  }, [save, load, recordSavedState])
 
   const clearSaveError = useCallback(() => {
     setSaveError(null)
@@ -455,17 +500,9 @@ export function usePersistedStorage<T>(
       setLastSavedAt(new Date())
       setTimeout(() => setSaveStatus('idle'), 2000)
       setTimeout(() => recentSavesRef.current.delete(serialized), 1000)
-      latestSerializedRef.current = serialized
-      const seq = nextSameTabSeq()
-      latestSeenSeqRef.current = seq
-      dispatchSameTabUpdate<T>({
-        storageKey,
-        instanceId,
-        seq,
-        data,
-      })
+      recordSavedState(serialized, data)
     }
-  }, [data, save, storageKey, instanceId])
+  }, [data, save, recordSavedState])
 
   // Cancel any pending debounced save without writing to localStorage.
   // Use before a direct save to prevent stale pending data from overwriting.

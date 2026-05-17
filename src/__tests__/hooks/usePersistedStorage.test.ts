@@ -467,6 +467,57 @@ describe('usePersistedStorage - Race Condition Handling', () => {
     expect(mockLoad).toHaveBeenCalledTimes(1)
   })
 
+  it('does not re-save data adopted from a cross-tab storage event', async () => {
+    // After a cross-tab `storage` event sets new data, the auto-save effect
+    // would naively treat the new state as a local edit and write the same
+    // value back to localStorage — that write would broadcast a `storage`
+    // event in the other direction and risk a ping-pong. The handler must
+    // seed `latestSerializedRef` so `debouncedSave` skips the redundant save.
+    const initial: TestData = { version: 1, value: 'initial' }
+    const fromOtherTab: TestData = { version: 1, value: 'from-other-tab' }
+
+    mockLoad.mockReturnValueOnce({ success: true, data: initial })
+    mockSave.mockReturnValue({ success: true })
+
+    const { result } = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'cross-tab-key',
+        load: mockLoad,
+        save: mockSave,
+      })
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    // Clear any saves from initial auto-save settling.
+    mockSave.mockClear()
+
+    // Subsequent loads return the other-tab payload.
+    mockLoad.mockReturnValue({ success: true, data: fromOtherTab })
+
+    // Simulate a `storage` event from another tab.
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'cross-tab-key',
+          newValue: JSON.stringify(fromOtherTab),
+          oldValue: JSON.stringify(initial),
+        })
+      )
+    })
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(fromOtherTab)
+    })
+
+    // Give the auto-save debounce + status reset enough time to fire.
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // `save` must NOT have been called for the adopted data — otherwise we'd
+    // be writing back to localStorage exactly what arrived from the other tab.
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
   it('handles pending data correctly - waits for flush before import', async () => {
     const testData: TestData = { version: 1, value: 'initial' }
     const pendingData: TestData = { version: 1, value: 'pending-edit' }
