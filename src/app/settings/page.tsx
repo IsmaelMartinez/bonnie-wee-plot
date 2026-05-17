@@ -107,10 +107,11 @@ export default function SettingsPage() {
                     </div>
 
                     <details
+                      key={token ? 'has-token' : 'no-token'}
                       open={!!token}
                       className="group rounded-md border border-zen-stone-200 bg-white"
                     >
-                      <summary className="flex items-center justify-between gap-2 cursor-pointer list-none px-3 py-2 text-sm text-zen-ink-700 hover:bg-zen-stone-50 rounded-md">
+                      <summary className="flex items-center justify-between gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden px-3 py-2 text-sm text-zen-ink-700 hover:bg-zen-stone-50 rounded-md">
                         <span>Use my own OpenAI API key (advanced)</span>
                         <ChevronDown
                           className="w-4 h-4 text-zen-stone-400 transition-transform group-open:rotate-180"
