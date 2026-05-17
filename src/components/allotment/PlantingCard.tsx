@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { AlertTriangle, Check, Droplets, Sun, ArrowRight, Calendar, Info } from 'lucide-react'
+import { AlertTriangle, Check, Droplets, Sun, ArrowRight, Calendar } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
@@ -64,22 +64,23 @@ export default function PlantingCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zen-ink-800">
-              {veg?.name || planting.plantId}
-            </span>
-            {onPlantInfo && veg && (
+            {onPlantInfo && veg ? (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
                   onPlantInfo(planting.plantId)
                 }}
-                className="p-1 text-zen-stone-400 hover:text-zen-moss-600 transition-colors rounded-zen"
+                className="font-medium text-zen-ink-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-moss-500 focus-visible:ring-offset-1 rounded-sm bg-transparent p-0 text-left"
                 aria-label={`Info about ${veg.name}`}
                 title={`About ${veg.name}`}
               >
-                <Info className="w-3.5 h-3.5" />
+                {veg.name}
               </button>
+            ) : (
+              <span className="font-medium text-zen-ink-800">
+                {veg?.name || planting.plantId}
+              </span>
             )}
             <span
               className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${getPhaseColors(phaseInfo.color)}`}
