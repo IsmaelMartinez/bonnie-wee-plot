@@ -95,6 +95,29 @@ describe('PlantingCard', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
+  it('pressing Enter on the plant name calls onPlantInfo and does not bubble to the card onClick', async () => {
+    const user = userEvent.setup()
+    const onPlantInfo = vi.fn()
+    const onClick = vi.fn()
+    const onUpdate = vi.fn()
+
+    render(
+      <PlantingCard
+        planting={makePlanting()}
+        onUpdate={onUpdate}
+        onPlantInfo={onPlantInfo}
+        onClick={onClick}
+      />
+    )
+
+    const nameButton = screen.getByRole('button', { name: /info about tomato/i })
+    nameButton.focus()
+    await user.keyboard('{Enter}')
+
+    expect(onPlantInfo).toHaveBeenCalledTimes(1)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
   it('renders the plant name as plain text when onPlantInfo is not provided', () => {
     const onUpdate = vi.fn()
 

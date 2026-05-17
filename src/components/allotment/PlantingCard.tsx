@@ -71,6 +71,7 @@ export default function PlantingCard({
                   e.stopPropagation()
                   onPlantInfo(planting.plantId)
                 }}
+                onKeyDown={(e) => e.stopPropagation()}
                 className="font-medium text-zen-ink-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-moss-500 focus-visible:ring-offset-1 rounded-sm bg-transparent p-0 text-left"
                 aria-label={`Info about ${veg.name}`}
                 title={`About ${veg.name}`}
