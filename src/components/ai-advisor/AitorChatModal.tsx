@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Leaf, PowerOff } from 'lucide-react'
-import type { ChatMessage as ChatMessageType } from '@/types/api'
+import { Leaf, Minus, PowerOff } from 'lucide-react'
 
 // Extracted hooks
 import { useLocation } from '@/hooks/useLocation'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useAllotment } from '@/hooks/useAllotment'
-import { useAitorChat } from '@/contexts/AitorChatContext'
+import { useAitorChat, type ExtendedChatMessage } from '@/contexts/AitorChatContext'
 
 // Rate limiting
 import { aiRateLimiter, formatCooldown } from '@/lib/rate-limiter'
@@ -32,9 +31,6 @@ import ChatInput from '@/components/ai-advisor/ChatInput'
 import { ToolCallConfirmation } from '@/components/ai-advisor/ToolCallConfirmation'
 import { Toast, ToastType } from '@/components/ui/Toast'
 import Dialog from '@/components/ui/Dialog'
-
-// Extended message type with image support
-type ExtendedChatMessage = ChatMessageType & { image?: string }
 
 // Vercel caps request bodies at ~4.5 MB; an unprocessed phone photo as base64
 // blows past that and the route handler never runs (FUNCTION_PAYLOAD_TOO_LARGE).
@@ -88,8 +84,17 @@ const imageToBase64 = (file: Blob): Promise<string> => {
 }
 
 export default function AitorChatModal() {
-  const { isOpen, closeChat, initialMessage, clearInitialMessage, initialMode, clearInitialMode } = useAitorChat()
-  const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
+  const {
+    isOpen,
+    isMinimized,
+    closeChat,
+    minimizeChat,
+    restoreChat,
+    initialMessage,
+    clearInitialMessage,
+    messages,
+    setMessages,
+  } = useAitorChat()
   const [isLoading, setIsLoading] = useState(false)
   const [rateLimitInfo, setRateLimitInfo] = useState({ cooldownMs: 0, remainingRequests: 5 })
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -111,9 +116,8 @@ export default function AitorChatModal() {
 
   const handleDisableAitor = useCallback(() => {
     updateMeta({ aiAdvisorEnabled: false })
-    clearInitialMode()
     closeChat()
-  }, [updateMeta, clearInitialMode, closeChat])
+  }, [updateMeta, closeChat])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -127,12 +131,6 @@ export default function AitorChatModal() {
     if (!allotmentData) return ''
 
     const lines: string[] = []
-
-    // Diagnose-mode hint: focuses the model on photo-based symptom diagnosis.
-    if (initialMode === 'diagnose') {
-      lines.push('FOCUS: Focus this conversation on diagnosing plant symptoms from the user\'s photo.')
-      lines.push('')
-    }
 
     // Basic info
     lines.push(`ALLOTMENT: ${allotmentData.meta.name}`)
@@ -171,7 +169,7 @@ export default function AitorChatModal() {
     lines.push(`PERMANENT PLANTINGS: ${[...treeAreas, ...berryAreas].map(p => p.name).join(', ')}`)
 
     return lines.join('\n')
-  }, [allotmentData, currentSeason, selectedYear, getAreasByKind, initialMode])
+  }, [allotmentData, currentSeason, selectedYear, getAreasByKind])
 
   // Update rate limit state
   const updateRateLimitState = useCallback(() => {
@@ -338,7 +336,7 @@ export default function AitorChatModal() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, token, userLocation, allotmentData, allotmentContext, updateRateLimitState])
+  }, [messages, token, userLocation, allotmentData, allotmentContext, updateRateLimitState, setMessages])
 
   // Handle initial message from context
   useEffect(() => {
@@ -452,16 +450,13 @@ export default function AitorChatModal() {
       setPendingToolCalls(null)
       setIsExecutingTools(false)
     }
-  }, [pendingToolCalls, allotmentData, selectedYear, reloadAllotment])
+  }, [pendingToolCalls, allotmentData, selectedYear, reloadAllotment, setMessages])
 
   return (
     <>
       <Dialog
-        isOpen={isOpen}
-        onClose={() => {
-          clearInitialMode()
-          closeChat()
-        }}
+        isOpen={isOpen && !isMinimized}
+        onClose={closeChat}
         title="Ask Aitor"
         maxWidth="2xl"
         fullContent
@@ -482,6 +477,15 @@ export default function AitorChatModal() {
                   onRetry={detectUserLocation}
                   isDetecting={isDetecting}
                 />
+                <button
+                  onClick={minimizeChat}
+                  className="flex items-center gap-1 text-xs text-zen-stone-500 hover:text-zen-moss-600 transition-colors px-2 py-1 min-h-[44px] md:min-h-0"
+                  aria-label="Minimize Aitor — keep conversation in a pill"
+                  title="Minimize (keeps your conversation)"
+                >
+                  <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Minimize</span>
+                </button>
                 <button
                   onClick={handleDisableAitor}
                   className="flex items-center gap-1 text-xs text-zen-stone-500 hover:text-zen-kitsune-600 transition-colors px-2 py-1 min-h-[44px] md:min-h-0"
@@ -543,11 +547,27 @@ export default function AitorChatModal() {
               onSubmit={handleSubmit}
               isLoading={isLoading}
               rateLimitInfo={rateLimitInfo}
-              autoOpenFilePicker={isOpen && initialMode === 'diagnose'}
             />
           </div>
         </div>
       </Dialog>
+
+      {/* Minimized pill — replaces the launcher visually while the chat is
+          shrunk. The modal component instance stays mounted (see AitorAuthGate),
+          so `messages` survives a minimize/restore cycle. */}
+      {isMinimized && (
+        <button
+          onClick={restoreChat}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-zen-moss-600 hover:bg-zen-moss-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 min-h-[44px]"
+          aria-label={`Restore Aitor chat (${messages.length} message${messages.length === 1 ? '' : 's'})`}
+          title="Restore Aitor chat"
+        >
+          <Leaf className="w-5 h-5" aria-hidden="true" />
+          <span className="text-sm font-medium">
+            Aitor • {messages.length} msg{messages.length === 1 ? '' : 's'}
+          </span>
+        </button>
+      )}
 
       {/* Toast notification for tool execution feedback */}
       {toast && (

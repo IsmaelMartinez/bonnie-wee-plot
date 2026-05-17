@@ -64,7 +64,7 @@ export default function TokenSettings({
               onKeyDown={handleKeyDown}
               placeholder="Paste your API key here"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-water-500 focus:border-transparent select-none"
-              aria-describedby="token-help-text token-privacy-notice"
+              aria-describedby="token-help-text"
               autoComplete="off"
             />
           </div>
@@ -81,20 +81,6 @@ export default function TokenSettings({
                 Get one here
               </a>
             </p>
-          </div>
-        </div>
-
-        <div id="token-privacy-notice" className="bg-yellow-50 border border-yellow-200 rounded-md p-3" role="note">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <Shield className="w-4 h-4 text-yellow-600 mt-0.5" aria-hidden="true" />
-            </div>
-            <div className="ml-2">
-              <p className="text-sm text-yellow-800">
-                <strong>Privacy Notice:</strong> Your token is stored only in your browser session and never saved permanently.
-                It&apos;s sent securely to OpenAI only when making requests.
-              </p>
-            </div>
           </div>
         </div>
 

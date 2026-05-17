@@ -218,24 +218,6 @@ describe('AllotmentGrid Component', () => {
       })
     })
 
-    it('shows reset button only in editing mode', async () => {
-      render(
-        <AllotmentGrid
-          areas={createTestAreas()}
-          selectedYear={2024}
-        />
-      )
-
-      await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /reset layout/i })).not.toBeInTheDocument()
-      })
-
-      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /reset layout/i })).toBeInTheDocument()
-      })
-    })
   })
 
   describe('Item selection', () => {
@@ -644,33 +626,6 @@ describe('AllotmentGrid Component', () => {
       await waitFor(() => {
         expect(screen.queryByRole('status')).not.toBeInTheDocument()
       })
-    })
-  })
-
-  describe('Position changes', () => {
-    it('calls onPositionChange when reset button is clicked', async () => {
-      const areas = createTestAreas()
-
-      render(
-        <AllotmentGrid
-          areas={areas}
-          selectedYear={2024}
-          onPositionChange={mockOnPositionChange}
-        />
-      )
-
-      // Enable editing mode
-      await userEvent.click(screen.getByRole('button', { name: /unlock to edit/i }))
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /reset layout/i })).toBeInTheDocument()
-      })
-
-      // Click reset
-      await userEvent.click(screen.getByRole('button', { name: /reset layout/i }))
-
-      // Should call onPositionChange for each area
-      expect(mockOnPositionChange).toHaveBeenCalled()
     })
   })
 

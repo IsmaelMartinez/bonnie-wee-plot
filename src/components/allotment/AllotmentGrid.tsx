@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactGridLayout from 'react-grid-layout'
-import { Lock, Unlock, RotateCcw, Move, Plus } from 'lucide-react'
+import { Lock, Unlock, Move, Plus } from 'lucide-react'
 import {
   DEFAULT_GRID_LAYOUT,
   GridItemConfig
@@ -207,25 +207,6 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     }
   }, [isEditing, items, onPositionChange])
 
-  // Reset to Area default positions (v14: resets AreaSeason positions to Area.gridPosition)
-  const handleReset = useCallback(() => {
-    if (!visibleAreas) {
-      setItems(DEFAULT_GRID_LAYOUT)
-      return
-    }
-
-    // Reuse shared Area -> GridItemConfig mapping, using Area.gridPosition defaults (no areaSeasons)
-    const resetConfig = areasToGridConfig(visibleAreas, undefined)
-    setItems(resetConfig)
-
-    // Update each position via callback
-    if (onPositionChange) {
-      for (const item of resetConfig) {
-        onPositionChange(item.i, { x: item.x, y: item.y, w: item.w, h: item.h })
-      }
-    }
-  }, [visibleAreas, onPositionChange])
-
   // Handle item click - convert grid item to AllotmentItemRef
   const handleItemClick = useCallback((item: GridItemConfig) => {
     if (!onItemSelect) return
@@ -407,14 +388,6 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
                 <span className="sm:hidden">Add</span>
               </button>
             )}
-            <button
-              onClick={handleReset}
-              aria-label="Reset layout to default"
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zen-kitsune-100 text-zen-kitsune-600 hover:bg-zen-kitsune-200 transition min-h-[44px]"
-            >
-              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
             <button
               onClick={() => setIsEditing(false)}
               aria-label="Lock layout"
