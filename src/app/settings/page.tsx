@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { useApiToken } from '@/hooks/useSessionStorage'
 import { useLocation } from '@/hooks/useLocation'
-import { MapPin, Leaf, Database, HelpCircle } from 'lucide-react'
+import { MapPin, Leaf, Database, HelpCircle, ChevronDown } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
 import LocationStatus from '@/components/ai-advisor/LocationStatus'
 import DataTab from '@/components/settings/DataTab'
@@ -106,58 +106,71 @@ export default function SettingsPage() {
                       <AiQuotaSection hasOwnToken={!!token} />
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="openai-token" className="block text-sm font-medium text-gray-700 mb-2">
-                          OpenAI API Key
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="openai-token"
-                            type="password"
-                            value={tempToken}
-                            onChange={(e) => setTempToken(e.target.value)}
-                            onPaste={handlePaste}
-                            placeholder="sk-..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
-                            aria-describedby="token-help-text"
-                            autoComplete="off"
-                          />
+                    <details
+                      open={!!token}
+                      className="group rounded-md border border-zen-stone-200 bg-white"
+                    >
+                      <summary className="flex items-center justify-between gap-2 cursor-pointer list-none px-3 py-2 text-sm text-zen-ink-700 hover:bg-zen-stone-50 rounded-md">
+                        <span>Use my own OpenAI API key (advanced)</span>
+                        <ChevronDown
+                          className="w-4 h-4 text-zen-stone-400 transition-transform group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </summary>
+
+                      <div className="space-y-4 px-3 pb-3 pt-1">
+                        <div>
+                          <label htmlFor="openai-token" className="block text-sm font-medium text-gray-700 mb-2">
+                            OpenAI API Key
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="openai-token"
+                              type="password"
+                              value={tempToken}
+                              onChange={(e) => setTempToken(e.target.value)}
+                              onPaste={handlePaste}
+                              placeholder="sk-..."
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-zen-moss-500 focus:border-transparent"
+                              aria-describedby="token-help-text"
+                              autoComplete="off"
+                            />
+                          </div>
+
+                          <div id="token-help-text" className="mt-2 text-xs text-gray-500">
+                            <p>
+                              Your OpenAI API key from the OpenAI dashboard.{' '}
+                              <a
+                                href="https://platform.openai.com/api-keys"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-zen-moss-600 hover:underline"
+                              >
+                                Get one here
+                              </a>
+                            </p>
+                          </div>
                         </div>
 
-                        <div id="token-help-text" className="mt-2 text-xs text-gray-500">
-                          <p>
-                            Your OpenAI API key from the OpenAI dashboard.{' '}
-                            <a
-                              href="https://platform.openai.com/api-keys"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-zen-moss-600 hover:underline"
-                            >
-                              Get one here
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button
-                          onClick={handleSaveToken}
-                          disabled={!tempToken.trim()}
-                          className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
-                        >
-                          Save Token
-                        </button>
-                        {token && (
+                        <div className="flex gap-3">
                           <button
-                            onClick={handleClearToken}
-                            className="zen-btn-secondary min-h-[44px]"
+                            onClick={handleSaveToken}
+                            disabled={!tempToken.trim()}
+                            className="zen-btn-primary min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
-                            Clear Token
+                            Save Token
                           </button>
-                        )}
+                          {token && (
+                            <button
+                              onClick={handleClearToken}
+                              className="zen-btn-secondary min-h-[44px]"
+                            >
+                              Clear Token
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </details>
                   </section>
 
                   {/* Location Section */}
