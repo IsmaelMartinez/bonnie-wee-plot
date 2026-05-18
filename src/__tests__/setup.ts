@@ -1,6 +1,9 @@
 import { vi, beforeEach } from 'vitest'
 import React from 'react'
 import '@testing-library/jest-dom/vitest'
+// fake-indexeddb auto-installs a working IndexedDB implementation onto
+// the global scope; required for `y-indexeddb` tests under jsdom.
+import 'fake-indexeddb/auto'
 
 // Make React available globally (for Next.js client components that don't import React)
 Object.defineProperty(global, 'React', { value: React })

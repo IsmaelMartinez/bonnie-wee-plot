@@ -4,6 +4,7 @@ import AuthProvider from '@/components/auth/AuthProvider'
 import Navigation from '@/components/Navigation'
 import ErrorBoundaryProvider from '@/components/ErrorBoundaryProvider'
 import StorageWarningBanner from '@/components/ui/StorageWarningBanner'
+import StorageFlagReloadBanner from '@/components/StorageFlagReloadBanner'
 import OfflineIndicator from '@/components/ui/OfflineIndicator'
 import InstallPrompt from '@/components/ui/InstallPrompt'
 import { WebVitalsReporter } from '@/components/web-vitals'
@@ -46,6 +47,7 @@ export default function RootLayout({
             </a>
           <OfflineIndicator />
           <StorageWarningBanner />
+          <StorageFlagReloadBanner />
           <Navigation />
           <main id="main-content" className="min-h-screen bg-gray-50" tabIndex={-1}>
             <ErrorBoundaryProvider>
