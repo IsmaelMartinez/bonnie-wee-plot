@@ -302,14 +302,69 @@ export const tourDefinitions: Record<TourId, TourDefinition> = {
     id: 'settings',
     name: 'Settings',
     description: 'Configure your preferences',
+    // Steps that target the AI & Location tab carry a settingsTab marker.
+    // useTour filters these out at runtime when the #tab-ai-location button
+    // is absent (signed-out users), so the tour falls back to Settings tabs
+    // intro then Data then Help.
     steps: [
       {
+        // Intro step has no settingsTab so it works on whichever tab is
+        // active (AI & Location for signed-in, Data for signed-out).
         element: '[data-tour="settings-tabs"]',
-        settingsTab: 'data',
         popover: {
           title: 'Settings Tabs',
-          description: 'Settings are organised into tabs. Data for backups and sharing, and Help for guided tours.',
+          description: 'Settings are organised into tabs. AI & Location (signed-in only), Data for backups and sharing, and Help for guided tours.',
           side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="ai-settings"]',
+        settingsTab: 'ai-location',
+        popover: {
+          title: 'AI Assistant',
+          description: 'This tab is where you turn Aitor on or off, check your free monthly quota, and optionally plug in your own OpenAI key.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="ai-toggle"]',
+        settingsTab: 'ai-location',
+        popover: {
+          title: 'Turn Aitor On',
+          description: 'Switch the Aitor chat on to get planting advice and pest identification from a floating chat button on every page.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="ai-quota"]',
+        settingsTab: 'ai-location',
+        popover: {
+          title: 'Your Free Aitor Quota',
+          description: 'Signed-in users get a small number of free Aitor requests each month. The counter resets at the start of every month.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="ai-byok-disclosure"]',
+        settingsTab: 'ai-location',
+        popover: {
+          title: 'Bring Your Own Key (optional)',
+          description: 'Most people won\'t need this — open it only if you want to plug in your own OpenAI key for unlimited use.',
+          side: 'bottom',
+          align: 'center',
+        },
+      },
+      {
+        element: '[data-tour="location-settings"]',
+        settingsTab: 'ai-location',
+        popover: {
+          title: 'Your Location',
+          description: 'Sharing your location helps Aitor tailor advice to your local climate and timezone.',
+          side: 'top',
           align: 'center',
         },
       },
