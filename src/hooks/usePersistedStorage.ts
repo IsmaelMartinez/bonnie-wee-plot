@@ -326,12 +326,19 @@ export function usePersistedStorage<T>(
         return
       }
 
+      // Stringify once and reuse for the echo-skip guard, the `recentSavesRef`
+      // deduper, and the eventual `recordSavedState` broadcast. Safe to hoist:
+      // when `debouncedSave` is invoked twice in quick succession the prior
+      // timer is cleared, so only the latest closure's `dataToSave` /
+      // `serialized` ever flow into the save path.
+      const serialized = JSON.stringify(dataToSave)
+
       // Skip the save entirely if `dataToSave` matches the snapshot we just
       // adopted from a sibling broadcast. The sibling already wrote it to
       // localStorage; re-saving would loop broadcasts forever.
       if (
         latestSerializedRef.current !== null &&
-        JSON.stringify(dataToSave) === latestSerializedRef.current
+        serialized === latestSerializedRef.current
       ) {
         return
       }
@@ -354,9 +361,8 @@ export function usePersistedStorage<T>(
           return
         }
 
-        if (pendingDataRef.current) {
+        if (pendingDataRef.current !== null) {
           // Add to recent saves set before saving to detect our own storage events
-          const serialized = JSON.stringify(pendingDataRef.current)
           recentSavesRef.current.add(serialized)
           const dataToBroadcast = pendingDataRef.current
           const result = save(pendingDataRef.current)
@@ -398,11 +404,19 @@ export function usePersistedStorage<T>(
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
-      if (pendingDataRef.current) {
-        save(pendingDataRef.current)
+      if (pendingDataRef.current !== null) {
+        const dataToSave = pendingDataRef.current
+        const result = save(dataToSave)
+        // Route through `recordSavedState` so siblings in the same tab receive
+        // a broadcast for unmount-flushed writes, matching the symmetry with
+        // `debouncedSave` / `flushSave` / `retrySave`. Skip on save failure —
+        // there's nothing for siblings to adopt if the write didn't persist.
+        if (result.success) {
+          recordSavedState(JSON.stringify(dataToSave), dataToSave)
+        }
       }
     }
-  }, [save])
+  }, [save, recordSavedState])
 
   // Wrapper for setData that supports function updates
   const setData = useCallback(
