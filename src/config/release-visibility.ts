@@ -17,3 +17,17 @@ export const SHOW_CARE_LOGS = true
 
 /** Underplantings list in permanent area detail panels */
 export const SHOW_UNDERPLANTINGS = false
+
+/**
+ * Yjs storage engine (ADR 027 Step 3).
+ *
+ * When `false` (default), `useAllotmentData` uses the legacy
+ * `useSyncedStorage` chain (`usePersistedStorage` → localStorage →
+ * Supabase JSONB). When `true`, `useYjsDoc` becomes the canonical data
+ * engine, IndexedDB is the local store, and the legacy chain runs in
+ * parallel as the cloud-sync mirror.
+ *
+ * Defaults `false` until PR-B ports the seven domain hooks and PR-C
+ * flips the rollout flag.
+ */
+export const USE_YJS_STORAGE = false

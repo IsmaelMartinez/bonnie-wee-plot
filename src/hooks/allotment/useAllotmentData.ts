@@ -3,6 +3,14 @@
  *
  * Core data lifecycle and year/season management.
  * Foundation hook that other allotment hooks depend on.
+ *
+ * Strategy switch (ADR 027 Step 3): when `USE_YJS_STORAGE` is `false`
+ * (default), routes everything through the legacy `useSyncedStorage`
+ * chain exactly as before. When `true`, composes `useYjsDoc` with the
+ * legacy chain via `useYjsToLegacyMirror` — the Yjs doc is the
+ * canonical engine and the legacy chain runs in parallel as the
+ * cloud-sync mirror. PR-A ships the seam only; the seven domain hooks
+ * stay on the legacy `setData` API until PR-B ports them.
  */
 
 'use client'
@@ -21,8 +29,11 @@ import {
   getAvailableYears,
   setCurrentYear,
 } from '@/services/allotment-storage'
-import { StorageResult, SaveStatus } from '../usePersistedStorage'
+import { StorageResult, SaveStatus, UsePersistedStorageReturn } from '../usePersistedStorage'
 import { useSyncedStorage } from '../useSyncedStorage'
+import { useYjsDoc } from '../useYjsDoc'
+import { useYjsToLegacyMirror } from '../useYjsToLegacyMirror'
+import { USE_YJS_STORAGE } from '@/config/release-visibility'
 import type { SyncStatus } from '@/types/storage'
 import type { SyncConflict } from '../useSyncedStorage'
 
@@ -80,6 +91,23 @@ export interface UseAllotmentDataReturn {
 // ============ HOOK IMPLEMENTATION ============
 
 export function useAllotmentData(): UseAllotmentDataReturn {
+  // `USE_YJS_STORAGE` is a build-time constant from
+  // `src/config/release-visibility.ts`. It is invariant across every
+  // render of this component instance, so the strategy switch never
+  // changes which hook order React sees — exactly one of the two
+  // implementations runs on every render of this component's lifetime.
+  // `rules-of-hooks` cannot prove this statically; disable it locally.
+  /* eslint-disable react-hooks/rules-of-hooks */
+  if (USE_YJS_STORAGE) {
+    return useAllotmentDataYjs()
+  }
+  return useAllotmentDataLegacy()
+  /* eslint-enable react-hooks/rules-of-hooks */
+}
+
+// ----- legacy branch -----
+
+function useAllotmentDataLegacy(): UseAllotmentDataReturn {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
 
   // Handle year sync when data changes from another tab
@@ -190,6 +218,170 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     flushPush,
     clearSaveError,
     cancelPendingSave,
+    updateMeta,
+  }
+}
+
+// ----- Yjs branch -----
+
+/**
+ * Tracks `setData` call sites we have already warned about during the
+ * Yjs soak. Each unported domain-hook call site fires the warning
+ * exactly once. Keyed on the top frame of the captured stack trace so
+ * different call sites surface independently, not as a single noisy
+ * warning.
+ */
+const warnedSetDataCallSites = new Set<string>()
+
+function emitUnportedSetDataWarning(): void {
+  // Capture a stack trace, then strip the leading "Error" line and the
+  // first three frames (this function, the closure, and the call site
+  // wrapper) so the dedupe key reflects the actual caller. Failure to
+  // build a meaningful key falls back to a single warning for "unknown".
+  let key = 'unknown'
+  try {
+    const stack = new Error().stack
+    if (stack) {
+      const lines = stack.split('\n').map(l => l.trim()).filter(Boolean)
+      // Skip "Error" header and at least the frame for this function.
+      const frames = lines.filter(l => l.startsWith('at '))
+      key = frames[1] ?? frames[0] ?? 'unknown'
+    }
+  } catch {
+    // Stack capture failed (some runtimes); fall through with the
+    // sentinel key so we still de-duplicate.
+  }
+  if (warnedSetDataCallSites.has(key)) return
+  warnedSetDataCallSites.add(key)
+  console.warn(
+    'useAllotmentData.setData called on Yjs path — unported domain-hook call site',
+    { callSite: key },
+  )
+}
+
+function useAllotmentDataYjs(): UseAllotmentDataReturn {
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
+
+  const handleSync = useCallback((newData: AllotmentData) => {
+    setSelectedYear(newData.currentYear)
+  }, [])
+
+  // Yjs side: canonical engine on this path.
+  const yjs = useYjsDoc()
+
+  // Legacy side: kept alive as the cloud-sync mirror. `useSyncedStorage`
+  // continues to listen for `saveStatus === 'saved'` and pushes to
+  // Supabase via the existing chain.
+  const synced = useSyncedStorage({
+    storageKey: STORAGE_KEY,
+    load: loadAllotment,
+    save: saveAllotment,
+    validate: validateAllotment,
+    onSync: handleSync,
+  })
+
+  // Mirror Yjs → legacy. Driving `synced.setData` here causes
+  // `usePersistedStorage` to debounce-save to localStorage and
+  // `useSyncedStorage` to push to the cloud, exactly as a legacy
+  // `setData` call would.
+  useYjsToLegacyMirror(yjs.data, synced as unknown as UsePersistedStorageReturn<AllotmentData>)
+
+  // Update selectedYear when the Yjs snapshot first arrives.
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (yjs.data && !initializedRef.current) {
+      initializedRef.current = true
+      setSelectedYear(yjs.data.currentYear)
+    }
+  }, [yjs.data])
+
+  // `setData` is no longer the write path on the Yjs branch. Domain
+  // hooks should call `mutate(fn)` instead (PR-B). Until they do, every
+  // call from an unported site lands here — the warning surfaces those
+  // sites during development so PR-B can find and port them. The Yjs
+  // path is effectively read-only in PR-A because no domain hooks have
+  // been ported; that is intentional.
+  const setData = useCallback<UseAllotmentDataReturn['setData']>(
+    () => {
+      emitUnportedSetDataWarning()
+    },
+    [],
+  )
+
+  // Derived state: current season based on selected year
+  const currentSeason = useMemo(() => {
+    if (!yjs.data) return null
+    return getSeasonByYear(yjs.data, selectedYear) || null
+  }, [yjs.data, selectedYear])
+
+  // Year navigation routes through the Yjs doc directly. Even on the
+  // Yjs path, year navigation is a write path that the domain-hook
+  // ports in PR-B will need to keep functional — we provide a working
+  // implementation up front so the foundation PR doesn't break the
+  // year picker if the flag is ever flipped locally for spot-check.
+  const selectYear = useCallback((year: number) => {
+    setSelectedYear(year)
+    yjs.mutate(store => {
+      store.state.currentYear = year
+    })
+  }, [yjs])
+
+  const getYears = useCallback(() => {
+    if (!yjs.data) return []
+    return getAvailableYears(yjs.data)
+  }, [yjs.data])
+
+  const reload = useCallback(() => {
+    // On the Yjs path, "reload" maps onto re-reading the legacy
+    // localStorage snapshot and re-hydrating the Yjs doc from it.
+    // `useYjsDoc` already runs this exact pipeline on mount; the
+    // explicit reload here lets settings flows trigger it after, e.g.,
+    // an import overwrites legacy localStorage.
+    const result = initializeStorage()
+    if (result.success && result.data) {
+      yjs.replaceFromJson(result.data)
+      setSelectedYear(result.data.currentYear)
+    }
+  }, [yjs])
+
+  const updateMeta = useCallback((updates: Partial<AllotmentData['meta']>) => {
+    yjs.mutate(store => {
+      Object.assign(store.meta, updates)
+    })
+  }, [yjs])
+
+  // `flushSave` on the Yjs path awaits IndexedDB persistence plus the
+  // pending mirror write so callers see the same "everything saved"
+  // contract as the legacy chain.
+  const flushSave = useCallback(async (): Promise<boolean> => {
+    const yjsFlushed = await yjs.flushSave()
+    const mirrorFlushed = await synced.flushSave()
+    return yjsFlushed && mirrorFlushed
+  }, [yjs, synced])
+
+  return {
+    data: yjs.data,
+    setData,
+    currentSeason,
+    selectedYear,
+    isLoading: yjs.isLoading,
+    error: yjs.error,
+    saveError: synced.saveError,
+    saveStatus: synced.saveStatus,
+    lastSavedAt: synced.lastSavedAt,
+    isSyncedFromOtherTab: yjs.isSyncedFromOtherTab || synced.isSyncedFromOtherTab,
+    syncStatus: synced.syncStatus,
+    syncError: synced.syncError,
+    syncConflict: synced.syncConflict,
+    resolveConflict: synced.resolveConflict,
+
+    selectYear,
+    getYears,
+    reload,
+    flushSave,
+    flushPush: synced.flushPush,
+    clearSaveError: synced.clearSaveError,
+    cancelPendingSave: synced.cancelPendingSave,
     updateMeta,
   }
 }
