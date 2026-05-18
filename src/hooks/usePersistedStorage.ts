@@ -361,7 +361,7 @@ export function usePersistedStorage<T>(
           return
         }
 
-        if (pendingDataRef.current) {
+        if (pendingDataRef.current !== null) {
           // Add to recent saves set before saving to detect our own storage events
           recentSavesRef.current.add(serialized)
           const dataToBroadcast = pendingDataRef.current
@@ -404,7 +404,7 @@ export function usePersistedStorage<T>(
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
-      if (pendingDataRef.current) {
+      if (pendingDataRef.current !== null) {
         const dataToSave = pendingDataRef.current
         const result = save(dataToSave)
         // Route through `recordSavedState` so siblings in the same tab receive
