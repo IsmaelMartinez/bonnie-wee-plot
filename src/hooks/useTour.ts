@@ -136,15 +136,22 @@ export function useTour(): UseTourReturn {
 
     // Filter steps whose elements exist (or will exist after tab switch).
     // For tab-scoped steps, also skip the step when the required tab itself
-    // is not rendered (e.g. signed-out users have no AI & Location tab).
+    // is not rendered (e.g. signed-out users have no AI & Location tab) or
+    // when the tab is already active but its target element is missing
+    // (e.g. a section conditionally hidden inside a visible tab).
     const availableSteps = definition.steps.filter(step => {
       const tabId = (step as SettingsTabStep).settingsTab
-      if (tabId) {
-        return document.querySelector(`#tab-${tabId}`) !== null
-      }
-      if (typeof step.element === 'string') {
+      const tabButton = tabId ? document.querySelector(`#tab-${tabId}`) : null
+
+      if (tabId && !tabButton) return false
+
+      // If the tab is already active (or it's not a tab-scoped step),
+      // verify the target element actually exists in the DOM.
+      const isVisible = !tabButton || tabButton.getAttribute('aria-selected') === 'true'
+      if (isVisible && typeof step.element === 'string') {
         return document.querySelector(step.element) !== null
       }
+
       return true
     })
 

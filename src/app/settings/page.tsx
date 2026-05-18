@@ -105,9 +105,11 @@ export default function SettingsPage() {
                       </button>
                     </div>
 
-                    <div className="mb-4" data-tour="ai-quota">
-                      <AiQuotaSection hasOwnToken={!!token} />
-                    </div>
+                    {!token && (
+                      <div className="mb-4" data-tour="ai-quota">
+                        <AiQuotaSection hasOwnToken={!!token} />
+                      </div>
+                    )}
 
                     <details
                       key={token ? 'has-token' : 'no-token'}
