@@ -389,6 +389,135 @@ describe('usePersistedStorage - Race Condition Handling', () => {
     expect(mockSave).not.toHaveBeenCalled()
   })
 
+  it('propagates same-tab writes to a sibling instance with the same storageKey', async () => {
+    // Repro for the "Turn off Aitor" bug: two usePersistedStorage instances
+    // share a storage key (e.g. Settings page + AitorAuthGate), but the
+    // browser `storage` event does not fire in the writing tab. Verify the
+    // same-tab CustomEvent broadcast wakes up the sibling.
+    const initial: TestData = { version: 1, value: 'initial' }
+    const next: TestData = { version: 1, value: 'aitor-off' }
+
+    // Both instances start with the same initial data.
+    mockLoad.mockReturnValue({ success: true, data: initial })
+    mockSave.mockReturnValue({ success: true })
+
+    const writer = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'shared-key',
+        load: mockLoad,
+        save: mockSave,
+      })
+    )
+    const reader = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'shared-key',
+        load: mockLoad,
+        save: mockSave,
+      })
+    )
+
+    await waitFor(() => expect(writer.result.current.isLoading).toBe(false))
+    await waitFor(() => expect(reader.result.current.isLoading).toBe(false))
+
+    // Writer flips a value (Settings page toggles Aitor off).
+    act(() => {
+      writer.result.current.setData(next)
+    })
+
+    // Wait past the 500ms debounce so the same-tab broadcast fires.
+    await waitFor(
+      () => {
+        expect(reader.result.current.data).toEqual(next)
+      },
+      { timeout: 2000 }
+    )
+
+    // Writer's own listener must not clobber its own state.
+    expect(writer.result.current.data).toEqual(next)
+  })
+
+  it('does not echo same-tab broadcasts back to the originating instance', async () => {
+    // The writer should ignore the event it dispatched itself — otherwise we
+    // risk a render-loop or unnecessary state churn.
+    const initial: TestData = { version: 1, value: 'initial' }
+    const next: TestData = { version: 1, value: 'changed' }
+
+    mockLoad.mockReturnValue({ success: true, data: initial })
+    mockSave.mockReturnValue({ success: true })
+
+    const writer = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'echo-key',
+        load: mockLoad,
+        save: mockSave,
+      })
+    )
+    await waitFor(() => expect(writer.result.current.isLoading).toBe(false))
+
+    act(() => {
+      writer.result.current.setData(next)
+    })
+
+    // After the debounce + broadcast cycle the writer's data should be `next`
+    // (the value it set), not re-loaded from `load` via the broadcast handler.
+    await waitFor(() => expect(writer.result.current.data).toEqual(next))
+
+    // Two load calls total: one initial load. The writer must NOT re-call
+    // `load` in response to its own broadcast.
+    expect(mockLoad).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not re-save data adopted from a cross-tab storage event', async () => {
+    // After a cross-tab `storage` event sets new data, the auto-save effect
+    // would naively treat the new state as a local edit and write the same
+    // value back to localStorage — that write would broadcast a `storage`
+    // event in the other direction and risk a ping-pong. The handler must
+    // seed `latestSerializedRef` so `debouncedSave` skips the redundant save.
+    const initial: TestData = { version: 1, value: 'initial' }
+    const fromOtherTab: TestData = { version: 1, value: 'from-other-tab' }
+
+    mockLoad.mockReturnValueOnce({ success: true, data: initial })
+    mockSave.mockReturnValue({ success: true })
+
+    const { result } = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'cross-tab-key',
+        load: mockLoad,
+        save: mockSave,
+      })
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    // Clear any saves from initial auto-save settling.
+    mockSave.mockClear()
+
+    // Subsequent loads return the other-tab payload.
+    mockLoad.mockReturnValue({ success: true, data: fromOtherTab })
+
+    // Simulate a `storage` event from another tab.
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'cross-tab-key',
+          newValue: JSON.stringify(fromOtherTab),
+          oldValue: JSON.stringify(initial),
+        })
+      )
+    })
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(fromOtherTab)
+    })
+
+    // Give the auto-save debounce + status reset enough time to fire.
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // `save` must NOT have been called for the adopted data — otherwise we'd
+    // be writing back to localStorage exactly what arrived from the other tab.
+    expect(mockSave).not.toHaveBeenCalled()
+  })
+
   it('handles pending data correctly - waits for flush before import', async () => {
     const testData: TestData = { version: 1, value: 'initial' }
     const pendingData: TestData = { version: 1, value: 'pending-edit' }
