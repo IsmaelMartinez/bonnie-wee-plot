@@ -4,7 +4,7 @@
  * Focus on flush mechanism and race condition handling
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { usePersistedStorage } from '@/hooks/usePersistedStorage'
 
@@ -242,6 +242,12 @@ describe('usePersistedStorage - Race Condition Handling', () => {
   beforeEach(() => {
     mockLoad = vi.fn()
     mockSave = vi.fn()
+  })
+
+  afterEach(() => {
+    // Restore any `vi.spyOn` mocks (e.g. console.warn) so they don't leak
+    // across tests.
+    vi.restoreAllMocks()
   })
 
   it('handles concurrent save/import operations via flush', async () => {
@@ -516,6 +522,64 @@ describe('usePersistedStorage - Race Condition Handling', () => {
     // `save` must NOT have been called for the adopted data — otherwise we'd
     // be writing back to localStorage exactly what arrived from the other tab.
     expect(mockSave).not.toHaveBeenCalled()
+  })
+
+  it('warns and ignores same-tab broadcasts whose payload fails validation', async () => {
+    // The same-tab listener defensively re-validates broadcast payloads
+    // before adopting them. If `validate` rejects, the listener should log a
+    // warning and bail without touching the local instance's state.
+    const initial: TestData = { version: 1, value: 'initial' }
+    const invalid: TestData = { version: 1, value: 'invalid' }
+
+    mockLoad.mockReturnValue({ success: true, data: initial })
+    mockSave.mockReturnValue({ success: true })
+
+    const validate = vi.fn().mockReturnValue({
+      success: false,
+      error: 'bad shape',
+    })
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const { result } = renderHook(() =>
+      usePersistedStorage<TestData>({
+        storageKey: 'validate-reject-key',
+        load: mockLoad,
+        save: mockSave,
+        validate,
+      })
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.data).toEqual(initial)
+
+    // Dispatch a same-tab broadcast that passes the storageKey / instanceId /
+    // seq gates but should be rejected by `validate`. Use a foreign
+    // `instanceId` so the listener does not skip it as its own echo, and a
+    // large `seq` so the last-writer-wins guard lets it through.
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('bonnie:storage-update', {
+          detail: {
+            storageKey: 'validate-reject-key',
+            instanceId: 'foreign-instance',
+            seq: Number.MAX_SAFE_INTEGER,
+            data: invalid,
+            serialized: JSON.stringify(invalid),
+          },
+        })
+      )
+    })
+
+    // Validator must have been consulted, and it rejected the payload, so the
+    // local instance's `data` must remain the initial value (setData not
+    // called) and a warning must have been logged exactly once.
+    expect(validate).toHaveBeenCalledWith(invalid)
+    expect(result.current.data).toEqual(initial)
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Ignoring invalid same-tab broadcast:',
+      'bad shape'
+    )
   })
 
   it('handles pending data correctly - waits for flush before import', async () => {
