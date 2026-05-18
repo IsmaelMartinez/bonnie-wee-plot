@@ -134,9 +134,32 @@ export function useTour(): UseTourReturn {
       (step) => (step as SettingsTabStep).settingsTab
     )
 
-    // Switch to the required tab for a step, returns true if a switch happened
+    // Filter steps whose elements exist (or will exist after tab switch).
+    // For tab-scoped steps, also skip the step when the required tab itself
+    // is not rendered (e.g. signed-out users have no AI & Location tab) or
+    // when the tab is already active but its target element is missing
+    // (e.g. a section conditionally hidden inside a visible tab).
+    const availableSteps = definition.steps.filter(step => {
+      const tabId = (step as SettingsTabStep).settingsTab
+      const tabButton = tabId ? document.querySelector(`#tab-${tabId}`) : null
+
+      if (tabId && !tabButton) return false
+
+      // If the tab is already active (or it's not a tab-scoped step),
+      // verify the target element actually exists in the DOM.
+      const isVisible = !tabButton || tabButton.getAttribute('aria-selected') === 'true'
+      if (isVisible && typeof step.element === 'string') {
+        return document.querySelector(step.element) !== null
+      }
+
+      return true
+    })
+
+    // Switch to the required tab for a step, returns true if a switch happened.
+    // Indices map to availableSteps so they line up with driver.js's active
+    // index after filtering.
     const switchToTab = (stepIndex: number): boolean => {
-      const step = definition.steps[stepIndex] as SettingsTabStep
+      const step = availableSteps[stepIndex] as SettingsTabStep | undefined
       if (!step?.settingsTab) return false
       const tabButton = document.querySelector(`#tab-${step.settingsTab}`) as HTMLElement | null
       if (tabButton && tabButton.getAttribute('aria-selected') !== 'true') {
@@ -147,18 +170,9 @@ export function useTour(): UseTourReturn {
     }
 
     // For the initial step, switch tab first so elements exist
-    if (hasTabSteps) {
+    if (hasTabSteps && availableSteps.length > 0) {
       switchToTab(0)
     }
-
-    // Filter steps whose elements exist (or will exist after tab switch)
-    const availableSteps = definition.steps.filter(step => {
-      if ((step as SettingsTabStep).settingsTab) return true
-      if (typeof step.element === 'string') {
-        return document.querySelector(step.element) !== null
-      }
-      return true
-    })
 
     if (availableSteps.length === 0) {
       console.warn(`No elements found for tour "${tourId}"`)

@@ -81,7 +81,10 @@ export default function SettingsPage() {
                       Signed-in users get a free monthly quota; add your own OpenAI key below for unlimited use.
                     </p>
 
-                    <div className="flex items-center justify-between gap-3 mb-4 p-3 rounded-md bg-zen-stone-50 border border-zen-stone-200">
+                    <div
+                      className="flex items-center justify-between gap-3 mb-4 p-3 rounded-md bg-zen-stone-50 border border-zen-stone-200"
+                      data-tour="ai-toggle"
+                    >
                       <div className="text-sm text-zen-ink-700">
                         <p className="font-medium">Aitor chat</p>
                         <p className="text-xs text-zen-stone-500 mt-0.5">
@@ -102,14 +105,17 @@ export default function SettingsPage() {
                       </button>
                     </div>
 
-                    <div className="mb-4">
-                      <AiQuotaSection hasOwnToken={!!token} />
-                    </div>
+                    {!token && (
+                      <div className="mb-4" data-tour="ai-quota">
+                        <AiQuotaSection hasOwnToken={!!token} />
+                      </div>
+                    )}
 
                     <details
                       key={token ? 'has-token' : 'no-token'}
                       open={!!token}
                       className="group rounded-md border border-zen-stone-200 bg-white"
+                      data-tour="ai-byok-disclosure"
                     >
                       <summary className="flex items-center justify-between gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden px-3 py-2 text-sm text-zen-ink-700 hover:bg-zen-stone-50 rounded-md">
                         <span>Use my own OpenAI API key (advanced)</span>
