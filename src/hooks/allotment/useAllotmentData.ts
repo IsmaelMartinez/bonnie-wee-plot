@@ -90,19 +90,18 @@ export interface UseAllotmentDataReturn {
 
 // ============ HOOK IMPLEMENTATION ============
 
+// `USE_YJS_STORAGE` is a build-time constant from
+// `src/config/release-visibility.ts`. Picking the implementation at module
+// load (rather than inside the hook body) keeps the hook-call order stable
+// for React, lets the bundler tree-shake the unused branch in production,
+// and avoids the conditional-hook pattern that `react-hooks/rules-of-hooks`
+// would flag.
+const useAllotmentDataImpl: () => UseAllotmentDataReturn = USE_YJS_STORAGE
+  ? useAllotmentDataYjs
+  : useAllotmentDataLegacy
+
 export function useAllotmentData(): UseAllotmentDataReturn {
-  // `USE_YJS_STORAGE` is a build-time constant from
-  // `src/config/release-visibility.ts`. It is invariant across every
-  // render of this component instance, so the strategy switch never
-  // changes which hook order React sees — exactly one of the two
-  // implementations runs on every render of this component's lifetime.
-  // `rules-of-hooks` cannot prove this statically; disable it locally.
-  /* eslint-disable react-hooks/rules-of-hooks */
-  if (USE_YJS_STORAGE) {
-    return useAllotmentDataYjs()
-  }
-  return useAllotmentDataLegacy()
-  /* eslint-enable react-hooks/rules-of-hooks */
+  return useAllotmentDataImpl()
 }
 
 // ----- legacy branch -----
@@ -227,35 +226,18 @@ function useAllotmentDataLegacy(): UseAllotmentDataReturn {
 /**
  * Tracks `setData` call sites we have already warned about during the
  * Yjs soak. Each unported domain-hook call site fires the warning
- * exactly once. Keyed on the top frame of the captured stack trace so
- * different call sites surface independently, not as a single noisy
- * warning.
+ * exactly once. De-duplication keys on the full captured stack trace so
+ * it works regardless of engine-specific stack frame formatting; multiple
+ * unported sites still surface independently because their stacks differ.
  */
-const warnedSetDataCallSites = new Set<string>()
+const warnedSetDataStacks = new Set<string>()
 
 function emitUnportedSetDataWarning(): void {
-  // Capture a stack trace, then strip the leading "Error" line and the
-  // first three frames (this function, the closure, and the call site
-  // wrapper) so the dedupe key reflects the actual caller. Failure to
-  // build a meaningful key falls back to a single warning for "unknown".
-  let key = 'unknown'
-  try {
-    const stack = new Error().stack
-    if (stack) {
-      const lines = stack.split('\n').map(l => l.trim()).filter(Boolean)
-      // Skip "Error" header and at least the frame for this function.
-      const frames = lines.filter(l => l.startsWith('at '))
-      key = frames[1] ?? frames[0] ?? 'unknown'
-    }
-  } catch {
-    // Stack capture failed (some runtimes); fall through with the
-    // sentinel key so we still de-duplicate.
-  }
-  if (warnedSetDataCallSites.has(key)) return
-  warnedSetDataCallSites.add(key)
+  const stack = new Error().stack ?? '<no stack available>'
+  if (warnedSetDataStacks.has(stack)) return
+  warnedSetDataStacks.add(stack)
   console.warn(
-    'useAllotmentData.setData called on Yjs path — unported domain-hook call site',
-    { callSite: key },
+    'useAllotmentData.setData called on Yjs path — unported domain-hook call site\n' + stack,
   )
 }
 

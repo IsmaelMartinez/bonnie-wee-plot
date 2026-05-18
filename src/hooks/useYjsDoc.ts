@@ -119,6 +119,9 @@ export function useYjsDoc(): UseYjsDocReturn {
 
   useEffect(() => {
     let cancelled = false
+    // Track the active "synced from other tab" reset timer so unmount can
+    // clear it and avoid a setState-on-unmounted warning.
+    let syncedFlagTimeout: ReturnType<typeof setTimeout> | null = null
 
     const doc = new Y.Doc()
     const { store } = createAllotmentDoc(doc)
@@ -151,7 +154,9 @@ export function useYjsDoc(): UseYjsDocReturn {
       // existing UI affordances ("Synced from another tab") light up.
       if (origin !== localOriginRef.current) {
         setIsSyncedFromOtherTab(true)
-        setTimeout(() => {
+        if (syncedFlagTimeout) clearTimeout(syncedFlagTimeout)
+        syncedFlagTimeout = setTimeout(() => {
+          syncedFlagTimeout = null
           if (!cancelled) setIsSyncedFromOtherTab(false)
         }, 3000)
       }
@@ -211,6 +216,10 @@ export function useYjsDoc(): UseYjsDocReturn {
 
     return () => {
       cancelled = true
+      if (syncedFlagTimeout) {
+        clearTimeout(syncedFlagTimeout)
+        syncedFlagTimeout = null
+      }
       doc.off('update', handleUpdate)
       if (provider) {
         // `destroy` returns a Promise but we don't await it during
