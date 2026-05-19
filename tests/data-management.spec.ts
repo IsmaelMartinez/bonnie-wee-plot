@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
+import { clearAllStorage } from './utils/storage'
 
 async function disableTours(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
@@ -41,7 +42,7 @@ async function addAreaInEditMode(page: import('@playwright/test').Page, areaName
 test.describe('Data Management - Export/Import', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/settings')
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')

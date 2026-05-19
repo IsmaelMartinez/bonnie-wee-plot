@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { clearAllStorage } from './utils/storage'
 
 async function disableTours(page: Page) {
   await page.evaluate(() => {
@@ -36,7 +37,7 @@ test.describe('Today widget compost sync', () => {
   test('reflects pile mutations when navigating between /compost and /', async ({ page }) => {
     // Start fresh on /compost.
     await page.goto('/compost')
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')

@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { clearAllStorage } from './utils/storage'
 
 // Seeds a rotation bed containing a single Carrot planting. Carrot has
 // `enhancedCompanions` in the bundled vegetable database, so the
 // "Boost this bed" section will produce at least one suggestion.
 async function seedBedWithCarrot(page: import('@playwright/test').Page) {
+  // Clear Yjs IDB before seeding so the Yjs path hydrates from the
+  // seeded legacy localStorage instead of stale IDB state from a
+  // prior test in the same worker.
+  await clearAllStorage(page)
   await page.evaluate(() => {
     const now = new Date().toISOString()
     const currentYear = new Date().getFullYear()

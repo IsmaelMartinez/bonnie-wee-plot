@@ -21,13 +21,23 @@ export const SHOW_UNDERPLANTINGS = false
 /**
  * Yjs storage engine (ADR 027 Step 3).
  *
- * When `false` (default), `useAllotmentData` uses the legacy
- * `useSyncedStorage` chain (`usePersistedStorage` → localStorage →
- * Supabase JSONB). When `true`, `useYjsDoc` becomes the canonical data
- * engine, IndexedDB is the local store, and the legacy chain runs in
- * parallel as the cloud-sync mirror.
+ * When `false`, `useAllotmentData` uses the legacy `useSyncedStorage`
+ * chain (`usePersistedStorage` → localStorage → Supabase JSONB). When
+ * `true`, `useYjsDoc` becomes the canonical data engine, IndexedDB is
+ * the local store, and the legacy chain runs in parallel as the
+ * cloud-sync mirror via `useYjsToLegacyMirror`.
  *
- * Defaults `false` until PR-B ports the seven domain hooks and PR-C
- * flips the rollout flag.
+ * Default-on as of PR-C (Phase 1 cutover). PR-B and PR-B.2 ported all
+ * eight domain hooks (the seven core hooks plus `useCompost`) to
+ * two-branch methods, so writes on this path go through SyncedStore's
+ * proxy. The legacy chain stays in tree as the rollback floor until
+ * Step 5 cleanup retires it.
+ *
+ * Pre-cutover history rows are seeded by the deployment runbook
+ * running a no-op `UPDATE allotments SET data = data` so each active
+ * user gets one pre-cutover snapshot in `allotment_history`.
+ *
+ * Rollback: flip back to `false`, redeploy, no data migration needed
+ * (the legacy chain has been mirroring throughout).
  */
-export const USE_YJS_STORAGE = false
+export const USE_YJS_STORAGE = true

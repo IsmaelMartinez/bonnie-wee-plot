@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { clearAllStorage } from './utils/storage'
 
 // Helper function to seed test data via localStorage for mobile or when UI is not available
 async function seedTestData(page: import('@playwright/test').Page) {
+  // Clear Yjs IDB before seeding so the Yjs-path first-run hydration
+  // picks up the seeded legacy data instead of stale IDB state from a
+  // prior test. localStorage is cleared by the same helper.
+  await clearAllStorage(page)
   await page.evaluate(() => {
     const now = new Date().toISOString()
     const currentYear = new Date().getFullYear()
