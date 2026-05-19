@@ -3,6 +3,12 @@
  *
  * Planting CRUD with variety auto-sync.
  * Handles plantings, area seasons, season operations, and rotation tracking.
+ *
+ * Two-branch methods (ADR 027 Step 3, PR-B): see useAllotmentAreas for
+ * the convention. `addPlanting` and `addPlantings` are the
+ * cross-collection methods called out in the spec — they touch
+ * `store.seasons[...].areas[...].plantings` AND `store.varieties` in
+ * one Yjs transaction.
  */
 
 'use client'
@@ -16,6 +22,8 @@ import {
   PlantingUpdate,
   Area,
   GridPosition,
+  SeasonRecord,
+  StoredVariety,
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup } from '@/types/garden-planner'
 import {
@@ -37,12 +45,18 @@ import {
 } from '@/services/allotment-storage'
 import { generateId } from '@/lib/utils/id'
 import { normalizeVarietyName } from '@/lib/variety-queries'
+import { inferStatusFromDates } from '@/lib/planting-utils'
+import { getNextRotationGroup } from '@/lib/rotation'
+import { USE_YJS_STORAGE } from '@/config/release-visibility'
+import type { MutateFn } from './useAllotmentData'
+import { assignDefined, withoutUndefined } from './yjs-helpers'
 
 // ============ HOOK TYPES ============
 
 export interface UseAllotmentPlantingsProps {
   data: AllotmentData | null
   setData: (data: AllotmentData | ((prev: AllotmentData | null) => AllotmentData | null)) => void
+  mutate: MutateFn
   selectedYear: number
   setSelectedYear?: (year: number) => void
 }
@@ -79,6 +93,7 @@ export interface UseAllotmentPlantingsReturn {
 export function useAllotmentPlantings({
   data,
   setData,
+  mutate,
   selectedYear,
   setSelectedYear,
 }: UseAllotmentPlantingsProps): UseAllotmentPlantingsReturn {
@@ -87,6 +102,62 @@ export function useAllotmentPlantings({
 
   const addPlanting = useCallback((bedId: PhysicalBedId, planting: NewPlanting) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      // Cross-collection: writes plantings AND varieties in one
+      // transaction so a single Yjs update emits and both observers see
+      // a consistent state.
+      const plantingId = generateId('planting')
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const now = new Date().toISOString()
+
+        // Ensure AreaSeason exists.
+        let areaSeason = season.areas.find(a => a.areaId === bedId)
+        if (!areaSeason) {
+          const fresh: AreaSeason = withoutUndefined({
+            areaId: bedId,
+            plantings: [],
+          })
+          season.areas.push(fresh)
+          areaSeason = season.areas[season.areas.length - 1]
+        }
+
+        const newPlanting: Planting = withoutUndefined({
+          ...planting,
+          id: plantingId,
+        })
+        areaSeason.plantings.push(newPlanting)
+        season.updatedAt = now
+
+        // Variety auto-sync: if the planting has a variety name, find
+        // or create the matching StoredVariety so the seed inventory
+        // stays in step with what's actually planted.
+        if (planting.varietyName) {
+          const normalizedName = normalizeVarietyName(planting.varietyName)
+          const existing = store.varieties.find(v =>
+            v.plantId === planting.plantId &&
+            normalizeVarietyName(v.name) === normalizedName,
+          )
+
+          if (!existing) {
+            const newVariety: StoredVariety = withoutUndefined({
+              id: generateId('variety'),
+              plantId: planting.plantId,
+              name: planting.varietyName,
+              notes: '(Auto-created from planting)',
+              seedsByYear: { [selectedYear]: 'none' as const },
+              isArchived: false,
+            })
+            store.varieties.push(newVariety)
+          } else if (!(selectedYear in (existing.seedsByYear || {}))) {
+            existing.seedsByYear = { ...existing.seedsByYear, [selectedYear]: 'none' }
+          }
+        }
+      })
+      return
+    }
 
     // Add planting to allotment storage
     let updatedData = storageAddPlanting(data, selectedYear, bedId, planting)
@@ -130,10 +201,66 @@ export function useAllotmentPlantings({
     }
 
     setData(updatedData)
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   const addPlantings = useCallback((bedId: PhysicalBedId, plantings: NewPlanting[]) => {
     if (!data || plantings.length === 0) return
+
+    if (USE_YJS_STORAGE) {
+      // Cross-collection: same shape as addPlanting but bulk. Generate
+      // all IDs up front so both branches use the same number of
+      // generateId calls in the same order — keeps the parity test
+      // deterministic under a mocked `generateId`.
+      const plantingIds = plantings.map(() => generateId('planting'))
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const now = new Date().toISOString()
+
+        let areaSeason = season.areas.find(a => a.areaId === bedId)
+        if (!areaSeason) {
+          const fresh: AreaSeason = withoutUndefined({
+            areaId: bedId,
+            plantings: [],
+          })
+          season.areas.push(fresh)
+          areaSeason = season.areas[season.areas.length - 1]
+        }
+
+        plantings.forEach((planting, i) => {
+          const newPlanting: Planting = withoutUndefined({
+            ...planting,
+            id: plantingIds[i],
+          })
+          areaSeason!.plantings.push(newPlanting)
+
+          if (planting.varietyName) {
+            const normalizedName = normalizeVarietyName(planting.varietyName)
+            const existing = store.varieties.find(v =>
+              v.plantId === planting.plantId &&
+              normalizeVarietyName(v.name) === normalizedName,
+            )
+
+            if (!existing) {
+              const newVariety: StoredVariety = withoutUndefined({
+                id: generateId('variety'),
+                plantId: planting.plantId,
+                name: planting.varietyName,
+                notes: '(Auto-created from planting)',
+                seedsByYear: { [selectedYear]: 'none' as const },
+                isArchived: false,
+              })
+              store.varieties.push(newVariety)
+            } else if (!(selectedYear in (existing.seedsByYear || {}))) {
+              existing.seedsByYear = { ...existing.seedsByYear, [selectedYear]: 'none' }
+            }
+          }
+        })
+
+        season.updatedAt = now
+      })
+      return
+    }
 
     // Add all plantings in a single state update
     let updatedData = storageAddPlantings(data, selectedYear, bedId, plantings)
@@ -179,17 +306,55 @@ export function useAllotmentPlantings({
     })
 
     setData(updatedData)
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   const updatePlanting = useCallback((bedId: PhysicalBedId, plantingId: string, updates: PlantingUpdate) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const areaSeason = season.areas.find(a => a.areaId === bedId)
+        if (!areaSeason) return
+        const p = areaSeason.plantings.find(x => x.id === plantingId)
+        if (!p) return
+
+        const datesChanged =
+          'sowDate' in updates || 'transplantDate' in updates || 'actualHarvestEnd' in updates
+        const statusExplicitlySet = 'status' in updates
+
+        assignDefined(p as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+        if (datesChanged && !statusExplicitlySet && p.status !== 'removed') {
+          p.status = inferStatusFromDates(p)
+        }
+        season.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageUpdatePlanting(data, selectedYear, bedId, plantingId, updates))
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   const removePlanting = useCallback((bedId: PhysicalBedId, plantingId: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const areaSeason = season.areas.find(a => a.areaId === bedId)
+        if (!areaSeason) return
+        const idx = areaSeason.plantings.findIndex(p => p.id === plantingId)
+        if (idx === -1) return
+        areaSeason.plantings.splice(idx, 1)
+        season.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageRemovePlanting(data, selectedYear, bedId, plantingId))
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   const getPlantings = useCallback((areaId: string) => {
     if (!data) return []
@@ -205,37 +370,156 @@ export function useAllotmentPlantings({
 
   const updateRotationGroup = useCallback((areaId: string, group: RotationGroup) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const existing = season.areas.find(a => a.areaId === areaId)
+        if (existing) {
+          existing.rotationGroup = group
+        } else {
+          const fresh: AreaSeason = withoutUndefined({
+            areaId,
+            rotationGroup: group,
+            plantings: [],
+          })
+          season.areas.push(fresh)
+        }
+        season.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageUpdateAreaRotationGroup(data, selectedYear, areaId, group))
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   const updateAreaSeasonPositionFn = useCallback((areaId: string, position: GridPosition) => {
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        const existing = season.areas.find(a => a.areaId === areaId)
+        if (existing) {
+          existing.gridPosition = position
+        } else {
+          const fresh: AreaSeason = withoutUndefined({
+            areaId,
+            plantings: [],
+            gridPosition: position,
+          })
+          season.areas.push(fresh)
+        }
+        season.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(prevData => {
       if (!prevData) return prevData
       return storageUpdateAreaSeasonPosition(prevData, selectedYear, areaId, position)
     })
-  }, [selectedYear, setData])
+  }, [selectedYear, setData, mutate])
 
   // ============ SEASON OPERATIONS ============
 
   const createSeason = useCallback((year: number, notes?: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const now = new Date().toISOString()
+        const previousYear = year - 1
+        const previousSeason = store.seasons.find(s => s.year === previousYear)
+
+        // Mirror the legacy area-season creation: one AreaSeason per
+        // non-archived area, rotating the rotation group for
+        // rotation-beds and copying grid positions where available.
+        const areaSeasons: AreaSeason[] = []
+        for (const area of store.areas) {
+          if (area.isArchived) continue
+          let rotationGroup: RotationGroup | undefined
+          if (area.kind === 'rotation-bed') {
+            const previousAreaSeason = previousSeason?.areas.find(a => a.areaId === area.id)
+            rotationGroup = previousAreaSeason?.rotationGroup
+              ? getNextRotationGroup(previousAreaSeason.rotationGroup)
+              : area.rotationGroup || 'legumes'
+          }
+          const previousAreaSeason = previousSeason?.areas.find(a => a.areaId === area.id)
+          const gridPosition = previousAreaSeason?.gridPosition ?? area.gridPosition
+          areaSeasons.push(withoutUndefined({
+            areaId: area.id,
+            rotationGroup,
+            plantings: [],
+            gridPosition,
+          }))
+        }
+
+        const newSeason: SeasonRecord = withoutUndefined({
+          year,
+          status: 'planned',
+          areas: areaSeasons,
+          notes,
+          createdAt: now,
+          updatedAt: now,
+        })
+        store.seasons.push(newSeason)
+        store.state.currentYear = year
+      })
+      setSelectedYear?.(year)
+      return
+    }
+
     setData(addSeason(data, { year, status: 'planned', notes }))
     setSelectedYear?.(year)
-  }, [data, setData, setSelectedYear])
+  }, [data, setData, setSelectedYear, mutate])
 
   const deleteSeasonData = useCallback((year: number) => {
     if (!data) return
     // Don't allow deleting the last season
     if (data.seasons.length <= 1) return
+
+    if (USE_YJS_STORAGE) {
+      // Capture new currentYear synchronously so we can update the
+      // selected year after the transaction returns. The legacy path
+      // does this via the snapshot returned by removeSeason.
+      const yearNum = Number(year)
+      let newCurrentYear = data.currentYear
+      mutate(store => {
+        const idx = store.seasons.findIndex(s => Number(s.year) === yearNum)
+        if (idx === -1) return
+        store.seasons.splice(idx, 1)
+
+        if (Number(store.state.currentYear) === yearNum) {
+          const years = store.seasons.map(s => Number(s.year)).sort((a, b) => b - a)
+          store.state.currentYear = years[0]
+          newCurrentYear = years[0]
+        }
+      })
+      setSelectedYear?.(newCurrentYear)
+      return
+    }
+
     const newData = removeSeason(data, year)
     setData(newData)
     setSelectedYear?.(newData.currentYear)
-  }, [data, setData, setSelectedYear])
+  }, [data, setData, setSelectedYear, mutate])
 
   const updateSeasonNotes = useCallback((notes: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const season = store.seasons.find(s => s.year === selectedYear)
+        if (!season) return
+        season.notes = notes
+        season.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(updateSeason(data, selectedYear, { notes }))
-  }, [data, selectedYear, setData])
+  }, [data, selectedYear, setData, mutate])
 
   // ============ LAYOUT HELPERS ============
 

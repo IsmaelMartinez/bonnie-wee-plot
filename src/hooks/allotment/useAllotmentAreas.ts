@@ -3,6 +3,15 @@
  *
  * Area CRUD operations and item selection.
  * Handles unified area management for beds, trees, berries, infrastructure.
+ *
+ * Two-branch methods (ADR 027 Step 3, PR-B): each mutation has a
+ * legacy `setData` branch (byte-identical to the pre-PR-B
+ * implementation) and a Yjs `mutate` branch that performs in-place
+ * mutations on the SyncedStore proxy. The branch is picked by the
+ * `USE_YJS_STORAGE` flag at the top of each method. While the flag is
+ * `false` the Yjs branch is dead code; the parity test exercises it
+ * with the flag flipped locally to keep both implementations in lock
+ * step.
  */
 
 'use client'
@@ -12,6 +21,7 @@ import {
   AllotmentData,
   Area,
   AreaKind,
+  AreaSeason,
 } from '@/types/unified-allotment'
 import {
   PhysicalBedId,
@@ -34,12 +44,18 @@ import {
   archiveArea as storageArchiveArea,
   restoreArea as storageRestoreArea,
 } from '@/services/allotment-storage'
+import { wasAreaActiveInYear } from '@/services/area-mutations'
+import { generateSlugId } from '@/lib/utils'
+import { USE_YJS_STORAGE } from '@/config/release-visibility'
+import type { MutateFn } from './useAllotmentData'
+import { assignDefined, withoutUndefined } from './yjs-helpers'
 
 // ============ HOOK TYPES ============
 
 export interface UseAllotmentAreasProps {
   data: AllotmentData | null
   setData: (data: AllotmentData | ((prev: AllotmentData | null) => AllotmentData | null)) => void
+  mutate: MutateFn
 }
 
 export interface UseAllotmentAreasReturn {
@@ -73,6 +89,7 @@ export interface UseAllotmentAreasReturn {
 export function useAllotmentAreas({
   data,
   setData,
+  mutate,
 }: UseAllotmentAreasProps): UseAllotmentAreasReturn {
   const [selectedBedId, setSelectedBedId] = useState<PhysicalBedId | null>(null)
   const [selectedItemRef, setSelectedItemRef] = useState<AllotmentItemRef | null>(null)
@@ -141,30 +158,131 @@ export function useAllotmentAreas({
 
   const addAreaData = useCallback((area: Omit<Area, 'id'>): string => {
     if (!data) return ''
+
+    // The slug ID has to be computed up front on both paths so the
+    // caller gets it back synchronously. The Yjs branch reuses the
+    // existing IDs from the proxy snapshot via `data.layout.areas`
+    // (the serialized view), which matches what the legacy
+    // `storageAddArea` does internally.
+    if (USE_YJS_STORAGE) {
+      const now = new Date().toISOString()
+      const existingIds = new Set(data.layout.areas?.map(a => a.id) || [])
+      const id = generateSlugId(area.name, existingIds)
+      const newArea: Area = withoutUndefined({
+        ...area,
+        id,
+        createdAt: now,
+      })
+
+      mutate(store => {
+        store.areas.push(newArea)
+
+        // Backfill AreaSeason for years where the area should exist.
+        for (const season of store.seasons) {
+          if (!wasAreaActiveInYear(newArea, season.year)) continue
+          const newAreaSeason: AreaSeason = withoutUndefined({
+            areaId: id,
+            rotationGroup:
+              newArea.kind === 'rotation-bed'
+                ? (newArea.rotationGroup || 'legumes')
+                : undefined,
+            plantings: [],
+            notes: [],
+          })
+          season.areas.push(newAreaSeason)
+          season.updatedAt = now
+        }
+
+        store.meta.updatedAt = now
+      })
+
+      return id
+    }
+
     const result = storageAddArea(data, area)
     setData(result.data)
     return result.areaId
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const updateAreaData = useCallback((areaId: string, updates: Partial<Omit<Area, 'id'>>) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const area = store.areas.find(a => a.id === areaId)
+        if (!area) return
+        assignDefined(area as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageUpdateArea(data, areaId, updates))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const removeAreaData = useCallback((areaId: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const now = new Date().toISOString()
+        const areaIndex = store.areas.findIndex(a => a.id === areaId)
+        if (areaIndex !== -1) {
+          store.areas.splice(areaIndex, 1)
+        }
+        // Remove area seasons across all seasons.
+        for (const season of store.seasons) {
+          for (let i = season.areas.length - 1; i >= 0; i--) {
+            if (season.areas[i].areaId === areaId) {
+              season.areas.splice(i, 1)
+            }
+          }
+        }
+        // Remove maintenance tasks linked to the area.
+        for (let i = store.maintenanceTasks.length - 1; i >= 0; i--) {
+          if (store.maintenanceTasks[i].areaId === areaId) {
+            store.maintenanceTasks.splice(i, 1)
+          }
+        }
+        store.meta.updatedAt = now
+      })
+      return
+    }
+
     setData(storageRemoveArea(data, areaId))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const archiveAreaData = useCallback((areaId: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const area = store.areas.find(a => a.id === areaId)
+        if (!area) return
+        area.isArchived = true
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageArchiveArea(data, areaId))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const restoreAreaData = useCallback((areaId: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const area = store.areas.find(a => a.id === areaId)
+        if (!area) return
+        area.isArchived = false
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageRestoreArea(data, areaId))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   return {
     // Selection state
