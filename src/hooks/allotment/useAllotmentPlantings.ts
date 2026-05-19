@@ -438,14 +438,13 @@ export function useAllotmentPlantings({
         const areaSeasons: AreaSeason[] = []
         for (const area of store.areas) {
           if (area.isArchived) continue
+          const previousAreaSeason = previousSeason?.areas.find(a => a.areaId === area.id)
           let rotationGroup: RotationGroup | undefined
           if (area.kind === 'rotation-bed') {
-            const previousAreaSeason = previousSeason?.areas.find(a => a.areaId === area.id)
             rotationGroup = previousAreaSeason?.rotationGroup
               ? getNextRotationGroup(previousAreaSeason.rotationGroup)
               : area.rotationGroup || 'legumes'
           }
-          const previousAreaSeason = previousSeason?.areas.find(a => a.areaId === area.id)
           const gridPosition = previousAreaSeason?.gridPosition ?? area.gridPosition
           areaSeasons.push(withoutUndefined({
             areaId: area.id,
