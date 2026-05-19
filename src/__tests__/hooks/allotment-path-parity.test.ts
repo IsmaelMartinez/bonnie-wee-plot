@@ -592,4 +592,266 @@ describe('useAllotment path parity', () => {
       expect(yjsSnapshots[i]).toEqual(legacySnapshots[i])
     }
   }, 30_000)
+
+  it('legacy and Yjs paths both adopt sibling-tab storage event payloads (PR-A.2)', async () => {
+    // PR-A.2 closes the gap where a sibling-tab `storage` event would
+    // update the legacy chain on the Yjs path but leave the Yjs doc
+    // stale — the mirror would then push the stale doc back over the
+    // sibling's fresh data, undoing the change. This test fires a
+    // synthetic `storage` event with a known "remote" payload at both
+    // hook instances and asserts that the public `data` snapshot
+    // converges to the remote payload on both flag states.
+    //
+    // We rebuild a small remote fixture (different allotment name, two
+    // areas instead of one) and write it to localStorage *before*
+    // dispatching the event so the listener's re-read from
+    // `initializeStorage` hands back the same payload jsdom doesn't
+    // dispatch the StorageEvent with `newValue` baked into the listener,
+    // it just re-reads the key.
+
+    const remotePayload: AllotmentData = {
+      ...makeFixture(),
+      meta: {
+        name: 'Remote Allotment',
+        location: 'Glasgow',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2026-05-16T10:00:00.000Z',
+      },
+      layout: {
+        areas: [
+          {
+            id: 'bed-a',
+            name: 'Bed A',
+            kind: 'rotation-bed',
+            canHavePlantings: true,
+            rotationGroup: 'legumes',
+            createdAt: '2025-01-01T00:00:00.000Z',
+          },
+          {
+            id: 'bed-b',
+            name: 'Bed B',
+            kind: 'rotation-bed',
+            canHavePlantings: true,
+            rotationGroup: 'brassicas',
+            createdAt: '2026-05-16T10:00:00.000Z',
+          },
+        ],
+      },
+    }
+
+    // Dispatch a synthetic same-storage-key event. The legacy chain's
+    // `usePersistedStorage.handleStorageChange` reads `event.newValue`
+    // when present but falls back to re-loading from `localStorage` for
+    // validation — we set the key first so both paths land at the same
+    // data.
+    function dispatchRemoteSync(): void {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(remotePayload))
+      // jsdom rejects `StorageEvent` constructed with `storageArea: localStorage`
+      // (it only accepts its own Storage wrapper). Omitting the field is safe —
+      // `usePersistedStorage.handleStorageChange` only reads `event.key` and
+      // `event.newValue`, then re-reads via `load()`.
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: STORAGE_KEY,
+          newValue: JSON.stringify(remotePayload),
+          oldValue: null,
+        }),
+      )
+    }
+
+    // --- Legacy path ---
+    resetIdCounter()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(makeFixture()))
+    const useAllotmentLegacy = await importUseAllotmentWithFlag(false)
+    const legacyHook = renderHook(() => useAllotmentLegacy())
+    await waitFor(() => {
+      expect(legacyHook.result.current.data).not.toBeNull()
+    })
+
+    await act(async () => {
+      dispatchRemoteSync()
+    })
+
+    await waitFor(() => {
+      expect(legacyHook.result.current.data?.meta.name).toBe('Remote Allotment')
+    })
+    const legacyAfter = stripVolatile(legacyHook.result.current.data)
+    legacyHook.unmount()
+
+    // --- Yjs path ---
+    resetIdCounter()
+    localStorage.clear()
+    await resetIndexedDB()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(makeFixture()))
+
+    const useAllotmentYjs = await importUseAllotmentWithFlag(true)
+    const yjsHook = renderHook(() => useAllotmentYjs())
+    await waitFor(() => {
+      expect(yjsHook.result.current.data).not.toBeNull()
+    })
+
+    await act(async () => {
+      dispatchRemoteSync()
+    })
+
+    // The Yjs path's `handleSync` calls `yjs.replaceFromJson`, which
+    // runs in a Yjs transaction. The `doc.on('update', ...)` listener
+    // then re-publishes the serialized snapshot asynchronously.
+    await waitFor(() => {
+      expect(yjsHook.result.current.data?.meta.name).toBe('Remote Allotment')
+    })
+    const yjsAfter = stripVolatile(yjsHook.result.current.data)
+    yjsHook.unmount()
+
+    // --- Compare ---
+    expect(yjsAfter).toEqual(legacyAfter)
+  }, 30_000)
+
+  it('legacy and Yjs paths both adopt the cloud payload after resolveConflict("cloud") (PR-A.2)', async () => {
+    // PR-A.2 wraps the legacy `resolveConflict` so a `'cloud'` choice
+    // also writes the remote snapshot into the Yjs doc. Without this,
+    // the legacy chain would adopt the cloud data but the Yjs doc would
+    // remain stale, and the mirror would push the stale doc back over
+    // the cloud copy the user just explicitly chose.
+    //
+    // This test cannot reuse the parity test's main scaffolding because
+    // a real conflict requires Supabase wiring (the legacy chain only
+    // raises `syncConflict` after a `fetchRemote` round-trip). Instead
+    // we mock `@/lib/supabase/sync` to surface a conflict, drive
+    // `resolveConflict('cloud')` against both paths, and compare the
+    // resulting `data` snapshots.
+
+    const remoteData: AllotmentData = {
+      ...makeFixture(),
+      meta: {
+        name: 'Cloud Allotment',
+        location: 'Aberdeen',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2026-05-16T11:00:00.000Z',
+      },
+    }
+
+    async function runWithFlag(useYjsStorage: boolean): Promise<unknown> {
+      vi.resetModules()
+      vi.doMock('@/config/release-visibility', () => ({
+        SHOW_ROTATION_SUGGESTIONS: false,
+        SHOW_ADVANCED_AREA_FIELDS: false,
+        SHOW_CARE_LOGS: true,
+        SHOW_UNDERPLANTINGS: false,
+        USE_YJS_STORAGE: useYjsStorage,
+      }))
+      // Pretend the user is signed in and Supabase is configured so
+      // `canSync` is `true` and the initial-sync effect runs. The flag
+      // helper for the conflict path is hand-rolled here because the
+      // test needs additional mocks the existing helpers don't apply.
+      vi.doMock('@/lib/utils/id', () => ({
+        generateId: (prefix?: string) => {
+          idCounter++
+          return prefix ? `${prefix}-${idCounter}` : `id-${idCounter}`
+        },
+        slugify: (text: string) =>
+          text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-'),
+        generateSlugId: (name: string, existingIds: Set<string>) => {
+          const baseSlug = name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')
+          if (!existingIds.has(baseSlug)) return baseSlug
+          let counter = 2
+          while (existingIds.has(`${baseSlug}-${counter}`)) counter++
+          return `${baseSlug}-${counter}`
+        },
+      }))
+      vi.doMock('@/lib/utils', async () => {
+        const id = await import('@/lib/utils/id')
+        const debounce = await import('@/lib/utils/debounce')
+        return { ...id, ...debounce }
+      })
+      vi.doMock('@/hooks/useOptionalAuth', () => ({
+        clerkAvailable: true,
+        useOptionalAuth: () => ({
+          getToken: async () => 'token',
+          userId: 'user-conflict',
+          isSignedIn: true,
+        }),
+      }))
+      vi.doMock('@/lib/supabase/client', () => ({
+        isSupabaseConfigured: () => true,
+        createAnonClient: () => null,
+        createAuthClient: () => null,
+      }))
+      vi.doMock('@/lib/supabase/sync', async () => {
+        const actual = await vi.importActual<typeof import('@/lib/supabase/sync')>(
+          '@/lib/supabase/sync',
+        )
+        return {
+          ...actual,
+          fetchRemote: async () => ({
+            data: remoteData,
+            updatedAt: '2026-05-16T11:00:00.000Z',
+          }),
+          pushToRemote: async () => undefined,
+        }
+      })
+      // Pre-seed a sync flag so the initial sync treats this as a
+      // *subsequent* sync (which can produce a conflict) rather than a
+      // first-time-cloud-wins sync. Set the flag's lastSyncedAt to
+      // before both local and remote `updatedAt` values so both sides
+      // appear to have changed.
+      localStorage.setItem(
+        'bonnie-synced-user-conflict',
+        JSON.stringify({ lastSyncedAt: '2024-01-01T00:00:00.000Z' }),
+      )
+
+      const localFixture: AllotmentData = {
+        ...makeFixture(),
+        meta: {
+          name: 'Local Allotment',
+          location: 'Edinburgh',
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2026-05-16T09:00:00.000Z',
+        },
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localFixture))
+
+      const mod = await import('@/hooks/useAllotment')
+      const hook = renderHook(() => mod.useAllotment())
+
+      await waitFor(() => {
+        expect(hook.result.current.data).not.toBeNull()
+      })
+
+      // Wait for the initial sync to raise the conflict.
+      await waitFor(() => {
+        expect(hook.result.current.syncConflict).not.toBeNull()
+      }, { timeout: 5000 })
+
+      await act(async () => {
+        hook.result.current.resolveConflict('cloud')
+      })
+
+      // After resolveConflict('cloud') the legacy chain adopts the
+      // remote snapshot synchronously. On the Yjs path the wrapped
+      // resolveConflict also fires `yjs.replaceFromJson` which republishes
+      // the snapshot async. Wait for the visible name to match.
+      await waitFor(() => {
+        expect(hook.result.current.data?.meta.name).toBe('Cloud Allotment')
+      })
+
+      const finalSnapshot = stripVolatile(hook.result.current.data)
+      hook.unmount()
+      return finalSnapshot
+    }
+
+    // --- Legacy path ---
+    resetIdCounter()
+    localStorage.clear()
+    await resetIndexedDB()
+    const legacySnapshot = await runWithFlag(false)
+
+    // --- Yjs path ---
+    resetIdCounter()
+    localStorage.clear()
+    await resetIndexedDB()
+    const yjsSnapshot = await runWithFlag(true)
+
+    expect(yjsSnapshot).toEqual(legacySnapshot)
+  }, 30_000)
 })

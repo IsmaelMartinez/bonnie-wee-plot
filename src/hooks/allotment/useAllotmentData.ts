@@ -273,12 +273,31 @@ function emitUnportedSetDataWarning(): void {
 function useAllotmentDataYjs(): UseAllotmentDataReturn {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
 
-  const handleSync = useCallback((newData: AllotmentData) => {
-    setSelectedYear(newData.currentYear)
-  }, [])
-
-  // Yjs side: canonical engine on this path.
+  // Yjs side: canonical engine on this path. Constructed before
+  // `handleSync` so the callback can close over `yjs.replaceFromJson`
+  // and propagate cross-context updates into the Y.Doc — without this
+  // step the legacy chain would adopt sibling-tab / cloud writes while
+  // the Yjs doc stayed stale, and the mirror would push the stale doc
+  // straight back, undoing the remote change.
   const yjs = useYjsDoc()
+
+  // Propagate cross-context writes (sibling-tab `storage` events, P2P
+  // sync events, post-conflict cloud snapshots adopted via the legacy
+  // chain's `applyRemoteSnapshot`) into the Yjs doc. `replaceFromJson`
+  // runs inside a Yjs transaction tagged with the hook's local origin,
+  // so the doc's own `update` listener publishes a fresh snapshot but
+  // doesn't trip the "synced from another tab" flag — the legacy chain
+  // already raised that affordance.
+  //
+  // The downstream mirror (`useYjsToLegacyMirror`) will see the new
+  // snapshot and call `synced.setData(snapshot)`. The legacy chain just
+  // adopted the same data, so `usePersistedStorage`'s content-equality
+  // dedup on `latestSerializedRef` short-circuits the redundant save +
+  // cloud push.
+  const handleSync = useCallback((newData: AllotmentData) => {
+    yjs.replaceFromJson(newData)
+    setSelectedYear(newData.currentYear)
+  }, [yjs])
 
   // Legacy side: kept alive as the cloud-sync mirror. `useSyncedStorage`
   // continues to listen for `saveStatus === 'saved'` and pushes to
@@ -370,6 +389,23 @@ function useAllotmentDataYjs(): UseAllotmentDataReturn {
     return yjsFlushed && mirrorFlushed
   }, [yjs, synced])
 
+  // Wrap the legacy `resolveConflict` so a `'cloud'` choice also writes
+  // the remote snapshot into the Yjs doc. `synced.resolveConflict`
+  // clears `syncConflict` after running, so we capture the conflict
+  // payload *before* delegating. For the `'local'` choice the Yjs state
+  // is canonical — the mirror is already pushing it out, no action
+  // needed here.
+  const resolveConflict = useCallback(
+    (choice: 'cloud' | 'local') => {
+      const conflict = synced.syncConflict
+      synced.resolveConflict(choice)
+      if (choice === 'cloud' && conflict?.remote) {
+        yjs.replaceFromJson(conflict.remote)
+      }
+    },
+    [yjs, synced],
+  )
+
   return {
     data: yjs.data,
     setData,
@@ -385,7 +421,7 @@ function useAllotmentDataYjs(): UseAllotmentDataReturn {
     syncStatus: synced.syncStatus,
     syncError: synced.syncError,
     syncConflict: synced.syncConflict,
-    resolveConflict: synced.resolveConflict,
+    resolveConflict,
 
     selectYear,
     getYears,

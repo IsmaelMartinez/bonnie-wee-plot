@@ -6,6 +6,7 @@ import { VarietyData } from '@/types/variety-data'
 import { saveAllotmentData, clearAllotmentData, getStorageStats, migrateSchemaForImport } from '@/services/allotment-storage'
 import { checkStorageQuota, createPreImportBackup, restoreFromBackup } from '@/lib/storage-utils'
 import { setImportInProgress } from '@/lib/persistence-signal'
+import { clearYjsIndexedDb } from '@/hooks/useYjsDoc'
 import { ImportError, ExportError } from '@/types/errors'
 
 /**
@@ -245,6 +246,16 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
         }
 
         setImportInProgress(true)
+        // Drop the Yjs IndexedDB store so the post-reload `useYjsDoc`
+        // mount sees an empty doc and hydrates from the freshly-
+        // imported localStorage. Without this, the previous session's
+        // IDB state would win and the import would be silently
+        // overwritten by the mirror.
+        try {
+          await clearYjsIndexedDb()
+        } catch (err) {
+          console.warn('[useDataTransfer] Failed to clear Yjs IndexedDB before reload:', err)
+        }
         window.location.reload()
       } catch (error) {
         console.error('Import failed:', error)
@@ -293,9 +304,17 @@ export function useDataTransfer({ data, onDataImported, flushSave }: UseDataTran
     }
   }, [lastBackupKey, onDataImported])
 
-  const handleClear = useCallback(() => {
+  const handleClear = useCallback(async () => {
     const result = clearAllotmentData()
     if (result.success) {
+      // Drop the Yjs IndexedDB store too, otherwise the next mount
+      // resurrects the pre-clear state from IDB and the user sees the
+      // data they just deleted.
+      try {
+        await clearYjsIndexedDb()
+      } catch (err) {
+        console.warn('[useDataTransfer] Failed to clear Yjs IndexedDB:', err)
+      }
       setShowClearConfirm(false)
       onDataImported()
     }

@@ -7,6 +7,7 @@ import type { AllotmentData } from '@/types/unified-allotment'
 import { saveAllotmentData, migrateSchemaForImport, loadAllotmentData, validateAllotmentData } from '@/services/allotment-storage'
 import { createPreImportBackup } from '@/lib/storage-utils'
 import { setImportInProgress } from '@/lib/persistence-signal'
+import { clearYjsIndexedDb } from '@/hooks/useYjsDoc'
 
 interface PageProps {
   params: Promise<{ code: string }>
@@ -108,9 +109,17 @@ export default function ReceivePage({ params }: PageProps) {
       setState(prev => ({ ...prev, status: 'imported' }))
 
       // Redirect after short delay
-      setTimeout(() => {
+      setTimeout(async () => {
         // Set flag to prevent stale data from overwriting
         setImportInProgress(true)
+        // Drop the Yjs IndexedDB store so the post-redirect mount
+        // hydrates from the freshly-imported localStorage rather than
+        // resurrecting the previous session's Yjs state.
+        try {
+          await clearYjsIndexedDb()
+        } catch (err) {
+          console.warn('[receive] Failed to clear Yjs IndexedDB before redirect:', err)
+        }
         window.location.href = '/'
       }, 1500)
     } catch (error) {

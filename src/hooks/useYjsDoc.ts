@@ -47,6 +47,118 @@ import type { SyncStatus } from '@/types/storage'
  */
 const YJS_DOC_NAME = 'bwp-allotment-yjs'
 
+/**
+ * Shared singleton state for the tab-wide Yjs doc. Multiple `useYjsDoc`
+ * consumers (Navigation, allotment page, modals) all read from and
+ * write to the same Y.Doc instance through this singleton. Refcounted so
+ * the doc + IDB provider tear down when the last consumer unmounts.
+ *
+ * Without this, two `useYjsDoc` instances mounting in parallel would
+ * each construct their own Y.Doc, both try to hydrate from legacy
+ * localStorage, and produce concurrent CRDT inserts that the merger
+ * keeps as duplicates — manifesting as duplicate seasons / areas after
+ * page reload. The singleton makes hydration single-shot by
+ * construction.
+ */
+interface YjsSingleton {
+  doc: Y.Doc
+  store: AllotmentStoreShape
+  provider: IndexeddbPersistence | null
+  /**
+   * Resolves once `provider.whenSynced` has resolved and (if needed)
+   * the one-shot legacy-localStorage hydration has run. Cached so
+   * later consumers await the same work instead of racing it.
+   */
+  whenReady: Promise<{ providerError: string | null }>
+  /** Origin tag for transactions initiated locally by `useYjsDoc` consumers. */
+  localOrigin: symbol
+  /** Number of mounted `useYjsDoc` consumers. */
+  refCount: number
+}
+
+let singleton: YjsSingleton | null = null
+
+function acquireSingleton(): YjsSingleton {
+  if (singleton) {
+    singleton.refCount += 1
+    return singleton
+  }
+
+  const doc = new Y.Doc()
+  const { store } = createAllotmentDoc(doc)
+  let provider: IndexeddbPersistence | null = null
+  let providerError: string | null = null
+  try {
+    provider = new IndexeddbPersistence(YJS_DOC_NAME, doc)
+  } catch (err) {
+    // `IndexeddbPersistence`'s constructor reads `indexedDB` eagerly;
+    // browsers without it (older Safari private mode) throw here. Fall
+    // back to a memory-only doc — the session is local-only and dies
+    // on reload, same as the legacy chain when localStorage is
+    // unavailable.
+    providerError = err instanceof Error ? err.message : 'IndexedDB unavailable'
+    provider = null
+  }
+
+  const localOrigin = Symbol('useYjsDoc-shared-local')
+
+  const whenReady = (async () => {
+    if (provider) {
+      try {
+        await provider.whenSynced
+      } catch (err) {
+        providerError =
+          err instanceof Error ? err.message : 'Failed to load IndexedDB state'
+      }
+    }
+    // First-run hydration: if the doc is still empty after IDB sync,
+    // pull the legacy localStorage snapshot in. This is single-shot
+    // because the singleton's `whenReady` is the only place that runs
+    // it — subsequent `useYjsDoc` mounts await the same Promise and
+    // see a non-empty doc. The IDB is authoritative on later boots;
+    // the import flow (`clearYjsIndexedDb`) and the in-app Clear Local
+    // Data button explicitly clear IDB when the user intends to
+    // discard the doc.
+    if (isStoreEmpty(store)) {
+      const legacy = readLegacyAllotment()
+      if (legacy) {
+        doc.transact(() => {
+          hydrateFromJson(store, legacy)
+        }, localOrigin)
+      }
+    }
+    return { providerError }
+  })()
+
+  singleton = {
+    doc,
+    store,
+    provider,
+    whenReady,
+    localOrigin,
+    refCount: 1,
+  }
+  return singleton
+}
+
+function releaseSingleton(): void {
+  if (!singleton) return
+  singleton.refCount -= 1
+  if (singleton.refCount > 0) return
+  // Last consumer unmounted — tear down. We hold the reference local
+  // before nulling so the destroy/cleanup runs against the same
+  // instance even if another mount races in.
+  const current = singleton
+  singleton = null
+  if (current.provider) {
+    // `destroy` returns a Promise but we don't await it during
+    // cleanup — React unmount is synchronous. The provider tears
+    // down its IDB connection in the background.
+    void current.provider.destroy()
+  }
+  current.doc.destroy()
+}
+
 export interface UseYjsDocReturn {
   /** Derived JSON snapshot of the current doc state. */
   data: AllotmentData | null
@@ -106,16 +218,11 @@ export function useYjsDoc(): UseYjsDocReturn {
   const [error, setError] = useState<string | null>(null)
   const [isSyncedFromOtherTab, setIsSyncedFromOtherTab] = useState(false)
 
-  // Hold the doc/store/provider in refs so the same instance survives
-  // re-renders and exposes them to callbacks without re-creating the
-  // listener wiring on every render.
-  const docRef = useRef<Y.Doc | null>(null)
-  const storeRef = useRef<AllotmentStoreShape | null>(null)
-  const providerRef = useRef<IndexeddbPersistence | null>(null)
-  // Tracks the origin of updates the hook applies itself, so the doc's
-  // own update listener can distinguish locally-initiated transactions
-  // from cross-tab broadcasts arriving through y-indexeddb.
-  const localOriginRef = useRef<symbol>(Symbol('useYjsDoc-local'))
+  // Hold the shared singleton in a ref so the actions exposed by this
+  // hook all close over the same Y.Doc instance. The singleton itself
+  // is module-scoped (see `acquireSingleton`); every `useYjsDoc`
+  // consumer shares the same Y.Doc to avoid concurrent-hydration races.
+  const singletonRef = useRef<YjsSingleton | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -123,36 +230,18 @@ export function useYjsDoc(): UseYjsDocReturn {
     // clear it and avoid a setState-on-unmounted warning.
     let syncedFlagTimeout: ReturnType<typeof setTimeout> | null = null
 
-    const doc = new Y.Doc()
-    const { store } = createAllotmentDoc(doc)
-    docRef.current = doc
-    storeRef.current = store
-
-    let provider: IndexeddbPersistence | null = null
-    try {
-      provider = new IndexeddbPersistence(YJS_DOC_NAME, doc)
-    } catch (err) {
-      // `IndexeddbPersistence`'s constructor reads `indexedDB` eagerly;
-      // browsers without it (older Safari private mode) throw here.
-      // Fall back to a memory-only doc — the session is local-only and
-      // dies on reload, same as the legacy chain when localStorage is
-      // unavailable.
-      const message =
-        err instanceof Error ? err.message : 'IndexedDB unavailable'
-      setError(message)
-      provider = null
-    }
-    providerRef.current = provider
+    const sg = acquireSingleton()
+    singletonRef.current = sg
 
     const handleUpdate = (_update: Uint8Array, origin: unknown) => {
-      if (!storeRef.current) return
-      const snapshot = serializeToJson(storeRef.current)
+      const snapshot = serializeToJson(sg.store)
       setData(snapshot)
-      // Any update that isn't tagged with our local origin came from
-      // somewhere else: the IndexeddbPersistence cross-tab broadcast,
-      // or a `Y.applyUpdate` from a future cloud transport. Flag it so
-      // existing UI affordances ("Synced from another tab") light up.
-      if (origin !== localOriginRef.current) {
+      // Any update that isn't tagged with the shared local origin came
+      // from somewhere else: the IndexeddbPersistence cross-tab
+      // broadcast, or a `Y.applyUpdate` from a future cloud transport.
+      // Flag it so existing UI affordances ("Synced from another tab")
+      // light up.
+      if (origin !== sg.localOrigin) {
         setIsSyncedFromOtherTab(true)
         if (syncedFlagTimeout) clearTimeout(syncedFlagTimeout)
         syncedFlagTimeout = setTimeout(() => {
@@ -161,43 +250,27 @@ export function useYjsDoc(): UseYjsDocReturn {
         }, 3000)
       }
     }
-    doc.on('update', handleUpdate)
+    sg.doc.on('update', handleUpdate)
 
     const init = async () => {
       try {
-        if (provider) {
-          await provider.whenSynced
-        }
+        const { providerError } = await sg.whenReady
         if (cancelled) return
 
-        const currentStore = storeRef.current
-        if (!currentStore) return
-
-        const isEmpty = isStoreEmpty(currentStore)
-        if (isEmpty) {
-          // Read the legacy localStorage key directly so an empty
-          // device truly stays empty (`data === null`). `initializeStorage`
-          // would conjure a fresh-init record here, which is the right
-          // behaviour for the legacy chain on first run but the wrong
-          // behaviour for the Yjs path — we want to defer initialisation
-          // until the user actually adds something.
-          const legacy = readLegacyAllotment()
-          if (legacy) {
-            doc.transact(() => {
-              hydrateFromJson(currentStore, legacy)
-            }, localOriginRef.current)
-          }
+        if (providerError) {
+          setError(providerError)
         }
 
-        // Publish the initial snapshot. After `whenSynced` the doc may
-        // already have content (from IndexedDB) without us having
-        // received a fresh update event, so emit a snapshot explicitly.
-        // If the store is still empty after the hydration attempt, keep
-        // `data` at its initial `null` — first-run consumers (e.g. the
-        // setup wizard) rely on the `null` signal.
+        // Publish the initial snapshot. After `whenReady` resolves the
+        // doc may already have content (from IndexedDB or first-run
+        // hydration) without us having received a fresh update event,
+        // so emit a snapshot explicitly. If the store is still empty
+        // (truly first-run device with no legacy data), keep `data` at
+        // its initial `null` — first-run consumers (e.g. the setup
+        // wizard) rely on the `null` signal.
         if (!cancelled) {
-          if (!isStoreEmpty(currentStore)) {
-            setData(serializeToJson(currentStore))
+          if (!isStoreEmpty(sg.store)) {
+            setData(serializeToJson(sg.store))
           }
           setIsLoading(false)
         }
@@ -220,46 +293,36 @@ export function useYjsDoc(): UseYjsDocReturn {
         clearTimeout(syncedFlagTimeout)
         syncedFlagTimeout = null
       }
-      doc.off('update', handleUpdate)
-      if (provider) {
-        // `destroy` returns a Promise but we don't await it during
-        // cleanup — React unmount is synchronous. The provider tears
-        // down its IDB connection in the background.
-        void provider.destroy()
-      }
-      doc.destroy()
-      docRef.current = null
-      storeRef.current = null
-      providerRef.current = null
+      sg.doc.off('update', handleUpdate)
+      singletonRef.current = null
+      releaseSingleton()
     }
   }, [])
 
   const mutate = useCallback(
     (fn: (store: AllotmentStoreShape) => void) => {
-      const doc = docRef.current
-      const store = storeRef.current
-      if (!doc || !store) return
-      doc.transact(() => {
-        fn(store)
-      }, localOriginRef.current)
+      const sg = singletonRef.current
+      if (!sg) return
+      sg.doc.transact(() => {
+        fn(sg.store)
+      }, sg.localOrigin)
     },
     [],
   )
 
   const replaceFromJson = useCallback((json: AllotmentData) => {
-    const doc = docRef.current
-    const store = storeRef.current
-    if (!doc || !store) return
-    doc.transact(() => {
-      hydrateFromJson(store, json)
-    }, localOriginRef.current)
+    const sg = singletonRef.current
+    if (!sg) return
+    sg.doc.transact(() => {
+      hydrateFromJson(sg.store, json)
+    }, sg.localOrigin)
   }, [])
 
   const flushSave = useCallback(async (): Promise<boolean> => {
-    const provider = providerRef.current
-    if (!provider) return true
+    const sg = singletonRef.current
+    if (!sg || !sg.provider) return true
     try {
-      await provider.whenSynced
+      await sg.provider.whenSynced
       return true
     } catch {
       return false
@@ -357,3 +420,53 @@ function isStoreEmpty(store: AllotmentStoreShape): boolean {
 // Re-export for callers that need to reference the underlying Yjs Doc
 // (e.g. tests).
 export { getYjsDoc }
+
+/**
+ * Drop the Yjs IndexedDB store so a subsequent `useYjsDoc` mount
+ * hydrates fresh from legacy localStorage. The import flow uses this
+ * after writing imported data to localStorage but before
+ * `window.location.reload()` — otherwise, on reload the Yjs path would
+ * load the *previous* session's state from IDB, ignore the freshly-
+ * imported localStorage, and then mirror the stale state back over the
+ * imported data.
+ *
+ * Tears down the singleton in-process so any post-reset `useYjsDoc`
+ * mount starts from scratch instead of reusing the in-memory cache.
+ * Safe to call when the singleton hasn't been constructed yet (e.g.
+ * if the flag is `false` and no consumer ever mounted).
+ *
+ * Returns a promise that resolves once the IDB database has been
+ * deleted, or rejects with the underlying browser error if the
+ * deletion fails. Callers (the import flow) are expected to `await`
+ * this before the reload so the deletion is guaranteed durable.
+ */
+export async function clearYjsIndexedDb(): Promise<void> {
+  // First, tear down the in-process singleton if it exists. This
+  // closes the IDB connection so the `deleteDatabase` call below can
+  // succeed (browsers reject open-handle deletions silently or with a
+  // blocked event).
+  if (singleton) {
+    const current = singleton
+    singleton = null
+    if (current.provider) {
+      try {
+        await current.provider.destroy()
+      } catch {
+        // Best-effort: continue to the database delete even if the
+        // provider tear-down failed.
+      }
+    }
+    current.doc.destroy()
+  }
+
+  if (typeof indexedDB === 'undefined') return
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(YJS_DOC_NAME)
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error ?? new Error('Failed to delete Yjs IndexedDB'))
+    // `blocked` fires when another tab has the DB open. Resolve anyway
+    // — the import is about to reload this tab, and any other tabs will
+    // see the same localStorage on their next mount.
+    request.onblocked = () => resolve()
+  })
+}
