@@ -36,6 +36,7 @@ import { useYjsToLegacyMirror } from '../useYjsToLegacyMirror'
 import { USE_YJS_STORAGE } from '@/config/release-visibility'
 import type { SyncStatus } from '@/types/storage'
 import type { SyncConflict } from '../useSyncedStorage'
+import type { AllotmentStoreShape } from '@/lib/yjs-spike/allotment-yjs'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from '../usePersistedStorage'
@@ -60,10 +61,26 @@ const validateAllotment = (parsed: unknown): StorageResult<AllotmentData> => {
 
 // ============ HOOK TYPES ============
 
+/**
+ * Mutate function exposed on the Yjs path so domain hooks can apply
+ * in-place changes against the SyncedStore proxy. The legacy path
+ * provides a no-op implementation; domain hooks pick between `setData`
+ * (legacy) and `mutate` (Yjs) via the `USE_YJS_STORAGE` flag.
+ */
+export type MutateFn = (fn: (store: AllotmentStoreShape) => void) => void
+
 export interface UseAllotmentDataReturn {
   // State
   data: AllotmentData | null
   setData: (data: AllotmentData | ((prev: AllotmentData | null) => AllotmentData | null)) => void
+  /**
+   * Runs `fn` inside a Yjs transaction against the live SyncedStore
+   * proxy. On the legacy path this is a no-op — the flag-gated Yjs
+   * branch in domain hooks never runs while `USE_YJS_STORAGE` is
+   * `false`, so the legacy `mutate` is reached only when a future
+   * caller invokes it unconditionally (which would be a bug).
+   */
+  mutate: MutateFn
   currentSeason: SeasonRecord | null
   selectedYear: number
   isLoading: boolean
@@ -105,6 +122,17 @@ export function useAllotmentData(): UseAllotmentDataReturn {
 }
 
 // ----- legacy branch -----
+
+// On the legacy branch the `mutate` shape exists only so the domain
+// hooks can take it as a prop unconditionally; the Yjs branch in each
+// method is gated on `USE_YJS_STORAGE` (a build-time `false` here), so
+// this no-op is never reached during normal operation. If a future
+// caller invokes it unconditionally, the warning surfaces the bug.
+const legacyMutateNoop: MutateFn = () => {
+  console.warn(
+    'useAllotmentData.mutate called on legacy path — only reachable if a caller ignores the USE_YJS_STORAGE flag gate',
+  )
+}
 
 function useAllotmentDataLegacy(): UseAllotmentDataReturn {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
@@ -196,6 +224,7 @@ function useAllotmentDataLegacy(): UseAllotmentDataReturn {
     // State
     data,
     setData,
+    mutate: legacyMutateNoop,
     currentSeason,
     selectedYear,
     isLoading,
@@ -344,6 +373,7 @@ function useAllotmentDataYjs(): UseAllotmentDataReturn {
   return {
     data: yjs.data,
     setData,
+    mutate: yjs.mutate,
     currentSeason,
     selectedYear,
     isLoading: yjs.isLoading,

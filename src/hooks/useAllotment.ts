@@ -202,6 +202,7 @@ export function useAllotment(): UseAllotmentReturn {
   const {
     data,
     setData,
+    mutate,
     currentSeason,
     selectedYear,
     isLoading,
@@ -230,7 +231,7 @@ export function useAllotment(): UseAllotmentReturn {
   }, [baseSelectYear])
 
   // Phase 2: Areas and Varieties (parallel)
-  const areasHook = useAllotmentAreas({ data, setData })
+  const areasHook = useAllotmentAreas({ data, setData, mutate })
   const {
     selectedBedId,
     selectedItemRef,
@@ -250,7 +251,7 @@ export function useAllotment(): UseAllotmentReturn {
     restoreArea,
   } = areasHook
 
-  const varietiesHook = useAllotmentVarieties({ data, setData })
+  const varietiesHook = useAllotmentVarieties({ data, setData, mutate })
   const {
     getVarieties,
     getVarietiesForYear,
@@ -274,6 +275,7 @@ export function useAllotment(): UseAllotmentReturn {
   const plantingsHook = useAllotmentPlantings({
     data,
     setData,
+    mutate,
     selectedYear,
     setSelectedYear: baseSelectYear,
   })
@@ -296,7 +298,7 @@ export function useAllotment(): UseAllotmentReturn {
   } = plantingsHook
 
   // Phase 4: Custom Tasks, Maintenance, Notes, CareLogs (parallel)
-  const customTasksHook = useAllotmentCustomTasks({ data, setData })
+  const customTasksHook = useAllotmentCustomTasks({ data, setData, mutate })
   const {
     getCustomTasks,
     addCustomTask,
@@ -305,7 +307,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeCustomTask,
   } = customTasksHook
 
-  const maintenanceHook = useAllotmentMaintenance({ data, setData })
+  const maintenanceHook = useAllotmentMaintenance({ data, setData, mutate })
   const {
     getMaintenanceTasks,
     getTasksForMonth,
@@ -316,7 +318,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeMaintenanceTask,
   } = maintenanceHook
 
-  const notesHook = useAllotmentNotes({ data, setData, selectedYear })
+  const notesHook = useAllotmentNotes({ data, setData, mutate, selectedYear })
   const {
     getAreaNotes,
     addAreaNote,
@@ -327,7 +329,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeGardenEvent,
   } = notesHook
 
-  const careLogsHook = useAllotmentCareLogs({ data, setData, selectedYear })
+  const careLogsHook = useAllotmentCareLogs({ data, setData, mutate, selectedYear })
   const {
     addCareLog,
     updateCareLog,

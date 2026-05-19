@@ -3,6 +3,9 @@
  *
  * Seed inventory management for varieties.
  * Handles variety CRUD, seed status tracking, and supplier management.
+ *
+ * Two-branch methods (ADR 027 Step 3, PR-B): see useAllotmentAreas for
+ * the convention. The Yjs branch mutates `store.varieties` in place.
  */
 
 'use client'
@@ -33,12 +36,17 @@ import {
   getSeedsStatsForYear as storageGetSeedsStatsForYear,
 } from '@/services/allotment-storage'
 import { SeedStatus } from '@/types/unified-allotment'
+import { generateId } from '@/lib/utils'
+import { USE_YJS_STORAGE } from '@/config/release-visibility'
+import type { MutateFn } from './useAllotmentData'
+import { assignDefined, withoutUndefined } from './yjs-helpers'
 
 // ============ HOOK TYPES ============
 
 export interface UseAllotmentVarietiesProps {
   data: AllotmentData | null
   setData: (data: AllotmentData | ((prev: AllotmentData | null) => AllotmentData | null)) => void
+  mutate: MutateFn
 }
 
 export interface UseAllotmentVarietiesReturn {
@@ -70,6 +78,7 @@ export interface UseAllotmentVarietiesReturn {
 export function useAllotmentVarieties({
   data,
   setData,
+  mutate,
 }: UseAllotmentVarietiesProps): UseAllotmentVarietiesReturn {
 
   // ============ VARIETY CRUD ============
@@ -86,28 +95,90 @@ export function useAllotmentVarieties({
 
   const addVarietyData = useCallback((variety: NewVariety) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const newVariety: StoredVariety = withoutUndefined({
+          id: generateId('variety'),
+          plantId: variety.plantId,
+          name: variety.name,
+          supplier: variety.supplier,
+          price: variety.price,
+          notes: variety.notes,
+          seedsByYear: variety.seedsByYear || {},
+        })
+        store.varieties.push(newVariety)
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageAddVariety(data, variety))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const updateVarietyData = useCallback((id: string, updates: VarietyUpdate) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === id)
+        if (!v) return
+        assignDefined(v as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageUpdateVariety(data, id, updates))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const removeVarietyData = useCallback((id: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const idx = store.varieties.findIndex(v => v.id === id)
+        if (idx === -1) return
+        store.varieties.splice(idx, 1)
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageRemoveVariety(data, id))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const archiveVarietyData = useCallback((id: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === id)
+        if (!v) return
+        v.isArchived = true
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageArchiveVariety(data, id))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const unarchiveVarietyData = useCallback((id: string) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === id)
+        if (!v) return
+        v.isArchived = false
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageUnarchiveVariety(data, id))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const getActiveVarietiesData = useCallback((includeArchived = false): StoredVariety[] => {
     if (!data) return []
@@ -118,8 +189,30 @@ export function useAllotmentVarieties({
 
   const toggleHaveSeedsForYearData = useCallback((varietyId: string, year: number) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === varietyId)
+        if (!v) return
+        const current = v.seedsByYear[year] || 'none'
+        const next: Record<SeedStatus, SeedStatus> = {
+          'none': 'ordered',
+          'ordered': 'have',
+          'have': 'had',
+          'had': 'none',
+        }
+        // SyncedStore needs a fresh object reference for the seedsByYear
+        // map to publish the change. Mutating an existing nested Record
+        // in place works, but assigning a new object also works and
+        // matches the legacy spread semantics one-for-one.
+        v.seedsByYear = { ...v.seedsByYear, [year]: next[current] }
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageToggleHaveSeedsForYear(data, varietyId, year))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const hasSeedsForYearData = useCallback((varietyId: string, year: number): boolean => {
     if (!data) return false
@@ -129,13 +222,43 @@ export function useAllotmentVarieties({
 
   const removeVarietyFromYearData = useCallback((varietyId: string, year: number) => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === varietyId)
+        if (!v) return
+        // Match the legacy `{ [year]: _, ...rest }` destructuring by
+        // copying without the deleted key.
+        const next: Record<number, SeedStatus> = {}
+        for (const [k, val] of Object.entries(v.seedsByYear)) {
+          const kNum = Number(k)
+          if (kNum === year) continue
+          next[kNum] = val
+        }
+        v.seedsByYear = next
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageRemoveVarietyFromYear(data, varietyId, year))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   const addVarietyToYearData = useCallback((varietyId: string, year: number, status: SeedStatus = 'none') => {
     if (!data) return
+
+    if (USE_YJS_STORAGE) {
+      mutate(store => {
+        const v = store.varieties.find(x => x.id === varietyId)
+        if (!v) return
+        v.seedsByYear = { ...v.seedsByYear, [year]: status }
+        store.meta.updatedAt = new Date().toISOString()
+      })
+      return
+    }
+
     setData(storageAddVarietyToYear(data, varietyId, year, status))
-  }, [data, setData])
+  }, [data, setData, mutate])
 
   // ============ SUPPLIER AND STATS ============
 
