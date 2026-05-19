@@ -25,9 +25,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, act, waitFor, type RenderHookResult } from '@testing-library/react'
 import { STORAGE_KEY } from '@/types/unified-allotment'
 import type { AllotmentData } from '@/types/unified-allotment'
+import type { CompostData } from '@/types/compost'
 import type { UseAllotmentReturn } from '@/hooks/useAllotment'
+import type { UseCompostReturn } from '@/hooks/useCompost'
 
 type AllotmentHookResult = RenderHookResult<UseAllotmentReturn, unknown>
+type CompostHookResult = RenderHookResult<UseCompostReturn, unknown>
 
 // Deterministic `generateId`. Each call returns the next ID from a
 // shared counter so legacy and Yjs paths produce identical IDs given
@@ -194,6 +197,46 @@ async function importUseAllotmentWithFlag(useYjsStorage: boolean) {
 }
 
 /**
+ * Mount `useCompost` with the chosen flag value. Same module-reset
+ * dance as `importUseAllotmentWithFlag` because both hooks compose
+ * `useAllotmentData`, which reads the flag at module load. PR-B.2 ports
+ * `useCompost` to the same two-branch pattern as the seven hooks PR-B
+ * shipped; this helper drives the parity test that holds the contract.
+ */
+async function importUseCompostWithFlag(useYjsStorage: boolean) {
+  vi.resetModules()
+  vi.doMock('@/config/release-visibility', () => ({
+    SHOW_ROTATION_SUGGESTIONS: false,
+    SHOW_ADVANCED_AREA_FIELDS: false,
+    SHOW_CARE_LOGS: true,
+    SHOW_UNDERPLANTINGS: false,
+    USE_YJS_STORAGE: useYjsStorage,
+  }))
+  vi.doMock('@/lib/utils/id', () => ({
+    generateId: (prefix?: string) => {
+      idCounter++
+      return prefix ? `${prefix}-${idCounter}` : `id-${idCounter}`
+    },
+    slugify: (text: string) =>
+      text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-'),
+    generateSlugId: (name: string, existingIds: Set<string>) => {
+      const baseSlug = name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')
+      if (!existingIds.has(baseSlug)) return baseSlug
+      let counter = 2
+      while (existingIds.has(`${baseSlug}-${counter}`)) counter++
+      return `${baseSlug}-${counter}`
+    },
+  }))
+  vi.doMock('@/lib/utils', async () => {
+    const id = await import('@/lib/utils/id')
+    const debounce = await import('@/lib/utils/debounce')
+    return { ...id, ...debounce }
+  })
+  const mod = await import('@/hooks/useCompost')
+  return mod.useCompost
+}
+
+/**
  * Strip volatile fields from a snapshot so the parity comparison
  * focuses on data-shape equivalence. Both paths re-stamp
  * `meta.updatedAt` and `season.updatedAt` on every write; while the
@@ -212,6 +255,21 @@ function stripVolatile(snapshot: AllotmentData | null): unknown {
   for (const season of clone.seasons || []) {
     delete (season as Partial<typeof season>).updatedAt
   }
+  return clone
+}
+
+/**
+ * Strip volatile fields from a `CompostData` snapshot. The top-level
+ * `updatedAt` is derived from `AllotmentData.meta.updatedAt` and is
+ * volatile across paths for the same reason `stripVolatile` strips
+ * `meta.updatedAt`. Pile-level `createdAt`/`updatedAt` stay — those
+ * are the contract of the compost mutations and should match exactly
+ * under the frozen clock.
+ */
+function stripVolatileCompost(snapshot: CompostData | null): unknown {
+  if (!snapshot) return snapshot
+  const clone = JSON.parse(JSON.stringify(snapshot)) as CompostData
+  delete (clone as Partial<CompostData>).updatedAt
   return clone
 }
 
@@ -292,6 +350,69 @@ async function runScript(hook: AllotmentHookResult): Promise<unknown[]> {
     })
   })
   snapshots.push(stripVolatile(hook.result.current.data))
+
+  return snapshots
+}
+
+/**
+ * Scripted compost mutation sequence (PR-B.2). Runs against a mounted
+ * `useCompost` and captures the public `data` snapshot after each step.
+ * Coverage:
+ *   - `addPile` (most common write path; also exercises `withoutUndefined`
+ *     because `NewCompostPile` carries optional `notes`).
+ *   - `addInput` (per-pile array push, updates `pile.updatedAt`).
+ *   - `addEvent` (parallel to addInput but on the events collection).
+ *   - `updatePile` (uses `assignDefined` for partial patch + bumps `updatedAt`).
+ *   - `removeInput` (per-pile array splice).
+ */
+async function runCompostScript(hook: CompostHookResult): Promise<unknown[]> {
+  const snapshots: unknown[] = []
+
+  // Step 1: Add a pile (most common write path).
+  await act(async () => {
+    hook.result.current.addPile({
+      name: 'Bay 1',
+      systemType: 'hot-compost',
+      status: 'active',
+      startDate: '2026-05-01',
+    })
+  })
+  snapshots.push(stripVolatileCompost(hook.result.current.data))
+
+  // Step 2: Add an input to the new pile (uses the pile's ID assigned
+  // in step 1 — both paths share the deterministic generateId so the
+  // ID is `pile-1`).
+  await act(async () => {
+    hook.result.current.addInput('pile-1', {
+      date: '2026-05-02',
+      material: 'Kitchen scraps',
+      type: 'green',
+    })
+  })
+  snapshots.push(stripVolatileCompost(hook.result.current.data))
+
+  // Step 3: Add a turn event.
+  await act(async () => {
+    hook.result.current.addEvent('pile-1', {
+      date: '2026-05-10',
+      type: 'turn',
+      notes: 'First turn',
+    })
+  })
+  snapshots.push(stripVolatileCompost(hook.result.current.data))
+
+  // Step 4: Update the pile to 'maturing' (partial patch — exercises
+  // `assignDefined` on the Yjs branch).
+  await act(async () => {
+    hook.result.current.updatePile('pile-1', { status: 'maturing' })
+  })
+  snapshots.push(stripVolatileCompost(hook.result.current.data))
+
+  // Step 5: Remove the input added in step 2.
+  await act(async () => {
+    hook.result.current.removeInput('pile-1', 'input-2')
+  })
+  snapshots.push(stripVolatileCompost(hook.result.current.data))
 
   return snapshots
 }
@@ -399,6 +520,63 @@ describe('useAllotment path parity', () => {
 
     // Assert the unported-site warning never surfaced for any of the
     // eight scripted mutations.
+    const unportedWarnings = warnSpy.mock.calls.filter(call =>
+      typeof call[0] === 'string' &&
+      call[0].includes('unported domain-hook call site'),
+    )
+    expect(unportedWarnings).toEqual([])
+
+    warnSpy.mockRestore()
+    yjsHook.unmount()
+
+    // --- Compare ---
+    expect(yjsSnapshots).toHaveLength(legacySnapshots.length)
+    for (let i = 0; i < legacySnapshots.length; i++) {
+      expect(yjsSnapshots[i]).toEqual(legacySnapshots[i])
+    }
+  }, 30_000)
+
+  it('useCompost legacy and Yjs paths produce equivalent snapshots after each scripted mutation', async () => {
+    // PR-B.2 closes the spec-inventory gap left by PR-B: `useCompost`
+    // calls `setData` from `useAllotmentData` and needs the same
+    // two-branch treatment as the seven hooks PR-B ported. This test
+    // runs a scripted compost-only mutation sequence against both flag
+    // states and asserts snapshot equality.
+
+    // --- Legacy path ---
+    resetIdCounter()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(makeFixture()))
+    const useCompostLegacy = await importUseCompostWithFlag(false)
+    const legacyHook = renderHook(() => useCompostLegacy())
+
+    await waitFor(() => {
+      expect(legacyHook.result.current.data).not.toBeNull()
+    })
+
+    const legacySnapshots = await runCompostScript(legacyHook)
+    legacyHook.unmount()
+
+    // --- Reset for Yjs path ---
+    resetIdCounter()
+    localStorage.clear()
+    await resetIndexedDB()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(makeFixture()))
+
+    // Spy on `console.warn` so we can assert the PR-A "unported call
+    // site" warning never fires during the compost run. If it does,
+    // `useCompost` still has a `setData` invocation that wasn't gated
+    // behind the `USE_YJS_STORAGE` check.
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const useCompostYjs = await importUseCompostWithFlag(true)
+    const yjsHook = renderHook(() => useCompostYjs())
+
+    await waitFor(() => {
+      expect(yjsHook.result.current.data).not.toBeNull()
+    })
+
+    const yjsSnapshots = await runCompostScript(yjsHook)
+
     const unportedWarnings = warnSpy.mock.calls.filter(call =>
       typeof call[0] === 'string' &&
       call[0].includes('unported domain-hook call site'),
