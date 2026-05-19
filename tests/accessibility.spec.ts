@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { checkA11y, runA11yScan, formatViolations } from './utils/accessibility'
+import { clearAllStorage } from './utils/storage'
 
 async function disableTours(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
@@ -33,7 +34,7 @@ test.describe('Accessibility - Homepage', () => {
 test.describe('Accessibility - Allotment Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/allotment')
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
@@ -63,7 +64,7 @@ test.describe('Accessibility - Allotment Page', () => {
 test.describe('Accessibility - Seeds Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/seeds')
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')
@@ -94,7 +95,7 @@ test.describe('Accessibility - This Month Page', () => {
 test.describe('Accessibility - Compost Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/compost')
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload()
     await page.waitForLoadState('networkidle')

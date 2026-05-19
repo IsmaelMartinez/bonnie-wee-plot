@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import * as fs from 'fs'
 import * as path from 'path'
+import { clearAllStorage } from './utils/storage'
 
 async function disableTours(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
@@ -158,7 +159,7 @@ async function importFileViaSettings(page: Page, filePath: string) {
 test.describe('Variety Management E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/settings', { waitUntil: 'load', timeout: 60000 })
-    await page.evaluate(() => localStorage.clear())
+    await clearAllStorage(page)
     await disableTours(page)
     await page.reload({ waitUntil: 'load', timeout: 60000 })
     await page.waitForLoadState('networkidle', { timeout: 30000 })
