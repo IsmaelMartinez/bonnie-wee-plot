@@ -35,6 +35,18 @@ export async function GET(
       )
     }
 
+    const { code } = await params
+
+    // Validate code format (6 alphanumeric characters) before touching
+    // Redis — malformed codes can't enumerate anything, so reject them
+    // without spending rate-limit budget or round-trips
+    if (!code || !/^[A-Z0-9]{6}$/i.test(code)) {
+      return NextResponse.json(
+        { error: 'Invalid share code format' },
+        { status: 400 }
+      )
+    }
+
     // Rate limit lookups to slow down share-code enumeration:
     // 30 attempts per hour per IP is plenty for legitimate receive flows
     const ip = getClientIp(request)
@@ -54,16 +66,6 @@ export async function GET(
             'X-RateLimit-Remaining': '0',
           },
         }
-      )
-    }
-
-    const { code } = await params
-
-    // Validate code format (6 alphanumeric characters)
-    if (!code || !/^[A-Z0-9]{6}$/i.test(code)) {
-      return NextResponse.json(
-        { error: 'Invalid share code format' },
-        { status: 400 }
       )
     }
 
