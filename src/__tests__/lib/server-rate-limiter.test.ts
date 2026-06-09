@@ -95,6 +95,14 @@ describe('server-rate-limiter', () => {
       expect(result.remaining).toBe(3) // full quota
     })
 
+    it('fails open for the shared "unknown" IP bucket', async () => {
+      const result = await checkRateLimit('unknown', config)
+
+      expect(result.allowed).toBe(true)
+      expect(result.remaining).toBe(3)
+      expect(mockIncr).not.toHaveBeenCalled()
+    })
+
     it('allows all requests when Redis is not configured', async () => {
       delete process.env.UPSTASH_REDIS_REST_URL
       delete process.env.UPSTASH_REDIS_REST_TOKEN
