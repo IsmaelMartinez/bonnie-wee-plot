@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import type { AllotmentData } from '@/types/unified-allotment'
+import { checkRateLimit, getClientIp } from '@/lib/server-rate-limiter'
 import { logger } from '@/lib/logger'
 
 // Initialize Redis client
@@ -22,7 +23,7 @@ interface ShareData {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   try {
@@ -31,6 +32,28 @@ export async function GET(
       return NextResponse.json(
         { error: 'Share feature not configured' },
         { status: 503 }
+      )
+    }
+
+    // Rate limit lookups to slow down share-code enumeration:
+    // 30 attempts per hour per IP is plenty for legitimate receive flows
+    const ip = getClientIp(request)
+    const rateLimit = await checkRateLimit(ip, {
+      maxRequests: 30,
+      windowSeconds: 3600,
+      prefix: 'share-get',
+    })
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.resetInSeconds),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
       )
     }
 

@@ -25,6 +25,8 @@ export async function GET() {
     return NextResponse.json(remote.data, {
       headers: {
         'Content-Disposition': 'attachment; filename="bonnie-wee-plot-export.json"',
+        // Personal data export — make sure no intermediary caches it
+        'Cache-Control': 'no-store',
       },
     })
   } catch (err) {

@@ -30,6 +30,9 @@ const withSerwist = withSerwistInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Don't advertise the framework via the X-Powered-By header
+  poweredByHeader: false,
+
   // Conditionally enable static export for GitHub Pages
   ...(isGitHubPages && { output: "export" }),
 

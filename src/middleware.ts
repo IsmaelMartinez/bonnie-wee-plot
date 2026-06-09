@@ -42,6 +42,8 @@ function buildCspHeader(): string {
 
 function addSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', buildCspHeader())
+  // 2 years; only meaningful over HTTPS so harmless in local dev
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains')
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
