@@ -37,9 +37,8 @@ export async function GET(
 
     const { code } = await params
 
-    // Validate code format (6 alphanumeric characters) before touching
-    // Redis — malformed codes can't enumerate anything, so reject them
-    // without spending rate-limit budget or round-trips
+    // Reject malformed codes before touching Redis — they can't enumerate
+    // anything, so don't spend rate-limit budget or round-trips on them
     if (!code || !/^[A-Z0-9]{6}$/i.test(code)) {
       return NextResponse.json(
         { error: 'Invalid share code format' },
