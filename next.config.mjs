@@ -30,6 +30,8 @@ const withSerwist = withSerwistInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+
   // Conditionally enable static export for GitHub Pages
   ...(isGitHubPages && { output: "export" }),
 

@@ -40,7 +40,9 @@ describe('callGemini', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toContain('gemini-2.5-flash:generateContent')
-    expect(url).toContain('key=k')
+    // Key must travel as a header, never in the URL (avoids log leakage)
+    expect(url).not.toContain('key=')
+    expect((init as RequestInit).headers).toMatchObject({ 'x-goog-api-key': 'k' })
     const body = JSON.parse((init as RequestInit).body as string)
     expect(body.systemInstruction.parts[0].text).toBe('You are Aitor.')
     // Two history turns + one new user turn
