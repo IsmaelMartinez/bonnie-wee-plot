@@ -69,12 +69,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { allotment, expirationMinutes: requestedExpiry } = body as {
       allotment: AllotmentData
-      expirationMinutes?: number
+      expirationMinutes?: unknown
+    }
+
+    // Reject non-numeric expiry values rather than coercing (NaN would
+    // otherwise flow into the Redis EX option)
+    if (
+      requestedExpiry !== undefined &&
+      (typeof requestedExpiry !== 'number' || !Number.isFinite(requestedExpiry))
+    ) {
+      return NextResponse.json(
+        { error: 'expirationMinutes must be a number' },
+        { status: 400 }
+      )
     }
 
     // Calculate expiry time in seconds (validated and capped)
     const expirationMinutes = Math.min(
-      Math.max(requestedExpiry ?? DEFAULT_EXPIRY_MINUTES, 1), // At least 1 minute
+      Math.max(Math.floor(requestedExpiry ?? DEFAULT_EXPIRY_MINUTES), 1), // At least 1 minute
       MAX_EXPIRY_MINUTES // Cap at 7 days
     )
     const expirySeconds = expirationMinutes * 60

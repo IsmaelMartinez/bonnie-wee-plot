@@ -42,6 +42,11 @@ function buildCspHeader(): string {
 
 function addSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', buildCspHeader())
+  // 2 years; production only so local HTTPS dev setups don't cache a
+  // long-lived HSTS pin for localhost or custom local domains
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains')
+  }
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')

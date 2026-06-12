@@ -113,11 +113,16 @@ export async function callGemini(options: GeminiCallOptions): Promise<GeminiCall
     },
   }
 
-  const url = `${GEMINI_BASE_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(options.apiKey)}`
+  // Send the key as a header rather than a query param so it can't end up
+  // in access logs, proxies, or error traces that capture the URL
+  const url = `${GEMINI_BASE_URL}/${encodeURIComponent(model)}:generateContent`
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': options.apiKey,
+    },
     body: JSON.stringify(body),
     signal: options.signal,
   })
