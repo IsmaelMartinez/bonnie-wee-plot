@@ -9,6 +9,7 @@ import {
 } from '@/lib/ai-tools-schema'
 import { callGemini } from '@/lib/ai/gemini'
 import { FREE_TIER_MONTHLY_QUOTA, getCurrentUsage, incrementUsage } from '@/lib/supabase/ai-usage'
+import { checkRateLimit } from '@/lib/server-rate-limiter'
 
 // Feature flag for AI tools (function calling)
 // Set to true to enable AI-powered inventory management
@@ -197,6 +198,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Sign in to use Aitor.' },
         { status: 401 }
+      )
+    }
+
+    // Short-window per-user rate limit on top of the monthly Gemini quota.
+    // Protects the server-side OpenAI key path (which has no quota) and
+    // bounds burst abuse on all providers. Fails open if Redis is down.
+    const rateLimit = await checkRateLimit(userId, {
+      maxRequests: 20,
+      windowSeconds: 300,
+      prefix: 'ai-advisor',
+    })
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a few minutes and try again.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateLimit.resetInSeconds) },
+        }
       )
     }
 

@@ -33,6 +33,14 @@ export async function checkRateLimit(
 ): Promise<RateLimitResult> {
   const { maxRequests, windowSeconds, prefix } = config
 
+  // 'unknown' means the platform didn't supply a client IP (local dev,
+  // header-stripping proxies). All such requests would share a single
+  // bucket and could rate-limit each other out — fail open instead,
+  // consistent with the Redis-unavailable behaviour below.
+  if (ip === 'unknown') {
+    return { allowed: true, remaining: maxRequests, resetInSeconds: 0 }
+  }
+
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return { allowed: true, remaining: maxRequests, resetInSeconds: 0 }
   }
