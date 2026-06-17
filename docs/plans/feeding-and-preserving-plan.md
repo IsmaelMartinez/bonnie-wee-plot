@@ -29,7 +29,12 @@ Design constraint (from CLAUDE.md "Simplicity First"): preserving/storage should
 
 ## Milestone A — Feeding alerts (highest value, lowest risk)
 
-### Goal A1 — Add feeding data to hungry annual crops
+### Goal A1 — Add feeding data to hungry annual crops ✅ DONE (2026-06-16)
+> Implemented: unified feeding into `generateFeedingTasks` (mirrors watering) so
+> annual plantings in rotation beds get feed alerts, not just perennials. Added
+> `maintenance.feedMonths` + `feedFrequencyDays` to tomatoes, cucurbits, brassicas,
+> leek, sweetcorn, and climbing beans. Covered by new unit tests.
+
 Extend `MaintenanceInfo` usage across `src/lib/vegetables/data/*.ts` so the major
 "hungry" annuals get `feedMonths` + `feedFrequencyDays` (+ short `notes`).
 - Target crops: tomatoes, peppers/chillies, aubergine (solanaceae); courgette,

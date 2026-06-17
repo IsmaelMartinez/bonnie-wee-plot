@@ -142,6 +142,11 @@ export const brassicas: Vegetable[] = [
         'Collar against cabbage root fly'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
+    },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own',
     botanicalName: 'Brassica oleracea var. capitata',
     hardiness: 'H5',
@@ -179,6 +184,11 @@ export const brassicas: Vegetable[] = [
         'Cut main head to encourage side shoots',
         'Net against cabbage white butterflies'
       ]
+    },
+    maintenance: {
+      feedMonths: [6, 7],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own',
     botanicalName: 'Brassica oleracea var. italica',
@@ -218,6 +228,11 @@ export const brassicas: Vegetable[] = [
         'Stake plants as they get tall'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8, 9],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
+    },
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
@@ -251,6 +266,11 @@ export const brassicas: Vegetable[] = [
         'Bend leaves over curd to protect',
         'Autumn/winter varieties more reliable in Scotland'
       ]
+    },
+    maintenance: {
+      feedMonths: [6, 7],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -288,6 +308,11 @@ export const brassicas: Vegetable[] = [
         'Stake tall plants against Scottish winds',
         'Harvest from bottom up'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during summer growth']
     },
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -364,6 +389,11 @@ export const brassicas: Vegetable[] = [
         'Crinkled leaves great for stuffing'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
+    },
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'celery', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -399,6 +429,11 @@ export const brassicas: Vegetable[] = [
         'Traditional for pickling and braising',
         'Frost-hardy - can leave in ground'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 28,
+      notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
       { plantId: 'beetroot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },

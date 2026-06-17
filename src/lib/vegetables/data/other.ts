@@ -119,6 +119,11 @@ export const other: Vegetable[] = [
         'Need sheltered, sunny spot'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7],
+      feedFrequencyDays: 21,
+      notes: ['A high-nitrogen feed every 3 weeks supports fast leafy growth']
+    },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'runner-beans', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters - beans climb corn stalks' }

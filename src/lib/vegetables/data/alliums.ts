@@ -105,6 +105,11 @@ export const alliums: Vegetable[] = [
         'Musselburgh variety bred for Scottish climate!'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 28,
+      notes: ['A monthly nitrogen feed in summer thickens the stems']
+    },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own',
     botanicalName: 'Allium ampeloprasum',
     hardiness: 'H6',

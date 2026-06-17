@@ -30,6 +30,11 @@ export const cucurbits: Vegetable[] = [
         'One or two plants is enough!'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed (e.g. tomato feed) every 2 weeks once fruits set']
+    },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
@@ -66,6 +71,11 @@ export const cucurbits: Vegetable[] = [
         'Harden off well before planting out',
         'Cure in any late sunshine before storing'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters' },
@@ -104,6 +114,11 @@ export const cucurbits: Vegetable[] = [
         'Cut with stem attached for storage'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits start to swell']
+    },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
@@ -141,6 +156,11 @@ export const cucurbits: Vegetable[] = [
         'Yellow, green, or white varieties'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed (e.g. tomato feed) every 2 weeks once fruits set']
+    },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
@@ -176,6 +196,11 @@ export const cucurbits: Vegetable[] = [
         'Harvest before first frost',
         'Cure for 2 weeks before storage'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
@@ -213,6 +238,11 @@ export const cucurbits: Vegetable[] = [
         'Harvest when rind hard to fingernail'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits start to swell']
+    },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'nasturtium', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true },
@@ -248,6 +278,11 @@ export const cucurbits: Vegetable[] = [
         'Sweet nutty flavor',
         'Good for stuffing and roasting'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },

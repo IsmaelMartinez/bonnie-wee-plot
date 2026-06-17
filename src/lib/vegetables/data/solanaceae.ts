@@ -179,6 +179,11 @@ export const solanaceae: Vegetable[] = [
         'Less prone to splitting than large tomatoes'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7, 8, 9],
+      feedFrequencyDays: 7,
+      notes: ['High-potash tomato feed weekly once the first truss sets']
+    },
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
@@ -217,6 +222,11 @@ export const solanaceae: Vegetable[] = [
         'Roma types are classics'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7, 8, 9],
+      feedFrequencyDays: 7,
+      notes: ['High-potash tomato feed weekly once the first truss sets']
+    },
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
@@ -254,6 +264,11 @@ export const solanaceae: Vegetable[] = [
         'Game-changer for outdoor tomato growing'
       ]
     },
+    maintenance: {
+      feedMonths: [6, 7, 8, 9],
+      feedFrequencyDays: 7,
+      notes: ['High-potash tomato feed weekly once the first truss sets']
+    },
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
@@ -290,6 +305,11 @@ export const solanaceae: Vegetable[] = [
         'Used for salsa verde',
         'Surprisingly hardy for mild Scottish autumns'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8, 9],
+      feedFrequencyDays: 14,
+      notes: ['High-potash feed every 2 weeks once fruits begin to form']
     },
     enhancedCompanions: [
       { plantId: 'marigold', confidence: 'traditional', mechanism: 'pest_trap', bidirectional: true }
