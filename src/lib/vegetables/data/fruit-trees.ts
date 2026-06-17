@@ -44,6 +44,7 @@ export const fruitTrees: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Winter prune when dormant', 'Summer prune water shoots in July-Aug']
     },
@@ -98,6 +99,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [7, 8],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['ONLY prune in summer to avoid silver leaf and bacterial canker']
     },
@@ -145,6 +147,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [2, 3],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Minimal pruning needed - just remove dead/crossing branches']
     },
@@ -190,6 +193,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [6, 7],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Prune in summer to avoid silver leaf disease']
     },
@@ -237,6 +241,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Winter prune when dormant', 'May need thinning if heavy crop']
     },
@@ -284,6 +289,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [6, 7],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Prune in summer to avoid silver leaf disease']
     },
@@ -329,6 +335,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 10,
       notes: ['Minimal pruning needed - very low maintenance']
     },
@@ -374,6 +381,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 10,
       notes: ['Minimal pruning - just remove dead/crossing branches']
     },
@@ -418,6 +426,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [3, 4],
       feedMonths: [4, 5],
       feedFrequencyDays: 30,
+      feedType: 'balanced',
       waterFrequencyDays: 5,
       notes: ['Prune in early spring', 'May need winter protection in cold areas']
     },
@@ -463,6 +472,7 @@ export const fruitTrees: Vegetable[] = [
       pruneMonths: [12, 1],
       feedMonths: [3],
       feedFrequencyDays: 90,
+      feedType: 'balanced',
       waterFrequencyDays: 10,
       notes: ['Minimal pruning needed - bleeds sap if cut in growing season']
     },

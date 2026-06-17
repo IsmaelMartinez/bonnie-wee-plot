@@ -96,6 +96,7 @@ export const berries: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Summer types: cut fruited canes after harvest', 'Autumn types: cut all canes to ground in Feb']
     },
@@ -225,6 +226,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Prune to open goblet shape in winter', 'Watch for sawfly in spring']
     },
@@ -271,6 +273,7 @@ export const berries: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Remove a third of oldest wood each year after fruiting']
     },
@@ -315,6 +318,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Prune to open goblet shape like gooseberries']
     },
@@ -360,6 +364,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [8, 9],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Remove fruited canes after harvest']
     },
@@ -404,6 +409,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [8, 9],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Remove fruited canes after harvest']
     },
@@ -447,6 +453,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 5,
       notes: ['Minimal pruning needed - remove dead wood']
     },
@@ -487,6 +494,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 7,
       notes: ['Minimal pruning - remove dead wood only']
     },
@@ -528,6 +536,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [2, 3],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 7,
       notes: ['Control suckers to prevent spread']
     },
@@ -569,6 +578,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1, 2],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 7,
       notes: ['Minimal pruning needed']
     },
@@ -610,6 +620,7 @@ export const berries: Vegetable[] = [
       pruneMonths: [11, 12, 1],
       feedMonths: [3],
       feedFrequencyDays: 28,
+      feedType: 'high-potash',
       waterFrequencyDays: 7,
       notes: ['Prune to maintain size and shape']
     },

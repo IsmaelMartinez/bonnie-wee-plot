@@ -9,7 +9,7 @@
  */
 
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
-import { Vegetable, Month, WaterRequirement } from '@/types/garden-planner'
+import { Vegetable, Month, WaterRequirement, FeedType } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
@@ -57,7 +57,24 @@ export interface GeneratedTask {
   daysRemaining?: number
   urgency?: TaskUrgency
   calculatedFrom?: 'actual-date' | 'calendar-month'
+  /** For feed tasks: the kind of feed wanted, so the UI can suggest a homemade option. */
+  feedType?: FeedType
 }
+
+/** Human-readable label for each feed type, used in feed task notes. */
+const FEED_TYPE_LABEL: Record<FeedType, string> = {
+  'high-potash': 'high-potash feed',
+  'high-nitrogen': 'high-nitrogen feed',
+  balanced: 'balanced feed',
+  comfrey: 'comfrey feed',
+  compost: 'compost or well-rotted manure',
+}
+
+/**
+ * A feed is "overdue" once it is this many days past its cadence. Below this
+ * margin the reminder stays low priority; past it the task is elevated.
+ */
+const FEED_OVERDUE_MARGIN_DAYS = 14
 
 interface PlantingWithContext {
   planting: Planting
@@ -706,11 +723,28 @@ function createFeedTask(
   const variety = area.primaryPlant?.variety
   const displayName = variety ? `${area.name} (${variety})` : area.name
 
-  let notes = 'Apply general-purpose fertiliser'
-  if (daysSinceLastFeed !== undefined && daysSinceLastFeed > 0) {
-    notes = `Last fed ${daysSinceLastFeed} day${daysSinceLastFeed === 1 ? '' : 's'} ago — apply general-purpose fertiliser`
+  const feedType = vegetable.maintenance?.feedType
+  // Lowercase action phrase ("apply high-potash feed") used mid-sentence;
+  // capitalised when it leads the note.
+  const action = feedType
+    ? `apply ${FEED_TYPE_LABEL[feedType]}`
+    : 'apply general-purpose fertiliser'
+  const leadAction = action.charAt(0).toUpperCase() + action.slice(1)
+
+  // A3: a feed left well past its cadence is overdue — elevate it and say so.
+  const cadence = vegetable.maintenance?.feedFrequencyDays
+  const isOverdue =
+    cadence !== undefined &&
+    daysSinceLastFeed !== undefined &&
+    daysSinceLastFeed > cadence + FEED_OVERDUE_MARGIN_DAYS
+
+  let notes = leadAction
+  if (isOverdue) {
+    notes = `Overdue — last fed ${daysSinceLastFeed} days ago. ${leadAction}`
+  } else if (daysSinceLastFeed !== undefined && daysSinceLastFeed > 0) {
+    notes = `Last fed ${daysSinceLastFeed} day${daysSinceLastFeed === 1 ? '' : 's'} ago — ${action}`
   }
-  // daysSinceLastFeed === 0 (just tapped ✓) keeps the generic note so a
+  // daysSinceLastFeed === 0 (just tapped ✓) keeps the plain note so a
   // restored task reads as a normal active reminder rather than "Fed today".
 
   return {
@@ -723,8 +757,9 @@ function createFeedTask(
     areaId: area.id,
     areaName: area.name,
     month,
-    priority: 'low',
+    priority: isOverdue ? 'medium' : 'low',
     notes,
+    feedType,
   }
 }
 

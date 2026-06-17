@@ -182,6 +182,7 @@ export const solanaceae: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7, 8, 9],
       feedFrequencyDays: 7,
+      feedType: 'high-potash',
       notes: ['High-potash tomato feed weekly once the first truss sets']
     },
     enhancedCompanions: [
@@ -225,6 +226,7 @@ export const solanaceae: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7, 8, 9],
       feedFrequencyDays: 7,
+      feedType: 'high-potash',
       notes: ['High-potash tomato feed weekly once the first truss sets']
     },
     enhancedCompanions: [
@@ -267,6 +269,7 @@ export const solanaceae: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7, 8, 9],
       feedFrequencyDays: 7,
+      feedType: 'high-potash',
       notes: ['High-potash tomato feed weekly once the first truss sets']
     },
     enhancedCompanions: [
@@ -309,6 +312,7 @@ export const solanaceae: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8, 9],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits begin to form']
     },
     enhancedCompanions: [

@@ -42,6 +42,7 @@ export const other: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       feedFrequencyDays: 60,
+      feedType: 'high-nitrogen',
       waterFrequencyDays: 7,
       notes: ['Force under pot from January for early crop', 'Remove flower stalks immediately']
     },
@@ -122,6 +123,7 @@ export const other: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7],
       feedFrequencyDays: 21,
+      feedType: 'high-nitrogen',
       notes: ['A high-nitrogen feed every 3 weeks supports fast leafy growth']
     },
     enhancedCompanions: [
@@ -174,6 +176,7 @@ export const other: Vegetable[] = [
       feedMonths: [3],
       mulchMonths: [11],
       feedFrequencyDays: 60,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Cut down ferns in autumn', 'Weed regularly']
     },
@@ -215,6 +218,7 @@ export const other: Vegetable[] = [
       feedMonths: [3, 5],
       mulchMonths: [11],
       feedFrequencyDays: 30,
+      feedType: 'balanced',
       waterFrequencyDays: 7,
       notes: ['Protect crowns with straw in winter']
     },

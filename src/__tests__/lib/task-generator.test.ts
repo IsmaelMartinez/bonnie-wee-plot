@@ -1268,6 +1268,99 @@ describe('task-generator', () => {
       expect(feedTasks).toHaveLength(0)
     })
 
+    it('names the feed type in the note and on the task when set', () => {
+      const tomatoVeg = {
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: [],
+        },
+        care: { water: 'high' as const },
+        maintenance: { feedMonths: [6, 7], feedFrequencyDays: 7, feedType: 'high-potash' as const },
+      }
+      mockGetVegetableById.mockReturnValue(tomatoVeg)
+
+      const bed: Area = { id: 'bed-a', name: 'Bed A', kind: 'rotation-bed', canHavePlantings: true }
+      const planting: Planting = { id: 'p1', plantId: 'tomato', status: 'active' }
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [bed],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        {}
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].feedType).toBe('high-potash')
+      expect(feedTasks[0].notes).toContain('high-potash feed')
+    })
+
+    it('elevates an overdue feed to medium priority with an "Overdue" note', () => {
+      const tomatoVeg = {
+        id: 'tomato',
+        name: 'Tomato',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: [],
+        },
+        care: { water: 'high' as const },
+        maintenance: { feedMonths: [6, 7], feedFrequencyDays: 7, feedType: 'high-potash' as const },
+      }
+      mockGetVegetableById.mockReturnValue(tomatoVeg)
+
+      const bed: Area = { id: 'bed-a', name: 'Bed A', kind: 'rotation-bed', canHavePlantings: true }
+      const planting: Planting = { id: 'p1', plantId: 'tomato', status: 'active' }
+
+      // 30 days since feed, cadence 7 → well past the 14-day overdue margin.
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [bed],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        { 'bed-a': { feed: 30 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].priority).toBe('medium')
+      expect(feedTasks[0].notes).toContain('Overdue')
+    })
+
+    it('keeps a feed within the overdue margin at low priority', () => {
+      const raspberryWithMargin = {
+        ...raspberryVeg,
+        maintenance: { feedMonths: [3, 6], feedFrequencyDays: 21 },
+      }
+      mockGetVegetableById.mockReturnValue(raspberryWithMargin)
+
+      // 30 days since feed, cadence 21 → only 9 days over, under the 14-day margin.
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [],
+        [raspberryArea],
+        new Date('2026-06-15'),
+        [],
+        2026,
+        { 'raspberry-patch': { feed: 30 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].priority).toBe('low')
+      expect(feedTasks[0].notes).not.toContain('Overdue')
+    })
+
     it('emits a feed task for a hungry annual planted in a bed (no primary plant)', () => {
       const courgetteVeg = {
         id: 'courgette',
