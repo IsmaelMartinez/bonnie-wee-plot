@@ -13,7 +13,7 @@
 
 'use client'
 
-import { useEffect, useRef, useCallback, ReactNode, useState } from 'react'
+import { useEffect, useRef, useCallback, ReactNode, useState, useId } from 'react'
 import { X } from 'lucide-react'
 
 // Track how many dialogs are open so only the outermost one manages body scroll
@@ -59,8 +59,8 @@ export default function Dialog({
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<HTMLElement | null>(null)
-  const titleId = useRef(`dialog-title-${Math.random().toString(36).substr(2, 9)}`)
-  const descriptionId = useRef(`dialog-desc-${Math.random().toString(36).substr(2, 9)}`)
+  const titleId = useId()
+  const descriptionId = useId()
   const [isMobile, setIsMobile] = useState(false)
 
   // Detect mobile viewport for bottom sheet variant
@@ -211,8 +211,8 @@ export default function Dialog({
           ref={dialogRef}
           role="dialog"
           aria-modal="true"
-          aria-labelledby={titleId.current}
-          aria-describedby={description ? descriptionId.current : undefined}
+          aria-labelledby={titleId}
+          aria-describedby={description ? descriptionId : undefined}
           tabIndex={-1}
           className={`relative z-[102] bg-white shadow-xl w-full flex flex-col focus:outline-none ${
             useBottomSheet
@@ -234,7 +234,7 @@ export default function Dialog({
             }`}
           >
             <h2
-              id={titleId.current}
+              id={titleId}
               className={`font-bold text-gray-800 ${useBottomSheet ? 'text-xl' : 'text-lg'}`}
             >
               {title}
@@ -254,7 +254,7 @@ export default function Dialog({
           {/* Description (optional) */}
           {description && (
             <p
-              id={descriptionId.current}
+              id={descriptionId}
               className={`text-sm text-gray-600 shrink-0 ${
                 useBottomSheet ? 'px-4 pt-2' : 'px-4 pt-3'
               }`}

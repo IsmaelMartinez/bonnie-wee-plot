@@ -1268,6 +1268,82 @@ describe('task-generator', () => {
       expect(feedTasks).toHaveLength(0)
     })
 
+    it('emits a feed task for a hungry annual planted in a bed (no primary plant)', () => {
+      const courgetteVeg = {
+        id: 'courgette',
+        name: 'Courgette',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: [],
+        },
+        care: { water: 'high' as const },
+        maintenance: { feedMonths: [6, 7, 8], feedFrequencyDays: 14 },
+      }
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const bed: Area = {
+        id: 'bed-a',
+        name: 'Bed A',
+        kind: 'rotation-bed',
+        canHavePlantings: true,
+      }
+      const planting: Planting = { id: 'p1', plantId: 'courgette', status: 'active' }
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [bed],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        {}
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(1)
+      expect(feedTasks[0].areaId).toBe('bed-a')
+      expect(feedTasks[0].description).toBe('Feed Bed A')
+    })
+
+    it('suppresses the annual feed task within the feed cadence', () => {
+      const courgetteVeg = {
+        id: 'courgette',
+        name: 'Courgette',
+        planting: {
+          harvestMonths: [7, 8, 9],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: [],
+        },
+        care: { water: 'high' as const },
+        maintenance: { feedMonths: [6, 7, 8], feedFrequencyDays: 14 },
+      }
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const bed: Area = {
+        id: 'bed-a',
+        name: 'Bed A',
+        kind: 'rotation-bed',
+        canHavePlantings: true,
+      }
+      const planting: Planting = { id: 'p1', plantId: 'courgette', status: 'active' }
+
+      const tasks = generateTasksForMonth(
+        7 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [bed],
+        new Date('2026-07-15'),
+        [],
+        2026,
+        { 'bed-a': { feed: 5 } }
+      )
+
+      const feedTasks = tasks.filter((t) => t.generatedType === 'feed')
+      expect(feedTasks).toHaveLength(0)
+    })
+
     it('generates a water task during the watering season', () => {
       mockGetVegetableById.mockReturnValue(raspberryVeg)
 

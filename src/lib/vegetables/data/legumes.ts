@@ -30,6 +30,11 @@ export const legumes: Vegetable[] = [
         'Pick regularly for more beans'
       ]
     },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 21,
+      notes: ['Beans fix their own nitrogen — a high-potash feed once flowering boosts pod set']
+    },
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'proven', mechanism: 'physical_support', bidirectional: true, source: 'Three Sisters - corn provides support' },
       { plantId: 'squash', confidence: 'proven', mechanism: 'beneficial_attraction', bidirectional: true, source: 'Three Sisters - ground cover suppresses weeds' },
@@ -185,6 +190,11 @@ export const legumes: Vegetable[] = [
         'Pick regularly to encourage production',
         'Great for small Scottish allotments'
       ]
+    },
+    maintenance: {
+      feedMonths: [7, 8],
+      feedFrequencyDays: 21,
+      notes: ['Beans fix their own nitrogen — a high-potash feed once flowering boosts pod set']
     },
     enhancedCompanions: [
       { plantId: 'sweetcorn', confidence: 'traditional', mechanism: 'nitrogen_fixation', bidirectional: true },

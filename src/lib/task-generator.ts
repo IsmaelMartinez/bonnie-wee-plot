@@ -319,7 +319,6 @@ function generateMonthBasedTasks(
   plantings: PlantingWithContext[],
   areas: Area[],
   currentYear: number,
-  careLogDays: CareLogDaysMap = {},
   soilTempC: number | undefined = undefined
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
@@ -392,23 +391,9 @@ function generateMonthBasedTasks(
       tasks.push({ ...createPruneTask(vegetable, area, currentMonth), calculatedFrom: 'calendar-month' })
     }
 
-    if (vegetable.maintenance.feedMonths?.includes(currentMonth)) {
-      const cadence = vegetable.maintenance.feedFrequencyDays
-      const daysSinceFeed = careLogDays[area.id]?.feed
-      // Suppress only when fed yesterday or earlier within the cadence — same-
-      // day completions still emit so they can land in the "completed" section.
-      const fedRecently =
-        cadence !== undefined &&
-        daysSinceFeed !== undefined &&
-        daysSinceFeed >= 1 &&
-        daysSinceFeed < cadence
-      if (!fedRecently) {
-        tasks.push({
-          ...createFeedTask(vegetable, area, currentMonth, daysSinceFeed),
-          calculatedFrom: 'calendar-month',
-        })
-      }
-    }
+    // Feed reminders are generated separately by generateFeedingTasks so the
+    // same cadence logic covers both perennial primary plants and annual
+    // plantings in rotation beds.
 
     if (vegetable.maintenance.mulchMonths?.includes(currentMonth)) {
       tasks.push({ ...createMulchTask(vegetable, area, currentMonth), calculatedFrom: 'calendar-month' })
@@ -558,18 +543,21 @@ export function generateTasksForMonth(
   // Get watering reminders (cadence + weather aware)
   const wateringTasks = generateWateringTasks(currentMonth, plantings, areas, careLogDays, rainfall)
 
+  // Get feeding reminders (cadence aware, covers annual beds + perennials)
+  const feedingTasks = generateFeedingTasks(currentMonth, plantings, areas, careLogDays)
+
   // Get month-based tasks (fallback for plantings without dates).
   // Pass today's soil temp through so cold-sensitive sow-outdoors tasks can
   // be suppressed for crops with a threshold (peas, beans, sweetcorn, …).
   const soilTempC = rainfall?.soilTempC
-  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, careLogDays, soilTempC)
+  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, soilTempC)
 
   // Get variety-based tasks (seeds user has but hasn't planted)
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear, soilTempC)
 
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]
-  const allMonthBased = [...monthBasedTasks, ...varietyTasks]
+  const allMonthBased = [...monthBasedTasks, ...varietyTasks, ...feedingTasks]
   const mergedTasks = mergeAndDeduplicateTasks(allDateBased, allMonthBased)
 
   // Deduplicate any remaining duplicates
@@ -823,6 +811,83 @@ function getAreaWaterRequirement(
 
   if (!topRequirement || !topVegetable) return null
   return { requirement: topRequirement, vegetable: topVegetable }
+}
+
+/**
+ * Find the crop in an area that wants feeding this month. Checks the
+ * perennial primary plant first, then the hungriest active planting whose
+ * feedMonths include the current month (shortest feedFrequencyDays wins).
+ */
+function getAreaFeedTarget(
+  area: Area,
+  plantings: PlantingWithContext[],
+  currentMonth: Month
+): Vegetable | null {
+  if (area.primaryPlant?.plantId) {
+    const veg = getVegetableById(area.primaryPlant.plantId)
+    return veg?.maintenance?.feedMonths?.includes(currentMonth) ? veg : null
+  }
+
+  let best: Vegetable | null = null
+  for (const { planting, areaId } of plantings) {
+    if (areaId !== area.id) continue
+    const status = planting.status || 'active'
+    if (status === 'harvested' || status === 'removed' || status === 'planned') continue
+    const veg = getVegetableById(planting.plantId)
+    if (!veg?.maintenance?.feedMonths?.includes(currentMonth)) continue
+    if (!best) {
+      best = veg
+      continue
+    }
+    const bestCadence = best.maintenance?.feedFrequencyDays ?? Infinity
+    const vegCadence = veg.maintenance?.feedFrequencyDays ?? Infinity
+    if (vegCadence < bestCadence) best = veg
+  }
+  return best
+}
+
+/**
+ * Generate feeding reminders for areas whose crop wants feeding this month.
+ *
+ * Mirrors the watering cadence/suppression logic and covers both perennial
+ * primary plants (trees, berries) and hungry annuals in rotation beds.
+ * Skipped when:
+ * - No crop in the area lists the current month in maintenance.feedMonths.
+ * - The area was fed recently (between yesterday and its feedFrequencyDays).
+ */
+export function generateFeedingTasks(
+  currentMonth: Month,
+  plantings: PlantingWithContext[],
+  areas: Area[],
+  careLogDays: CareLogDaysMap = {}
+): GeneratedTask[] {
+  const tasks: GeneratedTask[] = []
+
+  for (const area of areas) {
+    if (area.isArchived) continue
+    if (area.kind === 'infrastructure') continue
+
+    const vegetable = getAreaFeedTarget(area, plantings, currentMonth)
+    if (!vegetable) continue
+
+    const cadence = vegetable.maintenance?.feedFrequencyDays
+    const daysSinceFeed = careLogDays[area.id]?.feed
+    // Suppress only when fed between yesterday and the cadence — same-day
+    // completions still emit so they can land in the "completed" section.
+    const fedRecently =
+      cadence !== undefined &&
+      daysSinceFeed !== undefined &&
+      daysSinceFeed >= 1 &&
+      daysSinceFeed < cadence
+    if (fedRecently) continue
+
+    tasks.push({
+      ...createFeedTask(vegetable, area, currentMonth, daysSinceFeed),
+      calculatedFrom: 'calendar-month',
+    })
+  }
+
+  return tasks
 }
 
 /**
