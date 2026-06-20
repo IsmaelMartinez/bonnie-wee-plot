@@ -236,17 +236,17 @@ export function useTodayData(): TodayData {
     const growsComfrey =
       plantingsWithContext.some(
         ({ planting }) =>
-          planting.plantId === 'comfrey' &&
-          planting.status !== 'removed' &&
-          planting.status !== 'harvested'
+          planting.plantId === 'comfrey' && (planting.status ?? 'active') === 'active'
       ) ||
       allAreas.some((a) => !a.isArchived && a.primaryPlant?.plantId === 'comfrey')
 
+    // 'applied' piles are spent, so they don't count as compost the user still
+    // has; 'ready' is the subset that's usable right now.
     const piles = data?.compost ?? []
     return {
       growsComfrey,
       hasReadyCompost: piles.some((p) => p.status === 'ready'),
-      hasCompost: piles.length > 0,
+      hasCompost: piles.some((p) => p.status !== 'applied'),
     }
   }, [plantingsWithContext, allAreas, data])
 

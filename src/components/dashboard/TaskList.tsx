@@ -74,11 +74,11 @@ const URGENCY_STYLES: Record<TaskUrgency, string> = {
 function HomemadeFeedHint({
   feedType,
   taskId,
-  ownFeedContext,
+  ownFeedContext = EMPTY_OWN_FEED_CONTEXT,
 }: {
   feedType: FeedType
   taskId: string
-  ownFeedContext: OwnFeedContext
+  ownFeedContext?: OwnFeedContext
 }) {
   const [open, setOpen] = useState(false)
   const feeds = getHomemadeFeedsForType(feedType)

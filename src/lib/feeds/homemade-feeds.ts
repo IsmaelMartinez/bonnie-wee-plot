@@ -106,8 +106,9 @@ export interface OwnFeedResource {
  */
 export function getOwnFeedResourcesForType(
   feedType: FeedType,
-  ctx: OwnFeedContext
+  ctx?: OwnFeedContext
 ): OwnFeedResource[] {
+  if (!ctx) return []
   const resources: OwnFeedResource[] = []
 
   // Comfrey leaves steep into a high-potash tea — relevant to potash feeds.
