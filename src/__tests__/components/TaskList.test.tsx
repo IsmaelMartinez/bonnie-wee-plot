@@ -592,6 +592,72 @@ describe('TaskList Component', () => {
     })
   })
 
+  describe('Homemade feed hint (B2)', () => {
+    it('leads with the user\'s comfrey bed for a high-potash feed task when they grow comfrey', () => {
+      const task = makeGeneratedTask({
+        id: 'feed-1',
+        generatedType: 'feed',
+        description: 'Feed Bed A',
+        feedType: 'high-potash',
+      })
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={[task]}
+          ownFeedContext={{ growsComfrey: true, hasReadyCompost: false, hasCompost: false }}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Use your comfrey bed')).toBeInTheDocument()
+    })
+
+    it('surfaces ready compost for a balanced feed task', () => {
+      const task = makeGeneratedTask({
+        id: 'feed-2',
+        generatedType: 'feed',
+        description: 'Feed Bed B',
+        feedType: 'balanced',
+      })
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={[task]}
+          ownFeedContext={{ growsComfrey: false, hasReadyCompost: true, hasCompost: true }}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Your compost is ready')).toBeInTheDocument()
+    })
+
+    it('does not show own-resource copy when the user grows/has nothing', () => {
+      const task = makeGeneratedTask({
+        id: 'feed-3',
+        generatedType: 'feed',
+        description: 'Feed Bed C',
+        feedType: 'high-potash',
+      })
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={[task]}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      // Generic disclosure still renders, but no own-resource lead-in.
+      expect(screen.getByText('Make your own feed')).toBeInTheDocument()
+      expect(screen.queryByText('Use your comfrey bed')).not.toBeInTheDocument()
+    })
+  })
+
   describe('Completed count', () => {
     it('shows total completed count combining dismissed and completed custom tasks', () => {
       const dismissed = [makeGeneratedTask({ id: 'd1' })]

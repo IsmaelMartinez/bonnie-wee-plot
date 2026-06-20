@@ -76,10 +76,18 @@ Extend `MaintenanceInfo` usage across `src/lib/vegetables/data/*.ts` so the majo
 > a `feedType`, listing the relevant homemade option(s). Six unit tests cover the
 > feedType → feed mapping and data shape.
 
-### Goal B2 (optional) — Link comfrey/compost the user already grows
-If the user has comfrey planted or an active compost pile, prefer suggesting their
-own resource ("Use your comfrey bed" / "Your compost is ready"). Pure enhancement
-on top of B1.
+### Goal B2 — Link comfrey/compost the user already grows ✅ DONE (2026-06-20)
+> Implemented: `getOwnFeedResourcesForType(feedType, ctx)` in
+> `src/lib/feeds/homemade-feeds.ts` returns the user's own resources to prefer
+> over the generic make-your-own feeds — gated by the same feedType relevance
+> (comfrey → high-potash/comfrey, compost → balanced/compost). `useTodayData`
+> derives an `OwnFeedContext` (`growsComfrey` from comfrey plantings/primary
+> plants, `hasReadyCompost`/`hasCompost` from `AllotmentData.compost`) and
+> threads it through `TodayDashboard` → `TaskList` → `HomemadeFeedHint`, which
+> now leads with "Use your comfrey bed" / "Your compost is ready" above the
+> collapsible generic list. Render-gated per Simplicity-First (nothing extra
+> shows when the user grows/has nothing). Covered by new unit tests in
+> `homemade-feeds.test.ts` and `TaskList.test.tsx`.
 
 ---
 
@@ -119,8 +127,8 @@ make chutney." Reuses the existing `care-tip` task plumbing — no new task type
 
 ## Suggested order & how to dispatch
 1. ~~**A1 → A2 → A3**~~ ✅ done (feeding alerts; Milestone A complete).
-2. ~~**B1**~~ ✅ done (homemade feeds). Optional **B2** (prefer the user's own
-   comfrey bed / ready compost) is the next remaining feeding goal.
+2. ~~**B1 → B2**~~ ✅ done (homemade feeds + preferring the user's own comfrey
+   bed / ready compost; Milestone B complete).
 3. Milestone C (preserving/storage) — deferred; revisit later.
 
 Each Goal above is self-contained and can be handed to an agent independently.

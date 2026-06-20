@@ -4,13 +4,22 @@ import { CustomTask, NewCustomTask, MaintenanceTask, MaintenanceTaskType } from 
 import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
 import { FeedType } from '@/types/garden-planner'
-import { getHomemadeFeedsForType } from '@/lib/feeds/homemade-feeds'
+import { getHomemadeFeedsForType, getOwnFeedResourcesForType, OwnFeedContext } from '@/lib/feeds/homemade-feeds'
+
+/** Empty context default for callers without allotment data (e.g. previews). */
+const EMPTY_OWN_FEED_CONTEXT: OwnFeedContext = {
+  growsComfrey: false,
+  hasReadyCompost: false,
+  hasCompost: false,
+}
 
 interface TaskListProps {
   customTasks?: CustomTask[]
   tasks: MaintenanceTask[]
   generatedTasks?: GeneratedTask[]
   dismissedTasks?: GeneratedTask[]
+  /** What the user grows/has, so feed hints can prefer their own resources. */
+  ownFeedContext?: OwnFeedContext
   theme: SeasonalTheme
   onAddCustomTask?: (task: NewCustomTask) => void
   onToggleCustomTask?: (taskId: string) => void
@@ -57,14 +66,24 @@ const URGENCY_STYLES: Record<TaskUrgency, string> = {
 }
 
 /**
- * Collapsible "make your own feed" hint shown under feed tasks that carry a
- * feedType. Lists the homemade feeds that can stand in for the bought type
- * (comfrey tea for high-potash, nettle feed for high-nitrogen, etc.).
+ * Hint shown under feed tasks that carry a feedType. When the user already
+ * grows comfrey or has compost (B2), those own resources lead — surfaced
+ * inline above the collapsible list of generic make-your-own feeds (comfrey
+ * tea for high-potash, nettle feed for high-nitrogen, etc.).
  */
-function HomemadeFeedHint({ feedType, taskId }: { feedType: FeedType; taskId: string }) {
+function HomemadeFeedHint({
+  feedType,
+  taskId,
+  ownFeedContext,
+}: {
+  feedType: FeedType
+  taskId: string
+  ownFeedContext: OwnFeedContext
+}) {
   const [open, setOpen] = useState(false)
   const feeds = getHomemadeFeedsForType(feedType)
-  if (feeds.length === 0) return null
+  const ownResources = getOwnFeedResourcesForType(feedType, ownFeedContext)
+  if (feeds.length === 0 && ownResources.length === 0) return null
 
   // Unique per task so the button/list association stays valid when several
   // feed tasks render on the same page.
@@ -72,6 +91,21 @@ function HomemadeFeedHint({ feedType, taskId }: { feedType: FeedType; taskId: st
 
   return (
     <div className="mt-1">
+      {/* Prefer the user's own comfrey/compost when they have it. */}
+      {ownResources.length > 0 && (
+        <ul className="mb-1 space-y-1">
+          {ownResources.map((resource) => (
+            <li key={resource.id} className="flex items-start gap-1 text-xs text-zen-moss-700">
+              <Leaf className="w-3 h-3 mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-medium">{resource.title}</span> — {resource.detail}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {feeds.length > 0 && (
+      <>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -92,6 +126,8 @@ function HomemadeFeedHint({ feedType, taskId }: { feedType: FeedType; taskId: st
             </li>
           ))}
         </ul>
+      )}
+      </>
       )}
     </div>
   )
@@ -201,10 +237,12 @@ function GeneratedTaskItem({
   task,
   onDismiss,
   onComplete,
+  ownFeedContext,
 }: {
   task: GeneratedTask
   onDismiss?: (taskId: string) => void
   onComplete?: (task: GeneratedTask) => void
+  ownFeedContext: OwnFeedContext
 }) {
   const config = GENERATED_TASK_CONFIG[task.generatedType] || GENERATED_TASK_CONFIG['harvest']
   const Icon = config.icon
@@ -253,7 +291,9 @@ function GeneratedTaskItem({
         {task.notes && (
           <p className="text-xs text-zen-stone-500 mt-1">{task.notes}</p>
         )}
-        {task.feedType && <HomemadeFeedHint feedType={task.feedType} taskId={task.id} />}
+        {task.feedType && (
+          <HomemadeFeedHint feedType={task.feedType} taskId={task.id} ownFeedContext={ownFeedContext} />
+        )}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {badge && (
@@ -305,6 +345,7 @@ export default function TaskList({
   tasks,
   generatedTasks = [],
   dismissedTasks = [],
+  ownFeedContext = EMPTY_OWN_FEED_CONTEXT,
   onAddCustomTask,
   onToggleCustomTask,
   onRemoveCustomTask,
@@ -392,6 +433,7 @@ export default function TaskList({
             task={task}
             onDismiss={onDismissTask}
             onComplete={onCompleteTask}
+            ownFeedContext={ownFeedContext}
           />
         ))}
 

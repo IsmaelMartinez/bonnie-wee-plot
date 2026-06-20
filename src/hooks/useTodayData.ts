@@ -18,6 +18,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getSeasonalPhase, SeasonalPhase } from '@/lib/seasons'
 import { generateTasksForMonth, GeneratedTask, CareLogDaysMap } from '@/lib/task-generator'
+import { OwnFeedContext } from '@/lib/feeds/homemade-feeds'
 import { CustomTask, NewCustomTask, MaintenanceTask, Planting, AreaSeason, CareLogType } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
 import { loadDismissedTaskIds, dismissTask, restoreTask } from '@/lib/dismissed-tasks'
@@ -33,6 +34,8 @@ export interface TodayData {
   maintenanceTasks: MaintenanceTask[]
   generatedTasks: GeneratedTask[]
   dismissedTasks: GeneratedTask[]
+  /** What the user grows/has, so feed hints can prefer their own resources. */
+  ownFeedContext: OwnFeedContext
   rainfall: RainfallSummary | null
   hasCoordinates: boolean
   isLoading: boolean
@@ -227,6 +230,26 @@ export function useTodayData(): TodayData {
     [allGeneratedTasks, dismissedIds]
   )
 
+  // What the user actually grows/has, so feed hints can prefer their own
+  // comfrey bed / ready compost over the generic make-your-own advice (B2).
+  const ownFeedContext = useMemo<OwnFeedContext>(() => {
+    const growsComfrey =
+      plantingsWithContext.some(
+        ({ planting }) =>
+          planting.plantId === 'comfrey' &&
+          planting.status !== 'removed' &&
+          planting.status !== 'harvested'
+      ) ||
+      allAreas.some((a) => !a.isArchived && a.primaryPlant?.plantId === 'comfrey')
+
+    const piles = data?.compost ?? []
+    return {
+      growsComfrey,
+      hasReadyCompost: piles.some((p) => p.status === 'ready'),
+      hasCompost: piles.length > 0,
+    }
+  }, [plantingsWithContext, allAreas, data])
+
   // Tapping ✓ on a feed/water task is the user telling us they did it.
   // Record a minimal care log entry (type + today) so the cadence engine
   // can suppress reminders, and dismiss the task. Other generated tasks
@@ -289,6 +312,7 @@ export function useTodayData(): TodayData {
     maintenanceTasks,
     generatedTasks,
     dismissedTasks,
+    ownFeedContext,
     rainfall,
     hasCoordinates: !!coords,
     isLoading,
