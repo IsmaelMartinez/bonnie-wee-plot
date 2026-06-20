@@ -1269,6 +1269,32 @@ describe('task-generator', () => {
       expect(tasks.filter(t => t.id.startsWith('preserve-nudge-'))).toHaveLength(1)
     })
 
+    it('uses the expected harvest window over coarse harvestMonths when dates exist', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      // Expected window is September even though harvestMonths spans Jul–Sep.
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2026-09-01',
+            expectedHarvestEnd: '2026-09-30',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      // July is in harvestMonths but before the expected window — no nudge.
+      const julyTasks = generateTasksForMonth(7 as Month, plantings, [])
+      expect(julyTasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+
+      // September is inside the expected window — nudge.
+      const septTasks = generateTasksForMonth(9 as Month, plantings, [])
+      expect(septTasks.some(t => t.id === 'preserve-nudge-courgette-9')).toBe(true)
+    })
+
     it('does not nudge for a harvested planting', () => {
       mockGetVegetableById.mockReturnValue(courgetteVeg)
 

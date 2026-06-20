@@ -336,9 +336,27 @@ function generateCareTipTasks(
 const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
 
 /**
+ * Whether the current month falls in a planting's harvest window. Prefers the
+ * planting's calculated expected window (from sow/transplant dates) so the
+ * nudge doesn't fire months early on the crop's coarse `harvestMonths`; returns
+ * null when no expected dates are present so the caller can fall back.
+ */
+function isInExpectedHarvestWindow(planting: Planting, currentMonth: Month): boolean | null {
+  if (!planting.expectedHarvestStart) return null
+  const startMonth = (new Date(planting.expectedHarvestStart).getMonth() + 1) as Month
+  const endMonth = planting.expectedHarvestEnd
+    ? (new Date(planting.expectedHarvestEnd).getMonth() + 1) as Month
+    : startMonth
+  // Window can wrap the year end (e.g. Nov–Feb), so handle both orderings.
+  return startMonth <= endMonth
+    ? currentMonth >= startMonth && currentMonth <= endMonth
+    : currentMonth >= startMonth || currentMonth <= endMonth
+}
+
+/**
  * Generate "glut?" preserve nudges for crops in their harvest window whose
  * storage data offers a preserving method (freeze/jam/pickle/…). Emitted as a
- * care-tip task (no new task type), one per plant so a crop in several beds
+ * care-tip task (no new task type), one per crop so a crop in several beds
  * only nudges once.
  */
 function generatePreserveNudges(
@@ -352,9 +370,14 @@ function generatePreserveNudges(
   for (const { planting } of filterPlantingsForTaskType(plantings, 'harvest')) {
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable?.storage) continue
-    if (!vegetable.planting.harvestMonths.includes(currentMonth)) continue
     if (!vegetable.storage.methods.some((m) => PRESERVE_METHODS.includes(m))) continue
     if (seen.has(vegetable.id)) continue
+
+    // Prefer the planting's calculated window; fall back to coarse harvestMonths.
+    const expected = isInExpectedHarvestWindow(planting, currentMonth)
+    const inWindow = expected !== null ? expected : vegetable.planting.harvestMonths.includes(currentMonth)
+    if (!inWindow) continue
+
     seen.add(vegetable.id)
 
     tasks.push({
