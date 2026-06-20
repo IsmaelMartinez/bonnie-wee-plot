@@ -108,6 +108,7 @@ export const alliums: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['A monthly nitrogen feed in summer thickens the stems']
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/leeks/grow-your-own',

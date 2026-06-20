@@ -33,6 +33,7 @@ export const legumes: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 21,
+      feedType: 'high-potash',
       notes: ['Beans fix their own nitrogen — a high-potash feed once flowering boosts pod set']
     },
     enhancedCompanions: [
@@ -194,6 +195,7 @@ export const legumes: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 21,
+      feedType: 'high-potash',
       notes: ['Beans fix their own nitrogen — a high-potash feed once flowering boosts pod set']
     },
     enhancedCompanions: [

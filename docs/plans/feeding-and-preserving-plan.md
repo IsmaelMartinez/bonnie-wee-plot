@@ -45,36 +45,36 @@ Extend `MaintenanceInfo` usage across `src/lib/vegetables/data/*.ts` so the majo
   crops planted in season; unit test in `src/__tests__/lib/task-generator.test.ts`
   covers at least one newly-fed annual.
 
-### Goal A2 — Add a structured "feed type" so alerts say *what* to feed
-Add an optional `feedType` (e.g. `'high-potash' | 'high-nitrogen' | 'balanced' |
-'comfrey' | 'compost'`) to `MaintenanceInfo`, surfaced in the feed task note
-(e.g. "Feed tomatoes — high-potash, every 7 days"). Falls back to current generic
-text when absent.
-- Files: `src/types/garden-planner.ts`, `createFeedTask` in `task-generator.ts`,
-  `TaskList.tsx` note rendering.
-- Acceptance: feed task notes show the feed type when set; no regression when unset.
+### Goal A2 — Add a structured "feed type" so alerts say *what* to feed ✅ DONE (2026-06-17)
+> Implemented: added `FeedType` (`high-potash | high-nitrogen | balanced |
+> comfrey | compost`) and an optional `feedType` to `MaintenanceInfo`. Populated
+> it for every crop that already carries feed data (annuals + berries + trees +
+> the perennial veg): tomatoes/tomatillo, cucurbits, beans → high-potash;
+> brassicas, leek, sweetcorn, rhubarb → high-nitrogen; fruit trees, asparagus,
+> artichoke, seakale → balanced; berries → high-potash. `createFeedTask` now
+> reads it ("apply high-potash feed"); falls back to "general-purpose fertiliser"
+> when unset. `feedType` is carried on `GeneratedTask` so the UI can suggest a
+> homemade option (B1). Covered by a new unit test.
 
-### Goal A3 — "Feed overdue" urgency
-Today, a plant fed long past its cadence still shows low priority. Add urgency:
-when `daysSinceFeed >= feedFrequencyDays` by a margin (e.g. > cadence + 14d), mark
-the feed task medium/high priority and note "Overdue — last fed N days ago".
-- Files: `createFeedTask` / priority logic in `task-generator.ts` + tests.
-- Acceptance: unit test asserts overdue feed → elevated priority.
+### Goal A3 — "Feed overdue" urgency ✅ DONE (2026-06-17)
+> Implemented: `createFeedTask` marks a feed overdue when
+> `daysSinceLastFeed > feedFrequencyDays + 14`, elevating it to `medium` priority
+> with an "Overdue — last fed N days ago" note. Below the 14-day margin it stays
+> low priority. Two new unit tests cover the elevated and within-margin cases.
 
 ---
 
 ## Milestone B — Make your own plant food
 
-### Goal B1 — Lightweight "homemade feed" reference data + UI surface
-Add a small static dataset of homemade feeds (comfrey tea, nettle feed, wood-ash
-potash, worm-bin leachate, general liquid feed) with: what it's good for, NPK
-lean (high-N vs high-K), how to make it, dilution ratio, and which `feedType` it
-satisfies. Surface it where feeding is relevant (feed task detail / a small
-"How to make this feed" link, and/or a Help/Guide section).
-- New file: `src/lib/feeds/homemade-feeds.ts` (+ types).
-- Tie-in: when a feed task has `feedType: 'high-potash'`, offer "comfrey tea" etc.
-- Acceptance: clicking/opening a feed task surfaces a relevant homemade option;
-  unit test maps feedType → suggested homemade feed.
+### Goal B1 — Lightweight "homemade feed" reference data + UI surface ✅ DONE (2026-06-17)
+> Implemented: `src/lib/feeds/homemade-feeds.ts` holds five homemade feeds
+> (comfrey tea, nettle feed, wood ash, worm-bin leachate, compost/manure), each
+> with what it's good for, NPK lean, how to make it, a dilution ratio, and which
+> `feedType`(s) it satisfies. `getHomemadeFeedsForType(feedType)` returns matches
+> best-lean-first. UI tie-in: a collapsible "Make your own feed" disclosure
+> (`HomemadeFeedHint` in `TaskList.tsx`) renders under any feed task that carries
+> a `feedType`, listing the relevant homemade option(s). Six unit tests cover the
+> feedType → feed mapping and data shape.
 
 ### Goal B2 (optional) — Link comfrey/compost the user already grows
 If the user has comfrey planted or an active compost pile, prefer suggesting their
@@ -118,8 +118,9 @@ make chutney." Reuses the existing `care-tip` task plumbing — no new task type
 ---
 
 ## Suggested order & how to dispatch
-1. **A1 → A2 → A3** (feeding alerts; A1 alone already fixes the main complaint).
-2. **B1** (homemade feeds), then optional **B2**.
+1. ~~**A1 → A2 → A3**~~ ✅ done (feeding alerts; Milestone A complete).
+2. ~~**B1**~~ ✅ done (homemade feeds). Optional **B2** (prefer the user's own
+   comfrey bed / ready compost) is the next remaining feeding goal.
 3. Milestone C (preserving/storage) — deferred; revisit later.
 
 Each Goal above is self-contained and can be handed to an agent independently.

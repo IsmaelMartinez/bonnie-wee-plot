@@ -33,6 +33,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed (e.g. tomato feed) every 2 weeks once fruits set']
     },
     enhancedCompanions: [
@@ -75,6 +76,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
@@ -117,6 +119,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
@@ -159,6 +162,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed (e.g. tomato feed) every 2 weeks once fruits set']
     },
     enhancedCompanions: [
@@ -200,6 +204,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
@@ -241,6 +246,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [
@@ -282,6 +288,7 @@ export const cucurbits: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 14,
+      feedType: 'high-potash',
       notes: ['High-potash feed every 2 weeks once fruits start to swell']
     },
     enhancedCompanions: [

@@ -145,6 +145,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/cabbages/grow-your-own',
@@ -188,6 +189,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     rhsUrl: 'https://www.rhs.org.uk/vegetables/broccoli/grow-your-own',
@@ -231,6 +233,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8, 9],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
@@ -270,6 +273,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [6, 7],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
@@ -312,6 +316,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during summer growth']
     },
     enhancedCompanions: [
@@ -392,6 +397,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
@@ -433,6 +439,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [7, 8],
       feedFrequencyDays: 28,
+      feedType: 'high-nitrogen',
       notes: ['Top-dress with a high-nitrogen feed monthly during active growth']
     },
     enhancedCompanions: [
@@ -623,6 +630,7 @@ export const brassicas: Vegetable[] = [
     maintenance: {
       feedMonths: [3],
       feedFrequencyDays: 60,
+      feedType: 'balanced',
       waterFrequencyDays: 10,
       notes: ['Cover crowns to blanch shoots']
     },

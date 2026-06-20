@@ -132,6 +132,13 @@ export interface Vegetable {
   enhancedAvoid: EnhancedCompanion[]       // Avoid relationships with metadata
 }
 
+/**
+ * What kind of feed a crop wants. Drives the feed-task note ("apply
+ * high-potash feed") and maps to homemade feed suggestions. Absent = a
+ * generic general-purpose fertiliser reminder.
+ */
+export type FeedType = 'high-potash' | 'high-nitrogen' | 'balanced' | 'comfrey' | 'compost'
+
 // Maintenance info for perennials, trees, and shrubs
 export interface MaintenanceInfo {
   pruneMonths?: Month[]    // Months when pruning is recommended
@@ -143,6 +150,8 @@ export interface MaintenanceInfo {
    * elapsed. Falls back to feedMonths when unset or no prior feed log.
    */
   feedFrequencyDays?: number
+  /** Preferred feed (e.g. high-potash for fruiting crops). Surfaced in the feed task note. */
+  feedType?: FeedType
   /**
    * Cadence between waterings in days. Combined with the plant's
    * `care.water` requirement and recent rainfall to produce date-based
