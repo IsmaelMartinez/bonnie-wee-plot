@@ -120,6 +120,10 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'cabbage',
+    storage: {
+      methods: ['fridge', 'store-cool', 'ferment'],
+      tip: 'Firm heads keep for weeks in a cool shed; shred the glut into sauerkraut.',
+    },
     name: 'Cabbage',
     category: 'brassicas',
     description: 'Classic vegetable. Spring and winter varieties excellent for Scotland.',
@@ -413,6 +417,10 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'red-cabbage',
+    storage: {
+      methods: ['fridge', 'store-cool', 'pickle'],
+      tip: 'Keeps for weeks somewhere cool; classic pickled or cooked into chutney.',
+    },
     name: 'Red Cabbage',
     category: 'brassicas',
     description: 'Purple storage cabbage. Excellent for pickling and winter storage.',

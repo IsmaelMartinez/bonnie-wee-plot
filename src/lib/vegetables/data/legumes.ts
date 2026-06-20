@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const legumes: Vegetable[] = [
   {
     id: 'runner-beans',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Glut crop — pick young and often. Blanch and freeze, or salt down in jars.',
+    },
     name: 'Runner Beans',
     category: 'legumes',
     description: 'Prolific climbing bean. Wait until after last frost in late May.',
@@ -54,6 +59,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'french-beans',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 5,
+      tip: 'Blanch and freeze the glut; pick regularly to keep plants cropping.',
+    },
     name: 'French Beans',
     category: 'legumes',
     description: 'Bush or climbing beans. Start indoors in Scotland.',
@@ -91,6 +101,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'broad-beans',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 5,
+      tip: 'Freeze podded beans; let the last pods dry on the plant for storing dried.',
+    },
     name: 'Broad Beans',
     category: 'legumes',
     description: 'Hardy beans - can be autumn sown in Scotland for early crop!',
@@ -131,6 +146,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'peas',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 4,
+      tip: 'Sweetest eaten or frozen within hours of picking.',
+    },
     name: 'Peas',
     category: 'legumes',
     description: 'Sweet garden peas. Cool Scottish summer is perfect for them!',
@@ -169,6 +189,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'climbing-french-beans',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 5,
+      tip: 'Blanch and freeze the glut; leave some pods to dry for haricot beans.',
+    },
     name: 'Climbing French Beans',
     category: 'legumes',
     description: 'Vertical-growing beans with excellent yields. Space-saving and productive.',

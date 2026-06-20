@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const rootVegetables: Vegetable[] = [
   {
     id: 'carrot',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Lift and store in boxes of damp sand somewhere cool and frost-free.',
+    },
     name: 'Carrot',
     category: 'root-vegetables',
     description: 'Sweet root vegetable. Sow later in Scotland after soil warms.',
@@ -47,6 +51,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'beetroot',
+    storage: {
+      methods: ['store-cool', 'fridge', 'pickle'],
+      tip: 'Twist off the tops and store in damp sand, or pickle the glut.',
+    },
     name: 'Beetroot',
     category: 'root-vegetables',
     description: 'Versatile root vegetable. Wait for warmer soil in Scotland.',

@@ -1208,6 +1208,79 @@ describe('task-generator', () => {
     })
   })
 
+  describe('preserve nudges (C3)', () => {
+    const courgettePlanting = [
+      { planting: { id: 'p1', plantId: 'courgette' } as Planting, areaId: 'bed-a', areaName: 'Bed A' },
+    ]
+
+    const courgetteVeg = {
+      id: 'courgette',
+      name: 'Courgettes',
+      planting: {
+        harvestMonths: [7, 8, 9],
+        sowIndoorsMonths: [4],
+        sowOutdoorsMonths: [],
+        transplantMonths: [6],
+      },
+      storage: {
+        methods: ['fresh', 'fridge', 'freeze'],
+        tip: 'Glut crop — freeze grated, or make chutney.',
+      },
+    }
+
+    it('emits a care-tip glut nudge in the harvest window for a preservable crop', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const tasks = generateTasksForMonth(8 as Month, courgettePlanting, [])
+      const nudge = tasks.find(t => t.id === 'preserve-nudge-courgette-8')
+
+      expect(nudge).toBeDefined()
+      expect(nudge?.generatedType).toBe('care-tip')
+      expect(nudge?.description).toBe('Glut of Courgettes?')
+      expect(nudge?.notes).toBe('Glut crop — freeze grated, or make chutney.')
+    })
+
+    it('does not nudge outside the harvest window', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const tasks = generateTasksForMonth(5 as Month, courgettePlanting, [])
+      expect(tasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('does not nudge when storage has no preserving method', () => {
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        storage: { methods: ['fresh', 'fridge', 'store-cool'] },
+      })
+
+      const tasks = generateTasksForMonth(8 as Month, courgettePlanting, [])
+      expect(tasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('nudges once per crop even when planted in several beds', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const plantings = [
+        { planting: { id: 'p1', plantId: 'courgette' } as Planting, areaId: 'bed-a', areaName: 'Bed A' },
+        { planting: { id: 'p2', plantId: 'courgette' } as Planting, areaId: 'bed-b', areaName: 'Bed B' },
+      ]
+
+      const tasks = generateTasksForMonth(8 as Month, plantings, [])
+      expect(tasks.filter(t => t.id.startsWith('preserve-nudge-'))).toHaveLength(1)
+    })
+
+    it('does not nudge for a harvested planting', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const plantings = [
+        { planting: { id: 'p1', plantId: 'courgette', status: 'harvested' } as Planting, areaId: 'bed-a', areaName: 'Bed A' },
+      ]
+
+      const tasks = generateTasksForMonth(8 as Month, plantings, [])
+      expect(tasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+  })
+
   describe('feed and water reminders', () => {
     const raspberryArea: Area = {
       id: 'raspberry-patch',

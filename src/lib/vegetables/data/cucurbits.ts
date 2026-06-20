@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const cucurbits: Vegetable[] = [
   {
     id: 'courgette',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Glut crop — pick small and often. Freeze grated for soups and cakes, or make chutney.',
+    },
     name: 'Courgettes (Zucchini)',
     category: 'cucurbits',
     description: 'Prolific summer squash. Start indoors and plant out after frost.',
@@ -51,6 +56,10 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'squash',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure in the sun 10–14 days until the skin hardens, then store somewhere cool, dry and frost-free for months.',
+    },
     name: 'Winter Squash',
     category: 'cucurbits',
     description: 'Includes butternut, crown prince. Start indoors for Scotland.',
@@ -94,6 +103,10 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'pumpkin',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure the skin hard, then store somewhere cool and dry — keeps for months.',
+    },
     name: 'Pumpkin',
     category: 'cucurbits',
     description: 'Traditional autumn favourite. Need warm start indoors.',
@@ -178,6 +191,10 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'butternut-squash',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure 2 weeks until the skin is hard, then store cool and dry well into winter.',
+    },
     name: 'Butternut Squash',
     category: 'cucurbits',
     description: 'Popular winter squash. Needs long warm season but possible in Scotland.',

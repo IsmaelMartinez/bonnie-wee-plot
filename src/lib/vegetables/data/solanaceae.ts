@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const solanaceae: Vegetable[] = [
   {
     id: 'potato',
+    storage: {
+      methods: ['store-cool'],
+      tip: 'Store dry and unwashed in paper or hessian sacks somewhere cool and dark.',
+    },
     name: 'Potatoes (Tatties)',
     category: 'solanaceae',
     description: 'Scottish staple! Plant after last frost risk around late April.',
@@ -119,6 +123,10 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'maincrop-potato',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Let the skins set in the ground, dry off, then store in paper sacks in the dark for winter.',
+    },
     name: 'Maincrop Potato',
     category: 'solanaceae',
     description: 'Late season storage potatoes. Higher yields but more blight susceptible in wet Scottish summers.',
@@ -156,6 +164,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'cherry-tomato',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'Glut crop — roast and freeze, semi-dry in a low oven, or cook down into sauce.',
+    },
     name: 'Cherry Tomato',
     category: 'solanaceae',
     description: 'Small sweet tomatoes. More reliable outdoors in Scotland than large varieties.',
@@ -200,6 +213,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'plum-tomato',
+    storage: {
+      methods: ['fresh', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'The best sauce tomato — cook into passata, or roast and freeze the glut.',
+    },
     name: 'Plum Tomato',
     category: 'solanaceae',
     description: 'Oval sauce tomatoes. Excellent for cooking and preserving.',

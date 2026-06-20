@@ -4,6 +4,19 @@ import Link from 'next/link'
 import Dialog from '@/components/ui/Dialog'
 import MonthBar from '@/components/plants/MonthBar'
 import { getVegetableById } from '@/lib/vegetable-database'
+import type { StorageMethod } from '@/types/garden-planner'
+
+const STORAGE_METHOD_LABELS: Record<StorageMethod, string> = {
+  fresh: 'Best fresh',
+  fridge: 'Fridge',
+  'store-cool': 'Store cool',
+  freeze: 'Freeze',
+  dry: 'Dry',
+  cure: 'Cure first',
+  pickle: 'Pickle',
+  jam: 'Jam / chutney',
+  ferment: 'Ferment',
+}
 
 interface PlantSummaryDialogProps {
   plantId: string | null
@@ -95,6 +108,16 @@ export default function PlantSummaryDialog({ plantId, isOpen, onClose }: PlantSu
       <p className="text-sm text-zen-stone-500 mb-4">
         {plant.planting.daysToHarvest.min}&ndash;{plant.planting.daysToHarvest.max} days to harvest
       </p>
+
+      {/* Storage & preserving (read-only) */}
+      {plant.storage && plant.storage.methods.length > 0 && (
+        <div className="mb-4">
+          <div className="text-xs text-zen-stone-500 mb-1">Storage &amp; preserving</div>
+          <div className="text-sm text-zen-ink-700">
+            {plant.storage.methods.map(m => STORAGE_METHOD_LABELS[m]).join(' · ')}
+          </div>
+        </div>
+      )}
 
       {/* View full details link */}
       <Link

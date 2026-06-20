@@ -123,6 +123,7 @@ export interface Vegetable {
   growingRequirement?: GrowingRequirement  // If set, indicates plant needs protection (greenhouse/windowsill)
   maintenance?: MaintenanceInfo            // For perennials/trees: pruning, feeding schedules
   careTips?: CareTip[]                     // Seasonal care tips for perennial plants
+  storage?: StorageInfo                    // How to keep/preserve the harvest (informational; see Milestone C)
   perennialInfo?: PerennialInfo            // Lifecycle info for perennial plants (trees, berries, asparagus, etc.)
   rhsUrl?: string                          // RHS grow-your-own guide URL
   wikipediaUrl?: string                    // Wikipedia article URL
@@ -160,6 +161,34 @@ export interface MaintenanceInfo {
    */
   waterFrequencyDays?: number
   notes?: string[]         // Additional maintenance tips
+}
+
+/**
+ * Ways to keep or preserve a harvest. Informational only (Milestone C) — no
+ * tracking, no schema migration; this is static vegetable-database data.
+ */
+export type StorageMethod =
+  | 'fresh'        // best eaten fresh, doesn't keep
+  | 'fridge'       // keeps a while in the fridge
+  | 'store-cool'   // keeps in a cool, dark, airy place (clamp, shed, garage)
+  | 'freeze'       // freezes well (often blanched first)
+  | 'dry'          // dries / dehydrates
+  | 'cure'         // cure before storing (onions, garlic, squash, maincrop spuds)
+  | 'pickle'       // pickle in vinegar
+  | 'jam'          // jam / chutney / preserve
+  | 'ferment'      // ferment (kraut, kimchi)
+
+/**
+ * Storage & preserving guidance for a crop. Surfaced read-only on plant
+ * detail (Goal C2) and used for an optional glut nudge near harvest (C3).
+ */
+export interface StorageInfo {
+  /** Suitable ways to keep/preserve this crop, most useful first. */
+  methods: StorageMethod[]
+  /** Rough shelf life when kept fresh, in days. */
+  freshDays?: number
+  /** One-line practical tip, e.g. "Cure 2 weeks before storing in paper sacks". */
+  tip?: string
 }
 
 // Care tip categories for perennial plant advice

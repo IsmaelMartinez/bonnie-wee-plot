@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const other: Vegetable[] = [
   {
     id: 'rhubarb',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze', 'jam'],
+      freshDays: 7,
+      tip: 'Glut crop — chop and freeze raw, or stew into compote and jam.',
+    },
     name: 'Rhubarb',
     category: 'other',
     description: 'Perennial vegetable (used as fruit). Thrives in Scottish climate!',

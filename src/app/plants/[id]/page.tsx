@@ -10,6 +10,7 @@ import {
   type Vegetable,
   type EnhancedCompanion,
   type CareTip,
+  type StorageMethod,
 } from '@/types/garden-planner'
 import MonthBar from '@/components/plants/MonthBar'
 
@@ -133,6 +134,44 @@ function CareTipsList({ tips }: { tips: CareTip[] }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+const STORAGE_METHOD_LABELS: Record<StorageMethod, string> = {
+  fresh: 'Best fresh',
+  fridge: 'Fridge',
+  'store-cool': 'Store cool',
+  freeze: 'Freeze',
+  dry: 'Dry',
+  cure: 'Cure first',
+  pickle: 'Pickle',
+  jam: 'Jam / chutney',
+  ferment: 'Ferment',
+}
+
+function StoragePanel({ plant }: { plant: Vegetable }) {
+  if (!plant.storage) return null
+  const { methods, freshDays, tip } = plant.storage
+
+  return (
+    <div>
+      <h2 className="mb-4">Storage &amp; Preserving</h2>
+      {methods.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {methods.map((method) => (
+            <span key={method} className="zen-badge-moss text-sm">
+              {STORAGE_METHOD_LABELS[method]}
+            </span>
+          ))}
+        </div>
+      )}
+      {freshDays !== undefined && (
+        <p className="text-sm text-zen-stone-500 mb-2">
+          Keeps roughly {freshDays} {freshDays === 1 ? 'day' : 'days'} fresh.
+        </p>
+      )}
+      {tip && <p className="text-sm text-zen-ink-700">{tip}</p>}
     </div>
   )
 }
@@ -320,6 +359,13 @@ export default async function PlantPage({ params }: { params: Promise<{ id: stri
         {plant.careTips && plant.careTips.length > 0 && (
           <section className="zen-card p-6 mb-6">
             <CareTipsList tips={plant.careTips} />
+          </section>
+        )}
+
+        {/* Storage & Preserving */}
+        {plant.storage && (
+          <section className="zen-card p-6 mb-6">
+            <StoragePanel plant={plant} />
           </section>
         )}
 
