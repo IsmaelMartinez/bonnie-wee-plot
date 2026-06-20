@@ -80,9 +80,11 @@ export const HOMEMADE_FEEDS: HomemadeFeed[] = [
  * best match first (entries whose own lean matches the requested type lead).
  */
 export function getHomemadeFeedsForType(feedType: FeedType): HomemadeFeed[] {
-  const matches = HOMEMADE_FEEDS.filter((feed) => feed.satisfies.includes(feedType))
-  // Prefer feeds whose NPK lean matches the request (e.g. comfrey for high-potash).
-  return [...matches].sort((a, b) => {
+  // filter() returns a fresh array, so it is safe to sort in place.
+  // Prefer feeds whose NPK lean matches the request (e.g. comfrey for
+  // high-potash). npkLean is only ever a lean ('high-*'/'balanced'), so for the
+  // 'comfrey'/'compost' types — which each have a single match — this is a no-op.
+  return HOMEMADE_FEEDS.filter((feed) => feed.satisfies.includes(feedType)).sort((a, b) => {
     const aMatch = a.npkLean === feedType ? 0 : 1
     const bMatch = b.npkLean === feedType ? 0 : 1
     return aMatch - bMatch

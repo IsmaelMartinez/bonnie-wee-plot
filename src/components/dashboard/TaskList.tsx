@@ -61,10 +61,14 @@ const URGENCY_STYLES: Record<TaskUrgency, string> = {
  * feedType. Lists the homemade feeds that can stand in for the bought type
  * (comfrey tea for high-potash, nettle feed for high-nitrogen, etc.).
  */
-function HomemadeFeedHint({ feedType }: { feedType: FeedType }) {
+function HomemadeFeedHint({ feedType, taskId }: { feedType: FeedType; taskId: string }) {
   const [open, setOpen] = useState(false)
   const feeds = getHomemadeFeedsForType(feedType)
   if (feeds.length === 0) return null
+
+  // Unique per task so the button/list association stays valid when several
+  // feed tasks render on the same page.
+  const listId = `homemade-feed-list-${taskId}`
 
   return (
     <div className="mt-1">
@@ -73,12 +77,13 @@ function HomemadeFeedHint({ feedType }: { feedType: FeedType }) {
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1 py-1 text-xs text-zen-bamboo-700 hover:text-zen-bamboo-800 transition-colors"
         aria-expanded={open}
+        aria-controls={listId}
       >
         {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         Make your own feed
       </button>
       {open && (
-        <ul className="mt-1 space-y-2">
+        <ul id={listId} className="mt-1 space-y-2">
           {feeds.map((feed) => (
             <li key={feed.id} className="text-xs text-zen-stone-500 leading-relaxed">
               <span className="font-medium text-zen-ink-700">{feed.name}</span> — {feed.goodFor}
@@ -248,7 +253,7 @@ function GeneratedTaskItem({
         {task.notes && (
           <p className="text-xs text-zen-stone-500 mt-1">{task.notes}</p>
         )}
-        {task.feedType && <HomemadeFeedHint feedType={task.feedType} />}
+        {task.feedType && <HomemadeFeedHint feedType={task.feedType} taskId={task.id} />}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {badge && (
