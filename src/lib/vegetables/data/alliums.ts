@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const alliums: Vegetable[] = [
   {
     id: 'onion',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure until the necks are papery, then store in nets somewhere cool and dry.',
+    },
     name: 'Onion',
     category: 'alliums',
     description: 'Kitchen essential. Sets easier than seed in Scotland.',
@@ -47,6 +51,10 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'garlic',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Dry the bulbs thoroughly, then plait or net and hang somewhere cool and airy.',
+    },
     name: 'Garlic',
     category: 'alliums',
     description: 'Plant in autumn for best bulbs. Needs cold period.',

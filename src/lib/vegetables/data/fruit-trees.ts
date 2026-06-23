@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const fruitTrees: Vegetable[] = [
   {
     id: 'apple-tree',
+    storage: {
+      methods: ['store-cool', 'fridge', 'freeze', 'jam'],
+      tip: 'Store sound late apples in trays somewhere cool and dark; windfalls into sauce, juice or chutney.',
+    },
     name: 'Apple Tree',
     category: 'fruit-trees',
     description: 'Classic fruit tree. Choose dwarf rootstocks for smaller spaces.',
@@ -161,6 +165,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'plum-tree',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 5,
+      tip: 'Glut crop — stone and freeze, or make jam. Doesn’t keep fresh for long.',
+    },
     name: 'Plum Tree',
     category: 'fruit-trees',
     description: 'Delicious stone fruit. Victoria is self-fertile and reliable.',

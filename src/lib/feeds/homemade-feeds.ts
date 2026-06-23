@@ -76,6 +76,71 @@ export const HOMEMADE_FEEDS: HomemadeFeed[] = [
 ]
 
 /**
+ * What the user actually grows / has on the plot, used to prefer their own
+ * resources over the generic make-your-own feeds (Milestone B2).
+ */
+export interface OwnFeedContext {
+  /** User grows comfrey (a planting or primary plant with plantId 'comfrey'). */
+  growsComfrey: boolean
+  /** User has at least one compost pile that is ready to use. */
+  hasReadyCompost: boolean
+  /** User has at least one compost pile (any status). */
+  hasCompost: boolean
+}
+
+/** A resource the user already has, surfaced in place of generic advice. */
+export interface OwnFeedResource {
+  /** Stable id for React keys / dedupe. */
+  id: string
+  /** Short, action-led headline, e.g. "Use your comfrey bed". */
+  title: string
+  /** One supporting line on how to use it. */
+  detail: string
+}
+
+/**
+ * Given the feed type wanted and what the user actually grows/has, return the
+ * user's own resources to prefer over the generic make-your-own feeds. Each
+ * resource is gated by the same feedType relevance the homemade feeds use
+ * (comfrey → high-potash/comfrey, compost → balanced/compost).
+ */
+export function getOwnFeedResourcesForType(
+  feedType: FeedType,
+  ctx?: OwnFeedContext
+): OwnFeedResource[] {
+  if (!ctx) return []
+  const resources: OwnFeedResource[] = []
+
+  // Comfrey leaves steep into a high-potash tea — relevant to potash feeds.
+  if (ctx.growsComfrey && (feedType === 'high-potash' || feedType === 'comfrey')) {
+    resources.push({
+      id: 'own-comfrey',
+      title: 'Use your comfrey bed',
+      detail: 'Cut your own comfrey leaves to steep into a high-potash tea.',
+    })
+  }
+
+  // Finished compost is a balanced top-dress — relevant to balanced/compost feeds.
+  if (feedType === 'balanced' || feedType === 'compost') {
+    if (ctx.hasReadyCompost) {
+      resources.push({
+        id: 'own-compost-ready',
+        title: 'Your compost is ready',
+        detail: 'Top-dress your finished compost around hungry plants.',
+      })
+    } else if (ctx.hasCompost) {
+      resources.push({
+        id: 'own-compost',
+        title: 'Use your own compost',
+        detail: 'Once a pile is dark and crumbly, top-dress it around hungry plants.',
+      })
+    }
+  }
+
+  return resources
+}
+
+/**
  * Return the homemade feeds that can stand in for a given bought-feed type,
  * best match first (entries whose own lean matches the requested type lead).
  */

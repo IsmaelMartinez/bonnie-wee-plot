@@ -85,6 +85,37 @@ describe('Plant Data Integrity', () => {
     })
   })
 
+  describe('Storage data (Milestone C)', () => {
+    const VALID_METHODS = new Set([
+      'fresh', 'fridge', 'store-cool', 'freeze', 'dry', 'cure', 'pickle', 'jam', 'ferment',
+    ])
+
+    it('every storage entry has at least one valid method', () => {
+      for (const veg of vegetables) {
+        if (!veg.storage) continue
+        expect(veg.storage.methods.length).toBeGreaterThan(0)
+        for (const method of veg.storage.methods) {
+          expect(VALID_METHODS.has(method)).toBe(true)
+        }
+      }
+    })
+
+    it('freshDays, when set, is a positive number', () => {
+      for (const veg of vegetables) {
+        const freshDays = veg.storage?.freshDays
+        if (freshDays === undefined) continue
+        expect(freshDays).toBeGreaterThan(0)
+      }
+    })
+
+    it('populates high-glut crops with storage data', () => {
+      const expected = ['courgette', 'runner-beans', 'cherry-tomato', 'apple-tree', 'rhubarb', 'onion']
+      for (const id of expected) {
+        expect(getVegetableById(id)?.storage).toBeDefined()
+      }
+    })
+  })
+
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
       // Plant count should be in reasonable range (180-215)

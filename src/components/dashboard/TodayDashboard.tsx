@@ -49,6 +49,7 @@ export default function TodayDashboard() {
     maintenanceTasks,
     generatedTasks,
     dismissedTasks,
+    ownFeedContext,
     rainfall,
     hasCoordinates,
     isLoading,
@@ -200,6 +201,7 @@ export default function TodayDashboard() {
             tasks={maintenanceTasks}
             generatedTasks={generatedTasks}
             dismissedTasks={dismissedTasks}
+            ownFeedContext={ownFeedContext}
             theme={theme}
             onAddCustomTask={onAddCustomTask}
             onToggleCustomTask={onToggleCustomTask}

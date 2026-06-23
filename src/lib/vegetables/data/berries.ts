@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const berries: Vegetable[] = [
   {
     id: 'strawberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 3,
+      tip: 'Best fresh — open-freeze or make jam the day you pick.',
+    },
     name: 'Strawberry',
     category: 'berries',
     description: 'Beloved summer fruit. Grows well in Scottish climate with protection.',
@@ -59,6 +64,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'raspberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 2,
+      tip: 'Open-freeze on trays then bag, or cook into jam — they don’t keep fresh long.',
+    },
     name: 'Raspberry',
     category: 'berries',
     description: 'Prolific soft fruit. Summer and autumn varieties give extended harvest.',
@@ -119,6 +129,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'blackberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 3,
+      tip: 'Open-freeze on trays, or cook into jam and bramble jelly.',
+    },
     name: 'Blackberry',
     category: 'berries',
     description: 'Hardy bramble fruit. Thornless varieties easier to manage.',
@@ -242,6 +257,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'blackcurrant',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 4,
+      tip: 'Freeze whole off the strig, or make jam and cordial.',
+    },
     name: 'Blackcurrant',
     category: 'berries',
     description: 'Very hardy soft fruit packed with vitamin C. Thrives in Scotland!',

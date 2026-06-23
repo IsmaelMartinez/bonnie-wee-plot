@@ -9,7 +9,7 @@
  */
 
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
-import { Vegetable, Month, WaterRequirement, FeedType } from '@/types/garden-planner'
+import { Vegetable, Month, WaterRequirement, FeedType, StorageMethod } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getGerminationDays } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
@@ -329,6 +329,75 @@ function generateCareTipTasks(
 }
 
 /**
+ * Storage methods that signal a glut is worth preserving (rather than just
+ * keeping fresh). When a crop with one of these is in its harvest window we
+ * nudge the user to preserve some — reusing the care-tip plumbing (C3).
+ */
+const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
+
+/**
+ * Whether the current month falls in a planting's harvest window. Prefers the
+ * planting's calculated expected window (from sow/transplant dates) so the
+ * nudge doesn't fire months early on the crop's coarse `harvestMonths`; returns
+ * null when no expected dates are present so the caller can fall back.
+ */
+function isInExpectedHarvestWindow(planting: Planting, currentMonth: Month): boolean | null {
+  if (!planting.expectedHarvestStart) return null
+  const startMonth = (new Date(planting.expectedHarvestStart).getMonth() + 1) as Month
+  const endMonth = planting.expectedHarvestEnd
+    ? (new Date(planting.expectedHarvestEnd).getMonth() + 1) as Month
+    : startMonth
+  // Window can wrap the year end (e.g. Nov–Feb), so handle both orderings.
+  return startMonth <= endMonth
+    ? currentMonth >= startMonth && currentMonth <= endMonth
+    : currentMonth >= startMonth || currentMonth <= endMonth
+}
+
+/**
+ * Generate "glut?" preserve nudges for crops in their harvest window whose
+ * storage data offers a preserving method (freeze/jam/pickle/…). Emitted as a
+ * care-tip task (no new task type), one per crop so a crop in several beds
+ * only nudges once.
+ */
+function generatePreserveNudges(
+  currentMonth: Month,
+  plantings: PlantingWithContext[]
+): GeneratedTask[] {
+  const tasks: GeneratedTask[] = []
+  const seen = new Set<string>()
+
+  // Only active (harvestable) plantings can be in glut.
+  for (const { planting } of filterPlantingsForTaskType(plantings, 'harvest')) {
+    const vegetable = getVegetableById(planting.plantId)
+    if (!vegetable?.storage) continue
+    if (!vegetable.storage.methods.some((m) => PRESERVE_METHODS.includes(m))) continue
+    if (seen.has(vegetable.id)) continue
+
+    // Prefer the planting's calculated window; fall back to coarse harvestMonths.
+    const expected = isInExpectedHarvestWindow(planting, currentMonth)
+    const inWindow = expected !== null ? expected : vegetable.planting.harvestMonths.includes(currentMonth)
+    if (!inWindow) continue
+
+    seen.add(vegetable.id)
+
+    tasks.push({
+      id: `preserve-nudge-${vegetable.id}-${currentMonth}`,
+      type: 'other',
+      generatedType: 'care-tip',
+      description: `Glut of ${vegetable.name}?`,
+      plantId: vegetable.id,
+      plantName: vegetable.name,
+      month: currentMonth,
+      priority: 'low',
+      calculatedFrom: 'calendar-month',
+      notes: vegetable.storage.tip ?? 'In its harvest window — preserve some of the glut.',
+    })
+  }
+
+  return tasks
+}
+
+/**
  * Generate month-based tasks (fallback when no dates available)
  */
 function generateMonthBasedTasks(
@@ -572,9 +641,12 @@ export function generateTasksForMonth(
   // Get variety-based tasks (seeds user has but hasn't planted)
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear, soilTempC)
 
+  // Get "glut?" preserve nudges for harvest-window crops with preserving options
+  const preserveNudges = generatePreserveNudges(currentMonth, plantings)
+
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]
-  const allMonthBased = [...monthBasedTasks, ...varietyTasks, ...feedingTasks]
+  const allMonthBased = [...monthBasedTasks, ...varietyTasks, ...feedingTasks, ...preserveNudges]
   const mergedTasks = mergeAndDeduplicateTasks(allDateBased, allMonthBased)
 
   // Deduplicate any remaining duplicates
