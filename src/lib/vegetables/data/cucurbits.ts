@@ -9,7 +9,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'courgette',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'jam'],
       freshDays: 7,
       tip: 'Glut crop — pick small and often. Freeze grated for soups and cakes, or make chutney.',
     },
@@ -149,6 +149,11 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'patty-pan-squash',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'A summer squash like courgette — pick small and often; freeze sliced or grated for soups and bakes.',
+    },
     name: 'Patty Pan Squash',
     category: 'cucurbits',
     description: 'UFO-shaped summer squash. Compact plants ideal for small Scottish allotments.',
@@ -237,6 +242,10 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'spaghetti-squash',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure the skin hard, then store somewhere cool and dry — keeps for months like other winter squash.',
+    },
     name: 'Spaghetti Squash',
     category: 'cucurbits',
     description: 'Winter squash with stringy flesh. Unique texture when cooked.',
@@ -279,6 +288,10 @@ export const cucurbits: Vegetable[] = [
   },
   {
     id: 'acorn-squash',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure 10–14 days until the skin hardens, then store cool and dry; eats best within a couple of months.',
+    },
     name: 'Acorn Squash',
     category: 'cucurbits',
     description: 'Compact winter squash with ridged shape. More reliable than butternut in Scotland.',

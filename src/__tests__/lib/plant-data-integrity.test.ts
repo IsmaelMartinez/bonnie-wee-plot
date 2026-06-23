@@ -109,7 +109,13 @@ describe('Plant Data Integrity', () => {
     })
 
     it('populates high-glut crops with storage data', () => {
-      const expected = ['courgette', 'runner-beans', 'cherry-tomato', 'apple-tree', 'rhubarb', 'onion']
+      const expected = [
+        'courgette', 'runner-beans', 'cherry-tomato', 'apple-tree', 'rhubarb', 'onion',
+        // Staple keepers / glut crops added in the storage QA pass
+        'leek', 'swede', 'parsnip', 'celeriac', 'sweetcorn', 'cauliflower',
+        'brussels-sprouts', 'gooseberry', 'redcurrant', 'blueberry', 'pear-tree',
+        'damson-tree', 'kale', 'spinach', 'borlotti-beans',
+      ]
       for (const id of expected) {
         expect(getVegetableById(id)?.storage).toBeDefined()
       }
