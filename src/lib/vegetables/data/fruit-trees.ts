@@ -71,6 +71,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'cherry-tree',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 4,
+      tip: 'Best fresh — stone and open-freeze, or make jam; sweet cherries don’t keep long once ripe.',
+    },
     name: 'Cherry Tree',
     category: 'fruit-trees',
     description: 'Beautiful blossom and delicious fruit. Sweet and sour varieties available.',
@@ -119,6 +124,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'damson-tree',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 5,
+      tip: 'Classic for jam, chutney and damson gin; or stone and freeze the glut.',
+    },
     name: 'Damson Tree',
     category: 'fruit-trees',
     description: 'Hardy plum relative. Self-fertile and excellent for Scottish gardens.',
@@ -218,6 +228,10 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'pear-tree',
+    storage: {
+      methods: ['store-cool', 'fridge', 'freeze', 'jam'],
+      tip: 'Pick slightly under-ripe and store cool, ripening a few at a time indoors; poach and freeze or make chutney with windfalls.',
+    },
     name: 'Pear Tree',
     category: 'fruit-trees',
     description: 'Classic dessert fruit. Conference and Concorde are reliable self-fertile varieties.',
@@ -266,6 +280,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'greengage-tree',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 4,
+      tip: 'Best eaten ripe off the tree; stone and freeze or make jam with any surplus.',
+    },
     name: 'Greengage Tree',
     category: 'fruit-trees',
     description: 'Sweet green plum variety. Cambridge Gage is hardiest for Scottish gardens.',

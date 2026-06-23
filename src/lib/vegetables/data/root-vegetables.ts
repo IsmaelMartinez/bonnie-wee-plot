@@ -92,6 +92,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'parsnip',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Leave in the ground — frost sweetens the roots — and lift through winter, or store in boxes of damp sand somewhere cool.',
+    },
     name: 'Parsnip',
     category: 'root-vegetables',
     description: 'Sweet winter root. Frost improves flavor - perfect for Scotland!',
@@ -432,6 +436,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'celeriac',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Trim the roots and tops, then store in boxes of damp sand somewhere cool, or keep in the fridge for a few weeks.',
+    },
     name: 'Celeriac',
     category: 'root-vegetables',
     description: 'Celery-flavored root vegetable. Easier than celery to grow.',

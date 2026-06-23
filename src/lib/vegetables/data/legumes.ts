@@ -235,6 +235,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'borlotti-beans',
+    storage: {
+      methods: ['fresh', 'dry', 'store-cool'],
+      freshDays: 5,
+      tip: 'Eat young pods fresh, or leave them to dry on the plant, then shell and store the beans in jars.',
+    },
     name: 'Borlotti Beans',
     category: 'legumes',
     description: 'Italian beans for fresh or dried. Beautiful speckled pods.',
@@ -270,6 +275,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'edamame',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 3,
+      tip: 'Best fresh — steam the pods straight away, or blanch and freeze them.',
+    },
     name: 'Edamame (Soy Beans)',
     category: 'legumes',
     description: 'Fresh green soy beans. Protein-rich and increasingly popular.',
@@ -305,6 +315,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'mangetout',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 4,
+      tip: 'Pick young while the pods are flat; eat fresh or blanch and freeze a glut.',
+    },
     name: 'Mangetout (Snow Peas)',
     category: 'legumes',
     description: 'Flat edible-pod peas. Harvest young before peas develop.',
@@ -342,6 +357,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'sugar-snap-peas',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 4,
+      tip: 'Pick before the pods swell; sweetest eaten fresh, but they blanch and freeze well.',
+    },
     name: 'Sugar Snap Peas',
     category: 'legumes',
     description: 'Sweet edible-pod peas. Eat pods and peas together.',
@@ -414,6 +434,10 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'black-turtle-beans',
+    storage: {
+      methods: ['dry', 'store-cool'],
+      tip: 'A drying bean — let the pods dry fully on the plant, then shell and keep the beans in airtight jars.',
+    },
     name: 'Black Turtle Beans',
     category: 'legumes',
     description: 'Drying bean for storage. Excellent for soups and Mexican dishes.',

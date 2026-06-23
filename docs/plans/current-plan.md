@@ -373,6 +373,53 @@ PR #388 (squash `5a2eb2d`) closed two foundation-layer gaps Gemini flagged as cr
 
 PR #387 (squash `5580c59`) flipped `USE_YJS_STORAGE` to `true`. The Yjs path is now canonical; the legacy chain stays in tree as the rollback floor and the cloud-sync mirror target throughout the soak window. Rollback is a one-line flag flip back, no data migration — the mirror has been keeping localStorage and Supabase in sync. PR-C also added a `tests/utils/storage.ts` helper, `clearAllStorage(page)`, that deletes the `bwp-allotment-yjs` IndexedDB database alongside `localStorage.clear()`; without it, Playwright's full-suite run saw cross-test contamination from stale Yjs state. Every `await page.evaluate(() => localStorage.clear())` call site now routes through the helper, and `seedTestData` / `seedBedWithCarrot` clear storage before seeding so the Yjs-path first-run hydrates from the fresh legacy snapshot. The deployment-runbook step `UPDATE allotments SET data = data` ran against production Supabase post-merge — the `BEFORE UPDATE` history trigger from PR #332 fired and inserted two new rows into `allotment_history` (IDs 35 and 36, one per active user). The `archived_at` on each carries the user's last legacy-chain `updated_at` (the trigger archives `OLD.updated_at`), which is exactly the pre-cutover state worth keeping as a recovery point.
 
+### Feeding & Preserving — Milestones B2 + C (PR #425 + storage QA follow-up)
+
+PR #425 shipped the feed-task own-resource hints (B2 — feed hints prefer the
+user's own comfrey bed / ready compost over generic make-your-own advice) and
+the storage/preserving surface (Milestone C): an optional `storage` field on
+`Vegetable` (`methods` / `freshDays` / `tip`), a read-only "Storage &
+Preserving" panel on the plant/variety detail page (C2), and a "Glut of X?"
+care-tip nudge that fires in a crop's expected harvest window when its storage
+data offers a preserving method (C3 — `generatePreserveNudges`, preserve
+methods = freeze/jam/pickle/ferment/dry).
+
+The storage-QA follow-up reviewed and corrected the authored data and filled the
+obvious high-glut / staple-keeper gaps the first pass missed — **33 crops
+added** (alliums: leek, shallot; brassicas: swede, turnip, cauliflower,
+calabrese, purple-sprouting broccoli, Brussels sprouts, savoy; roots: parsnip,
+celeriac; other: sweetcorn, Jerusalem artichoke; berries: gooseberry,
+redcurrant, blueberry; fruit trees: pear, cherry, damson, greengage; cucurbits:
+patty-pan, spaghetti, acorn squash; solanaceae: blight-resistant tomato; leafy:
+kale, cavolo nero, chard, spinach; legumes: borlotti, black turtle, edamame,
+mangetout, sugar snap), plus a courgette methods/tip consistency fix (added
+`jam` to match its chutney tip). All 26 pre-existing entries were sanity-checked
+against Scottish-allotment practice and found sound. C2 and C3 were verified
+in-app (Playwright screenshots: detail panel renders for crops with data and is
+hidden without; the glut nudge shows for an in-window preservable crop and not
+for an out-of-window one). Coverage now **59 / ~191 crops**.
+
+**Backlog — complete storage tips for all plants in the database.** ~132 crops
+still lack `storage` data. Priority edible long tail: all **herbs** (20 — dry /
+freeze guidance), remaining **leafy greens** (lettuce, rocket, mizuna, pak choi,
+perpetual spinach, …), remaining **roots** (salsify, scorzonera, mooli, black
+radish, horseradish, Florence fennel, Hamburg parsley, yacon, oca, skirret,
+ulluco, Chinese artichoke), remaining **berries** (tayberry, loganberry,
+jostaberry, honeyberry, aronia, elderberry, sea buckthorn, goji), remaining
+**fruit trees** (medlar, quince, fig, mulberry), remaining **alliums**
+(spring onion, Welsh onion, elephant garlic, walking onion, potato onion,
+garlic chives, ramps), remaining **brassicas** (radish, kohlrabi, romanesco,
+Chinese broccoli, turnip tops, mibuna, sea kale), remaining **legumes**
+(asparagus peas, fenugreek, ground nut), remaining **solanaceae** (first/second
+early potato — "eat fresh", tomatillo), and remaining **other** (asparagus,
+globe artichoke, celery, cardoon, mashua). Ornamentals (annual & perennial
+flowers, bulbs, climbers), green manures, and mushrooms mostly don't need
+storage tips — though edible flowers (calendula, nasturtium) and culinary herbs
+are worthwhile exceptions. Rule of thumb when authoring: only crops with a
+genuine preserving option (freeze/jam/pickle/ferment/dry) should carry one (and
+thus trigger the C3 nudge); pure keepers get cure/store-cool/fridge/fresh only,
+so they show storage info without nagging to "preserve the glut".
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.

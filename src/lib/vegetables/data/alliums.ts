@@ -91,6 +91,10 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'leek',
+    storage: {
+      methods: ['fresh', 'fridge'],
+      tip: 'Very hardy — leave standing in the ground over winter and lift as needed; keeps about a week in the fridge once pulled.',
+    },
     name: 'Leek',
     category: 'alliums',
     description: 'Hardy winter vegetable. Excellent for Scottish gardens!',
@@ -172,6 +176,10 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'shallot',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Dry the bulbs off thoroughly, then net or tray them somewhere cool and airy — they keep right through to spring.',
+    },
     name: 'Shallot',
     category: 'alliums',
     description: 'Milder than onions, easier to grow from sets. Good for Scottish climate.',

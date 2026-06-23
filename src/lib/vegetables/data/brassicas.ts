@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const brassicas: Vegetable[] = [
   {
     id: 'swede',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Very hardy — leave in the ground and lift as needed, or store the roots in boxes of damp sand somewhere cool and frost-free.',
+    },
     name: 'Swede (Neeps)',
     category: 'brassicas',
     description: 'Essential for Burns Night! Hardy Scottish favorite that loves cool weather.',
@@ -46,6 +50,10 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'turnip',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Eat small ones fresh; twist the tops off maincrop turnips and store in boxes of damp sand somewhere cool.',
+    },
     name: 'Turnip',
     category: 'brassicas',
     description: 'Fast-growing root with edible greens. Best harvested young.',
@@ -168,6 +176,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'broccoli',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Cut the main head then keep picking side shoots; blanch and freeze any glut.',
+    },
     name: 'Calabrese (Broccoli)',
     category: 'brassicas',
     description: 'Quick maturing broccoli. Start indoors for best results in Scotland.',
@@ -212,6 +225,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'purple-sprouting-broccoli',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 5,
+      tip: 'Pick spears regularly to keep them coming; blanch and freeze a glut.',
+    },
     name: 'Purple Sprouting Broccoli',
     category: 'brassicas',
     description: 'Hardy winter broccoli - harvests when little else is available!',
@@ -252,6 +270,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'cauliflower',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze', 'pickle'],
+      freshDays: 7,
+      tip: 'Curds don’t hold long once ready — break into florets and freeze, or make piccalilli with a glut.',
+    },
     name: 'Cauliflower',
     category: 'brassicas',
     description: 'Demanding but rewarding. Choose varieties suited to Scotland.',
@@ -295,6 +318,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'brussels-sprouts',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 7,
+      tip: 'Stands through hard frost — pick up the stalk as needed; freezes well blanched.',
+    },
     name: 'Brussels Sprouts',
     category: 'brassicas',
     description: 'Christmas dinner essential! Improves after frost.',
@@ -375,6 +403,10 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'savoy-cabbage',
+    storage: {
+      methods: ['fresh', 'store-cool', 'freeze'],
+      tip: 'Very hardy — stands in the ground through frost; shred and freeze any surplus.',
+    },
     name: 'Savoy Cabbage',
     category: 'brassicas',
     description: 'Frost-hardy winter cabbage with crinkled leaves. Traditional Scottish winter vegetable.',

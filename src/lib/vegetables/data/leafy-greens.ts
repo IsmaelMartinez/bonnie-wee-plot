@@ -44,6 +44,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'spinach',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 3,
+      tip: 'Wilts fast — use within a few days or blanch and freeze; bolts quickly in dry spells, so pick young.',
+    },
     name: 'Spinach',
     category: 'leafy-greens',
     description: 'Nutritious leafy green. Thrives in cool Scottish climate.',
@@ -112,6 +117,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'kale',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Very hardy — pick leaves through autumn and winter; blanch and freeze a glut.',
+    },
     name: 'Kale',
     category: 'leafy-greens',
     description: 'Hardy winter green - a Scottish staple! Improves after frost.',
@@ -150,6 +160,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'chard',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 4,
+      tip: 'Cut outer leaves regularly to keep it coming; blanch and freeze a glut like spinach.',
+    },
     name: 'Swiss Chard',
     category: 'leafy-greens',
     description: 'Colorful, productive leafy green with edible stems. Hardy in mild winters.',
@@ -683,6 +698,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'cavolo-nero',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Pick leaves from the bottom up as needed; freezes well blanched.',
+    },
     name: 'Cavolo Nero (Black Kale)',
     category: 'leafy-greens',
     description: 'Italian black kale. Extremely hardy and improves with frost - perfect for Scotland.',

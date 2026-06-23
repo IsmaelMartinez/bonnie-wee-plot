@@ -261,6 +261,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'blight-resistant-tomato',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'Glut crop — roast and freeze, semi-dry in a low oven, or cook down into sauce and passata.',
+    },
     name: 'Blight-Resistant Tomato',
     category: 'solanaceae',
     description: 'Bred for resistance to late blight. Essential for wet Scottish summers.',

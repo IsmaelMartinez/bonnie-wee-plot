@@ -67,6 +67,10 @@ export const other: Vegetable[] = [
   },
   {
     id: 'jerusalem-artichoke',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Best left in the ground and dug as needed — the knobbly tubers don’t keep long once lifted.',
+    },
     name: 'Jerusalem Artichoke',
     category: 'other',
     description: 'Perennial tuber with nutty flavor. Extremely productive and hardy in Scotland.',
@@ -102,6 +106,11 @@ export const other: Vegetable[] = [
   },
   {
     id: 'sweetcorn',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 2,
+      tip: 'Eat or freeze within hours of picking — the sugars turn to starch fast. Blanch whole cobs or strip the kernels to freeze.',
+    },
     name: 'Sweetcorn',
     category: 'other',
     description: 'Sweet summer treat. Choose early varieties like Swift F1 for Scottish climate.',

@@ -175,6 +175,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'blueberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 7,
+      tip: 'Open-freeze on trays then bag, or make jam — they keep a few days fresh in the fridge.',
+    },
     name: 'Blueberry',
     category: 'berries',
     description: 'Acid-loving shrub with delicious berries. Needs ericaceous soil.',
@@ -211,6 +216,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'gooseberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 7,
+      tip: 'Top and tail, then freeze — they freeze brilliantly — or cook into gooseberry jam.',
+    },
     name: 'Gooseberry',
     category: 'berries',
     description: 'Traditional Scottish soft fruit. Hardy and productive.',
@@ -308,6 +318,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'redcurrant',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 4,
+      tip: 'Freeze whole off the strig, or cook into redcurrant jelly for the cheeseboard and gravies.',
+    },
     name: 'Redcurrant',
     category: 'berries',
     description: 'Ornamental and productive soft fruit. Easy to grow in Scotland.',
