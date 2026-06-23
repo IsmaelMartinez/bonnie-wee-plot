@@ -108,7 +108,7 @@ describe('Plant Data Integrity', () => {
       }
     })
 
-    it('populates high-glut crops with storage data', () => {
+    it('populates staple keeper and glut crops with storage data', () => {
       const expected = [
         // Headline glut crops populated in the original Milestone C pass
         'courgette', 'runner-beans', 'cherry-tomato', 'apple-tree', 'rhubarb', 'onion',
