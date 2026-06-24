@@ -368,6 +368,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'tayberry',
+    storage: {
+      methods: ['freeze', 'jam', 'fresh'],
+      freshDays: 3,
+      tip: 'Soft cane fruit that bruises fast; freeze on trays then bag, or boil into jam.',
+    },
     name: 'Tayberry',
     category: 'berries',
     description: 'Raspberry-blackberry hybrid from Scotland. Large aromatic berries.',
@@ -413,6 +418,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'loganberry',
+    storage: {
+      methods: ['freeze', 'jam', 'fresh'],
+      freshDays: 3,
+      tip: 'Eat within days of picking; open-freeze the berries or make a sharp jam.',
+    },
     name: 'Loganberry',
     category: 'berries',
     description: 'Another raspberry-blackberry hybrid. Tart flavor good for cooking.',
@@ -458,6 +468,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'jostaberry',
+    storage: {
+      methods: ['freeze', 'jam'],
+      freshDays: 5,
+      tip: 'Gooseberry-blackcurrant cross; freezes well and cooks down into a fine jam.',
+    },
     name: 'Jostaberry',
     category: 'berries',
     description: 'Blackcurrant-gooseberry hybrid. Thornless and productive.',
@@ -502,6 +517,11 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'honeyberry',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 4,
+      tip: 'Early haskap berries are lovely fresh; freeze a glut or simmer into jam.',
+    },
     name: 'Honeyberry (Haskap)',
     category: 'berries',
     description: 'Blue honeysuckle berry. Extremely cold-hardy superfruit.',
@@ -544,6 +564,10 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'goji-berry',
+    storage: {
+      methods: ['dry', 'freeze', 'fresh'],
+      tip: 'Traditionally dried for storage; freeze the surplus or eat a few fresh.',
+    },
     name: 'Goji Berry',
     category: 'berries',
     description: 'Superfood shrub from Asia. Hardy and productive in Scotland.',
@@ -586,6 +610,10 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'aronia',
+    storage: {
+      methods: ['freeze', 'jam', 'dry'],
+      tip: 'Too astringent raw; freeze, cook into juice or jam, or dry the chokeberries.',
+    },
     name: 'Aronia (Chokeberry)',
     category: 'berries',
     description: 'Antioxidant-rich native American berry. Very hardy shrub.',
@@ -628,6 +656,10 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'elderberry',
+    storage: {
+      methods: ['jam', 'freeze', 'dry'],
+      tip: 'Always cook before eating; make cordial or jam, or freeze and dry the berries.',
+    },
     name: 'Elderberry',
     category: 'berries',
     description: 'Native British shrub. Flowers and berries both useful.',
@@ -670,6 +702,10 @@ export const berries: Vegetable[] = [
   },
   {
     id: 'sea-buckthorn',
+    storage: {
+      methods: ['freeze', 'jam'],
+      tip: 'Pick the sharp berries easier once frozen on the branch; freeze for juice or jam.',
+    },
     name: 'Sea Buckthorn',
     category: 'berries',
     description: 'Coastal native with vitamin C-rich berries. Fixes nitrogen.',

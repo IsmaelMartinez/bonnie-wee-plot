@@ -152,6 +152,11 @@ export const other: Vegetable[] = [
   },
   {
     id: 'asparagus',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 4,
+      tip: 'Best eaten the day you cut it; stand spears in water in the fridge, or blanch and freeze a glut.',
+    },
     name: 'Asparagus',
     category: 'other',
     description: 'Perennial vegetable producing tender spears in spring. Takes 2-3 years to establish.',
@@ -201,6 +206,11 @@ export const other: Vegetable[] = [
   },
   {
     id: 'globe-artichoke',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 7,
+      tip: 'Keeps a week in the fridge but best fresh; cook and preserve trimmed hearts in oil if you have a surplus.',
+    },
     name: 'Globe Artichoke',
     category: 'other',
     description: 'Architectural perennial vegetable. Edible flower buds with silvery foliage.',
@@ -242,6 +252,11 @@ export const other: Vegetable[] = [
   },
   {
     id: 'celery',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 14,
+      tip: 'Keeps a couple of weeks in the fridge; freeze chopped for soups and stews (cooked use only).',
+    },
     name: 'Celery',
     category: 'other',
     description: 'Crunchy stalks for salads and cooking. Needs consistent moisture.',
@@ -280,6 +295,11 @@ export const other: Vegetable[] = [
   },
   {
     id: 'cardoon',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 7,
+      tip: 'Use the blanched stems fresh within a week; always cook before eating.',
+    },
     name: 'Cardoon',
     category: 'other',
     description: 'Relative of globe artichoke with edible stems. Dramatic architectural plant.',
@@ -313,6 +333,10 @@ export const other: Vegetable[] = [
   },
   {
     id: 'mashua',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Lift the tubers after the first frost and store somewhere cool and dark like oca; best cooked.',
+    },
     name: 'Mashua',
     category: 'other',
     description: 'Andean climbing tuber with peppery edible tubers and flowers.',

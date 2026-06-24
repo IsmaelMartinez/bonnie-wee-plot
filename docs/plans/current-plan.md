@@ -399,26 +399,33 @@ in-app (Playwright screenshots: detail panel renders for crops with data and is
 hidden without; the glut nudge shows for an in-window preservable crop and not
 for an out-of-window one). Coverage now **59 / ~191 crops**.
 
-**Backlog — complete storage tips for all plants in the database.** ~132 crops
-still lack `storage` data. Priority edible long tail: all **herbs** (20 — dry /
-freeze guidance), remaining **leafy greens** (lettuce, rocket, mizuna, pak choi,
-perpetual spinach, …), remaining **roots** (salsify, scorzonera, mooli, black
-radish, horseradish, Florence fennel, Hamburg parsley, yacon, oca, skirret,
-ulluco, Chinese artichoke), remaining **berries** (tayberry, loganberry,
-jostaberry, honeyberry, aronia, elderberry, sea buckthorn, goji), remaining
-**fruit trees** (medlar, quince, fig, mulberry), remaining **alliums**
-(spring onion, Welsh onion, elephant garlic, walking onion, potato onion,
-garlic chives, ramps), remaining **brassicas** (radish, kohlrabi, romanesco,
-Chinese broccoli, turnip tops, mibuna, sea kale), remaining **legumes**
-(asparagus peas, fenugreek, ground nut), remaining **solanaceae** (first/second
-early potato — "eat fresh", tomatillo), and remaining **other** (asparagus,
-globe artichoke, celery, cardoon, mashua). Ornamentals (annual & perennial
-flowers, bulbs, climbers), green manures, and mushrooms mostly don't need
-storage tips — though edible flowers (calendula, nasturtium) and culinary herbs
-are worthwhile exceptions. Rule of thumb when authoring: only crops with a
-genuine preserving option (freeze/jam/pickle/ferment/dry) should carry one (and
-thus trigger the C3 nudge); pure keepers get cure/store-cool/fridge/fresh only,
-so they show storage info without nagging to "preserve the glut".
+### Storage tips — edible long tail complete (branch `claude/storage-remaining-crops`)
+
+The edible long tail called out in the previous backlog is now authored — **90
+crops added** in one pass, bringing coverage to **149 / 191 crops**. Filled
+completely: all **herbs** (20 — soft herbs freeze-first, woody herbs dry-first,
+bay/chamomile dry, sorrel/borage fresh), all remaining **leafy greens** (17 —
+salad leaves fridge/fresh, cooking greens freeze, mustard/pak-choi ferment),
+all remaining **roots** (12 — in-ground/damp-sand keepers, mooli/horseradish
+ferment-or-pickle, oca/yacon cure notes), all remaining **berries** (8 —
+freeze/jam soft-fruit, goji/aronia/elderberry dry, elderberry "cook first"),
+all remaining **brassicas** (7), **fruit trees** (4 — medlar bletting, quince
+membrillo), **alliums** (7 — cure-and-store keepers vs fresh-leaf), **legumes**
+(3), **solanaceae** (3 — new tatties "eat fresh", tomatillo husks-on), and
+**other** (5 — asparagus/globe-artichoke/celery/cardoon/mashua). Plus the named
+ornamental exceptions: edible flowers calendula + nasturtium (annual) and
+culinary lavender + bergamot (perennial). Authored to the rule of thumb — only
+genuine preserving crops carry a preserve method (so keepers like maincrop-style
+potatoes, salsify, scorzonera, fennel bulb, crosnes, oca, ulluco show storage
+info without triggering the C3 glut nudge). All 1099 unit tests pass.
+
+**Remaining (deliberately out of scope):** ~42 crops — non-edible ornamental
+flowers (annual & perennial), bulbs, climbers, green manures, and mushrooms.
+Per the prior guidance these mostly don't warrant storage tips. A few genuine
+edibles in those families are the only candidates worth a future pass if desired
+— sunflower (seeds, dry), hardy-kiwi and hops (climbers), and the gourmet
+mushrooms (shiitake/oyster dry well) — left untouched to respect the stated
+category boundary rather than expand scope unannounced.
 
 ### Up Next: Phase 1 soak then Step 5 cleanup
 

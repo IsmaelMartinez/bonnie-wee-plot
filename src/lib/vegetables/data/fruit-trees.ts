@@ -331,6 +331,10 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'medlar-tree',
+    storage: {
+      methods: ['store-cool', 'jam'],
+      tip: 'Pick after first frosts and blet (store cool until soft and brown) before eating, or boil down into medlar jelly.',
+    },
     name: 'Medlar Tree',
     category: 'fruit-trees',
     description: 'Unusual historic fruit tree. Extremely hardy and self-fertile - perfect for Scottish climate.',
@@ -377,6 +381,10 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'quince-tree',
+    storage: {
+      methods: ['store-cool', 'jam'],
+      tip: 'Keeps cool and aromatic for weeks; never eaten raw, so cook into membrillo, jelly or jam.',
+    },
     name: 'Quince Tree',
     category: 'fruit-trees',
     description: 'Historic cooking fruit. Hardy and self-fertile with beautiful blossom.',
@@ -423,6 +431,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'fig-tree',
+    storage: {
+      methods: ['fresh', 'dry', 'jam'],
+      freshDays: 3,
+      tip: 'Eat ripe figs fresh within a couple of days; a glut dries well or makes a fine jam.',
+    },
     name: 'Fig Tree',
     category: 'fruit-trees',
     description: 'Mediterranean fruit increasingly viable in UK. Brown Turkey is hardiest variety.',
@@ -468,6 +481,11 @@ export const fruitTrees: Vegetable[] = [
   },
   {
     id: 'mulberry-tree',
+    storage: {
+      methods: ['fresh', 'freeze', 'jam'],
+      freshDays: 2,
+      tip: 'Very soft, so eat within a day or freeze on trays; the rest makes a lovely deep jam.',
+    },
     name: 'Mulberry Tree',
     category: 'fruit-trees',
     description: 'Hardy long-lived fruit tree. Black mulberry is sweetest and most productive.',

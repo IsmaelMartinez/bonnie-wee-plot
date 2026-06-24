@@ -399,6 +399,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'asparagus-peas',
+    storage: {
+      methods: ['fresh', 'fridge', 'freeze'],
+      freshDays: 4,
+      tip: 'Pick the winged pods tiny and tender; eat fresh, or briefly blanch and freeze a glut.',
+    },
     name: 'Asparagus Peas',
     category: 'legumes',
     description: 'Unusual winged pods with asparagus flavor. Low-growing plant.',
@@ -473,6 +478,11 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'fenugreek',
+    storage: {
+      methods: ['fresh', 'dry', 'fridge'],
+      freshDays: 3,
+      tip: 'Use the methi leaves fresh; let seed heads dry fully, then store the seeds dry for spice.',
+    },
     name: 'Fenugreek',
     category: 'legumes',
     description: 'Herb and nitrogen-fixing legume. Use leaves fresh, seeds dried.',
@@ -503,6 +513,10 @@ export const legumes: Vegetable[] = [
   },
   {
     id: 'ground-nut',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Lift the tubers in autumn and keep cool and dark like spuds; always cook before eating.',
+    },
     name: 'Ground Nut (Apios)',
     category: 'legumes',
     description: 'Native American climbing legume with edible tubers. Nitrogen-fixing.',
