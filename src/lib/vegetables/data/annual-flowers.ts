@@ -139,6 +139,10 @@ export const annualFlowers: Vegetable[] = [
   },
   {
     id: 'calendula',
+    storage: {
+      methods: ['dry'],
+      tip: 'Pick petals on a dry day and dry them for tea, colour, or sprinkling over salads.',
+    },
     name: 'Calendula',
     category: 'annual-flowers',
     description: 'Pot marigold with edible flowers. Attracts beneficial insects and has medicinal properties.',
@@ -172,6 +176,11 @@ export const annualFlowers: Vegetable[] = [
   },
   {
     id: 'nasturtium',
+    storage: {
+      methods: ['fresh', 'pickle'],
+      freshDays: 3,
+      tip: 'Use leaves and flowers fresh; pickle the green seed pods as a caper substitute.',
+    },
     name: 'Nasturtium',
     category: 'annual-flowers',
     description: 'Fast-growing annual with edible flowers and leaves. Attracts aphids away from crops.',

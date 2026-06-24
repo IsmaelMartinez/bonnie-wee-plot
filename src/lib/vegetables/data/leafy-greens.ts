@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const leafyGreens: Vegetable[] = [
   {
     id: 'lettuce',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 5,
+      tip: 'Pick leaves cool in the morning; keep in a sealed bag in the salad drawer.',
+    },
     name: 'Lettuce',
     category: 'leafy-greens',
     description: 'Fast-growing salad crop. Start indoors in Scotland for earlier harvest.',
@@ -84,6 +89,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'perpetual-spinach',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 6,
+      tip: 'Use fresh within days; blanch and freeze any glut from a heavy cut.',
+    },
     name: 'Perpetual Spinach',
     category: 'leafy-greens',
     description: 'Hardy leaf beet that survives Scottish winters. Cut-and-come-again.',
@@ -200,6 +210,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'rocket',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 4,
+      tip: 'Best eaten fresh; store dry in a sealed bag and use within a few days.',
+    },
     name: 'Rocket (Arugula)',
     category: 'leafy-greens',
     description: 'Peppery salad leaf that grows quickly. Less likely to bolt in Scotland.',
@@ -235,6 +250,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'mizuna',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 5,
+      tip: 'Crisp peppery leaf; keep in the salad drawer and pick young for best flavour.',
+    },
     name: 'Mizuna',
     category: 'leafy-greens',
     description: 'Japanese mustard green with frilly leaves. Very cold-hardy, ideal for Scotland.',
@@ -270,6 +290,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'land-cress',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 4,
+      tip: 'Peppery wee leaf best eaten fresh; keep cool and use within days.',
+    },
     name: 'Land Cress',
     category: 'leafy-greens',
     description: 'Peppery like watercress but grows in soil. Very hardy.',
@@ -302,6 +327,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'corn-salad',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 5,
+      tip: 'A hardy winter salad; pick rosettes fresh and keep cool in a sealed bag.',
+    },
     name: 'Corn Salad (Lamb\'s Lettuce)',
     category: 'leafy-greens',
     description: 'Hardy winter salad green. Perfect for Scottish winters, survives frost.',
@@ -334,6 +364,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'winter-purslane',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 5,
+      tip: 'Succulent winter leaf; eat fresh and keep cool in the salad drawer.',
+    },
     name: 'Winter Purslane (Claytonia)',
     category: 'leafy-greens',
     description: 'Succulent winter salad. Thrives in cold wet Scottish conditions.',
@@ -365,6 +400,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'mustard-greens',
+    storage: {
+      methods: ['fridge', 'freeze', 'ferment'],
+      freshDays: 6,
+      tip: 'Eat young leaves fresh; blanch and freeze a glut, or ferment kimchi-style.',
+    },
     name: 'Mustard Greens',
     category: 'leafy-greens',
     description: 'Fast-growing spicy greens. Very cold-tolerant for Scottish winters.',
@@ -399,6 +439,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'watercress',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 3,
+      tip: 'Best fresh; stand stems in water or wrap damp in the fridge and use quickly.',
+    },
     name: 'Watercress',
     category: 'leafy-greens',
     description: 'Aquatic or marginal plant with peppery leaves. Thrives in Scottish dampness.',
@@ -431,6 +476,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'salad-burnet',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 4,
+      tip: 'Cucumber-flavoured leaf best fresh; pick young sprigs and keep cool.',
+    },
     name: 'Salad Burnet',
     category: 'leafy-greens',
     description: 'Perennial herb with cucumber-flavored leaves. Very hardy for Scottish winters.',
@@ -464,6 +514,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'orache',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Cook like spinach; use fresh or blanch and freeze a heavy cut.',
+    },
     name: 'Orache (Mountain Spinach)',
     category: 'leafy-greens',
     description: 'Colorful spinach substitute. Salt-tolerant and good for Scottish coastal gardens.',
@@ -497,6 +552,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'new-zealand-spinach',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 6,
+      tip: 'Pick tips often; cook like spinach or blanch and freeze a summer glut.',
+    },
     name: 'New Zealand Spinach',
     category: 'leafy-greens',
     description: 'Heat-tolerant spinach substitute. Sprawling plant good for Scottish summers.',
@@ -530,6 +590,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'good-king-henry',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 6,
+      tip: 'Cook the spinach-like leaves fresh, or blanch and freeze a spring glut.',
+    },
     name: 'Good King Henry',
     category: 'leafy-greens',
     description: 'Perennial vegetable with spinach-like leaves. Very hardy traditional Scottish plant.',
@@ -563,6 +628,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'radicchio',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 7,
+      tip: 'Firm heads keep a week in the fridge; trim the base and use the crisp leaves.',
+    },
     name: 'Radicchio',
     category: 'leafy-greens',
     description: 'Italian chicory with burgundy leaves. Very cold-hardy for Scottish winters.',
@@ -596,6 +666,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'endive',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 6,
+      tip: 'Keep heads in the salad drawer; blanching in the plot cuts the bitterness.',
+    },
     name: 'Endive',
     category: 'leafy-greens',
     description: 'Bitter salad green for autumn/winter. More cold-tolerant than lettuce.',
@@ -629,6 +704,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'ice-plant',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 4,
+      tip: 'Succulent crunchy leaf best eaten fresh; keep cool and use within days.',
+    },
     name: 'Ice Plant',
     category: 'leafy-greens',
     description: 'Succulent salad plant with glistening leaves. Drought-tolerant and unusual.',
@@ -661,6 +741,11 @@ export const leafyGreens: Vegetable[] = [
   },
   {
     id: 'pak-choi',
+    storage: {
+      methods: ['fridge', 'ferment'],
+      freshDays: 5,
+      tip: 'Keeps a few days in the fridge; ferment a glut kimchi-style for the winter.',
+    },
     name: 'Pak Choi',
     category: 'leafy-greens',
     description: 'Fast-growing Asian green. Thrives in cool Scottish weather - less prone to bolting.',

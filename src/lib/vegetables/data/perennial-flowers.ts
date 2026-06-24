@@ -8,6 +8,10 @@ import { Vegetable } from '@/types/garden-planner'
 export const perennialFlowers: Vegetable[] = [
   {
     id: 'lavender',
+    storage: {
+      methods: ['dry'],
+      tip: 'Cut stems as the flowers open and hang in small bunches to dry for sachets or culinary use.',
+    },
     name: 'Lavender',
     category: 'perennial-flowers',
     description: 'Aromatic evergreen shrub with purple flower spikes. Excellent bee plant and culinary herb.',
@@ -239,6 +243,10 @@ export const perennialFlowers: Vegetable[] = [
   },
   {
     id: 'bergamot',
+    storage: {
+      methods: ['dry', 'freeze'],
+      tip: 'Dry the leaves and flowers for herbal tea, or freeze chopped leaves for later.',
+    },
     name: 'Bergamot (Monarda)',
     category: 'perennial-flowers',
     description: 'Bee balm with aromatic leaves and showy flowers. Edible flowers and leaves for tea.',
