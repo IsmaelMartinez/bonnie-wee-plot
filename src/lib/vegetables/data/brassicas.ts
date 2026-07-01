@@ -90,6 +90,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'radish',
+    storage: {
+      methods: ['fridge', 'pickle', 'fresh'],
+      freshDays: 10,
+      tip: 'Best eaten fresh from the plot; quick-pickle a glut of summer radish.',
+    },
     name: 'Radish',
     category: 'brassicas',
     description: 'Quick-growing root crop. Ready in weeks - ideal for Scottish summer.',
@@ -366,6 +371,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'kohlrabi',
+    storage: {
+      methods: ['fridge', 'store-cool', 'freeze'],
+      freshDays: 21,
+      tip: 'Keeps well in the fridge or a cool shed; dice and freeze a surplus.',
+    },
     name: 'Kohlrabi',
     category: 'brassicas',
     description: 'Fast-growing unusual brassica. Very cold-hardy, perfect for Scotland.',
@@ -495,6 +505,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'chinese-broccoli',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Best used fresh; blanch florets before freezing any extra.',
+    },
     name: 'Chinese Broccoli (Kai Lan)',
     category: 'brassicas',
     description: 'Fast-growing Asian green. Harvest young shoots and leaves.',
@@ -531,6 +546,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'romanesco',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Treat like cauliflower; blanch florets to freeze a glut.',
+    },
     name: 'Romanesco',
     category: 'brassicas',
     description: 'Fractal cauliflower with lime-green spirals. Stunning and delicious.',
@@ -567,6 +587,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'turnip-tops',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 4,
+      tip: 'Cook the greens soon after picking; blanch and freeze extras.',
+    },
     name: 'Turnip Tops (Rapini)',
     category: 'brassicas',
     description: 'Grown for leafy greens rather than roots. Italian favorite, fast-growing.',
@@ -603,6 +628,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'mibuna',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 5,
+      tip: 'Pick young leaves for the salad bowl; does not freeze well.',
+    },
     name: 'Mibuna',
     category: 'brassicas',
     description: 'Japanese mustard green with serrated leaves. Very cold-hardy for Scotland.',
@@ -637,6 +667,11 @@ export const brassicas: Vegetable[] = [
   },
   {
     id: 'seakale',
+    storage: {
+      methods: ['fresh', 'fridge'],
+      freshDays: 3,
+      tip: 'Eat the blanched spring shoots straight away; they wilt fast.',
+    },
     name: 'Sea Kale',
     category: 'brassicas',
     description: 'Coastal native perennial vegetable. Blanched shoots eaten in spring.',

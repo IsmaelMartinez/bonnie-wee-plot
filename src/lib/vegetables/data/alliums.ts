@@ -139,6 +139,11 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'spring-onion',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 10,
+      tip: 'Keep in the fridge; chop and freeze any glut for cooking.',
+    },
     name: 'Spring Onions',
     category: 'alliums',
     description: 'Quick-growing salad onion. Sow successionally.',
@@ -219,6 +224,11 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'welsh-onion',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 7,
+      tip: 'Cut-and-come-again, so use fresh from the plot; freeze chopped surplus.',
+    },
     name: 'Welsh Onion',
     category: 'alliums',
     description: 'Perennial bunching onion. Harvest year-round in Scotland.',
@@ -255,6 +265,10 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'elephant-garlic',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'Cure the bulbs after lifting, then keep somewhere cool, dry and airy.',
+    },
     name: 'Elephant Garlic',
     category: 'alliums',
     description: 'Giant mild garlic. Actually closer to leek than true garlic.',
@@ -288,6 +302,11 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'walking-onion',
+    storage: {
+      methods: ['cure', 'store-cool', 'fridge'],
+      freshDays: 10,
+      tip: 'Cure the topset bulbils for storing; use the green tops fresh.',
+    },
     name: 'Walking Onion (Tree Onion)',
     category: 'alliums',
     description: 'Perennial onion with top-setting bulbils. Quirky and productive.',
@@ -324,6 +343,10 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'potato-onion',
+    storage: {
+      methods: ['cure', 'store-cool'],
+      tip: 'An excellent keeper: cure well and store cool and dry like shallots.',
+    },
     name: 'Potato Onion',
     category: 'alliums',
     description: 'Multiplier onion forming clusters. Heritage variety very hardy.',
@@ -360,6 +383,11 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'garlic-chives',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Use fresh from the fridge; freeze chopped leaves and the edible flowers.',
+    },
     name: 'Garlic Chives',
     category: 'alliums',
     description: 'Flat-leaved chives with garlic flavor. Perennial herb.',
@@ -395,6 +423,11 @@ export const alliums: Vegetable[] = [
   },
   {
     id: 'ramps',
+    storage: {
+      methods: ['fresh', 'freeze', 'pickle'],
+      freshDays: 4,
+      tip: 'Leaves wilt fast, so use fresh; freeze as pesto or pickle the bulbs.',
+    },
     name: 'Ramps (Wild Leeks)',
     category: 'alliums',
     description: 'Woodland perennial leek. Spring ephemeral with garlicky flavor.',

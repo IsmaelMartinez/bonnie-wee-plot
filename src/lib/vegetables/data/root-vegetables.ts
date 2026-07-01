@@ -134,6 +134,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'salsify',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Hardy enough to leave in the ground over a Scottish winter; lift as needed or store roots in a box of damp sand.',
+    },
     name: 'Salsify',
     category: 'root-vegetables',
     description: 'Oyster-flavored root vegetable. Hardy and underrated!',
@@ -166,6 +170,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'hamburg-parsley',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Fully hardy; leave roots in the ground and lift through winter, or pack them in damp sand in a cool shed.',
+    },
     name: 'Hamburg Parsley',
     category: 'root-vegetables',
     description: 'Dual-purpose parsley with edible root. Very hardy for Scottish winters.',
@@ -197,6 +205,11 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'florence-fennel',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 10,
+      tip: 'Best eaten fresh; keep whole bulbs in the fridge salad drawer for a week or so.',
+    },
     name: 'Florence Fennel',
     category: 'root-vegetables',
     description: 'Anise-flavored swollen stem base. Tricky in Scotland but possible with bolt-resistant varieties.',
@@ -235,6 +248,11 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'mooli',
+    storage: {
+      methods: ['fridge', 'ferment', 'pickle'],
+      freshDays: 14,
+      tip: 'Keeps a couple of weeks in the fridge; a glut ferments or pickles brilliantly Asian-style.',
+    },
     name: 'Mooli (Daikon)',
     category: 'root-vegetables',
     description: 'Large Asian radish for autumn/winter. Very hardy and good for Scottish climate.',
@@ -271,6 +289,11 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'black-radish',
+    storage: {
+      methods: ['fridge', 'store-cool'],
+      freshDays: 21,
+      tip: 'A good winter keeper; stores for weeks in the fridge or packed in damp sand in a cool shed.',
+    },
     name: 'Black Radish',
     category: 'root-vegetables',
     description: 'Winter storage radish with black skin. Very hardy for Scottish winters.',
@@ -307,6 +330,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'scorzonera',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Fully hardy; leave the long roots in the ground and lift as needed, or store in a box of damp sand.',
+    },
     name: 'Scorzonera',
     category: 'root-vegetables',
     description: 'Black salsify with delicate flavor. Hardy perennial vegetable ideal for Scotland.',
@@ -340,6 +367,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'horseradish',
+    storage: {
+      methods: ['store-cool', 'fridge', 'pickle'],
+      tip: 'Store roots in damp sand in a cool shed; grated horseradish keeps for months preserved in vinegar.',
+    },
     name: 'Horseradish',
     category: 'root-vegetables',
     description: 'Perennial root for making pungent condiment. Very vigorous and hardy.',
@@ -372,6 +403,11 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'chinese-artichoke',
+    storage: {
+      methods: ['fridge', 'fresh'],
+      freshDays: 7,
+      tip: 'Crosnes do not store long; lift as needed and eat fresh, or keep a few days in the fridge in a sealed bag.',
+    },
     name: 'Chinese Artichoke (Crosnes)',
     category: 'root-vegetables',
     description: 'Unusual nutty-flavored tubers. Very hardy perennial for Scottish gardens.',
@@ -404,6 +440,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'yacon',
+    storage: {
+      methods: ['cure', 'store-cool', 'fridge'],
+      tip: 'Cure the tubers in the sun for a week or two to sweeten them, then store cool and dark.',
+    },
     name: 'Yacon',
     category: 'root-vegetables',
     description: 'Sweet crunchy tubers from South America. Frost-tender but grows well in Scottish summers.',
@@ -478,6 +518,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'skirret',
+    storage: {
+      methods: ['store-cool', 'fresh'],
+      tip: 'Hardy; leave the root clusters in the ground over winter and lift as needed, or store in damp sand.',
+    },
     name: 'Skirret',
     category: 'root-vegetables',
     description: 'Medieval root vegetable with sweet parsnip-like roots. Very hardy.',
@@ -511,6 +555,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'oca',
+    storage: {
+      methods: ['store-cool'],
+      tip: 'Lift after the first frost, green the tubers in light for a few days to mellow oxalates, then store cool and dark.',
+    },
     name: 'Oca',
     category: 'root-vegetables',
     description: 'Andean tuber with lemony flavor. Cold-hardy potato alternative.',
@@ -544,6 +592,10 @@ export const rootVegetables: Vegetable[] = [
   },
   {
     id: 'ulluco',
+    storage: {
+      methods: ['store-cool', 'fridge'],
+      tip: 'Handle the soft tubers gently; a fairly short keeper, so store cool and dark and use within a few weeks.',
+    },
     name: 'Ulluco',
     category: 'root-vegetables',
     description: 'Andean tuber with waxy texture. Colorful tubers and edible leaves.',

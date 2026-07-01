@@ -49,6 +49,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'early-potato',
+    storage: {
+      methods: ['fresh', 'fridge'],
+      freshDays: 7,
+      tip: 'New tatties do not keep — dig only what you need and eat within a few days of lifting.',
+    },
     name: 'First Early Potato',
     category: 'solanaceae',
     description: 'Fast-maturing new potatoes. Ready 10-12 weeks after planting, ideal for Scottish climate.',
@@ -86,6 +91,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'second-early-potato',
+    storage: {
+      methods: ['fresh', 'store-cool'],
+      freshDays: 14,
+      tip: 'Best eaten within a few weeks; keep any spare cool and dark for short-term storage only.',
+    },
     name: 'Second Early Potato',
     category: 'solanaceae',
     description: 'Mid-season potatoes with better yields than first earlies. Harvest July-August.',
@@ -309,6 +319,11 @@ export const solanaceae: Vegetable[] = [
   },
   {
     id: 'tomatillo',
+    storage: {
+      methods: ['fridge', 'freeze', 'store-cool'],
+      freshDays: 21,
+      tip: 'Leave the husks on and keep in the fridge for weeks; freeze whole or cook into salsa verde.',
+    },
     name: 'Tomatillo',
     category: 'solanaceae',
     description: 'Mexican green tomato in papery husk. Surprisingly viable in Scotland.',

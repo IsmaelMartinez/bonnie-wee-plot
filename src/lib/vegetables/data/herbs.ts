@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const herbs: Vegetable[] = [
   {
     id: 'parsley',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'Freeze chopped in ice-cube trays with a little water or oil; flavour beats dried.',
+    },
     name: 'Parsley',
     category: 'herbs',
     description: 'Versatile hardy herb. Survives Scottish winters.',
@@ -43,6 +48,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'coriander',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 5,
+      tip: 'Freeze leaves in oil cubes; let some plants set seed for dried coriander.',
+    },
     name: 'Coriander (Cilantro)',
     category: 'herbs',
     description: 'Fast-growing herb. Less prone to bolting in Scottish climate!',
@@ -78,6 +88,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'mint',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'Freeze chopped in ice-cube trays; dries reasonably for winter teas.',
+    },
     name: 'Mint',
     category: 'herbs',
     description: 'Vigorous perennial herb. Very hardy - thrives in Scotland!',
@@ -115,6 +130,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'chives',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Snip and freeze in bags or oil cubes; chives lose flavour when dried.',
+    },
     name: 'Chives',
     category: 'herbs',
     description: 'Hardy perennial. One of the easiest herbs for Scotland.',
@@ -148,6 +168,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'rosemary',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 14,
+      tip: 'Hang sprigs to dry in an airy spot; keeps potency for months.',
+    },
     name: 'Rosemary',
     category: 'herbs',
     description: 'Woody perennial herb. Needs sheltered spot in Scotland.',
@@ -184,6 +209,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'thyme',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 14,
+      tip: 'Hang bundles to dry, then strip leaves from stems into a jar.',
+    },
     name: 'Thyme',
     category: 'herbs',
     description: 'Low-growing perennial herb. Hardy in Scotland.',
@@ -217,6 +247,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'lovage',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 7,
+      tip: 'Freeze chopped leaves for soups and stocks; dries fairly well too.',
+    },
     name: 'Lovage',
     category: 'herbs',
     description: 'Tall perennial herb with celery flavor. Thrives in Scottish conditions.',
@@ -246,6 +281,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'sorrel',
+    storage: {
+      methods: ['fresh', 'freeze'],
+      freshDays: 5,
+      tip: 'Best used fresh in salads; cook down and freeze as a puree for sauces.',
+    },
     name: 'Sorrel',
     category: 'herbs',
     description: 'Tangy perennial leaf. Extremely hardy in Scottish gardens.',
@@ -278,6 +318,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'oregano',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 10,
+      tip: 'Flavour intensifies when dried; hang sprigs in an airy spot.',
+    },
     name: 'Oregano',
     category: 'herbs',
     description: 'Mediterranean herb. Very hardy perennial for Scottish gardens.',
@@ -312,6 +357,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'sage',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 14,
+      tip: 'Dries excellently; hang leaves or freeze in oil for winter roasts.',
+    },
     name: 'Sage',
     category: 'herbs',
     description: 'Evergreen perennial herb. Very hardy and drought-tolerant.',
@@ -348,6 +398,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'french-tarragon',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 7,
+      tip: 'Freeze sprigs or steep in vinegar; loses much flavour if dried.',
+    },
     name: 'French Tarragon',
     category: 'herbs',
     description: 'Classic French herb. Must propagate from cuttings, not seed.',
@@ -378,6 +433,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'dill',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 5,
+      tip: 'Freeze the feathery leaves for best flavour; dry the ripe seed heads for the spice rack.',
+    },
     name: 'Dill',
     category: 'herbs',
     description: 'Annual herb with feathery leaves. Self-seeds readily.',
@@ -415,6 +475,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'herb-fennel',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 5,
+      tip: 'Freeze the feathery leaves; dry the ripe seeds for cooking.',
+    },
     name: 'Herb Fennel',
     category: 'herbs',
     description: 'Feathery perennial herb. Different from Florence fennel bulb.',
@@ -448,6 +513,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'lemon-balm',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 5,
+      tip: 'Freeze in oil cubes; dries adequately for teas though scent fades.',
+    },
     name: 'Lemon Balm',
     category: 'herbs',
     description: 'Lemon-scented perennial herb. Very vigorous and hardy.',
@@ -478,6 +548,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'marjoram',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 10,
+      tip: 'Hang sprigs to dry; holds its sweet flavour well in a jar.',
+    },
     name: 'Marjoram',
     category: 'herbs',
     description: 'Sweet oregano relative. Tender perennial often grown as annual.',
@@ -508,6 +583,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'bay',
+    storage: {
+      methods: ['fridge', 'dry'],
+      freshDays: 14,
+      tip: 'Dry whole leaves flat; they keep their flavour for a year or more.',
+    },
     name: 'Bay',
     category: 'herbs',
     description: 'Evergreen shrub with aromatic leaves. Slow-growing but very long-lived.',
@@ -541,6 +621,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'borage',
+    storage: {
+      methods: ['fresh'],
+      freshDays: 2,
+      tip: 'Use flowers and leaves fresh; they wilt fast, so pick just before use.',
+    },
     name: 'Borage',
     category: 'herbs',
     description: 'Annual herb with blue edible flowers. Excellent bee plant.',
@@ -573,6 +658,10 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'chamomile',
+    storage: {
+      methods: ['dry'],
+      tip: 'Dry the open flowers on a tray, then store airtight for teas.',
+    },
     name: 'Chamomile',
     category: 'herbs',
     description: 'Low-growing perennial herb. Used for tea and as lawn alternative.',
@@ -606,6 +695,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'winter-savory',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 14,
+      tip: 'Hang sprigs to dry; peppery flavour holds well for winter bean dishes.',
+    },
     name: 'Winter Savory',
     category: 'herbs',
     description: 'Hardy perennial herb. Peppery flavor good with beans.',
@@ -639,6 +733,11 @@ export const herbs: Vegetable[] = [
   },
   {
     id: 'hyssop',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 14,
+      tip: 'Hang sprigs to dry for teas; keeps its minty-bitter flavour in a jar.',
+    },
     name: 'Hyssop',
     category: 'herbs',
     description: 'Hardy perennial herb with blue flowers. Excellent bee plant.',
