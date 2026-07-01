@@ -241,23 +241,29 @@ describe('Plant Data Integrity', () => {
     const STONE_FRUIT_IDS = new Set(['cherry-tree', 'plum-tree', 'damson-tree', 'greengage-tree'])
     const isStoneFruit = (veg: { id: string; botanicalName?: string }): boolean =>
       STONE_FRUIT_IDS.has(veg.id) || (veg.botanicalName?.startsWith('Prunus') ?? false)
-    const WINTER_MONTHS = new Set([11, 12, 1, 2])
+
+    // The stone-fruit "unsafe to prune" window is deliberately WIDER than
+    // meteorological winter: silver-leaf spores are airborne from autumn into
+    // spring, so the safe rule is summer-only and an autumn cut already carries
+    // risk. It is derived from the shared season helper (Dec-Feb) plus November
+    // so the two definitions cannot silently drift where they agree.
+    const isStoneFruitUnsafePruneMonth = (m: number): boolean => inSeason(m, 'winter') || m === 11
 
     it('stone fruit (Prunus) are never scheduled to prune in winter (Nov-Feb)', () => {
       const offenders: string[] = []
       for (const veg of vegetables) {
         if (!isStoneFruit(veg)) continue
         const pruneMonths = veg.maintenance?.pruneMonths ?? []
-        const winterPrune = pruneMonths.filter(m => WINTER_MONTHS.has(m))
-        if (winterPrune.length > 0) {
-          offenders.push(`${veg.id}: pruneMonths include winter ${JSON.stringify(winterPrune)}`)
+        const unsafePrune = pruneMonths.filter(isStoneFruitUnsafePruneMonth)
+        if (unsafePrune.length > 0) {
+          offenders.push(`${veg.id}: pruneMonths include winter ${JSON.stringify(unsafePrune)}`)
         }
         // The prune-mentioning care tips must agree with the summer rule.
         for (const tip of veg.careTips ?? []) {
           if (!mentionsPruning(tip.tip)) continue
-          const winterTip = tip.months.filter(m => WINTER_MONTHS.has(m))
-          if (winterTip.length > 0) {
-            offenders.push(`${veg.id}: prune tip months include winter ${JSON.stringify(winterTip)}`)
+          const unsafeTip = tip.months.filter(isStoneFruitUnsafePruneMonth)
+          if (unsafeTip.length > 0) {
+            offenders.push(`${veg.id}: prune tip months include winter ${JSON.stringify(unsafeTip)}`)
           }
         }
       }
@@ -266,9 +272,14 @@ describe('Plant Data Integrity', () => {
 
     it('maintenance.pruneMonths agree with prune-mentioning care tips', () => {
       // A perennial that lists both a prune schedule and prune advice should
-      // not put them in contradictory seasons. Plants pruned in more than one
-      // season (e.g. gooseberry: winter + summer) are fine as long as at least
-      // one prune tip endorses the scheduled season.
+      // not put them in contradictory seasons. This is an ENDORSEMENT check,
+      // not a strict match: it passes as long as at least one prune tip shares
+      // a season with the schedule. That deliberately tolerates plants pruned
+      // in more than one season (e.g. gooseberry: winter framework + summer
+      // sideshoots) rather than false-flagging them; the cost is that a stray
+      // extra prune tip in a wrong season is not caught here. The stricter
+      // summer-only rule that matters most — stone fruit — is enforced by the
+      // test above, which flags any unsafe-window prune tip outright.
       const offenders: string[] = []
       for (const veg of vegetables) {
         const pruneMonths = veg.maintenance?.pruneMonths ?? []
