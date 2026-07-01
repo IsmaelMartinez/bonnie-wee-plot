@@ -35,6 +35,14 @@ export const perennialFlowers: Vegetable[] = [
         'Attracts bees and deters aphids'
       ]
     },
+    careTips: [
+      { months: [5, 6], tip: 'Plant into sharply drained soil or a raised bed — choose hardy Lavandula angustifolia for Scotland', category: 'plant' },
+      { months: [6, 7, 8], tip: 'Cut the flower stems just as the buds open, to dry for sachets or culinary use', category: 'harvest' },
+      { months: [7, 8], tip: 'Leave some flowers for the bees before you trim', category: 'care' },
+      { months: [8, 9], tip: 'Prune lightly after flowering into green growth, never into old bare wood which will not reshoot', category: 'care' },
+      { months: [7, 8], tip: 'Take semi-ripe cuttings in summer to raise new plants', category: 'propagate' },
+      { months: [11, 12, 1], tip: 'Improve drainage and shelter from cold wet winds — winter wet kills more plants than cold in Scotland', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
@@ -270,6 +278,14 @@ export const perennialFlowers: Vegetable[] = [
         'Can spread - divide every 3 years'
       ]
     },
+    careTips: [
+      { months: [5, 6], tip: 'Plant out into moist but well-drained soil in sun or light shade', category: 'plant' },
+      { months: [7, 8, 9], tip: 'Pick young leaves and flowers through summer for teas and salads', category: 'harvest' },
+      { months: [7, 8], tip: 'Leave plenty of flowers for the bees and butterflies they attract', category: 'care' },
+      { months: [6, 7], tip: 'Keep the roots moist and the plant airy to reduce powdery mildew on the leaves', category: 'care' },
+      { months: [10, 11], tip: 'Cut the old stems back to the ground once they die down in autumn', category: 'care' },
+      { months: [3, 4], tip: 'Lift and divide congested clumps every three years in spring to keep them vigorous', category: 'propagate' },
+    ],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],

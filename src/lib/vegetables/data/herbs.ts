@@ -819,6 +819,14 @@ export const herbs: Vegetable[] = [
         'Trim after flowering'
       ]
     },
+    careTips: [
+      { months: [3, 4], tip: 'Add grit for sharp drainage — winter wet is the main killer in Scotland', category: 'care' },
+      { months: [4, 5], tip: 'Trim off tired old growth in spring as fresh shoots break', category: 'care' },
+      { months: [6, 7, 8], tip: 'Harvest sprigs through summer, best just before flowering', category: 'harvest' },
+      { months: [8], tip: 'Trim the plant over after flowering to keep it compact and stop it going woody', category: 'care' },
+      { months: [4, 5], tip: 'Take cuttings or divide established clumps in spring to raise new plants', category: 'propagate' },
+      { months: [9, 10], tip: 'Cut and dry sprigs for peppery winter bean and stew dishes', category: 'harvest' },
+    ],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }
@@ -857,6 +865,14 @@ export const herbs: Vegetable[] = [
         'Minty-bitter flavor for teas'
       ]
     },
+    careTips: [
+      { months: [3, 4], tip: 'Trim back old growth in spring to keep the plant neat and bushy', category: 'care' },
+      { months: [5, 6], tip: 'Plant out into a sunny, free-draining spot after the last frosts', category: 'plant' },
+      { months: [6, 7, 8], tip: 'Harvest young leaves and flowering tops through summer for teas', category: 'harvest' },
+      { months: [7, 8], tip: 'Leave the blue flowers for the bees and butterflies that love them', category: 'care' },
+      { months: [8, 9], tip: 'Trim over after flowering to stop the plant getting woody and leggy', category: 'care' },
+      { months: [4, 5], tip: 'Take cuttings or divide clumps in spring to raise new plants', category: 'propagate' },
+    ],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
