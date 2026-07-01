@@ -166,12 +166,12 @@ export const fruitTrees: Vegetable[] = [
       { plantId: 'comfrey', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }
     ],
     maintenance: {
-      pruneMonths: [2, 3],
+      pruneMonths: [6, 7],
       feedMonths: [3],
       feedFrequencyDays: 90,
       feedType: 'balanced',
       waterFrequencyDays: 7,
-      notes: ['Minimal pruning needed - just remove dead/crossing branches']
+      notes: ['Minimal pruning needed - prune in summer to avoid silver leaf, just remove dead/crossing branches']
     },
     perennialInfo: {
       yearsToFirstHarvest: { min: 3, max: 5 },
