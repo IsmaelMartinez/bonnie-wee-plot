@@ -300,6 +300,35 @@ describe('Plant Data Integrity', () => {
     })
   })
 
+  describe('Maintenance schedules', () => {
+    it('every maintenance month array is non-empty with valid months in range 1-12', () => {
+      // The Month type constrains these at compile time, but a hand-authored
+      // empty array (a meaningless schedule) or a value slipped in via a cast
+      // would pass the compiler. This mirrors the care-tip months check and
+      // guards the pruneMonths the pruning-season tests depend on.
+      const offenders: string[] = []
+      const check = (months: number[] | undefined, veg: { id: string }, field: string) => {
+        if (months === undefined) return
+        if (months.length === 0) {
+          offenders.push(`${veg.id}.maintenance.${field}: empty array`)
+          return
+        }
+        for (const m of months) {
+          if (!Number.isInteger(m) || m < 1 || m > 12) {
+            offenders.push(`${veg.id}.maintenance.${field}: invalid month ${m}`)
+          }
+        }
+      }
+      for (const veg of vegetables) {
+        if (!veg.maintenance) continue
+        check(veg.maintenance.pruneMonths, veg, 'pruneMonths')
+        check(veg.maintenance.feedMonths, veg, 'feedMonths')
+        check(veg.maintenance.mulchMonths, veg, 'mulchMonths')
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
       // Plant count should be in reasonable range (180-215)
