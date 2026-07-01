@@ -207,9 +207,9 @@ export const other: Vegetable[] = [
   {
     id: 'globe-artichoke',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fresh', 'fridge', 'freeze'],
       freshDays: 7,
-      tip: 'Keeps a week in the fridge but best fresh; cook and preserve trimmed hearts in oil if you have a surplus.',
+      tip: 'Best fresh; keeps about a week in the fridge. Blanch and freeze trimmed hearts to preserve a glut, or keep cooked hearts in oil in the fridge for a few days.',
     },
     name: 'Globe Artichoke',
     category: 'other',

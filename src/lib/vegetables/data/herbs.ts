@@ -9,7 +9,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'parsley',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 7,
       tip: 'Freeze chopped in ice-cube trays with a little water or oil; flavour beats dried.',
     },
@@ -49,7 +49,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'coriander',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 5,
       tip: 'Freeze leaves in oil cubes; let some plants set seed for dried coriander.',
     },
@@ -89,7 +89,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'mint',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 7,
       tip: 'Freeze chopped in ice-cube trays; dries reasonably for winter teas.',
     },
@@ -131,7 +131,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'chives',
     storage: {
-      methods: ['freeze'],
+      methods: ['fridge', 'freeze'],
       freshDays: 7,
       tip: 'Snip and freeze in bags or oil cubes; chives lose flavour when dried.',
     },
@@ -169,7 +169,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'rosemary',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 14,
       tip: 'Hang sprigs to dry in an airy spot; keeps potency for months.',
     },
@@ -210,7 +210,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'thyme',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 14,
       tip: 'Hang bundles to dry, then strip leaves from stems into a jar.',
     },
@@ -248,7 +248,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'lovage',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 7,
       tip: 'Freeze chopped leaves for soups and stocks; dries fairly well too.',
     },
@@ -319,7 +319,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'oregano',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 10,
       tip: 'Flavour intensifies when dried; hang sprigs in an airy spot.',
     },
@@ -358,7 +358,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'sage',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 14,
       tip: 'Dries excellently; hang leaves or freeze in oil for winter roasts.',
     },
@@ -399,7 +399,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'french-tarragon',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze'],
       freshDays: 7,
       tip: 'Freeze sprigs or steep in vinegar; loses much flavour if dried.',
     },
@@ -434,9 +434,9 @@ export const herbs: Vegetable[] = [
   {
     id: 'dill',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 5,
-      tip: 'Freeze leaves for best flavour; let plants set seed to dry for pickling.',
+      tip: 'Freeze the feathery leaves for best flavour; dry the ripe seed heads for the spice rack.',
     },
     name: 'Dill',
     category: 'herbs',
@@ -476,7 +476,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'herb-fennel',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 5,
       tip: 'Freeze the feathery leaves; dry the ripe seeds for cooking.',
     },
@@ -514,7 +514,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'lemon-balm',
     storage: {
-      methods: ['freeze', 'dry'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 5,
       tip: 'Freeze in oil cubes; dries adequately for teas though scent fades.',
     },
@@ -549,7 +549,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'marjoram',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 10,
       tip: 'Hang sprigs to dry; holds its sweet flavour well in a jar.',
     },
@@ -584,7 +584,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'bay',
     storage: {
-      methods: ['dry'],
+      methods: ['fridge', 'dry'],
       freshDays: 14,
       tip: 'Dry whole leaves flat; they keep their flavour for a year or more.',
     },
@@ -660,7 +660,6 @@ export const herbs: Vegetable[] = [
     id: 'chamomile',
     storage: {
       methods: ['dry'],
-      freshDays: 3,
       tip: 'Dry the open flowers on a tray, then store airtight for teas.',
     },
     name: 'Chamomile',
@@ -697,7 +696,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'winter-savory',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 14,
       tip: 'Hang sprigs to dry; peppery flavour holds well for winter bean dishes.',
     },
@@ -735,7 +734,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'hyssop',
     storage: {
-      methods: ['dry', 'freeze'],
+      methods: ['fridge', 'dry', 'freeze'],
       freshDays: 14,
       tip: 'Hang sprigs to dry for teas; keeps its minty-bitter flavour in a jar.',
     },

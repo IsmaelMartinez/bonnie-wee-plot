@@ -441,7 +441,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'yacon',
     storage: {
-      methods: ['store-cool', 'fridge'],
+      methods: ['cure', 'store-cool', 'fridge'],
       tip: 'Cure the tubers in the sun for a week or two to sweeten them, then store cool and dark.',
     },
     name: 'Yacon',

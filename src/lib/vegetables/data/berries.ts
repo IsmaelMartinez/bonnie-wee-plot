@@ -369,7 +369,7 @@ export const berries: Vegetable[] = [
   {
     id: 'tayberry',
     storage: {
-      methods: ['freeze', 'jam', 'fresh'],
+      methods: ['fresh', 'freeze', 'jam'],
       freshDays: 3,
       tip: 'Soft cane fruit that bruises fast; freeze on trays then bag, or boil into jam.',
     },
@@ -419,7 +419,7 @@ export const berries: Vegetable[] = [
   {
     id: 'loganberry',
     storage: {
-      methods: ['freeze', 'jam', 'fresh'],
+      methods: ['fresh', 'freeze', 'jam'],
       freshDays: 3,
       tip: 'Eat within days of picking; open-freeze the berries or make a sharp jam.',
     },
@@ -469,7 +469,7 @@ export const berries: Vegetable[] = [
   {
     id: 'jostaberry',
     storage: {
-      methods: ['freeze', 'jam'],
+      methods: ['fresh', 'freeze', 'jam'],
       freshDays: 5,
       tip: 'Gooseberry-blackcurrant cross; freezes well and cooks down into a fine jam.',
     },
