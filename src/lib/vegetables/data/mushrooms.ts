@@ -8,6 +8,11 @@ import { Vegetable } from '@/types/garden-planner'
 export const mushrooms: Vegetable[] = [
   {
     id: 'oyster-mushroom',
+    storage: {
+      methods: ['dry', 'fridge', 'freeze'],
+      freshDays: 5,
+      tip: 'Use fresh within a few days; slice and dry, or cook first then freeze.',
+    },
     name: 'Oyster Mushroom',
     category: 'mushrooms',
     description: 'Easy-to-grow gourmet mushroom. Grows on straw or coffee grounds indoors or outdoors.',
@@ -38,6 +43,11 @@ export const mushrooms: Vegetable[] = [
   },
   {
     id: 'shiitake',
+    storage: {
+      methods: ['dry', 'fridge'],
+      freshDays: 7,
+      tip: 'Dries superbly and the flavour deepens — thread caps to dry then store airtight; keep fresh caps a week in a paper bag.',
+    },
     name: 'Shiitake',
     category: 'mushrooms',
     description: 'Premium medicinal mushroom. Grows on hardwood logs or sawdust blocks.',

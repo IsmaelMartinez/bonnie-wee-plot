@@ -202,7 +202,15 @@ export const other: Vegetable[] = [
     perennialInfo: {
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
-    }
+    },
+    careTips: [
+      { months: [3, 4], tip: 'Do not cut any spears in the first two years — let the crowns build strength', category: 'care', stage: 'establishing' },
+      { months: [3], tip: 'Feed and mulch the bed with compost as growth begins', category: 'care' },
+      { months: [4, 5, 6], tip: 'From year three, cut spears when about 18cm tall', category: 'harvest', stage: 'productive' },
+      { months: [6], tip: 'Stop cutting by mid-June and let the ferny foliage grow to feed the crowns', category: 'harvest', stage: 'productive' },
+      { months: [6, 7, 8], tip: 'Weed the bed by hand and watch the ferns for asparagus beetle', category: 'care' },
+      { months: [10, 11], tip: 'Cut down the yellowed ferns to ground level', category: 'care' },
+    ]
   },
   {
     id: 'globe-artichoke',
@@ -246,6 +254,14 @@ export const other: Vegetable[] = [
       waterFrequencyDays: 7,
       notes: ['Protect crowns with straw in winter']
     },
+    careTips: [
+      { months: [5, 6], tip: 'In the first year remove any flower buds to build a strong plant', category: 'care' },
+      { months: [3, 6], tip: 'Feed generously in spring and again in early summer', category: 'care' },
+      { months: [7, 8, 9], tip: 'Harvest the fat flower buds while still tight and closed, taking the top terminal bud first', category: 'harvest' },
+      { months: [9, 10], tip: 'Cut the plants back after cropping', category: 'care' },
+      { months: [11], tip: 'Protect the crown over winter with a thick straw or bracken mulch — essential in Scotland', category: 'protect' },
+      { months: [3, 4], tip: 'Take rooted offsets from the base in spring to renew the plants every few years', category: 'propagate' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Globe_artichoke',
     hardiness: 'H3',
     enhancedAvoid: []
@@ -323,6 +339,14 @@ export const other: Vegetable[] = [
         'Remove outer leaves before blanching'
       ]
     },
+    careTips: [
+      { months: [7, 8], tip: 'Stake the plants or shelter them from wind — they reach over 2m', category: 'care' },
+      { months: [9], tip: 'Remove the coarse outer leaves before blanching', category: 'care' },
+      { months: [9, 10], tip: 'Blanch the stems for 3-4 weeks by wrapping the bundled stems with cardboard or hessian', category: 'protect' },
+      { months: [10, 11], tip: 'Harvest the blanched leaf stems, cooking them before eating', category: 'harvest' },
+      { months: [11], tip: 'Cut back after harvest and protect the crown with a dry mulch over winter', category: 'protect' },
+      { months: [3, 4], tip: 'Divide offsets in spring to propagate new plants', category: 'propagate' },
+    ],
     enhancedCompanions: [
       { plantId: 'globe-artichoke', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'sunflower', confidence: 'traditional', mechanism: 'unknown', bidirectional: true }

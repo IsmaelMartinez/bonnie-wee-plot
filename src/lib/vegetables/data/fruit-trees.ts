@@ -116,6 +116,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [6, 7, 8], tip: 'Prune only in summer to avoid silver leaf and bacterial canker — never cut in winter', category: 'care' },
+      { months: [3], tip: 'Feed with a balanced fertiliser and mulch around the base', category: 'care' },
+      { months: [6], tip: 'Net the whole tree before fruit colours — birds will strip cherries fast', category: 'protect', stage: 'productive' },
+      { months: [7, 8], tip: 'Pick cherries when fully coloured and sweet, with stalks attached', category: 'harvest', stage: 'productive' },
+      { months: [5], tip: 'Watch for bacterial canker on shoots — cut out any sunken oozing bark in summer', category: 'protect' },
+      { months: [1, 4, 7, 10], tip: 'Stake young trees firmly and check the ties are not cutting in', category: 'care', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/cherries/grow-your-own',
     botanicalName: 'Prunus avium',
     hardiness: 'H6',
@@ -169,6 +177,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root trees during dormancy in well-drained soil', category: 'plant' },
+      { months: [6], tip: 'Prune lightly in early summer only — avoid winter cuts to prevent silver leaf', category: 'care' },
+      { months: [8], tip: 'Prop up heavily laden branches to stop them snapping under the crop', category: 'care', stage: 'productive' },
+      { months: [9, 10], tip: 'Pick damsons when fully blue-black for the best flavour for jam and gin', category: 'harvest', stage: 'productive' },
+      { months: [3], tip: 'Feed with a balanced fertiliser and mulch to conserve moisture', category: 'care' },
+      { months: [1, 4, 7, 10], tip: 'Stake young trees and check the ties do not bite into the bark', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Damson',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -220,6 +236,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [6, 7], tip: 'Prune only in summer to avoid silver leaf disease — never in winter', category: 'care' },
+      { months: [4], tip: 'Protect blossom with fleece on frosty spring nights to save the crop', category: 'protect' },
+      { months: [6], tip: 'Thin heavy fruit sets to one per cluster to prevent branch breakage and biennial bearing', category: 'care', stage: 'productive' },
+      { months: [8], tip: 'Prop up laden branches so they do not split under the weight', category: 'care', stage: 'productive' },
+      { months: [8, 9], tip: 'Pick plums when they soften slightly and part easily from the tree', category: 'harvest', stage: 'productive' },
+      { months: [1, 4, 7, 10], tip: 'Stake young trees firmly and check the ties each season', category: 'care', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/plums/grow-your-own',
     botanicalName: 'Prunus domestica',
     hardiness: 'H6',
@@ -272,6 +296,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 4, max: 6 },
       productiveYears: { min: 35, max: 50 }
     },
+    careTips: [
+      { months: [12, 1, 2], tip: 'Winter prune while dormant — remove crossing, dead and congested branches', category: 'care' },
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root against a warm sheltered south wall for best results in Scotland', category: 'plant' },
+      { months: [4], tip: 'Protect early blossom from frost with fleece on cold spring nights', category: 'protect' },
+      { months: [6], tip: 'Thin fruitlets to two per cluster once the June drop finishes', category: 'care', stage: 'productive' },
+      { months: [9, 10], tip: 'Pick slightly under-ripe and ripen indoors — do not wait for softening on the tree', category: 'harvest', stage: 'productive' },
+      { months: [1, 4, 7, 10], tip: 'Stake young trees and check the ties do not cut into the bark', category: 'care', stage: 'establishing' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/pears/grow-your-own',
     botanicalName: 'Pyrus communis',
     hardiness: 'H6',
@@ -325,6 +357,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [6, 7], tip: 'Prune only in summer to avoid silver leaf disease — never cut in winter', category: 'care' },
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root against a warm wall and near another plum or gage for pollination', category: 'plant' },
+      { months: [6], tip: 'Thin heavy fruit sets to space the gages and improve size', category: 'care', stage: 'productive' },
+      { months: [8], tip: 'Prop up laden branches so the crop does not snap them', category: 'care', stage: 'productive' },
+      { months: [8, 9], tip: 'Pick gages when soft and sweet, and watch for wasps on ripe fruit', category: 'harvest', stage: 'productive' },
+      { months: [1, 4, 7, 10], tip: 'Stake young trees and check the ties are not too tight', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Greengages',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -375,6 +415,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root during dormancy — medlars are very hardy and easy to establish', category: 'plant' },
+      { months: [12, 1, 2], tip: 'Prune minimally in winter, just to shape and remove crossing branches', category: 'care' },
+      { months: [3], tip: 'Feed with a balanced fertiliser and mulch around the base', category: 'care' },
+      { months: [10, 11], tip: 'Pick medlars after the first frosts, then blet them until soft and brown before eating', category: 'harvest', stage: 'productive' },
+      { months: [11], tip: 'Clear fallen leaves from around the tree to keep the ground tidy', category: 'protect' },
+      { months: [1, 4, 7, 10], tip: 'Stake the young tree and check the ties do not cut into the bark', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Medlar',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -425,6 +473,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 30, max: 50 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root during dormancy — quinces are hardy and self-fertile', category: 'plant' },
+      { months: [12, 1, 2], tip: 'Prune minimally in winter to remove crossing and dead wood', category: 'care' },
+      { months: [5, 6], tip: 'Watch for quince leaf blight — remove and bin badly spotted leaves', category: 'protect' },
+      { months: [10, 11], tip: 'Leave fruit on the tree as long as possible, then pick before hard frosts', category: 'harvest', stage: 'productive' },
+      { months: [11], tip: 'Clear fallen leaves to reduce leaf blight spores over winter', category: 'protect' },
+      { months: [1, 4, 7, 10], tip: 'Stake the young tree and check the ties are not cutting in', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Quince',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -475,6 +531,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 30, max: 50 }
     },
+    careTips: [
+      { months: [3, 4], tip: 'Prune in early spring to shape and remove frost-damaged shoots', category: 'care' },
+      { months: [11, 12, 1, 2], tip: 'Plant against a warm south-facing wall and restrict the roots in a pit or container to force fruiting', category: 'plant' },
+      { months: [9, 10], tip: 'Remove large unripe figs that will only rot, but keep the tiny pea-sized embryo figs for next year', category: 'care', stage: 'productive' },
+      { months: [8, 9], tip: 'Pick figs when they hang soft and droop on the stalk', category: 'harvest', stage: 'productive' },
+      { months: [11, 12], tip: 'Protect the tree from hard frost with fleece or straw over winter', category: 'protect' },
+      { months: [1, 4, 7, 10], tip: 'Water young trees well and check any wall ties are secure', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Common_fig',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -526,6 +590,14 @@ export const fruitTrees: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 5 },
       productiveYears: { min: 50, max: 100 }
     },
+    careTips: [
+      { months: [12, 1], tip: 'Prune only when fully dormant and keep it minimal — mulberry bleeds sap heavily if cut in growing season', category: 'care' },
+      { months: [11, 12, 1, 2], tip: 'Plant bare-root well away from paths and patios as the fruit stains badly', category: 'plant' },
+      { months: [3], tip: 'Feed with a balanced fertiliser and mulch to help this slow starter establish', category: 'care' },
+      { months: [8, 9], tip: 'Pick or gently shake ripe mulberries onto a sheet, or net to share with birds', category: 'harvest', stage: 'productive' },
+      { months: [7], tip: 'Net ripening fruit if you want to beat the birds to it', category: 'protect', stage: 'productive' },
+      { months: [1, 4, 7, 10], tip: 'Stake the young tree well as it is slow to establish, and check the ties', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Mulberry',
     hardiness: 'H4',
     enhancedAvoid: []

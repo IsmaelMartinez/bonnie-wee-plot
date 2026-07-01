@@ -419,13 +419,39 @@ genuine preserving crops carry a preserve method (so keepers like maincrop-style
 potatoes, salsify, scorzonera, fennel bulb, crosnes, oca, ulluco show storage
 info without triggering the C3 glut nudge). All 1099 unit tests pass.
 
-**Remaining (deliberately out of scope):** ~42 crops — non-edible ornamental
-flowers (annual & perennial), bulbs, climbers, green manures, and mushrooms.
-Per the prior guidance these mostly don't warrant storage tips. A few genuine
-edibles in those families are the only candidates worth a future pass if desired
-— sunflower (seeds, dry), hardy-kiwi and hops (climbers), and the gourmet
-mushrooms (shiitake/oyster dry well) — left untouched to respect the stated
-category boundary rather than expand scope unannounced.
+**Remaining (deliberately out of scope):** ~37 crops — non-edible ornamental
+flowers (annual & perennial), bulbs, and green manures. Per the prior guidance
+these mostly don't warrant storage tips.
+
+### Perennial care tips — full soft fruit / tree / perennial coverage (branch `claude/caretips-perennial-crops-iur6au`)
+
+Expanded `careTips` (ADR 025) from the original 4-plant spike (strawberry,
+raspberry, apple-tree, rhubarb) to **43 perennials** — **39 plants added, 6 tips
+each (234 new tips)**. Authored per-category via parallel subagents against a
+tight spec, then every diff reviewed. Coverage now:
+
+- **Soft fruit & currants (13):** blackberry, blueberry, gooseberry,
+  blackcurrant, redcurrant, tayberry, loganberry, jostaberry, honeyberry,
+  goji-berry, aronia, elderberry, sea-buckthorn.
+- **Fruit trees (9):** cherry, damson, plum, pear, greengage, medlar, quince,
+  fig, mulberry — prune-timing safety respected (stone fruit summer-only,
+  mulberry dormant-only, fig keeps the embryo figs, medlar/quince blet/membrillo).
+- **Perennial veg (5):** asparagus, globe-artichoke, cardoon, seakale, horseradish.
+- **Perennial herbs (12):** rosemary, thyme, sage, mint, oregano, marjoram,
+  lovage, sorrel, chives, bay, lemon-balm, French tarragon.
+
+Tips are month-tagged and Scotland/Edinburgh-appropriate. Stage filtering
+(`establishing`/`productive`) is applied only where a plant carries
+`perennialInfo` so the tips actually fire — all soft fruit, all fruit trees and
+asparagus are stage-tagged; the herbs and the four perennial veg without
+`perennialInfo` are deliberately stage-agnostic (a staged tip on those would be
+silently filtered). Existing entries untouched. Single-quoted strings, no
+apostrophes. All 110 tests across plant-data-integrity, task-generator and
+vegetable-database pass; type-check and lint clean.
+
+Also folded in the last storage-data edible stragglers — **sunflower** (dry
+seeds), **hardy-kiwi**, **hops**, and the gourmet mushrooms **shiitake** and
+**oyster** (both dry well) — bringing storage coverage to **154 / 191 crops**.
 
 ### Up Next: Phase 1 soak then Step 5 cleanup
 

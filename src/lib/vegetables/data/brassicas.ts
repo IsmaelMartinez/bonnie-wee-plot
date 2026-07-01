@@ -709,6 +709,14 @@ export const brassicas: Vegetable[] = [
       waterFrequencyDays: 10,
       notes: ['Cover crowns to blanch shoots']
     },
+    careTips: [
+      { months: [2, 3], tip: 'Cover the crown with a bucket or forcing pot to produce pale tender shoots', category: 'protect' },
+      { months: [3, 4, 5], tip: 'Harvest the blanched shoots, then remove the cover and let the leaves grow', category: 'harvest' },
+      { months: [5], tip: 'Stop cutting and let the foliage feed the crown after spring', category: 'care' },
+      { months: [3], tip: 'Feed and mulch the crown in spring', category: 'care' },
+      { months: [6, 7], tip: 'Remove flowering stems to keep the plant productive', category: 'care' },
+      { months: [10, 11, 12], tip: 'Propagate from root cuttings (thongs) taken in autumn or winter', category: 'propagate' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Crambe_maritima',
     hardiness: 'H7'
   }

@@ -168,6 +168,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 10, max: 15 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root canes during the dormant season and water in well', category: 'plant', stage: 'establishing' },
+      { months: [4, 5, 6], tip: 'Train young canes onto wires to build a strong framework', category: 'care', stage: 'establishing' },
+      { months: [6, 7], tip: 'Tie in new canes as they grow, keeping them separate from fruiting ones', category: 'care', stage: 'productive' },
+      { months: [7, 8], tip: 'Net ripening fruit to keep the birds off', category: 'protect', stage: 'productive' },
+      { months: [8, 9, 10], tip: 'Pick berries when fully black and they come away easily', category: 'harvest', stage: 'productive' },
+      { months: [9, 10], tip: 'Cut fruited canes to the ground after harvest and tie in the new growth', category: 'care', stage: 'productive' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/blackberries/grow-your-own',
     botanicalName: 'Rubus fruticosus',
     hardiness: 'H7',
@@ -207,6 +215,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 25 }
     },
+    careTips: [
+      { months: [10, 11, 3, 4], tip: 'Plant into ericaceous soil or a container of ericaceous compost', category: 'plant', stage: 'establishing' },
+      { months: [3, 4], tip: 'Mulch with pine bark or ericaceous mulch to keep the soil acidic', category: 'care' },
+      { months: [3, 4], tip: 'Top up ericaceous feed as growth begins in spring', category: 'care' },
+      { months: [5, 6, 7], tip: 'Water only with collected rainwater, never tap water', category: 'care' },
+      { months: [7, 8], tip: 'Net the bushes as berries turn blue to beat the birds', category: 'protect', stage: 'productive' },
+      { months: [2, 3], tip: 'Prune out the oldest unproductive wood on established bushes in late winter', category: 'care', stage: 'productive' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/blueberries/grow-your-own',
     botanicalName: 'Vaccinium corymbosum',
     hardiness: 'H6',
@@ -259,6 +275,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2], tip: 'Winter-prune to an open goblet shape to let in light and air', category: 'care' },
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root bushes during the dormant season', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch around the base with compost as growth resumes', category: 'care' },
+      { months: [5, 6], tip: 'Check leaves for sawfly caterpillars and pick them off before they strip the bush', category: 'protect' },
+      { months: [6], tip: 'Thin the crop early for larger dessert berries and use the thinnings for cooking', category: 'harvest', stage: 'productive' },
+      { months: [10, 11], tip: 'Take hardwood cuttings in autumn to raise new bushes', category: 'propagate' },
+    ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/gooseberries/grow-your-own',
     botanicalName: 'Ribes uva-crispa',
     hardiness: 'H7',
@@ -311,6 +335,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 10, max: 15 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root bushes deep, then cut all stems to the ground to build a strong base', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch generously with compost and feed with high-potash, as blackcurrants are hungry feeders', category: 'care' },
+      { months: [5, 6, 7], tip: 'Water well during dry spells, as the bushes love moisture', category: 'care' },
+      { months: [7, 8], tip: 'Pick whole strigs once the berries are ripe and glossy', category: 'harvest', stage: 'productive' },
+      { months: [8, 11, 12], tip: 'Cut a third of the oldest wood to the ground after fruiting', category: 'care', stage: 'productive' },
+      { months: [10, 11], tip: 'Take hardwood cuttings in autumn to raise new bushes', category: 'propagate' },
+    ],
     botanicalName: 'Ribes nigrum',
     hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Blackcurrant',
@@ -361,6 +393,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root bushes during the dormant season, or train as cordons on a warm wall', category: 'plant', stage: 'establishing' },
+      { months: [11, 12, 1, 2], tip: 'Winter-prune to a permanent goblet framework, shortening the sideshoots', category: 'care' },
+      { months: [3], tip: 'Mulch around the base with compost as growth begins', category: 'care' },
+      { months: [6, 7], tip: 'Summer-prune the sideshoots back to keep the framework tidy', category: 'care', stage: 'productive' },
+      { months: [7], tip: 'Net the bushes as fruit colours up to stop the birds stripping them', category: 'protect', stage: 'productive' },
+      { months: [7, 8], tip: 'Pick whole strigs once every berry has turned a deep red', category: 'harvest', stage: 'productive' },
+    ],
     botanicalName: 'Ribes rubrum',
     hardiness: 'H7',
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Redcurrant',
@@ -412,6 +452,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root canes during dormancy against a sturdy support', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch around the base with compost as growth resumes', category: 'care' },
+      { months: [5, 6], tip: 'Tie the new canes onto the wires as they grow', category: 'care', stage: 'productive' },
+      { months: [7], tip: 'Net the fruit to protect the large aromatic berries from birds', category: 'protect', stage: 'productive' },
+      { months: [7, 8], tip: 'Pick berries when deep red and softly ripe, as they bruise easily', category: 'harvest', stage: 'productive' },
+      { months: [8, 9], tip: 'Cut fruited canes to the ground after harvest and tie in the new ones', category: 'care', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tayberry',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -462,6 +510,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 10, max: 15 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root canes during the dormant season against strong supports', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch around the base with compost as growth resumes', category: 'care' },
+      { months: [6, 7], tip: 'Tie the vigorous new canes to the wires, keeping them separate from the fruiting ones', category: 'care', stage: 'productive' },
+      { months: [7], tip: 'Net the fruit to keep the birds off as it ripens', category: 'protect', stage: 'productive' },
+      { months: [7, 8], tip: 'Pick the tart berries when deep red for the best flavour', category: 'harvest', stage: 'productive' },
+      { months: [8, 9], tip: 'Remove the fruited canes after harvest and tie in the new growth', category: 'care', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Loganberry',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -511,6 +567,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 15, max: 20 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root bushes during the dormant season in an open sunny spot', category: 'plant', stage: 'establishing' },
+      { months: [11, 12, 1, 2], tip: 'Prune lightly in winter, just removing old and dead wood', category: 'care' },
+      { months: [3], tip: 'Mulch and feed with high-potash as growth begins in spring', category: 'care' },
+      { months: [7], tip: 'Net the bushes as fruit ripens to protect it from birds', category: 'protect', stage: 'productive' },
+      { months: [7, 8], tip: 'Pick berries once they turn dark, as this thornless bush is easy to harvest', category: 'harvest', stage: 'productive' },
+      { months: [10, 11], tip: 'Take hardwood cuttings in autumn to raise new bushes', category: 'propagate' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Jostaberry',
     hardiness: 'H4',
     enhancedAvoid: []
@@ -557,6 +621,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant two different varieties during dormancy so they cross-pollinate', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch around the base with compost as growth begins', category: 'care' },
+      { months: [5], tip: 'Net the early fruit, as birds find it before anything else is ripe', category: 'protect', stage: 'productive' },
+      { months: [5, 6], tip: 'Pick berries once they are blue right through, well before the strawberries', category: 'harvest', stage: 'productive' },
+      { months: [1, 2], tip: 'Prune only lightly in late winter, removing dead wood', category: 'care' },
+      { months: [6, 7], tip: 'Water during dry spells while young plants settle in', category: 'care', stage: 'establishing' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lonicera_caerulea',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -603,6 +675,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 2 },
       productiveYears: { min: 15, max: 20 }
     },
+    careTips: [
+      { months: [4, 5], tip: 'Plant out young shrubs after the frosts and water them in well', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Mulch around the base with compost as growth begins', category: 'care' },
+      { months: [2, 3], tip: 'Prune to shape in late winter to keep the shrub open and manageable', category: 'care' },
+      { months: [5, 6, 7], tip: 'Dig out suckers as they appear to stop the shrub spreading', category: 'care' },
+      { months: [8, 9, 10], tip: 'Pick the berries when bright red and dry the surplus for winter', category: 'harvest', stage: 'productive' },
+      { months: [8, 9], tip: 'Net the fruit if birds start taking the ripening berries', category: 'protect', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Goji',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -649,6 +729,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root shrubs during the dormant season in an open spot', category: 'plant', stage: 'establishing' },
+      { months: [3], tip: 'Feed and mulch with compost as growth begins in spring', category: 'care' },
+      { months: [1, 2], tip: 'Thin out the oldest stems every few years in late winter, as little else is needed', category: 'care' },
+      { months: [9, 10], tip: 'Pick berries for juice or jam, as they are too astringent to eat raw', category: 'harvest', stage: 'productive' },
+      { months: [6, 7], tip: 'Water during dry spells while young shrubs establish', category: 'care', stage: 'establishing' },
+      { months: [10], tip: 'Enjoy the fiery autumn foliage while gathering the last berries', category: 'harvest', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Aronia',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -695,6 +783,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 2, max: 3 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root shrubs during the dormant season, allowing plenty of room', category: 'plant', stage: 'establishing' },
+      { months: [11, 12, 1], tip: 'Hard-prune in winter to control the size of this fast-growing shrub', category: 'care' },
+      { months: [3], tip: 'Mulch around the base with compost as growth begins', category: 'care' },
+      { months: [6], tip: 'Pick some flowerheads for cordial and leave the rest to set fruit', category: 'harvest', stage: 'productive' },
+      { months: [8, 9], tip: 'Gather ripe berry clusters and cook them before eating, never raw', category: 'harvest', stage: 'productive' },
+      { months: [8, 9], tip: 'Net the ripening berries if birds are stripping the heads', category: 'protect', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Sambucus',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -739,6 +835,14 @@ export const berries: Vegetable[] = [
       yearsToFirstHarvest: { min: 3, max: 4 },
       productiveYears: { min: 20, max: 30 }
     },
+    careTips: [
+      { months: [11, 12, 1, 2, 3], tip: 'Plant both a male and a female shrub during dormancy so the females fruit', category: 'plant', stage: 'establishing' },
+      { months: [11, 12, 1], tip: 'Prune to shape in winter, as this tough shrub needs little else', category: 'care' },
+      { months: [4, 5], tip: 'Leave feeding alone, as the roots fix their own nitrogen even in poor soil', category: 'care' },
+      { months: [9, 10], tip: 'Pick the sharp berries once frosted, as they strip from the branch more easily', category: 'harvest', stage: 'productive' },
+      { months: [6, 7], tip: 'Water occasionally while young plants settle in, then leave them to it', category: 'care', stage: 'establishing' },
+      { months: [10], tip: 'Freeze surplus berries straight away to keep their vitamin C', category: 'harvest', stage: 'productive' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Hippophae',
     hardiness: 'H4',
     enhancedCompanions: [],

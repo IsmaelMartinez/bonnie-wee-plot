@@ -394,6 +394,14 @@ export const rootVegetables: Vegetable[] = [
         'Harvest roots in autumn/winter for best flavor'
       ]
     },
+    careTips: [
+      { months: [3, 4], tip: 'Plant root cuttings (thongs) in spring', category: 'plant' },
+      { months: [3, 4], tip: 'Grow in a bottomless bucket or a contained bed — it is extremely invasive and hard to remove', category: 'care' },
+      { months: [6, 7], tip: 'Cut back or remove flower stems and stray leaves to limit spread', category: 'care' },
+      { months: [10, 11, 12, 1, 2], tip: 'Lift roots as needed once the foliage dies back — the flavour is best after frost', category: 'harvest' },
+      { months: [10, 11], tip: 'Replant a piece of root to keep the crop going', category: 'propagate' },
+      { months: [7, 8], tip: 'Focus on containment rather than mulching — the plant is very tough', category: 'care' },
+    ],
     enhancedCompanions: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: false }
     ],

@@ -115,6 +115,14 @@ export const herbs: Vegetable[] = [
         'Cut back after flowering'
       ]
     },
+    careTips: [
+      { months: [4, 5], tip: 'Sink the pot into the bed or grow in a container to stop mint invading', category: 'care' },
+      { months: [3, 4], tip: 'Lift and divide congested clumps in spring to refresh vigour', category: 'propagate' },
+      { months: [6, 7, 8], tip: 'Harvest young leaves regularly through summer', category: 'harvest' },
+      { months: [7, 8], tip: 'Cut stems back after flowering for a fresh flush of leaves', category: 'care' },
+      { months: [10, 11], tip: 'Cut back to the ground once growth dies down in autumn', category: 'care' },
+      { months: [9, 10], tip: 'Divide crowded roots in autumn to raise new plants', category: 'propagate' },
+    ],
     enhancedCompanions: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'peas', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
@@ -157,6 +165,14 @@ export const herbs: Vegetable[] = [
         'Flowers are edible too'
       ]
     },
+    careTips: [
+      { months: [4, 5, 6], tip: 'Harvest leaves from spring, snipping down to the base', category: 'harvest' },
+      { months: [6], tip: 'Pick the purple flowers for salads, or remove spent heads to stop self-seeding', category: 'harvest' },
+      { months: [7], tip: 'Cut the whole clump back to the ground after flowering for a fresh flush', category: 'care' },
+      { months: [3, 4], tip: 'Lift and divide congested clumps every two to three years in spring', category: 'propagate' },
+      { months: [9], tip: 'Divide congested clumps in early autumn while the soil is warm', category: 'propagate' },
+      { months: [10], tip: 'Pot up a clump and bring indoors for winter windowsill pickings', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
@@ -195,6 +211,14 @@ export const herbs: Vegetable[] = [
         'Can struggle in harsh Scottish winters'
       ]
     },
+    careTips: [
+      { months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], tip: 'Harvest sprigs any month — the shrub is evergreen', category: 'harvest' },
+      { months: [6, 7], tip: 'Trim lightly after flowering to keep it bushy, but never cut into old bare wood as it will not reshoot', category: 'care' },
+      { months: [7, 8], tip: 'Take semi-ripe cuttings in summer to raise new plants', category: 'propagate' },
+      { months: [11, 12, 1], tip: 'Shelter from cold drying winds and wrap container plants in hard frosts', category: 'protect' },
+      { months: [4, 5], tip: 'Add grit for sharp drainage — wet winter soil will kill the plant', category: 'care' },
+      { months: [5, 6, 9], tip: 'Plant out into a warm sheltered spot with free-draining soil', category: 'plant' },
+    ],
     enhancedCompanions: [
       { plantId: 'broad-beans', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -236,6 +260,14 @@ export const herbs: Vegetable[] = [
         'Trim after flowering'
       ]
     },
+    careTips: [
+      { months: [4, 5, 6, 7, 8, 9], tip: 'Harvest sprigs spring to autumn, best just before flowering', category: 'harvest' },
+      { months: [7, 8], tip: 'Trim the plant over after flowering to stop it going woody and leggy', category: 'care' },
+      { months: [4, 5], tip: 'Take cuttings or divide clumps in spring or early summer', category: 'propagate' },
+      { months: [3], tip: 'Add grit to keep the soil free-draining — thyme dislikes winter wet', category: 'care' },
+      { months: [11, 12], tip: 'Improve drainage or use a cloche to shield plants from cold wet soil', category: 'protect' },
+      { months: [4], tip: 'Renew or replace plants every three to four years as they get woody', category: 'care' },
+    ],
     enhancedCompanions: [
       { plantId: 'cabbage', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
@@ -274,6 +306,14 @@ export const herbs: Vegetable[] = [
         'Very hardy perennial for Scotland'
       ]
     },
+    careTips: [
+      { months: [4, 5], tip: 'Harvest young leaves in spring for the strongest celery flavour', category: 'harvest' },
+      { months: [3, 4], tip: 'Feed and mulch in spring to encourage lush leafy growth', category: 'care' },
+      { months: [6, 7], tip: 'Remove flower stems to keep leaf production going, or leave some to self-seed', category: 'care' },
+      { months: [3, 4], tip: 'Divide congested crowns in spring to raise new plants', category: 'propagate' },
+      { months: [6, 7, 8, 9], tip: 'Keep harvesting leaves through the growing season', category: 'harvest' },
+      { months: [10, 11], tip: 'Cut down old stems in autumn as the plant dies right back', category: 'care' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Lovage',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -308,6 +348,14 @@ export const herbs: Vegetable[] = [
         'Grows year-round in Scotland'
       ]
     },
+    careTips: [
+      { months: [4, 5, 6, 7, 8, 9], tip: 'Pick young leaves often through the season to keep them tender', category: 'harvest' },
+      { months: [5, 6], tip: 'Remove flower stalks as they appear to prolong leaf production and stop self-seeding', category: 'care' },
+      { months: [7], tip: 'Cut the whole plant back in summer for a fresh flush of new leaves', category: 'care' },
+      { months: [3, 4], tip: 'Divide clumps every few years in spring to keep plants vigorous', category: 'propagate' },
+      { months: [3, 4], tip: 'Mulch around the crowns in spring to hold moisture', category: 'care' },
+      { months: [2, 3], tip: 'Cover a few plants with a cloche for early spring pickings', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'strawberry', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'chives', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
@@ -346,6 +394,14 @@ export const herbs: Vegetable[] = [
         'Cut back after flowering to encourage growth'
       ]
     },
+    careTips: [
+      { months: [6, 7, 8], tip: 'Harvest leaves through summer, best just before flowering', category: 'harvest' },
+      { months: [7, 8], tip: 'Trim after flowering to encourage fresh leafy growth', category: 'care' },
+      { months: [7, 8], tip: 'Leave some flowers for the bees, which love them', category: 'care' },
+      { months: [3, 4], tip: 'Divide established clumps in spring to raise new plants', category: 'propagate' },
+      { months: [6, 7], tip: 'Take cuttings in summer to increase your stock', category: 'propagate' },
+      { months: [10, 3], tip: 'Cut back old stems in autumn or early spring as the plant dies back', category: 'care' },
+    ],
     enhancedCompanions: [
       { plantId: 'pumpkin', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
     ],
@@ -385,6 +441,14 @@ export const herbs: Vegetable[] = [
         'Replace plants every 4-5 years'
       ]
     },
+    careTips: [
+      { months: [5, 6, 7, 8, 9], tip: 'Harvest leaves through the growing season, lightest in winter', category: 'harvest' },
+      { months: [4], tip: 'Prune lightly in spring once new growth shows to keep the plant compact, but do not cut into old wood', category: 'care' },
+      { months: [6, 7], tip: 'Take softwood or semi-ripe cuttings in summer to raise new plants', category: 'propagate' },
+      { months: [4], tip: 'Replace leggy plants every four to five years to keep them productive', category: 'care' },
+      { months: [11, 12], tip: 'Improve drainage or use a cloche to protect from cold wet winters', category: 'protect' },
+      { months: [5, 6], tip: 'Plant out into a warm free-draining spot in full sun', category: 'plant' },
+    ],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'carrot', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
@@ -426,6 +490,14 @@ export const herbs: Vegetable[] = [
         'Mulch over winter in Scotland'
       ]
     },
+    careTips: [
+      { months: [6, 7, 8], tip: 'Harvest leaves through summer, best before flowering', category: 'harvest' },
+      { months: [10, 11], tip: 'Mulch the crown thickly for winter — it is not reliably hardy in Scotland', category: 'protect' },
+      { months: [10], tip: 'Or lift and pot up to overwinter frost-free under cover', category: 'protect' },
+      { months: [4], tip: 'Propagate only by division or cuttings in spring, as true French tarragon does not come true from seed', category: 'propagate' },
+      { months: [3, 4], tip: 'Divide clumps every two to three years in spring to keep it vigorous', category: 'propagate' },
+      { months: [5], tip: 'Plant out into a warm sheltered spot with sharp drainage', category: 'plant' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Tarragon',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -541,6 +613,14 @@ export const herbs: Vegetable[] = [
         'Attracts bees'
       ]
     },
+    careTips: [
+      { months: [6, 7, 8], tip: 'Harvest young leaves through summer for teas', category: 'harvest' },
+      { months: [6, 7], tip: 'Cut back hard before or just after flowering to prevent heavy self-seeding and get fresh leaves', category: 'care' },
+      { months: [10, 11], tip: 'Cut the whole plant to the ground in autumn as it dies back', category: 'care' },
+      { months: [3, 4], tip: 'Divide congested clumps in spring to raise new plants', category: 'propagate' },
+      { months: [9, 10], tip: 'Divide crowded roots in autumn to refresh the clump', category: 'propagate' },
+      { months: [5], tip: 'Grow in a contained spot as it spreads freely', category: 'care' },
+    ],
     enhancedCompanions: [],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Melissa_officinalis',
     hardiness: 'H7',
@@ -576,6 +656,14 @@ export const herbs: Vegetable[] = [
         'Excellent for Italian and Greek dishes'
       ]
     },
+    careTips: [
+      { months: [6, 7, 8], tip: 'Harvest young shoots through summer', category: 'harvest' },
+      { months: [7, 8], tip: 'Trim the plant over after flowering to keep it neat and leafy', category: 'care' },
+      { months: [10, 11], tip: 'Protect the crown with a cloche or dry mulch — it often does not survive a Scottish winter', category: 'protect' },
+      { months: [10], tip: 'Or lift and pot up to overwinter under cover', category: 'protect' },
+      { months: [3, 4], tip: 'Divide established clumps in spring to raise new plants', category: 'propagate' },
+      { months: [6, 7], tip: 'Take cuttings in summer to increase your stock', category: 'propagate' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Marjoram',
     hardiness: 'H4',
     enhancedCompanions: [],
@@ -611,6 +699,14 @@ export const herbs: Vegetable[] = [
         'Hardy in most of Scotland'
       ]
     },
+    careTips: [
+      { months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], tip: 'Harvest leaves any month — the shrub is evergreen', category: 'harvest' },
+      { months: [4, 5], tip: 'Grow in a large container so the plant can be moved to shelter', category: 'plant' },
+      { months: [11, 12, 1, 2], tip: 'Protect from hard frost and cold winds — leaves scorch in a severe winter, especially in pots', category: 'protect' },
+      { months: [6, 7, 8], tip: 'Prune to shape in summer', category: 'care' },
+      { months: [8, 9], tip: 'Take semi-ripe cuttings in late summer, though they are slow to root', category: 'propagate' },
+      { months: [6, 7], tip: 'Watch for bay sucker and scale insects on the leaves', category: 'care' },
+    ],
     enhancedCompanions: [
       { plantId: 'rosemary', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true },
       { plantId: 'thyme', confidence: 'traditional', mechanism: 'pest_confusion', bidirectional: true }
