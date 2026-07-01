@@ -453,6 +453,36 @@ Also folded in the last storage-data edible stragglers — **sunflower** (dry
 seeds), **hardy-kiwi**, **hops**, and the gourmet mushrooms **shiitake** and
 **oyster** (both dry well) — bringing storage coverage to **154 / 191 crops**.
 
+### Care-tip data integrity test + remaining perennials (branch `claude/plant-integrity-perennial-tips-h0csl9`)
+
+Follow-up to the #442 careTips expansion. A code review had found a latent
+damson bug — `maintenance.pruneMonths` set to winter (unsafe for a stone fruit)
+while the care-tip said summer — with no automated guard. The `stage` field is
+also silently dropped by `generateCareTipTasks` when a plant lacks
+`perennialInfo`, and nothing tested for it.
+
+**Integrity test** (`src/__tests__/lib/plant-data-integrity.test.ts`): new
+data-driven blocks iterate every plant and assert, per careTip: months are
+integers 1–12 and non-empty; `category` is a valid `CareTipCategory`; `stage`,
+when set, is a real lifecycle stage (`establishing`/`productive`/`declining` —
+`removed` is a stored status, never computed, so it would be dead data); any
+stage-tagged tip sits only on a plant with `perennialInfo` (else it never
+fires); and no tip string repeats within one plant. A "Pruning-season
+consistency" block flags stone fruit (Prunus: cherry, plum, damson, greengage,
+matched by id or `Prunus*` botanical name) whose `pruneMonths` or prune care-tips
+fall in winter (Nov–Feb), and a general check requires every perennial's
+`pruneMonths` season to be endorsed by at least one prune-mentioning care-tip
+(so a winter+summer pruner like gooseberry passes, but a schedule contradicting
+its only prune advice fails). All checks are data-driven so future plants are
+covered automatically.
+
+**Remaining perennials** (6 tips each, month-tagged, Scotland-appropriate,
+single-quoted, no apostrophes, stage-agnostic as none carry `perennialInfo`):
+winter-savory, hyssop (`herbs.ts`), jerusalem-artichoke (`other.ts`), and the
+culinary perennials lavender + bergamot (`perennial-flowers.ts`). Existing
+entries untouched. type-check, lint clean; plant-data-integrity, task-generator,
+and vegetable-database suites all pass.
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.

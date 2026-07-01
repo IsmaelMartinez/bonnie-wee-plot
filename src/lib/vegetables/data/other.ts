@@ -101,6 +101,14 @@ export const other: Vegetable[] = [
     enhancedAvoid: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'nutrient_competition', bidirectional: false }
     ],
+    careTips: [
+      { months: [2, 3, 4], tip: 'Plant tubers 10-15cm deep like potatoes once the soil is workable', category: 'plant' },
+      { months: [6, 7], tip: 'Earth up the stems and stake tall clumps in exposed Scottish plots', category: 'care' },
+      { months: [8, 9], tip: 'Cut off any flower buds so the plant puts its energy into the tubers', category: 'care' },
+      { months: [10, 11], tip: 'Cut down the tall stems once blackened by frost, leaving short stubs to mark the row', category: 'care' },
+      { months: [10, 11, 12, 1, 2], tip: 'Lift tubers as needed through winter — they store best left in the ground', category: 'harvest' },
+      { months: [2, 3], tip: 'Dig out every last tuber when clearing a bed, or it will regrow and spread', category: 'care' },
+    ],
     wikipediaUrl: 'https://en.wikipedia.org/wiki/Jerusalem_artichoke',
     hardiness: 'H6'
   },

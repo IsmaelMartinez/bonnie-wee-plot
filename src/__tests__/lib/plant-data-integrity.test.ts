@@ -131,6 +131,204 @@ describe('Plant Data Integrity', () => {
     })
   })
 
+  describe('Care tips (perennial advice)', () => {
+    // Enum members of CareTipCategory (src/types/garden-planner.ts).
+    const VALID_CATEGORIES = new Set(['care', 'harvest', 'propagate', 'protect', 'plant'])
+    // Lifecycle stages that calculatePerennialStatus() can actually return and
+    // that generateCareTipTasks() can match against. 'removed' is a stored
+    // PrimaryPlant status, never a computed lifecycle stage, so a care tip
+    // tagged with it would be dead data — exclude it from the valid set.
+    const VALID_STAGES = new Set(['establishing', 'productive', 'declining'])
+
+    it('every care tip has non-empty integer months in range 1-12', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        veg.careTips.forEach((tip, i) => {
+          if (!Array.isArray(tip.months) || tip.months.length === 0) {
+            offenders.push(`${veg.id}[${i}]: empty months`)
+            return
+          }
+          for (const m of tip.months) {
+            if (!Number.isInteger(m) || m < 1 || m > 12) {
+              offenders.push(`${veg.id}[${i}]: invalid month ${m}`)
+            }
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('every care tip has a valid category', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        veg.careTips.forEach((tip, i) => {
+          if (!VALID_CATEGORIES.has(tip.category)) {
+            offenders.push(`${veg.id}[${i}]: category "${tip.category}"`)
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('every care tip stage, when set, is a valid lifecycle stage', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        veg.careTips.forEach((tip, i) => {
+          if (tip.stage !== undefined && !VALID_STAGES.has(tip.stage)) {
+            offenders.push(`${veg.id}[${i}]: stage "${tip.stage}"`)
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('stage-tagged tips only appear on plants with perennialInfo', () => {
+      // generateCareTipTasks() can only resolve a lifecycle stage when the
+      // plant has perennialInfo; a stage on any other plant never fires and is
+      // therefore dead data.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        const hasStage = veg.careTips.some(tip => tip.stage !== undefined)
+        if (hasStage && !veg.perennialInfo) {
+          offenders.push(veg.id)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('no duplicate tip strings within a single plant', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        const tips = veg.careTips.map(t => t.tip)
+        const seen = new Set<string>()
+        for (const t of tips) {
+          if (seen.has(t)) offenders.push(`${veg.id}: "${t}"`)
+          seen.add(t)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
+  describe('Pruning-season consistency', () => {
+    const inSeason = (month: number, season: 'winter' | 'spring' | 'summer' | 'autumn'): boolean => {
+      switch (season) {
+        case 'winter': return month === 12 || month === 1 || month === 2
+        case 'spring': return month >= 3 && month <= 5
+        case 'summer': return month >= 6 && month <= 8
+        case 'autumn': return month >= 9 && month <= 11
+      }
+    }
+    const seasonsOf = (months: number[]): Set<string> => {
+      const seasons = new Set<string>()
+      for (const m of months) {
+        for (const s of ['winter', 'spring', 'summer', 'autumn'] as const) {
+          if (inSeason(m, s)) seasons.add(s)
+        }
+      }
+      return seasons
+    }
+    const mentionsPruning = (tip: string): boolean => /prune|pruning/i.test(tip)
+
+    // Prunus stone fruit — cherry, plum, damson, greengage (and any future
+    // Prunus). These must be summer-pruned to avoid silver leaf; winter cuts
+    // are the unsafe case. Damson lacks a botanicalName, so match by id too.
+    const STONE_FRUIT_IDS = new Set(['cherry-tree', 'plum-tree', 'damson-tree', 'greengage-tree'])
+    const isStoneFruit = (veg: { id: string; botanicalName?: string }): boolean =>
+      STONE_FRUIT_IDS.has(veg.id) || (veg.botanicalName?.startsWith('Prunus') ?? false)
+
+    // The stone-fruit "unsafe to prune" window is deliberately WIDER than
+    // meteorological winter: silver-leaf spores are airborne from autumn into
+    // spring, so the safe rule is summer-only and an autumn cut already carries
+    // risk. It is derived from the shared season helper (Dec-Feb) plus November
+    // so the two definitions cannot silently drift where they agree.
+    const isStoneFruitUnsafePruneMonth = (m: number): boolean => inSeason(m, 'winter') || m === 11
+
+    it('stone fruit (Prunus) are never scheduled to prune in winter (Nov-Feb)', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!isStoneFruit(veg)) continue
+        const pruneMonths = veg.maintenance?.pruneMonths ?? []
+        const unsafePrune = pruneMonths.filter(isStoneFruitUnsafePruneMonth)
+        if (unsafePrune.length > 0) {
+          offenders.push(`${veg.id}: pruneMonths include winter ${JSON.stringify(unsafePrune)}`)
+        }
+        // The prune-mentioning care tips must agree with the summer rule.
+        for (const tip of veg.careTips ?? []) {
+          if (!mentionsPruning(tip.tip)) continue
+          const unsafeTip = tip.months.filter(isStoneFruitUnsafePruneMonth)
+          if (unsafeTip.length > 0) {
+            offenders.push(`${veg.id}: prune tip months include winter ${JSON.stringify(unsafeTip)}`)
+          }
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('maintenance.pruneMonths agree with prune-mentioning care tips', () => {
+      // A perennial that lists both a prune schedule and prune advice should
+      // not put them in contradictory seasons. This is an ENDORSEMENT check,
+      // not a strict match: it passes as long as at least one prune tip shares
+      // a season with the schedule. That deliberately tolerates plants pruned
+      // in more than one season (e.g. gooseberry: winter framework + summer
+      // sideshoots) rather than false-flagging them; the cost is that a stray
+      // extra prune tip in a wrong season is not caught here. The stricter
+      // summer-only rule that matters most — stone fruit — is enforced by the
+      // test above, which flags any unsafe-window prune tip outright.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const pruneMonths = veg.maintenance?.pruneMonths ?? []
+        if (pruneMonths.length === 0) continue
+        const pruneTips = (veg.careTips ?? []).filter(t => mentionsPruning(t.tip))
+        if (pruneTips.length === 0) continue
+
+        const scheduleSeasons = seasonsOf(pruneMonths)
+        const tipSeasons = seasonsOf(pruneTips.flatMap(t => t.months))
+        const overlap = [...scheduleSeasons].some(s => tipSeasons.has(s))
+        if (!overlap) {
+          offenders.push(
+            `${veg.id}: pruneMonths ${JSON.stringify([...scheduleSeasons])} vs prune tips ${JSON.stringify([...tipSeasons])}`
+          )
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
+  describe('Maintenance schedules', () => {
+    it('every maintenance month array is non-empty with valid months in range 1-12', () => {
+      // The Month type constrains these at compile time, but a hand-authored
+      // empty array (a meaningless schedule) or a value slipped in via a cast
+      // would pass the compiler. This mirrors the care-tip months check and
+      // guards the pruneMonths the pruning-season tests depend on.
+      const offenders: string[] = []
+      const check = (months: number[] | undefined, veg: { id: string }, field: string) => {
+        if (months === undefined) return
+        if (months.length === 0) {
+          offenders.push(`${veg.id}.maintenance.${field}: empty array`)
+          return
+        }
+        for (const m of months) {
+          if (!Number.isInteger(m) || m < 1 || m > 12) {
+            offenders.push(`${veg.id}.maintenance.${field}: invalid month ${m}`)
+          }
+        }
+      }
+      for (const veg of vegetables) {
+        if (!veg.maintenance) continue
+        check(veg.maintenance.pruneMonths, veg, 'pruneMonths')
+        check(veg.maintenance.feedMonths, veg, 'feedMonths')
+        check(veg.maintenance.mulchMonths, veg, 'mulchMonths')
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
       // Plant count should be in reasonable range (180-215)

@@ -827,7 +827,7 @@ export const berries: Vegetable[] = [
     },
     maintenance: {
       pruneMonths: [11, 12, 1],
-      feedMonths: [],
+      // No feedMonths — a nitrogen-fixer, deliberately never fed (see care tip).
       waterFrequencyDays: 14,
       notes: ['Minimal care - very tough plant']
     },
