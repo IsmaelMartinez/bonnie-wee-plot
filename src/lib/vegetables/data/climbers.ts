@@ -138,6 +138,10 @@ export const climbers: Vegetable[] = [
   },
   {
     id: 'hops',
+    storage: {
+      methods: ['dry', 'freeze'],
+      tip: 'Dry the ripe cones in a warm airy place then store airtight or freeze; eat the young spring shoots fresh.',
+    },
     name: 'Hops',
     category: 'climbers',
     description: 'Vigorous perennial vine for brewing and ornament. Edible young shoots.',
@@ -170,6 +174,11 @@ export const climbers: Vegetable[] = [
   },
   {
     id: 'hardy-kiwi',
+    storage: {
+      methods: ['fridge', 'freeze'],
+      freshDays: 14,
+      tip: 'Pick firm and ripen a few at a time indoors; keep the rest cool in the fridge, or freeze the glut.',
+    },
     name: 'Hardy Kiwi',
     category: 'climbers',
     description: 'Arctic kiwi variety hardy for Scotland. Grape-sized smooth-skinned fruit.',

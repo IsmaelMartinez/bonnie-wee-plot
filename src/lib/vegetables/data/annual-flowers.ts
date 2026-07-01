@@ -40,6 +40,10 @@ export const annualFlowers: Vegetable[] = [
   },
   {
     id: 'sunflower',
+    storage: {
+      methods: ['dry'],
+      tip: 'Cut seed heads when the backs turn brown, dry them fully somewhere airy, then rub out the seeds and store airtight.',
+    },
     name: 'Sunflower',
     category: 'annual-flowers',
     description: 'Tall annual with large yellow flower heads. Provides food for birds and beneficial insects.',
