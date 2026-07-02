@@ -354,25 +354,22 @@ describe('Plant Data Integrity', () => {
       expect(offenders).toEqual([])
     })
 
-    it('a feedType is paired with a feed schedule (and vice versa)', () => {
-      // feedType names the fertiliser the feed task note surfaces; it is only
-      // ever shown by a feed reminder, which the task generator emits from a
-      // schedule (feedMonths or feedFrequencyDays). A feedType with no schedule
-      // never reaches the user, and a feed schedule with no feedType drops the
-      // "what to feed" detail — so the two travel together.
+    it('a feedType is backed by a feed schedule', () => {
+      // feedType only ever surfaces through a feed task, which the generator
+      // emits from a schedule (feedMonths or feedFrequencyDays); a feedType
+      // with no schedule is dead data the user never sees. The reverse is NOT
+      // asserted: a feed schedule with no feedType is a supported state —
+      // generateFeedTasks falls back to "apply general-purpose fertiliser"
+      // (see FeedType: "Absent = a generic general-purpose fertiliser reminder").
       const offenders: string[] = []
       for (const veg of vegetables) {
         const m = veg.maintenance
-        if (!m) continue
+        if (m?.feedType === undefined) continue
         const hasSchedule =
           (m.feedMonths?.length ?? 0) > 0 ||
           (m.feedFrequencyDays !== undefined && m.feedFrequencyDays > 0)
-        const hasType = m.feedType !== undefined
-        if (hasType && !hasSchedule) {
+        if (!hasSchedule) {
           offenders.push(`${veg.id}: feedType "${m.feedType}" with no feed schedule`)
-        }
-        if (hasSchedule && !hasType) {
-          offenders.push(`${veg.id}: feed schedule with no feedType`)
         }
       }
       expect(offenders).toEqual([])
