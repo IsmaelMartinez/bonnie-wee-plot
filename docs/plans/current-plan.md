@@ -490,10 +490,11 @@ suggested sibling data smells the new tests did not yet cover, so
 `plant-data-integrity.test.ts` gained three more data-driven blocks:
 
 - **Feed & water cadence:** `feedFrequencyDays` and `waterFrequencyDays` must be
-  positive when set, and a `feedType` must be paired with a feed schedule
-  (`feedMonths` or `feedFrequencyDays`) and vice versa — a feedType with no
-  schedule never surfaces in a feed task, and a schedule with no feedType drops
-  the "what to feed" note.
+  positive when set, and a `feedType` must be backed by a feed schedule
+  (`feedMonths` or `feedFrequencyDays`) — a feedType with no schedule never
+  surfaces in a feed task. The reverse is deliberately not asserted: a schedule
+  with no feedType is supported (the generator falls back to a generic feed
+  reminder).
 - **Perennial lifecycle info:** `perennialInfo.yearsToFirstHarvest` and
   `productiveYears` must have positive `min` <= `max`.
 
