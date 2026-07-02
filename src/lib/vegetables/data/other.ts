@@ -57,10 +57,11 @@ export const other: Vegetable[] = [
     },
     careTips: [
       { months: [1, 2], tip: 'Cover crowns with a forcing pot for early pink stems', category: 'care', stage: 'productive' },
-      { months: [3, 4], tip: 'Begin harvesting — pull stems, don\'t cut', category: 'harvest', stage: 'productive' },
+      { months: [4], tip: 'Begin harvesting — pull stems, don\'t cut', category: 'harvest', stage: 'productive' },
       { months: [6], tip: 'Stop harvesting by late June to let the plant recover', category: 'harvest', stage: 'productive' },
       { months: [9], tip: 'Remove any flowering stems immediately', category: 'care' },
       { months: [10, 11], tip: 'Divide crowns every 5 years to maintain vigour', category: 'propagate', stage: 'productive' },
+      { months: [11], tip: 'Mulch around dormant crowns with well-rotted manure, keeping the crown itself clear to prevent rot', category: 'care' },
       { months: [3, 4, 5, 6, 7, 8], tip: 'Don\'t harvest at all in the first year', category: 'care', stage: 'establishing' },
     ],
     enhancedAvoid: []
@@ -217,7 +218,7 @@ export const other: Vegetable[] = [
       { months: [4, 5, 6], tip: 'From year three, cut spears when about 18cm tall', category: 'harvest', stage: 'productive' },
       { months: [6], tip: 'Stop cutting by mid-June and let the ferny foliage grow to feed the crowns', category: 'harvest', stage: 'productive' },
       { months: [6, 7, 8], tip: 'Weed the bed by hand and watch the ferns for asparagus beetle', category: 'care' },
-      { months: [10, 11], tip: 'Cut down the yellowed ferns to ground level', category: 'care' },
+      { months: [10, 11], tip: 'Cut down the yellowed ferns to ground level, then mulch the bed with compost for winter', category: 'care' },
     ]
   },
   {

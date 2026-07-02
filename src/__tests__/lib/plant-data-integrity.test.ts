@@ -200,6 +200,48 @@ describe('Plant Data Integrity', () => {
       expect(offenders).toEqual([])
     })
 
+    it('harvest-category tips fall within the plant\'s harvest window', () => {
+      // A tip categorised 'harvest' is a harvest signal: it surfaces on the
+      // Today dashboard telling the user to go pick the crop. If its months
+      // fall outside planting.harvestMonths the two sources contradict each
+      // other — the tip says "harvest now" while the calendar says nothing is
+      // ready. Tips about flowers, thinning, or stopping the harvest belong in
+      // 'care', not 'harvest' (see elderberry's flowerhead tip).
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        const windowMonths = new Set(veg.planting.harvestMonths)
+        veg.careTips.forEach((tip, i) => {
+          if (tip.category !== 'harvest') return
+          const outside = tip.months.filter(m => !windowMonths.has(m))
+          if (outside.length > 0) {
+            offenders.push(
+              `${veg.id}[${i}]: harvest tip months ${JSON.stringify(outside)} outside harvestMonths ${JSON.stringify(veg.planting.harvestMonths)}`
+            )
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('declining-stage tips only appear on plants with productiveYears', () => {
+      // calculatePerennialStatus() can only return 'declining' when
+      // perennialInfo.productiveYears is defined (the decline year is derived
+      // from it). A tip tagged stage 'declining' on a plant without
+      // productiveYears can therefore never fire — dead data, the same class
+      // the perennialInfo-presence check above catches for stages generally.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        veg.careTips.forEach((tip, i) => {
+          if (tip.stage === 'declining' && !veg.perennialInfo?.productiveYears) {
+            offenders.push(`${veg.id}[${i}]: declining tip without perennialInfo.productiveYears`)
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
     it('no duplicate tip strings within a single plant', () => {
       const offenders: string[] = []
       for (const veg of vegetables) {
@@ -344,6 +386,31 @@ describe('Plant Data Integrity', () => {
       }
       expect(offenders).toEqual([])
     })
+
+    it('every mulch schedule carries a mulch care tip that overlaps it', () => {
+      // Mirrors the prune-tip requirement: a mulchMonths schedule produces a
+      // "Mulch <area>" task whose only note is the generic "apply organic
+      // mulch around base" — but material and placement matter (rhubarb
+      // crowns rot under mulch; tree mulch must stay off the trunk). Require
+      // at least one mulch-mentioning care tip sharing a month with the
+      // schedule so the task arrives alongside plant-specific guidance.
+      // Month overlap (not just existence) is asserted because mulching is
+      // season-critical: a spring mulch tip does not explain an autumn
+      // schedule (asparagus had exactly this mismatch).
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const mulchMonths = veg.maintenance?.mulchMonths ?? []
+        if (mulchMonths.length === 0) continue
+        const mulchTips = (veg.careTips ?? []).filter(t => /mulch/i.test(t.tip))
+        const overlaps = mulchTips.some(t => t.months.some(m => mulchMonths.includes(m)))
+        if (!overlaps) {
+          offenders.push(
+            `${veg.id}: mulchMonths ${JSON.stringify(mulchMonths)} with no overlapping mulch-mentioning care tip`
+          )
+        }
+      }
+      expect(offenders).toEqual([])
+    })
   })
 
   describe('Feed & water cadence', () => {
@@ -387,6 +454,25 @@ describe('Plant Data Integrity', () => {
           (m.feedFrequencyDays !== undefined && m.feedFrequencyDays > 0)
         if (!hasSchedule) {
           offenders.push(`${veg.id}: feedType "${m.feedType}" with no feed schedule`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a feed schedule (feedMonths) declares a feedType', () => {
+      // Converse of the check above. Without a feedType the feed task falls
+      // back to "apply general-purpose fertiliser", which is actively wrong
+      // for most scheduled feeders (fruiting crops want high-potash, brassicas
+      // high-nitrogen). Every feedMonths plant in the database already names
+      // its feed, so hold that line rather than requiring a feed-mentioning
+      // care tip: the feedType note reaches annuals and perennials alike,
+      // whereas care tips only surface for permanent (primaryPlant) areas.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if ((m?.feedMonths?.length ?? 0) === 0) continue
+        if (m?.feedType === undefined) {
+          offenders.push(`${veg.id}: feedMonths ${JSON.stringify(m?.feedMonths)} with no feedType`)
         }
       }
       expect(offenders).toEqual([])
