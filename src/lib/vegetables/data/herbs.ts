@@ -575,6 +575,14 @@ export const herbs: Vegetable[] = [
         'Attracts beneficial insects'
       ]
     },
+    careTips: [
+      { months: [5, 6], tip: 'Plant into deep well drained soil in a sunny sheltered spot — the long taproot dislikes being moved once settled', category: 'plant' },
+      { months: [6, 7, 8, 9], tip: 'Snip the feathery leaves through summer for fish and salads, taking a little from each plant', category: 'harvest' },
+      { months: [9, 10], tip: 'Let some heads ripen and gather the seeds once brown and dry for cooking', category: 'harvest' },
+      { months: [8, 9], tip: 'Cut off most seed heads before they scatter unless you want fennel seedlings all over the plot', category: 'care' },
+      { months: [4, 5], tip: 'Sow saved seed in spring or let a few self sown seedlings grow on to replace ageing plants', category: 'propagate' },
+      { months: [11, 12], tip: 'Cut the old stems down in late autumn and mulch the crown to carry it through a cold wet winter', category: 'protect' },
+    ],
     enhancedCompanions: [],
     enhancedAvoid: [
       { plantId: 'dill', confidence: 'proven', mechanism: 'allelopathy', bidirectional: true, source: 'Fennel allelopathy' }
@@ -781,6 +789,14 @@ export const herbs: Vegetable[] = [
         'Can tolerate light foot traffic'
       ]
     },
+    careTips: [
+      { months: [5, 6], tip: 'Plant out into free draining soil in full sun once frosts pass — it copes with poor ground and light foot traffic', category: 'plant' },
+      { months: [6, 7, 8, 9], tip: 'Pick the open white flowers on a dry morning and dry them on a tray for tea', category: 'harvest' },
+      { months: [7, 8], tip: 'Shear off the spent flowers through summer to keep fresh blooms coming', category: 'care' },
+      { months: [4, 5, 9], tip: 'Lift and divide clumps in spring or early autumn to spread it along a path or lawn edge', category: 'propagate' },
+      { months: [6, 7, 8], tip: 'Water new plants in dry spells but keep them lean — rich soil gives soft floppy growth', category: 'care' },
+      { months: [11, 12, 1], tip: 'Cut back tired growth for winter and clear fallen leaves so the low mats do not rot in the wet', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'brussels-sprouts', confidence: 'traditional', mechanism: 'unknown', bidirectional: true },
       { plantId: 'onion', confidence: 'likely', mechanism: 'pest_confusion', bidirectional: true }

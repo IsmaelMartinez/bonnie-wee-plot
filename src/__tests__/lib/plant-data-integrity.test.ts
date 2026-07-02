@@ -329,6 +329,81 @@ describe('Plant Data Integrity', () => {
     })
   })
 
+  describe('Feed & water cadence', () => {
+    it('feedFrequencyDays, when set, is a positive number', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const days = veg.maintenance?.feedFrequencyDays
+        if (days === undefined) continue
+        if (!Number.isFinite(days) || days <= 0) {
+          offenders.push(`${veg.id}: feedFrequencyDays ${days}`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('waterFrequencyDays, when set, is a positive number', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const days = veg.maintenance?.waterFrequencyDays
+        if (days === undefined) continue
+        if (!Number.isFinite(days) || days <= 0) {
+          offenders.push(`${veg.id}: waterFrequencyDays ${days}`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a feedType is backed by a feed schedule', () => {
+      // feedType only ever surfaces through a feed task, which the generator
+      // emits from a schedule (feedMonths or feedFrequencyDays); a feedType
+      // with no schedule is dead data the user never sees. The reverse is NOT
+      // asserted: a feed schedule with no feedType is a supported state —
+      // generateFeedTasks falls back to "apply general-purpose fertiliser"
+      // (see FeedType: "Absent = a generic general-purpose fertiliser reminder").
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if (m?.feedType === undefined) continue
+        const hasSchedule =
+          (m.feedMonths?.length ?? 0) > 0 ||
+          (m.feedFrequencyDays !== undefined && m.feedFrequencyDays > 0)
+        if (!hasSchedule) {
+          offenders.push(`${veg.id}: feedType "${m.feedType}" with no feed schedule`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
+  describe('Perennial lifecycle info', () => {
+    it('yearsToFirstHarvest / productiveYears have positive min <= max', () => {
+      const offenders: string[] = []
+      const check = (
+        range: { min: number; max: number } | undefined,
+        veg: { id: string },
+        field: string
+      ) => {
+        if (range === undefined) return
+        if (!Number.isFinite(range.min) || range.min <= 0) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: min ${range.min}`)
+        }
+        if (!Number.isFinite(range.max) || range.max <= 0) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: max ${range.max}`)
+        }
+        if (Number.isFinite(range.min) && Number.isFinite(range.max) && range.min > range.max) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: min ${range.min} > max ${range.max}`)
+        }
+      }
+      for (const veg of vegetables) {
+        if (!veg.perennialInfo) continue
+        check(veg.perennialInfo.yearsToFirstHarvest, veg, 'yearsToFirstHarvest')
+        check(veg.perennialInfo.productiveYears, veg, 'productiveYears')
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
       // Plant count should be in reasonable range (180-215)
