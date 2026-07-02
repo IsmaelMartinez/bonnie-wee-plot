@@ -318,6 +318,14 @@ export const perennialFlowers: Vegetable[] = [
         'Deep taproot improves soil structure'
       ]
     },
+    careTips: [
+      { months: [3, 4, 9, 10], tip: 'Plant Bocking 14 root cuttings in spring or autumn — it is sterile so it will not seed itself around the plot', category: 'plant' },
+      { months: [5, 6, 7, 8, 9], tip: 'Cut the leaves several times a season once established, wearing gloves as the hairs can irritate skin', category: 'harvest' },
+      { months: [5, 6, 7], tip: 'Steep cut leaves in water for a few weeks to make a rich potash feed for tomatoes and fruit', category: 'care' },
+      { months: [6, 7, 8], tip: 'Lay wilted leaves as a mulch around hungry crops or add them to the compost heap as an activator', category: 'care' },
+      { months: [3, 4], tip: 'Divide an established crown or take root cuttings in spring to raise more plants', category: 'propagate' },
+      { months: [10, 11], tip: 'Let the top die back for winter and mulch the crown — it will resprout strongly in spring', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'potato', confidence: 'traditional', mechanism: 'unknown', bidirectional: false },
       { plantId: 'squash', confidence: 'traditional', mechanism: 'unknown', bidirectional: false }
@@ -416,6 +424,14 @@ export const perennialFlowers: Vegetable[] = [
         'Very hardy in Scottish conditions'
       ]
     },
+    careTips: [
+      { months: [5, 6], tip: 'Plant into free draining soil in full sun — it dislikes sitting wet over winter more than it minds the cold', category: 'plant' },
+      { months: [7, 8, 9, 10], tip: 'Pick young leaves and flower spikes for tea and salads while the anise scent is strongest', category: 'harvest' },
+      { months: [7, 8], tip: 'Leave plenty of flowers standing for bees and hoverflies before you cut any for the kitchen', category: 'care' },
+      { months: [4, 5], tip: 'Sow seed under cover in spring, or divide an established clump to make new plants', category: 'propagate' },
+      { months: [9, 10], tip: 'Leave the seed heads standing over winter for the birds and for structure rather than cutting back', category: 'care' },
+      { months: [11, 12, 1], tip: 'Improve drainage and give a light mulch — winter wet is the main risk to it in Scotland', category: 'protect' },
+    ],
     enhancedCompanions: [
       { plantId: 'squash', confidence: 'traditional', mechanism: 'beneficial_attraction', bidirectional: false }
     ],

@@ -483,6 +483,38 @@ culinary perennials lavender + bergamot (`perennial-flowers.ts`). Existing
 entries untouched. type-check, lint clean; plant-data-integrity, task-generator,
 and vegetable-database suites all pass.
 
+### Plant-data integrity follow-up — cadence/lifecycle guards + last edible perennials (branch `claude/pr443-plant-integrity-followup-sfl0rk`)
+
+Follow-up to #443 (merged). The sea-buckthorn `feedMonths: []` that #443 caught
+suggested sibling data smells the new tests did not yet cover, so
+`plant-data-integrity.test.ts` gained three more data-driven blocks:
+
+- **Feed & water cadence:** `feedFrequencyDays` and `waterFrequencyDays` must be
+  positive when set, and a `feedType` must be paired with a feed schedule
+  (`feedMonths` or `feedFrequencyDays`) and vice versa — a feedType with no
+  schedule never surfaces in a feed task, and a schedule with no feedType drops
+  the "what to feed" note.
+- **Perennial lifecycle info:** `perennialInfo.yearsToFirstHarvest` and
+  `productiveYears` must have positive `min` <= `max`.
+
+Run against current data these surfaced **no** offenders — the checks are
+non-vacuous (47 plants carry a feedType, all correctly paired; 27 carry
+`perennialInfo`, all with valid ranges), so this is a regression guard for
+future edits, not a data fix.
+
+**careTips coverage re-audit:** swept the perennial categories
+(herbs/other/perennial-flowers/berries/fruit-trees) for gaps. Confirmed the true
+annuals/biennials are correctly skipped (borage, coriander, dill, parsley,
+celery, sweetcorn, mashua) and that the remaining ornamental perennial-flowers
+(echinacea, geranium, nepeta, rudbeckia, salvia, sedum, tansy, yarrow) stay out
+of scope, consistent with the edible/culinary/functional scoping of #441–#443.
+Filled the last edible/functional perennials still lacking tips (6 each,
+month-tagged, Scotland-appropriate, single-quoted, no apostrophes,
+stage-agnostic as none carry `perennialInfo`): chamomile, herb-fennel
+(`herbs.ts`), comfrey, agastache/anise-hyssop (`perennial-flowers.ts`). Existing
+entries untouched. type-check, lint clean; plant-data-integrity, task-generator,
+and vegetable-database suites all pass (122 tests).
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.

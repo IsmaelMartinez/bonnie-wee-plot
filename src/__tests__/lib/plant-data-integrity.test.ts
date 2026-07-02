@@ -329,6 +329,84 @@ describe('Plant Data Integrity', () => {
     })
   })
 
+  describe('Feed & water cadence', () => {
+    it('feedFrequencyDays, when set, is a positive number', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const days = veg.maintenance?.feedFrequencyDays
+        if (days === undefined) continue
+        if (!Number.isFinite(days) || days <= 0) {
+          offenders.push(`${veg.id}: feedFrequencyDays ${days}`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('waterFrequencyDays, when set, is a positive number', () => {
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const days = veg.maintenance?.waterFrequencyDays
+        if (days === undefined) continue
+        if (!Number.isFinite(days) || days <= 0) {
+          offenders.push(`${veg.id}: waterFrequencyDays ${days}`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a feedType is paired with a feed schedule (and vice versa)', () => {
+      // feedType names the fertiliser the feed task note surfaces; it is only
+      // ever shown by a feed reminder, which the task generator emits from a
+      // schedule (feedMonths or feedFrequencyDays). A feedType with no schedule
+      // never reaches the user, and a feed schedule with no feedType drops the
+      // "what to feed" detail — so the two travel together.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if (!m) continue
+        const hasSchedule =
+          (m.feedMonths?.length ?? 0) > 0 ||
+          (m.feedFrequencyDays !== undefined && m.feedFrequencyDays > 0)
+        const hasType = m.feedType !== undefined
+        if (hasType && !hasSchedule) {
+          offenders.push(`${veg.id}: feedType "${m.feedType}" with no feed schedule`)
+        }
+        if (hasSchedule && !hasType) {
+          offenders.push(`${veg.id}: feed schedule with no feedType`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
+  describe('Perennial lifecycle info', () => {
+    it('yearsToFirstHarvest / productiveYears have positive min <= max', () => {
+      const offenders: string[] = []
+      const check = (
+        range: { min: number; max: number } | undefined,
+        veg: { id: string },
+        field: string
+      ) => {
+        if (range === undefined) return
+        if (!Number.isFinite(range.min) || range.min <= 0) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: min ${range.min}`)
+        }
+        if (!Number.isFinite(range.max) || range.max <= 0) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: max ${range.max}`)
+        }
+        if (Number.isFinite(range.min) && Number.isFinite(range.max) && range.min > range.max) {
+          offenders.push(`${veg.id}.perennialInfo.${field}: min ${range.min} > max ${range.max}`)
+        }
+      }
+      for (const veg of vegetables) {
+        if (!veg.perennialInfo) continue
+        check(veg.perennialInfo.yearsToFirstHarvest, veg, 'yearsToFirstHarvest')
+        check(veg.perennialInfo.productiveYears, veg, 'productiveYears')
+      }
+      expect(offenders).toEqual([])
+    })
+  })
+
   describe('Database Stability', () => {
     it('database should contain expected plant count', () => {
       // Plant count should be in reasonable range (180-215)
