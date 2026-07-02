@@ -270,6 +270,23 @@ describe('Plant Data Integrity', () => {
       expect(offenders).toEqual([])
     })
 
+    it('every plant with a prune schedule carries at least one prune care tip', () => {
+      // The endorsement check below only compares seasons WHEN a prune tip
+      // exists, so a plant with pruneMonths but zero prune advice slips past it
+      // entirely — the user gets a bare "prune" task with no guidance. Require
+      // that any plant with a prune schedule also explains how/when to prune.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const pruneMonths = veg.maintenance?.pruneMonths ?? []
+        if (pruneMonths.length === 0) continue
+        const hasPruneTip = (veg.careTips ?? []).some(t => mentionsPruning(t.tip))
+        if (!hasPruneTip) {
+          offenders.push(`${veg.id}: pruneMonths ${JSON.stringify(pruneMonths)} with no prune-mentioning care tip`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
     it('maintenance.pruneMonths agree with prune-mentioning care tips', () => {
       // A perennial that lists both a prune schedule and prune advice should
       // not put them in contradictory seasons. This is an ENDORSEMENT check,
@@ -382,9 +399,19 @@ describe('Plant Data Integrity', () => {
       const check = (
         range: { min: number; max: number } | undefined,
         veg: { id: string },
-        field: string
+        field: string,
+        required = false
       ) => {
-        if (range === undefined) return
+        if (range === undefined) {
+          // yearsToFirstHarvest is a required field on PerennialInfo; a missing
+          // one means the data was cast past the compiler or hand-authored
+          // without it, so report it rather than silently passing. Optional
+          // fields (productiveYears) are legitimately absent.
+          if (required) {
+            offenders.push(`${veg.id}.perennialInfo.${field}: missing (required)`)
+          }
+          return
+        }
         if (!Number.isFinite(range.min) || range.min <= 0) {
           offenders.push(`${veg.id}.perennialInfo.${field}: min ${range.min}`)
         }
@@ -397,7 +424,7 @@ describe('Plant Data Integrity', () => {
       }
       for (const veg of vegetables) {
         if (!veg.perennialInfo) continue
-        check(veg.perennialInfo.yearsToFirstHarvest, veg, 'yearsToFirstHarvest')
+        check(veg.perennialInfo.yearsToFirstHarvest, veg, 'yearsToFirstHarvest', true)
         check(veg.perennialInfo.productiveYears, veg, 'productiveYears')
       }
       expect(offenders).toEqual([])

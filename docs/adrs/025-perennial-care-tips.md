@@ -50,6 +50,19 @@ This means a raspberry in its first year gets "Keep well-watered during establis
 
 Four plants were chosen for the initial implementation: raspberry (6 tips), strawberry (6 tips), rhubarb (6 tips), and apple tree (6 tips). Each tip is tagged with appropriate months and optional lifecycle stages.
 
+Subsequent passes (PRs #442, #443, #444) expanded careTips across the remaining edible and functional perennial crops — soft fruit, top fruit, perennial vegetables, and culinary/functional herbs.
+
+### Coverage Policy: Edible and Functional Perennials Only (2026-07-02)
+
+careTips coverage is **deliberately scoped to edible and functional perennials** — crops the allotment planner exists to help grow and harvest. The eight purely ornamental perennial-flowers (echinacea, geranium, nepeta, rudbeckia, salvia, sedum, tansy, yarrow) are **intentionally excluded** and are not a coverage gap.
+
+Rationale:
+- Consistent with this ADR's original framing (careTips serve "perennials like raspberries, strawberries, rhubarb, and fruit trees" — the growing/harvesting workflow).
+- Consistent with the "Simplicity First" design principle in `CLAUDE.md`: care tips exist to drive actionable Today-dashboard tasks for crops, not decorative planting advice that adds surface without a clear user benefit.
+- The ornamental flowers carry no `perennialInfo`, so any tips would be stage-agnostic and outside the lifecycle-aware model careTips were built for.
+
+Data-integrity audits should treat these eight as out of scope rather than flag them as missing careTips. Revisit only if ornamental planning becomes a first-class product goal.
+
 ## Consequences
 
 ### Positive

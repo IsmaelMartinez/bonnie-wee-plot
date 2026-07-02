@@ -516,6 +516,37 @@ stage-agnostic as none carry `perennialInfo`): chamomile, herb-fennel
 entries untouched. type-check, lint clean; plant-data-integrity, task-generator,
 and vegetable-database suites all pass (122 tests).
 
+### Plant-data integrity nits — Gemini review follow-up to #444 (branch `claude/pr444-integrity-nits`)
+
+Four valid items from Gemini's #444 review that shipped to main:
+
+- **Hyphenation consistency in careTips.** Normalised three unhyphenated
+  drainage phrases to match the DB convention (`well-drained` / `free-draining`):
+  herb-fennel and chamomile (`herbs.ts`), agastache (`perennial-flowers.ts`). A
+  full DB grep found no other `well draining` / `free draining` stragglers.
+- **`yearsToFirstHarvest` now enforced as required.** The "Perennial lifecycle
+  info" test's `check()` helper returned early on `undefined`, silently skipping
+  the required `yearsToFirstHarvest` field. Added a `required` param so a missing
+  one is reported as an offender; `productiveYears` stays optional. Passes against
+  current data (all 27 `perennialInfo` plants carry it) — a runtime/cast guard.
+- **Prune-schedule / prune-tip guard.** Added a test asserting every plant with
+  `maintenance.pruneMonths` carries at least one prune-mentioning careTip (the
+  existing endorsement test only checks season overlap *when* a prune tip
+  exists, so a pruned plant with zero prune advice slipped through). Surfaced 5
+  offenders — raspberry, blackcurrant, tayberry, loganberry, aronia — each
+  data-fixed with a season-appropriate prune tip (not by loosening the test).
+- **careTips coverage policy — decided: edible/functional only.** The scope
+  question carried over from #444 (extend careTips to the 8 ornamental
+  perennial-flowers?) is resolved as **no**. Recorded in ADR 025's new "Coverage
+  Policy" section: careTips are scoped to edible/functional perennials the
+  planner helps grow and harvest, consistent with the ADR's original framing and
+  the "Simplicity First" principle. The eight ornamentals (echinacea, geranium,
+  nepeta, rudbeckia, salvia, sedum, tansy, yarrow) are intentionally out of scope,
+  not a gap; audits should stop flagging them.
+
+Existing entries untouched. type-check, lint clean; plant-data-integrity,
+task-generator, and vegetable-database suites all pass.
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.
