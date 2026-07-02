@@ -533,8 +533,12 @@ Four valid items from Gemini's #444 review that shipped to main:
   `maintenance.pruneMonths` carries at least one prune-mentioning careTip (the
   existing endorsement test only checks season overlap *when* a prune tip
   exists, so a pruned plant with zero prune advice slipped through). Surfaced 5
-  offenders — raspberry, blackcurrant, tayberry, loganberry, aronia — each
-  data-fixed with a season-appropriate prune tip (not by loosening the test).
+  offenders — raspberry, blackcurrant, tayberry, loganberry, aronia. Following
+  review feedback (Gemini + Copilot both flagged that a *new* tip duplicates an
+  existing cut-canes/thinning tip for the same plant), each was fixed by
+  rewording the existing tip's verb to "Prune" rather than adding a second
+  near-duplicate entry — one clean tip per action, no redundant Today-dashboard
+  candidates. Not by loosening the test.
 - **careTips coverage policy — decided: edible/functional only.** The scope
   question carried over from #444 (extend careTips to the 8 ornamental
   perennial-flowers?) is resolved as **no**. Recorded in ADR 025's new "Coverage
