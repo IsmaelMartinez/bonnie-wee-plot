@@ -425,7 +425,7 @@ export const perennialFlowers: Vegetable[] = [
       ]
     },
     careTips: [
-      { months: [5, 6], tip: 'Plant into free draining soil in full sun — it dislikes sitting wet over winter more than it minds the cold', category: 'plant' },
+      { months: [5, 6], tip: 'Plant into free-draining soil in full sun — it dislikes sitting wet over winter more than it minds the cold', category: 'plant' },
       { months: [7, 8, 9, 10], tip: 'Pick young leaves and flower spikes for tea and salads while the anise scent is strongest', category: 'harvest' },
       { months: [7, 8], tip: 'Leave plenty of flowers standing for bees and hoverflies before you cut any for the kitchen', category: 'care' },
       { months: [4, 5], tip: 'Sow seed under cover in spring, or divide an established clump to make new plants', category: 'propagate' },

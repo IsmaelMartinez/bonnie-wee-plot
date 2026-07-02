@@ -576,7 +576,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     careTips: [
-      { months: [5, 6], tip: 'Plant into deep well drained soil in a sunny sheltered spot — the long taproot dislikes being moved once settled', category: 'plant' },
+      { months: [5, 6], tip: 'Plant into deep well-drained soil in a sunny sheltered spot — the long taproot dislikes being moved once settled', category: 'plant' },
       { months: [6, 7, 8, 9], tip: 'Snip the feathery leaves through summer for fish and salads, taking a little from each plant', category: 'harvest' },
       { months: [9, 10], tip: 'Let some heads ripen and gather the seeds once brown and dry for cooking', category: 'harvest' },
       { months: [8, 9], tip: 'Cut off most seed heads before they scatter unless you want fennel seedlings all over the plot', category: 'care' },
@@ -790,7 +790,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     careTips: [
-      { months: [5, 6], tip: 'Plant out into free draining soil in full sun once frosts pass — it copes with poor ground and light foot traffic', category: 'plant' },
+      { months: [5, 6], tip: 'Plant out into free-draining soil in full sun once frosts pass — it copes with poor ground and light foot traffic', category: 'plant' },
       { months: [6, 7, 8, 9], tip: 'Pick the open white flowers on a dry morning and dry them on a tray for tea', category: 'harvest' },
       { months: [7, 8], tip: 'Shear off the spent flowers through summer to keep fresh blooms coming', category: 'care' },
       { months: [4, 5, 9], tip: 'Lift and divide clumps in spring or early autumn to spread it along a path or lawn edge', category: 'propagate' },
