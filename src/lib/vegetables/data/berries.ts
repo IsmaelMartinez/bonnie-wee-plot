@@ -117,6 +117,7 @@ export const berries: Vegetable[] = [
     careTips: [
       { months: [1, 2], tip: 'Check support wires and tighten before new growth', category: 'care' },
       { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
+      { months: [3], tip: 'Mulch the row with compost, keeping it clear of the cane bases', category: 'care' },
       { months: [5, 6], tip: 'Tie in new canes as they grow', category: 'care' },
       { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
       { months: [8, 9], tip: 'Prune spent summer-fruiting canes to ground after harvest', category: 'care', stage: 'productive' },
@@ -787,7 +788,7 @@ export const berries: Vegetable[] = [
       { months: [11, 12, 1, 2, 3], tip: 'Plant bare-root shrubs during the dormant season, allowing plenty of room', category: 'plant', stage: 'establishing' },
       { months: [11, 12, 1], tip: 'Hard-prune in winter to control the size of this fast-growing shrub', category: 'care' },
       { months: [3], tip: 'Mulch around the base with compost as growth begins', category: 'care' },
-      { months: [6], tip: 'Pick some flowerheads for cordial and leave the rest to set fruit', category: 'harvest', stage: 'productive' },
+      { months: [6], tip: 'Pick some flowerheads for cordial and leave the rest to set fruit', category: 'care', stage: 'productive' },
       { months: [8, 9], tip: 'Gather ripe berry clusters and cook them before eating, never raw', category: 'harvest', stage: 'productive' },
       { months: [8, 9], tip: 'Net the ripening berries if birds are stripping the heads', category: 'protect', stage: 'productive' },
     ],

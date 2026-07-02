@@ -62,6 +62,7 @@ export const fruitTrees: Vegetable[] = [
       { months: [6], tip: 'Thin fruitlets to one per cluster for better size', category: 'care', stage: 'productive' },
       { months: [8, 9], tip: 'Pick fruit when it twists off easily', category: 'harvest', stage: 'productive' },
       { months: [11], tip: 'Clear fallen leaves to reduce scab spores', category: 'protect' },
+      { months: [11], tip: 'Mulch over the root zone with compost, keeping it clear of the trunk', category: 'care' },
       { months: [1, 4, 7, 10], tip: 'Stake securely and check ties quarterly', category: 'care', stage: 'establishing' },
     ],
     rhsUrl: 'https://www.rhs.org.uk/fruit/apples/grow-your-own',
