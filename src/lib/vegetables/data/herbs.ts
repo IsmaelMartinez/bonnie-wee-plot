@@ -261,7 +261,7 @@ export const herbs: Vegetable[] = [
       ]
     },
     careTips: [
-      { months: [4, 5, 6, 7, 8, 9], tip: 'Harvest sprigs spring to autumn, best just before flowering', category: 'harvest' },
+      { months: [5, 6, 7, 8, 9, 10], tip: 'Harvest sprigs spring to autumn, best just before flowering', category: 'harvest' },
       { months: [7, 8], tip: 'Trim the plant over after flowering to stop it going woody and leggy', category: 'care' },
       { months: [4, 5], tip: 'Take cuttings or divide clumps in spring or early summer', category: 'propagate' },
       { months: [3], tip: 'Add grit to keep the soil free-draining — thyme dislikes winter wet', category: 'care' },

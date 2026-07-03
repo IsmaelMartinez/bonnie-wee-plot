@@ -49,6 +49,7 @@ export const fruitTrees: Vegetable[] = [
       mulchMonths: [11],
       feedFrequencyDays: 90,
       feedType: 'balanced',
+      mulchNote: 'Mulch over the root zone with compost, keeping it clear of the trunk',
       waterFrequencyDays: 7,
       notes: ['Winter prune when dormant', 'Summer prune water shoots in July-Aug']
     },

@@ -200,6 +200,49 @@ describe('Plant Data Integrity', () => {
       expect(offenders).toEqual([])
     })
 
+    it('harvest-category tips fall within the plant\'s harvest window', () => {
+      // A tip categorised 'harvest' is listed under the Harvest section of
+      // the plant detail page (tips are grouped by category there; the task
+      // generator ignores category). If its months fall outside
+      // planting.harvestMonths the two sources contradict each other — the
+      // Harvest section says "pick now" in a month the calendar says nothing
+      // is ready. Tips about flowers, thinning, or stopping the harvest
+      // belong in 'care', not 'harvest' (see elderberry's flowerhead tip).
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        const windowMonths = new Set(veg.planting.harvestMonths)
+        veg.careTips.forEach((tip, i) => {
+          if (tip.category !== 'harvest') return
+          const outside = tip.months.filter(m => !windowMonths.has(m))
+          if (outside.length > 0) {
+            offenders.push(
+              `${veg.id}[${i}]: harvest tip months ${JSON.stringify(outside)} outside harvestMonths ${JSON.stringify(veg.planting.harvestMonths)}`
+            )
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('declining-stage tips only appear on plants with productiveYears', () => {
+      // calculatePerennialStatus() can only return 'declining' when
+      // perennialInfo.productiveYears is defined (the decline year is derived
+      // from it). A tip tagged stage 'declining' on a plant without
+      // productiveYears can therefore never fire — dead data, the same class
+      // the perennialInfo-presence check above catches for stages generally.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        if (!veg.careTips) continue
+        veg.careTips.forEach((tip, i) => {
+          if (tip.stage === 'declining' && !veg.perennialInfo?.productiveYears) {
+            offenders.push(`${veg.id}[${i}]: declining tip without perennialInfo.productiveYears`)
+          }
+        })
+      }
+      expect(offenders).toEqual([])
+    })
+
     it('no duplicate tip strings within a single plant', () => {
       const offenders: string[] = []
       for (const veg of vegetables) {
@@ -344,6 +387,41 @@ describe('Plant Data Integrity', () => {
       }
       expect(offenders).toEqual([])
     })
+
+    it('every mulch schedule (mulchMonths) declares a mulchNote', () => {
+      // A mulchMonths schedule produces a "Mulch <area>" task, and material
+      // and placement matter (rhubarb crowns rot under mulch; tree mulch must
+      // stay off the trunk). The guidance must live on the task itself via
+      // maintenance.mulchNote — structured like feedType — because the
+      // alternative, a mulch-mentioning care tip in the same month, is
+      // unreliable: care-tip tasks are deduplicated per plant per month
+      // (taskDedupeKey in task-generator.ts), so any earlier same-month tip
+      // silently swallows the mulch advice.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if ((m?.mulchMonths?.length ?? 0) === 0) continue
+        if (!m?.mulchNote) {
+          offenders.push(`${veg.id}: mulchMonths ${JSON.stringify(m?.mulchMonths)} with no mulchNote`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a mulchNote is backed by a mulch schedule', () => {
+      // Converse of the check above, mirroring the feedType pair: mulchNote
+      // only surfaces through the mulch task the schedule emits, so a note
+      // with no mulchMonths is dead data the user never sees.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if (m?.mulchNote === undefined) continue
+        if ((m.mulchMonths?.length ?? 0) === 0) {
+          offenders.push(`${veg.id}: mulchNote with no mulch schedule`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
   })
 
   describe('Feed & water cadence', () => {
@@ -374,10 +452,10 @@ describe('Plant Data Integrity', () => {
     it('a feedType is backed by a feed schedule', () => {
       // feedType only ever surfaces through a feed task, which the generator
       // emits from a schedule (feedMonths or feedFrequencyDays); a feedType
-      // with no schedule is dead data the user never sees. The reverse is NOT
-      // asserted: a feed schedule with no feedType is a supported state —
-      // generateFeedTasks falls back to "apply general-purpose fertiliser"
-      // (see FeedType: "Absent = a generic general-purpose fertiliser reminder").
+      // with no schedule is dead data the user never sees. The reverse is
+      // asserted for feedMonths by the test below; only a feedFrequencyDays-
+      // only schedule may still omit feedType and lean on the runtime's
+      // "apply general-purpose fertiliser" fallback.
       const offenders: string[] = []
       for (const veg of vegetables) {
         const m = veg.maintenance
@@ -387,6 +465,25 @@ describe('Plant Data Integrity', () => {
           (m.feedFrequencyDays !== undefined && m.feedFrequencyDays > 0)
         if (!hasSchedule) {
           offenders.push(`${veg.id}: feedType "${m.feedType}" with no feed schedule`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a feed schedule (feedMonths) declares a feedType', () => {
+      // Converse of the check above. Without a feedType the feed task falls
+      // back to "apply general-purpose fertiliser", which is actively wrong
+      // for most scheduled feeders (fruiting crops want high-potash, brassicas
+      // high-nitrogen). Every feedMonths plant in the database already names
+      // its feed, so hold that line rather than requiring a feed-mentioning
+      // care tip: the feedType note reaches annuals and perennials alike,
+      // whereas care tips only surface for permanent (primaryPlant) areas.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if ((m?.feedMonths?.length ?? 0) === 0) continue
+        if (m?.feedType === undefined) {
+          offenders.push(`${veg.id}: feedMonths ${JSON.stringify(m?.feedMonths)} with no feedType`)
         }
       }
       expect(offenders).toEqual([])

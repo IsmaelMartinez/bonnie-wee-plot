@@ -1069,7 +1069,7 @@ function createMulchTask(
     areaName: area.name,
     month,
     priority: 'low',
-    notes: 'Apply organic mulch around base'
+    notes: vegetable.maintenance?.mulchNote ?? 'Apply organic mulch around base'
   }
 }
 
