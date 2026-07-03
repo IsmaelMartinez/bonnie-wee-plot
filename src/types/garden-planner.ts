@@ -154,6 +154,14 @@ export interface MaintenanceInfo {
   /** Preferred feed (e.g. high-potash for fruiting crops). Surfaced in the feed task note. */
   feedType?: FeedType
   /**
+   * Plant-specific mulching guidance (material and placement, e.g. "keep the
+   * mulch clear of the crown"). Surfaced in the mulch task note; absent = a
+   * generic "apply organic mulch around base" reminder. Kept on the task
+   * itself (like feedType) rather than as a care tip because care-tip tasks
+   * are deduplicated per plant per month and a same-month tip can swallow it.
+   */
+  mulchNote?: string
+  /**
    * Cadence between waterings in days. Combined with the plant's
    * `care.water` requirement and recent rainfall to produce date-based
    * watering reminders. When unset, defaults are derived from `care.water`

@@ -201,12 +201,13 @@ describe('Plant Data Integrity', () => {
     })
 
     it('harvest-category tips fall within the plant\'s harvest window', () => {
-      // A tip categorised 'harvest' is a harvest signal: it surfaces on the
-      // Today dashboard telling the user to go pick the crop. If its months
-      // fall outside planting.harvestMonths the two sources contradict each
-      // other — the tip says "harvest now" while the calendar says nothing is
-      // ready. Tips about flowers, thinning, or stopping the harvest belong in
-      // 'care', not 'harvest' (see elderberry's flowerhead tip).
+      // A tip categorised 'harvest' is listed under the Harvest section of
+      // the plant detail page (tips are grouped by category there; the task
+      // generator ignores category). If its months fall outside
+      // planting.harvestMonths the two sources contradict each other — the
+      // Harvest section says "pick now" in a month the calendar says nothing
+      // is ready. Tips about flowers, thinning, or stopping the harvest
+      // belong in 'care', not 'harvest' (see elderberry's flowerhead tip).
       const offenders: string[] = []
       for (const veg of vegetables) {
         if (!veg.careTips) continue
@@ -387,26 +388,36 @@ describe('Plant Data Integrity', () => {
       expect(offenders).toEqual([])
     })
 
-    it('every mulch schedule carries a mulch care tip that overlaps it', () => {
-      // Mirrors the prune-tip requirement: a mulchMonths schedule produces a
-      // "Mulch <area>" task whose only note is the generic "apply organic
-      // mulch around base" — but material and placement matter (rhubarb
-      // crowns rot under mulch; tree mulch must stay off the trunk). Require
-      // at least one mulch-mentioning care tip sharing a month with the
-      // schedule so the task arrives alongside plant-specific guidance.
-      // Month overlap (not just existence) is asserted because mulching is
-      // season-critical: a spring mulch tip does not explain an autumn
-      // schedule (asparagus had exactly this mismatch).
+    it('every mulch schedule (mulchMonths) declares a mulchNote', () => {
+      // A mulchMonths schedule produces a "Mulch <area>" task, and material
+      // and placement matter (rhubarb crowns rot under mulch; tree mulch must
+      // stay off the trunk). The guidance must live on the task itself via
+      // maintenance.mulchNote — structured like feedType — because the
+      // alternative, a mulch-mentioning care tip in the same month, is
+      // unreliable: care-tip tasks are deduplicated per plant per month
+      // (taskDedupeKey in task-generator.ts), so any earlier same-month tip
+      // silently swallows the mulch advice.
       const offenders: string[] = []
       for (const veg of vegetables) {
-        const mulchMonths = veg.maintenance?.mulchMonths ?? []
-        if (mulchMonths.length === 0) continue
-        const mulchTips = (veg.careTips ?? []).filter(t => /mulch/i.test(t.tip))
-        const overlaps = mulchTips.some(t => t.months.some(m => mulchMonths.includes(m)))
-        if (!overlaps) {
-          offenders.push(
-            `${veg.id}: mulchMonths ${JSON.stringify(mulchMonths)} with no overlapping mulch-mentioning care tip`
-          )
+        const m = veg.maintenance
+        if ((m?.mulchMonths?.length ?? 0) === 0) continue
+        if (!m?.mulchNote) {
+          offenders.push(`${veg.id}: mulchMonths ${JSON.stringify(m?.mulchMonths)} with no mulchNote`)
+        }
+      }
+      expect(offenders).toEqual([])
+    })
+
+    it('a mulchNote is backed by a mulch schedule', () => {
+      // Converse of the check above, mirroring the feedType pair: mulchNote
+      // only surfaces through the mulch task the schedule emits, so a note
+      // with no mulchMonths is dead data the user never sees.
+      const offenders: string[] = []
+      for (const veg of vegetables) {
+        const m = veg.maintenance
+        if (m?.mulchNote === undefined) continue
+        if ((m.mulchMonths?.length ?? 0) === 0) {
+          offenders.push(`${veg.id}: mulchNote with no mulch schedule`)
         }
       }
       expect(offenders).toEqual([])
@@ -441,10 +452,10 @@ describe('Plant Data Integrity', () => {
     it('a feedType is backed by a feed schedule', () => {
       // feedType only ever surfaces through a feed task, which the generator
       // emits from a schedule (feedMonths or feedFrequencyDays); a feedType
-      // with no schedule is dead data the user never sees. The reverse is NOT
-      // asserted: a feed schedule with no feedType is a supported state —
-      // generateFeedTasks falls back to "apply general-purpose fertiliser"
-      // (see FeedType: "Absent = a generic general-purpose fertiliser reminder").
+      // with no schedule is dead data the user never sees. The reverse is
+      // asserted for feedMonths by the test below; only a feedFrequencyDays-
+      // only schedule may still omit feedType and lean on the runtime's
+      // "apply general-purpose fertiliser" fallback.
       const offenders: string[] = []
       for (const veg of vegetables) {
         const m = veg.maintenance

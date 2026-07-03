@@ -107,6 +107,7 @@ export const berries: Vegetable[] = [
       mulchMonths: [3],
       feedFrequencyDays: 28,
       feedType: 'high-potash',
+      mulchNote: 'Mulch the row with compost, keeping it clear of the cane bases',
       waterFrequencyDays: 5,
       notes: ['Summer types: cut fruited canes after harvest', 'Autumn types: cut all canes to ground in Feb']
     },
@@ -117,7 +118,6 @@ export const berries: Vegetable[] = [
     careTips: [
       { months: [1, 2], tip: 'Check support wires and tighten before new growth', category: 'care' },
       { months: [3], tip: 'Cut back autumn-fruiting canes to ground level', category: 'care' },
-      { months: [3], tip: 'Mulch the row with compost, keeping it clear of the cane bases', category: 'care' },
       { months: [5, 6], tip: 'Tie in new canes as they grow', category: 'care' },
       { months: [6, 7, 8], tip: 'Net fruit to protect from birds', category: 'protect', stage: 'productive' },
       { months: [8, 9], tip: 'Prune spent summer-fruiting canes to ground after harvest', category: 'care', stage: 'productive' },
@@ -329,6 +329,7 @@ export const berries: Vegetable[] = [
       mulchMonths: [3],
       feedFrequencyDays: 28,
       feedType: 'high-potash',
+      mulchNote: 'Mulch generously with compost around the bush — blackcurrants are hungry feeders',
       waterFrequencyDays: 5,
       notes: ['Remove a third of oldest wood each year after fruiting']
     },
