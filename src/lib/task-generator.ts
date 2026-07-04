@@ -272,6 +272,22 @@ export function generateSuccessionReminders(
 }
 
 /**
+ * Short, stable identity for a care tip: FNV-1a 32-bit hash of
+ * plantId + tip text, rendered in base36. Task IDs built from this survive
+ * inserting or reordering tips in the vegetable database — an array index
+ * would silently invalidate month-scoped dismissals in localStorage on deploy.
+ */
+export function careTipHash(plantId: string, tipText: string): string {
+  const input = `${plantId}:${tipText}`
+  let hash = 0x811c9dc5
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(36)
+}
+
+/**
  * Generate care tip tasks for perennial areas
  * Filters by current month and the plant's lifecycle stage
  */
@@ -299,8 +315,7 @@ function generateCareTipTasks(
       lifecycleStatus = result.status
     }
 
-    for (let tipIdx = 0; tipIdx < vegetable.careTips.length; tipIdx++) {
-      const tip = vegetable.careTips[tipIdx]
+    for (const tip of vegetable.careTips) {
       if (!tip.months.includes(currentMonth)) continue
 
       // Stage filtering: if tip has a stage, only show when lifecycle matches
@@ -309,8 +324,10 @@ function generateCareTipTasks(
         if (tip.stage !== lifecycleStatus) continue
       }
 
+      // Content-derived ID, no area: the same tip for a plant grown in
+      // several areas is one task, and dismissals survive database edits.
       tasks.push({
-        id: `care-tip-${area.id}-${vegetable.id}-${tipIdx}-${currentMonth}`,
+        id: `care-tip-${vegetable.id}-${careTipHash(vegetable.id, tip.tip)}-${currentMonth}`,
         type: 'other',
         generatedType: 'care-tip',
         description: tip.tip,
@@ -498,6 +515,12 @@ function generateMonthBasedTasks(
  * derived tasks for the same crop.
  */
 function taskDedupeKey(task: GeneratedTask): string {
+  // Care tips: distinct tips are distinct tasks, so the key is the task ID,
+  // which already encodes plant + tip content + month (no area). The same
+  // tip for a plant grown in several areas collapses to one task, while
+  // several same-month tips for one plant all survive. Preserve nudges share
+  // the care-tip type but have their own stable preserve-nudge-* IDs.
+  if (task.generatedType === 'care-tip') return task.id
   const source = task.id.startsWith('variety-') ? 'variety' : 'planting'
   return `${source}-${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
 }
