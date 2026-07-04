@@ -119,6 +119,16 @@ Split into index, per-category data files, and lazy loader for performance:
 - `src/lib/vegetable-database.ts` - combines all category files into single array
 - `src/lib/vegetable-loader.ts` - per-category dynamic imports for code splitting
 
+### Preserving Guides
+
+Rich per-crop preservation guidance (method how-tos, storage life, free online resource links, recipe ideas) for the `/preserving` page, building on the lightweight `Vegetable.storage` field:
+- `src/types/preservation.ts` - `PreservationGuide` types
+- `src/lib/preservation/index.ts` - aggregator and lookups
+- `src/lib/preservation/resources.ts` - shared fetch-verified free resources (NCHFP, RHS, Garden Organic, BBC Food, etc.)
+- `src/lib/preservation/data/*.ts` - per-category guide files (parallel-authoring-safe)
+
+Authoring spec and per-category session goals: `docs/plans/food-preservation-plan.md`.
+
 ### Key Type Definitions
 
 `src/types/garden-planner.ts` defines:
