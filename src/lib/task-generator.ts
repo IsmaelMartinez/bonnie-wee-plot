@@ -324,8 +324,10 @@ function generateCareTipTasks(
         if (tip.stage !== lifecycleStatus) continue
       }
 
-      // Content-derived ID, no area: the same tip for a plant grown in
-      // several areas is one task, and dismissals survive database edits.
+      // The ID is content-derived and has no area component, so the same
+      // tip for a plant grown in several areas dedupes to one task and
+      // dismissals survive database edits. The task itself still carries
+      // areaId/areaName for display context.
       tasks.push({
         id: `care-tip-${vegetable.id}-${careTipHash(vegetable.id, tip.tip)}-${currentMonth}`,
         type: 'other',
