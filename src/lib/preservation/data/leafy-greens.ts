@@ -1,13 +1,13 @@
 /**
  * Leafy Greens — Preserving guides
- * Authoring spec: ./README.md
+ * Authoring spec: src/lib/preservation/data/README.md
  */
 
 import { PreservationGuide } from '@/types/preservation'
 import {
   NCHFP,
-  GARDEN_ORGANIC_STORING,
   UMN_SAUERKRAUT,
+  UMN_HARVEST_STORAGE,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
 } from '../resources'
@@ -16,42 +16,40 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   {
     plantId: 'lettuce',
     summary:
-      'Lettuce does not preserve — sow little and often, eat it fresh, and braise or blitz the bolters into soup.',
+      'Lettuce does not preserve — sow little and often instead, and let the plot be the store.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick in the cool of the morning and eat the same day for the best crunch. Cut-and-come-again varieties keep producing if you take outer leaves only.',
-        storageLife: 'best eaten the day it is picked',
+        how: 'Harvest outer leaves cut-and-come-again and the plant keeps producing for weeks — far better storage than any bag.',
       },
       {
         method: 'fridge',
-        how: 'Wash, spin dry and keep in a box or bag with a sheet of kitchen paper to catch the damp. Whole heads keep longer than loose leaves.',
-        storageLife: '5–7 days',
+        how: 'Pick cool in the morning, keep dry and unwashed in a sealed bag in the salad drawer. Whole heads keep better than loose leaves.',
+        storageLife: 'about 5 days',
+        resources: [UMN_HARVEST_STORAGE],
       },
     ],
     recipeIdeas: [
       bbcFoodIngredient('lettuce', 'Lettuce'),
-      bbcGoodFoodCollection('salad-recipes', 'Salad recipes'),
+      bbcGoodFoodCollection('lettuce-recipes', 'Lettuce recipes'),
     ],
   },
   {
     plantId: 'spinach',
-    summary:
-      'Wilts within days but freezes brilliantly — a spring glut becomes a freezer drawer of green portions for curries and pies.',
+    summary: 'Wilts within days fresh, but blanches and freezes brilliantly — a glut is soup and saag waiting to happen.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick young leaves and eat within a day or two — spinach loses sweetness fast off the plant.',
-        storageLife: '2–3 days',
+        how: 'Pick young leaves straight into the kitchen — spinach is at its best the day it is cut.',
       },
       {
         method: 'fridge',
-        how: 'Store unwashed in a loose bag in the salad drawer and wash just before use.',
-        storageLife: '3–5 days',
+        how: 'Keep dry, unwashed leaves in a sealed bag in the salad drawer and use quickly.',
+        storageLife: '2–3 days',
       },
       {
         method: 'freeze',
-        how: 'Blanch for 1–2 minutes, cool in iced water, squeeze into fist-sized balls and bag them. One ball is a portion for a curry or pie filling.',
+        how: 'Blanch 1–2 minutes (or wilt in a dry pan), cool, squeeze out the water and freeze in fist-sized balls. A carrier bag of leaves shrinks to a few portions.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
@@ -63,42 +61,39 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'perpetual-spinach',
-    summary:
-      'A leaf beet that crops for months — pick as you need it, and blanch-and-freeze whatever gets ahead of you.',
+    summary: 'The plant itself is the store — it stands all winter — so only freeze what a heavy cut leaves you.',
     methods: [
       {
         method: 'fridge',
-        how: 'Keep unwashed in a loose bag in the salad drawer. It is tougher than true spinach and keeps a little longer.',
-        storageLife: '5–7 days',
+        how: 'Keep cut leaves dry in a sealed bag in the salad drawer.',
+        storageLife: 'up to 1 week',
       },
       {
         method: 'freeze',
-        how: 'Treat exactly like spinach: blanch for 2 minutes, squeeze dry and freeze in portion-sized balls. Cooked from frozen it is indistinguishable in pies and curries.',
+        how: 'Treat exactly like spinach: blanch 1–2 minutes, squeeze dry and freeze in portions. Chop any thick midribs first.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('spinach', 'Spinach')],
+    recipeIdeas: [bbcFoodIngredient('chard', 'Chard')],
   },
   {
     plantId: 'kale',
-    summary:
-      'The plot is the store — kale stands happily through a Scottish winter, so freeze only what you must.',
+    summary: 'The hardiest storage method is the plant itself — pick all winter, and freeze only a spring glut before it flowers.',
     methods: [
       {
         method: 'fresh',
-        how: 'Leave plants standing and pick leaves as needed right through winter — frost actually sweetens them. This beats any other storage method.',
-        storageLife: 'in the ground all winter',
-        resources: [GARDEN_ORGANIC_STORING],
+        how: 'Leave it standing and pick lower leaves as you need them — frost sweetens the flavour, and the plant crops from autumn to spring.',
       },
       {
         method: 'fridge',
-        how: 'Picked leaves keep in a bag in the salad drawer. Strip the tough midribs before cooking.',
-        storageLife: 'about 1 week',
+        how: 'Keep picked leaves in a bag in the salad drawer.',
+        storageLife: 'about 5 days',
+        resources: [UMN_HARVEST_STORAGE],
       },
       {
         method: 'freeze',
-        how: 'Strip out the midribs, blanch the leaves for 2 minutes, cool, squeeze and bag flat. Handy for soups and stews when the plot is under snow.',
+        how: 'Strip leaves from the tough midribs, blanch 1 minute, squeeze dry and bag in portions — ready for soups and stews.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
@@ -110,73 +105,71 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'cavolo-nero',
-    summary:
-      'Stands through winter like kale — pick fresh from the plant for months, freeze the surplus for ribollita.',
+    summary: 'Like kale, it stores best on the plant through winter — freeze the surplus for ribollita and pasta.',
     methods: [
       {
         method: 'fresh',
-        how: 'Leave plants in the ground and pick from the bottom up all winter. The flavour deepens after frost.',
-        storageLife: 'in the ground all winter',
-        resources: [GARDEN_ORGANIC_STORING],
+        how: 'Pick from the bottom up as needed — it stands through the hardest Scottish winter and tastes better for the frost.',
       },
       {
         method: 'fridge',
-        how: 'Keep picked leaves in a loose bag in the salad drawer, unwashed.',
-        storageLife: 'about 1 week',
+        how: 'Keep picked leaves in a bag in the salad drawer.',
+        storageLife: 'about 5 days',
       },
       {
         method: 'freeze',
-        how: 'Strip the midribs, blanch 2 minutes, squeeze dry and freeze in bags pressed flat. Goes straight from freezer to soup pot.',
+        how: 'Strip out the midribs, blanch 1 minute, squeeze dry and freeze in portions.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('cavolo_nero', 'Cavolo nero')],
+    recipeIdeas: [bbcFoodIngredient('kale', 'Kale')],
   },
   {
     plantId: 'chard',
-    summary:
-      'Two crops in one — freeze the leaves like spinach and treat the stems as a separate vegetable.',
+    summary: 'Two crops in one: freeze the leaves like spinach, and pickle or cook the stems separately.',
     methods: [
       {
         method: 'fresh',
-        how: 'Plants stand for months and often overwinter — pick outer leaves as needed and they keep coming.',
-        storageLife: 'in the ground for months',
-        resources: [GARDEN_ORGANIC_STORING],
+        how: 'Cut outer leaves regularly and the plant keeps producing into winter — pick as you need rather than storing.',
       },
       {
         method: 'fridge',
-        how: 'Store unwashed in a loose bag. Leaves wilt before the stems do, so use leaves first.',
-        storageLife: '4–7 days',
+        how: 'Keep unwashed leaves in a bag in the salad drawer.',
+        storageLife: '3–4 days',
       },
       {
         method: 'freeze',
-        how: 'Separate leaves from stems: blanch leaves 2 minutes and stems 3 minutes, then freeze in separate bags. Stems are lovely gratinated; leaves go in anything spinach would.',
+        how: 'Separate leaves from stems. Blanch leaves 1–2 minutes and stems 2–3 minutes, squeeze or drain, and freeze in separate bags.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
+      },
+      {
+        method: 'pickle',
+        how: 'The colourful stems pickle well — cut into batons, pack into spiced vinegar and keep in the fridge for salads and cheese boards.',
+        storageLife: '2–3 months in the fridge',
+        resources: [NCHFP.pickling],
       },
     ],
     recipeIdeas: [bbcFoodIngredient('chard', 'Chard')],
   },
   {
     plantId: 'rocket',
-    summary:
-      'A fast, peppery salad leaf that does not keep — eat it fresh, and blitz a bolting patch into pesto for the freezer.',
+    summary: 'A sow-every-3-weeks crop, not a storing one — whizz a glut into pesto for the freezer.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick young leaves before the plant bolts and eat the same day — the pepper builds as leaves age.',
-        storageLife: 'best the day it is picked',
+        how: 'Pick young leaves as you need them — the flavour fades within days of cutting.',
       },
       {
         method: 'fridge',
-        how: 'Wash, dry well and keep in a box with kitchen paper in the salad drawer.',
-        storageLife: '3–5 days',
+        how: 'Keep dry in a sealed bag in the salad drawer and use before it yellows.',
+        storageLife: '3–4 days',
       },
       {
         method: 'freeze',
-        how: 'Blitz a glut into a rocket pesto with oil, nuts and cheese, and freeze in ice-cube trays. Raw leaves do not freeze, but the pesto keeps the pepper.',
-        storageLife: '3–6 months frozen as pesto',
+        how: 'Raw leaves do not freeze, but rocket pesto does — blend with oil, nuts and cheese and freeze in ice-cube trays.',
+        storageLife: '3–4 months frozen',
         resources: [NCHFP.freezing],
       },
     ],
@@ -184,18 +177,17 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'pak-choi',
-    summary:
-      'Best straight into the wok — and the classic base for a kimchi-style ferment when a sowing all hearts up at once.',
+    summary: 'Eat fresh within the week, or ferment a glut kimchi-style — pak choi is the classic kimchi green.',
     methods: [
       {
         method: 'fridge',
-        how: 'Keep whole heads unwashed in a loose bag in the salad drawer. Baby heads wilt faster than full-sized ones.',
-        storageLife: '4–7 days',
+        how: 'Keep whole heads dry in a bag in the salad drawer — baby leaves wilt faster than full heads.',
+        storageLife: 'about 5 days',
       },
       {
         method: 'ferment',
-        how: 'Salt quartered heads, rinse, then pack with chilli, garlic and ginger paste for a kimchi-style ferment. Keep everything under the brine and ferment cool for a few days before moving to the fridge.',
-        storageLife: 'several months in the fridge',
+        how: 'Salt quartered heads for a few hours, rinse, coat in a chilli-garlic-ginger paste and pack into a jar to ferment kimchi-style. Follow tested salt ratios.',
+        storageLife: 'several months in the fridge once fermented',
         resources: [UMN_SAUERKRAUT, NCHFP.fermenting],
       },
     ],
@@ -206,38 +198,31 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'mizuna',
-    summary:
-      'A cut-and-come-again winter salad — the plant itself is the store, so pick small and often.',
+    summary: 'A standing winter salad — the plot keeps it fresher than the fridge ever will.',
     methods: [
       {
         method: 'fresh',
-        how: 'Cut leaves as needed and the stumps resprout for weeks — under a cloche it crops most of the winter.',
-        storageLife: 'cut-and-come-again for weeks',
+        how: 'Pick cut-and-come-again through autumn and winter — mizuna shrugs off frost, so harvest little and often.',
       },
       {
         method: 'fridge',
-        how: 'Wash, dry thoroughly and keep in a box lined with kitchen paper. Larger leaves also wilt nicely into stir-fries.',
-        storageLife: '4–5 days',
+        how: 'Keep dry leaves in a sealed bag in the salad drawer.',
+        storageLife: 'about 5 days',
       },
     ],
-    recipeIdeas: [
-      bbcFoodIngredient('salad_leaves', 'Salad leaves'),
-      bbcGoodFoodCollection('stir-fry-recipes', 'Stir-fry recipes'),
-    ],
+    recipeIdeas: [bbcGoodFoodCollection('salad-recipes', 'Salad recipes')],
   },
   {
     plantId: 'land-cress',
-    summary:
-      'A hardy watercress stand-in that crops through winter — treat the bed as the larder and pick as needed.',
+    summary: 'A peppery watercress stand-in that stores itself in the plot all winter.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick outer leaves as needed — plants stand through frost and keep producing where watercress would sulk.',
-        storageLife: 'in the ground through winter',
+        how: 'Pick outer leaves as needed — it crops right through a Scottish winter, so there is rarely a glut to deal with.',
       },
       {
         method: 'fridge',
-        how: 'Keep in a loose bag in the salad drawer and use within a few days. Older, hotter leaves are better cooked into soup than eaten raw.',
+        how: 'Keep cool and dry in a sealed bag; the peppery kick fades fast, so use within days.',
         storageLife: '3–4 days',
       },
     ],
@@ -245,87 +230,77 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'corn-salad',
-    summary:
-      'The classic winter salad standby — it does not store, but then it does not need to, cropping outdoors when little else will.',
+    summary: 'A winter picker, not a keeper — cut rosettes the day you eat them.',
     methods: [
       {
         method: 'fresh',
-        how: 'Cut whole rosettes at soil level as needed through autumn and winter. The plants shrug off frost, so harvest to order.',
-        storageLife: 'in the ground all winter',
+        how: 'Cut whole rosettes at soil level as you need them — the plants stand happily under frost and even snow.',
       },
       {
         method: 'fridge',
-        how: 'Wash carefully — the rosettes trap grit — dry well and keep in a box with kitchen paper.',
-        storageLife: '4–5 days',
+        how: 'Wash carefully (it grows low and gritty), dry well and keep in a sealed bag.',
+        storageLife: 'about 5 days',
       },
     ],
-    recipeIdeas: [bbcGoodFoodCollection('winter-salad-recipes', 'Winter salad recipes')],
+    recipeIdeas: [bbcGoodFoodCollection('salad-recipes', 'Salad recipes')],
   },
   {
     plantId: 'winter-purslane',
-    summary:
-      'A succulent winter salad that laughs at frost — pick fresh all season rather than trying to store it.',
+    summary: 'Succulent leaves that keep growing all winter — harvest to order rather than storing.',
     methods: [
       {
         method: 'fresh',
-        how: 'Cut leaves and stems as needed from autumn to spring — it regrows quickly and even the flowers are edible.',
-        storageLife: 'cut-and-come-again all winter',
+        how: 'Pick stems and leaves through winter and it regrows — self-seeds too, so next year looks after itself.',
       },
       {
         method: 'fridge',
-        how: 'The fleshy leaves hold up better than lettuce in the fridge. Keep washed and dried in a lidded box.',
-        storageLife: '4–5 days',
+        how: 'The succulent leaves hold better than lettuce — keep dry in a sealed bag in the salad drawer.',
+        storageLife: 'about 5 days',
       },
     ],
-    recipeIdeas: [bbcGoodFoodCollection('winter-salad-recipes', 'Winter salad recipes')],
+    recipeIdeas: [bbcGoodFoodCollection('salad-recipes', 'Salad recipes')],
   },
   {
     plantId: 'mustard-greens',
-    summary:
-      'Hot leaves that mellow with cooking — freeze the big autumn flush and ferment a batch into a fiery kimchi.',
+    summary: 'Eat young leaves fresh, freeze the big ones for cooking, and ferment a glut into mustard-green kimchi.',
     methods: [
       {
         method: 'fridge',
-        how: 'Keep unwashed in a loose bag in the salad drawer. Small leaves for salads, big ones for the pan.',
-        storageLife: '5–7 days',
+        how: 'Keep dry leaves in a sealed bag in the salad drawer — the mustard heat builds as leaves age.',
+        storageLife: 'up to 6 days',
       },
       {
         method: 'freeze',
-        how: 'Blanch whole leaves for 2 minutes, squeeze dry and freeze in portions. Freezing tames the heat — good in dals and stir-fries.',
+        how: 'Blanch larger leaves 1–2 minutes, squeeze dry and freeze in portions for stir-fries and braises.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
       {
         method: 'ferment',
-        how: 'Salt-wilt the leaves, then ferment with garlic, ginger and chilli for a mustard-green kimchi. Keep the leaves submerged and ferment cool before refrigerating.',
-        storageLife: 'several months in the fridge',
+        how: 'Salt, rinse and pack whole leaves with chilli, garlic and ginger to ferment kimchi-style — mustard greens are a traditional kimchi crop. Follow tested salt ratios.',
+        storageLife: 'several months in the fridge once fermented',
         resources: [UMN_SAUERKRAUT, NCHFP.fermenting],
       },
     ],
-    recipeIdeas: [
-      bbcFoodIngredient('mustard_leaves', 'Mustard leaves'),
-      bbcGoodFoodCollection('kimchi-recipes', 'Kimchi recipes'),
-    ],
+    recipeIdeas: [bbcGoodFoodCollection('kimchi-recipes', 'Kimchi recipes')],
   },
   {
     plantId: 'watercress',
-    summary:
-      'Fades fast once picked — eat it within days, and turn any surplus into soup for the freezer.',
+    summary: 'The most perishable leaf on the plot — use within days, or turn a glut into soup for the freezer.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick just before eating. Stems stood in a jar of water on the windowsill stay perky for a day or two.',
-        storageLife: '1–2 days',
+        how: 'Cut-and-come-again through the season and eat the day you pick.',
       },
       {
         method: 'fridge',
-        how: 'Keep bunched stems in a jar of water in the fridge, loosely covered with a bag, and change the water daily.',
-        storageLife: '3–4 days',
+        how: 'Stand stems in a jar of water like a bunch of flowers, or wrap in damp paper in a bag — either way, eat within days.',
+        storageLife: '2–3 days',
       },
       {
         method: 'freeze',
-        how: 'Raw leaves collapse when frozen, so cook a glut into watercress soup and freeze that in tubs instead.',
-        storageLife: '3–6 months frozen as soup',
+        how: 'Leaves collapse frozen raw, but watercress soup freezes perfectly — make it, cool it, and freeze in tubs.',
+        storageLife: '3–4 months frozen as soup',
         resources: [NCHFP.freezing],
       },
     ],
@@ -333,17 +308,15 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'salad-burnet',
-    summary:
-      'An evergreen cucumber-flavoured herb-cum-salad-leaf — the plant stores itself, staying green through most winters.',
+    summary: 'An evergreen perennial — pick the cucumber-flavoured leaves fresh in every month of the year.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick the young ferny leaves as needed year-round — old leaves turn bitter, so keep cutting to force new growth.',
-        storageLife: 'evergreen — pick year-round',
+        how: 'Pick young sprigs as you need them — the plant is evergreen in most Scottish winters, so it stores itself.',
       },
       {
         method: 'fridge',
-        how: 'Keep sprigs in a lidded box with damp kitchen paper. Use in salads, soft cheeses and summer drinks within a few days.',
+        how: 'Keep sprigs in a sealed bag or stand stems in a glass of water; the delicate flavour fades quickly.',
         storageLife: '3–4 days',
       },
     ],
@@ -351,17 +324,16 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'orache',
-    summary:
-      'Mountain spinach in name and in the kitchen — eat the young leaves fresh and blanch-and-freeze the summer surplus.',
+    summary: 'A spinach stand-in for the pot — pick young, cook fresh, and freeze a heavy cut blanched.',
     methods: [
       {
         method: 'fridge',
-        how: 'Keep picked leaves unwashed in a loose bag in the salad drawer and use within a few days.',
-        storageLife: '4–5 days',
+        how: 'Keep dry leaves in a sealed bag in the salad drawer and use within days.',
+        storageLife: 'about 5 days',
       },
       {
         method: 'freeze',
-        how: 'Treat like spinach: blanch for 1–2 minutes, squeeze dry and freeze in balls. It holds its colour well — the red varieties do bleed a little.',
+        how: 'Blanch 1–2 minutes, squeeze dry and freeze in portions — use anywhere spinach would go.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
@@ -370,17 +342,16 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'new-zealand-spinach',
-    summary:
-      'A sprawling summer spinach substitute that keeps cropping in heat — cook it before eating, and freeze it the same way.',
+    summary: 'Pick the tips all summer and freeze the surplus — always cook or blanch it before eating.',
     methods: [
       {
         method: 'fridge',
-        how: 'The fleshy leaves keep better than true spinach — store unwashed in a loose bag in the salad drawer.',
-        storageLife: '5–7 days',
+        how: 'The fleshy leaves keep better than true spinach — dry, in a sealed bag in the salad drawer.',
+        storageLife: 'up to 6 days',
       },
       {
         method: 'freeze',
-        how: 'Always blanch before freezing — 2 minutes, then squeeze dry and bag in portions. Blanching also deals with the oxalates, so do not skip it.',
+        how: 'Blanch tips 1–2 minutes (which also deals with the oxalates), squeeze dry and freeze in portions.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
@@ -389,17 +360,16 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'good-king-henry',
-    summary:
-      'A perennial spinach for the margins — spring shoots are the prize, and the leaf glut freezes like any other pot herb.',
+    summary: 'A perennial that feeds you for years — eat spring shoots like asparagus and freeze summer leaves like spinach.',
     methods: [
       {
         method: 'fridge',
-        how: 'Keep picked shoots and leaves in a loose bag in the salad drawer. Young growth is far better than the bitter older leaves.',
-        storageLife: '5–7 days',
+        how: 'Keep cut shoots and leaves in a sealed bag in the salad drawer and use within the week.',
+        storageLife: 'up to 6 days',
       },
       {
         method: 'freeze',
-        how: 'Blanch leaves for 2 minutes, squeeze and freeze in balls like spinach. The asparagus-like spring shoots can be blanched 2–3 minutes and frozen too.',
+        how: 'Blanch leaves 1–2 minutes, squeeze dry and freeze in portions. Spring shoots are best eaten fresh.',
         storageLife: '10–12 months frozen',
         resources: [NCHFP.freezing],
       },
@@ -408,59 +378,54 @@ export const leafyGreensPreservation: PreservationGuide[] = [
   },
   {
     plantId: 'radicchio',
-    summary:
-      'The best-keeping salad on the plot — tight winter heads sit happily in the fridge for weeks.',
+    summary: 'A winter stalwart — heads stand in the frost and keep a good week in the fridge once cut.',
     methods: [
       {
         method: 'fresh',
-        how: 'Hardy varieties stand outside well into winter — leave heads on the plant and cut as needed.',
-        storageLife: 'in the ground into winter',
+        how: 'Leave heads standing and cut as needed — frost deepens the colour and takes the edge off the bitterness.',
       },
       {
         method: 'fridge',
-        how: 'Cut whole heads, strip the ragged outer leaves and keep wrapped in the salad drawer. Peel off leaves as you need them and the heart keeps on.',
-        storageLife: '2–3 weeks',
+        how: 'Trim the base and keep whole heads in a bag in the salad drawer — the tight heads keep far better than loose leaves.',
+        storageLife: 'about 1 week',
+        resources: [UMN_HARVEST_STORAGE],
       },
     ],
     recipeIdeas: [
       bbcFoodIngredient('radicchio', 'Radicchio'),
-      bbcGoodFoodCollection('winter-salad-recipes', 'Winter salad recipes'),
+      bbcGoodFoodCollection('chicory-recipes', 'Chicory recipes'),
     ],
   },
   {
     plantId: 'endive',
-    summary:
-      'A bitter autumn salad that keeps better than lettuce — blanch heads under a pot for a sweeter heart, then fridge them whole.',
+    summary: 'Stands well into winter on the plot; blanch the hearts before cutting to tame the bitterness.',
     methods: [
       {
         method: 'fresh',
-        how: 'Cover a maturing head with a plate or flowerpot for 10 days before cutting to blanch the heart pale and mild. Cut as needed — plants stand well in autumn.',
-        storageLife: 'stands in the ground through autumn',
+        how: 'Tie up the outer leaves (or cap with a plate) 2 weeks before harvest to blanch the heart, and cut heads as you need them.',
       },
       {
         method: 'fridge',
-        how: 'Keep whole heads wrapped in the salad drawer and strip leaves as needed. Bitter outer leaves are good braised or grilled rather than binned.',
-        storageLife: '1–2 weeks',
+        how: 'Keep whole heads in a bag in the salad drawer; loose leaves brown quickly at the cut edges.',
+        storageLife: 'up to 6 days',
       },
     ],
     recipeIdeas: [
       bbcFoodIngredient('endive', 'Endive'),
-      bbcGoodFoodCollection('winter-salad-recipes', 'Winter salad recipes'),
+      bbcGoodFoodCollection('chicory-recipes', 'Chicory recipes'),
     ],
   },
   {
     plantId: 'ice-plant',
-    summary:
-      'Grown for its crunchy, salty, frosted-looking leaves — strictly an eat-fresh crop, picked as you need it.',
+    summary: 'A crunchy, salty curiosity best picked and eaten the same day.',
     methods: [
       {
         method: 'fresh',
-        how: 'Pick young leaves and stem tips as needed through summer — regular picking keeps the plant producing. The salty crunch is the whole point, so eat soon after cutting.',
-        storageLife: 'best the day it is picked',
+        how: 'Pick tender shoot tips as you need them — the plant keeps producing all summer.',
       },
       {
         method: 'fridge',
-        how: 'The succulent leaves hold their crunch for a few days in a lidded box in the salad drawer — no washing until you use them.',
+        how: 'The succulent leaves hold their crunch a few days in a sealed bag in the salad drawer.',
         storageLife: '3–4 days',
       },
     ],
