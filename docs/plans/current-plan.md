@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-07-05 (Preserving final integration session — plant-page ↔ /preserving cross-links with `?plant=` deep link, guide coverage test with shrinking `PENDING_GUIDES` list, Preserving stays in the More menu, authoring spec relocated to `src/lib/preservation/data/README.md` and the plan file deleted; the 10 data-authoring sessions are still to run)
+Last updated: 2026-07-05 (Preserving data authoring complete — all 10 authoring sessions run as one parallel batch, 150 new guides bringing coverage to 157/157, `PENDING_GUIDES` deleted so the coverage test now enforces fully, Preserving stays in the More menu pending usage evidence)
 
 ## What's Been Completed
 
@@ -650,7 +650,50 @@ since all its pieces are forward-compatible:
 
 Remaining: ~103 crops across 10 parallel-safe authoring sessions (one data
 file each) — see `src/lib/preservation/data/README.md` for session goals,
-authoring spec, and the verified resource library.
+authoring spec, and the verified resource library. **(Done — see next
+section.)**
+
+### Preserving data authoring complete (branch `claude/preservation-coverage-complete-qnryr7`)
+
+All 10 authoring sessions from the README table ran as one batch of parallel
+subagent sessions, each owning exactly one data file per the
+parallel-authoring design. **150 guides added** (leafy-greens 21 — landed
+separately via #451, which authored the same file in parallel and merged
+first; this branch kept the #451 version — roots 20, herbs 20,
+other/mushrooms/edible-extras 19, berries 15, brassicas 13, legumes 13,
+alliums 11, fruit trees 10, solanaceae 8), bringing coverage to **157/157
+crops** across all 14 category files (cucurbits was the pre-existing
+exemplar). Every guide follows the spec: 2–4 methods simplest-first in the
+Scottish-allotment voice, storage life, shared verified resource constants,
+and food-safety guardrails (no home-canning of low-acid veg anywhere;
+botulism warnings on garlic/herb oils; kidney-bean boil warnings on dried
+haricots; elderberry cooked-only). All new BBC Food/Good Food URLs were
+curl-verified 200 during authoring; 404 slug candidates were dropped rather
+than guessed (several BBC hubs turned out plural — `damsons`, `greengages`,
+`mulberries`, `medlars`, `cherry_tomatoes`, `new_potatoes` — noted here
+because the README's slug rule says singular).
+
+Follow-through from the integration session:
+
+- **`PENDING_GUIDES` deleted.** The coverage test now unconditionally asserts
+  every crop with a preserve storage method has a guide, and its non-vacuous
+  floor was raised from `covered.size > 0` to `> 100`. The two
+  list-housekeeping tests (stale/bogus entries) went with the list.
+- **Authoring README updated** — session table replaced with a coverage note;
+  the spec, link rules, and verified resource library remain as the reference
+  for future crops.
+- **Nav decision reconsidered as planned — Preserving stays in the More
+  menu.** Coverage completeness removes one of the two blockers, but the
+  other (usage evidence) still stands, and the supporting reasons are
+  unchanged: primary nav is already at five slots, Seeds (a more core
+  planning surface) also lives in More, and Preserving is a seasonal
+  destination that the Today dashboard already surfaces contextually via
+  glut nudges in harvest windows. Promote only if usage shows people
+  reaching for it — the flip is a one-line move of the link object in
+  `src/components/Navigation.tsx`.
+
+Verification: full unit suite (1135 passed), type-check, lint, and
+`tests/preserving.spec.ts` (chromium) all green.
 
 ### Research-Driven Improvements: Backlog
 
