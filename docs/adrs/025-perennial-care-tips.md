@@ -63,6 +63,28 @@ Rationale:
 
 Data-integrity audits should treat these eight as out of scope rather than flag them as missing careTips. Revisit only if ornamental planning becomes a first-class product goal.
 
+## Amendment: Task Identity and Dedup Semantics (2026-07-05)
+
+Two decisions made after the original design (PR #447 and its follow-up) are recorded here because they change how care-tip tasks behave on the Today dashboard.
+
+### Content-hashed task IDs, no area component
+
+Care-tip task IDs are `care-tip-{plantId}-{careTipHash(plantId, tipText)}-{month}`, where `careTipHash` is an FNV-1a hash of plant + tip text (`src/lib/task-generator.ts`). Two properties follow:
+
+- **Stable across database edits.** The original implementation used the tip's array index, so inserting or reordering tips in the vegetable database silently changed IDs on deploy and invalidated users' month-scoped dismissals stored in localStorage. A content hash survives edits; an ID only changes if the tip text itself changes (acceptable — reworded advice is effectively new advice).
+- **No area component.** The ID identifies the *advice*, not the location. The task still carries `areaId`/`areaName` for display context.
+
+### Dedup semantics: distinct tips distinct, same tip deduped across areas
+
+The original dedup key (`plant + area + month`) collapsed all of a plant's same-month tips into one task — asparagus in June has three matching tips and only the first survived. The dedup key for care tips is now the task ID itself, which gives:
+
+- **Distinct tips are distinct tasks.** Every tip matching the current month emits, and each is independently dismissable.
+- **The same tip dedupes across areas.** A plant grown in several areas (two strawberry beds) shows generic advice once, not once per bed — consistent with how month-based sow tasks are one-per-plant.
+
+### Dashboard ordering: advice ranks below action
+
+Emitting every matching tip means a multi-perennial plot can produce a run of same-priority care tips (a realistic six-perennial June allotment emits nine). Since the dashboard task list shows only the first 8 tasks before a "+N more" fold, tips sorting alphabetically among sow/transplant tasks (all `medium` priority) pushed actionable work below the fold. The sort in `generateTasksForMonth` now breaks priority ties by ranking care tips after actionable task types. Priority itself is unchanged — a medium tip still outranks low-priority routine reminders (water, mulch) — and no tips are capped or hidden; overflow stays reachable via the existing expander. Preserve nudges share the `care-tip` type, so the demotion deliberately applies to them too: within the low-priority band, a "Glut of X?" nudge ranks after routine reminders — it is advice as well. Grouping tips per plant into an expandable row and per-plant caps were considered and rejected as larger changes than the problem warrants (Simplicity First).
+
 ## Consequences
 
 ### Positive

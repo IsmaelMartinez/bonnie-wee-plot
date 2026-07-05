@@ -645,6 +645,126 @@ describe('task-generator', () => {
       expect(careTipTasks[0].areaId).toBeDefined()
     })
 
+    it('should sort care tips below equal-priority actionable tasks', () => {
+      // Post-#447 every matching tip emits as its own task, so a multi-
+      // perennial plot can produce a run of medium care tips. They must not
+      // interleave alphabetically with sow/transplant tasks (also medium) —
+      // the dashboard shows only the first 8 tasks before the "+N more" fold.
+      const area: Area = {
+        id: 'asparagus-bed',
+        name: 'Asparagus Bed',
+        kind: 'perennial-bed',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'asparagus',
+          plantedYear: 2020,
+        }
+      }
+      const planting: Planting = { id: 'p1', plantId: 'tomato' }
+
+      mockGetVegetableById.mockImplementation((id: string) => {
+        if (id === 'tomato') {
+          return {
+            id: 'tomato',
+            name: 'Tomato',
+            planting: {
+              harvestMonths: [7, 8, 9],
+              sowIndoorsMonths: [],
+              sowOutdoorsMonths: [6],
+              transplantMonths: [6],
+            },
+          }
+        }
+        return {
+          id: 'asparagus',
+          name: 'Asparagus',
+          planting: {
+            harvestMonths: [4, 5, 6],
+            sowIndoorsMonths: [],
+            sowOutdoorsMonths: [],
+            transplantMonths: [],
+          },
+          // Mulch task is low priority — the medium care tip must stay above it.
+          maintenance: { mulchMonths: [6] },
+          careTips: [
+            // Alphabetically before "Direct sow…"/"Transplant…" so the old
+            // description sort would have put it first.
+            { months: [6], tip: 'A word on asparagus beetle: check the ferns', category: 'care' },
+          ],
+        }
+      })
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
+        [area]
+      )
+
+      const types = tasks.map(t => t.generatedType)
+      const tipIndex = types.indexOf('care-tip')
+      const sowIndex = types.indexOf('sow-outdoors')
+      const transplantIndex = types.indexOf('transplant')
+      expect(sowIndex).toBeGreaterThanOrEqual(0)
+      expect(transplantIndex).toBeGreaterThanOrEqual(0)
+      expect(tipIndex).toBeGreaterThan(sowIndex)
+      expect(tipIndex).toBeGreaterThan(transplantIndex)
+
+      // But priority still wins over the advice tiebreak: a medium care tip
+      // stays above low-priority tasks.
+      const careTip = tasks[tipIndex]
+      expect(careTip.priority).toBe('medium')
+      const firstLowIndex = tasks.findIndex(t => t.priority === 'low')
+      expect(firstLowIndex).toBeGreaterThan(tipIndex)
+    })
+
+    it('should sort preserve nudges after other low-priority tasks', () => {
+      // Preserve nudges share the care-tip type, so the advice tiebreak
+      // applies within the low band too: "Glut of X?" ranks after routine
+      // reminders like mulch. Alphabetically "Glut…" precedes "Mulch…", so
+      // this pins the tiebreak, not the fallback sort.
+      const area: Area = {
+        id: 'asparagus-bed',
+        name: 'Asparagus Bed',
+        kind: 'perennial-bed',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'asparagus',
+          plantedYear: 2020,
+        }
+      }
+      const planting: Planting = { id: 'p1', plantId: 'asparagus' }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'asparagus',
+        name: 'Asparagus',
+        planting: {
+          harvestMonths: [4, 5, 6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        maintenance: { mulchMonths: [6] },
+        storage: {
+          methods: ['freeze'],
+          tip: 'Blanch and freeze a glut.',
+        },
+      })
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [{ planting, areaId: 'asparagus-bed', areaName: 'Asparagus Bed' }],
+        [area]
+      )
+
+      const nudgeIndex = tasks.findIndex(t => t.id.startsWith('preserve-nudge-'))
+      const mulchIndex = tasks.findIndex(t => t.generatedType === 'mulch')
+      expect(nudgeIndex).toBeGreaterThanOrEqual(0)
+      expect(mulchIndex).toBeGreaterThanOrEqual(0)
+      expect(tasks[nudgeIndex].priority).toBe('low')
+      expect(tasks[mulchIndex].priority).toBe('low')
+      expect(nudgeIndex).toBeGreaterThan(mulchIndex)
+    })
+
     it('should keep preserve nudges and care tips for the same plant distinct', () => {
       // Preserve nudges reuse the care-tip task type; the per-tip dedupe key
       // must not collapse them with a real care tip for the same plant.
