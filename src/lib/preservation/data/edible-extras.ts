@@ -11,7 +11,7 @@ export const edibleExtrasPreservation: PreservationGuide[] = [
   {
     plantId: 'nasturtium',
     summary:
-      'Leaves and flowers are strictly eat-fresh; the green seed pods pickle into poor mans capers that keep all winter.',
+      'Leaves and flowers are strictly eat-fresh; the green seed pods pickle into a fine caper substitute that keeps all winter.',
     methods: [
       {
         method: 'fresh',
@@ -20,7 +20,7 @@ export const edibleExtrasPreservation: PreservationGuide[] = [
       },
       {
         method: 'pickle',
-        how: 'Gather plump green seed pods, brine them for a day, then jar in cold spiced vinegar — the classic poor mans capers. Give them a few weeks to mellow before opening.',
+        how: 'Gather plump green seed pods, brine them for a day, then jar in cold spiced vinegar — the classic allotment caper substitute. Give them a few weeks to mellow before opening.',
         storageLife: '6–12 months in sealed jars',
         resources: [NCHFP.pickling],
       },
