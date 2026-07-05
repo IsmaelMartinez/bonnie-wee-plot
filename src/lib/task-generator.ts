@@ -699,6 +699,8 @@ export function generateTasksForMonth(
     // care tip emits as its own task, so a few perennials can produce a run
     // of medium tips that would otherwise interleave alphabetically with
     // sow/transplant tasks and push them below the dashboard's visible fold.
+    // Preserve nudges share the care-tip type, so within the low band they
+    // rank after routine reminders (water/feed/mulch) too — also advice.
     const adviceDiff = Number(a.generatedType === 'care-tip') - Number(b.generatedType === 'care-tip')
     if (adviceDiff !== 0) return adviceDiff
 
