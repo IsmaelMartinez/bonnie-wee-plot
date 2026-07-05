@@ -695,6 +695,13 @@ export function generateTasksForMonth(
     const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
     if (priorityDiff !== 0) return priorityDiff
 
+    // Advice ranks below action at equal priority: since #447 every matching
+    // care tip emits as its own task, so a few perennials can produce a run
+    // of medium tips that would otherwise interleave alphabetically with
+    // sow/transplant tasks and push them below the dashboard's visible fold.
+    const adviceDiff = Number(a.generatedType === 'care-tip') - Number(b.generatedType === 'care-tip')
+    if (adviceDiff !== 0) return adviceDiff
+
     return a.description.localeCompare(b.description)
   })
 }
