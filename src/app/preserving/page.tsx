@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Search, ExternalLink } from 'lucide-react'
 import { vegetableIndex } from '@/lib/vegetables/index'
 import { CATEGORY_INFO, type StorageMethod, type VegetableCategory } from '@/types/garden-planner'
@@ -33,9 +34,24 @@ function ResourceLinks({ resources }: { resources: PreservationResource[] }) {
   )
 }
 
-function GuideCard({ guide, name }: { guide: PreservationGuide; name: string }) {
+function GuideCard({
+  guide,
+  name,
+  defaultOpen = false,
+}: {
+  guide: PreservationGuide
+  name: string
+  defaultOpen?: boolean
+}) {
+  const detailsRef = useRef<HTMLDetailsElement>(null)
+
+  // Deep links (/preserving?plant=<id>) land expanded and scrolled into view
+  useEffect(() => {
+    if (defaultOpen) detailsRef.current?.scrollIntoView({ block: 'start' })
+  }, [defaultOpen])
+
   return (
-    <details className="group px-4 py-3">
+    <details ref={detailsRef} open={defaultOpen || undefined} className="group px-4 py-3">
       <summary className="flex flex-wrap items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden min-h-[44px]">
         <span className="text-sm text-zen-ink-700 font-medium">{name}</span>
         <span className="flex flex-wrap gap-1.5">
@@ -88,10 +104,12 @@ function GuideCard({ guide, name }: { guide: PreservationGuide; name: string }) 
   )
 }
 
-export default function PreservingPage() {
+function PreservingContent() {
   const [search, setSearch] = useState('')
   const [selectedMethod, setSelectedMethod] = useState<StorageMethod | 'all'>('all')
   const [selectedCategory, setSelectedCategory] = useState<VegetableCategory | 'all'>('all')
+  // ?plant=<id> deep link from the plant detail page expands that crop's card
+  const highlightedPlantId = useSearchParams().get('plant')
 
   const indexById = useMemo(() => new Map(vegetableIndex.map(v => [v.id, v])), [])
   const methodsInUse = useMemo(() => getMethodsInUse(), [])
@@ -198,7 +216,12 @@ export default function PreservingPage() {
                 <h2 className="text-lg mb-3">{cat.name}</h2>
                 <div className="zen-card divide-y divide-zen-stone-100">
                   {grouped[cat.id]!.map(({ guide, name }) => (
-                    <GuideCard key={guide.plantId} guide={guide} name={name} />
+                    <GuideCard
+                      key={guide.plantId}
+                      guide={guide}
+                      name={name}
+                      defaultOpen={guide.plantId === highlightedPlantId}
+                    />
                   ))}
                 </div>
               </section>
@@ -207,5 +230,14 @@ export default function PreservingPage() {
         )}
       </div>
     </div>
+  )
+}
+
+// useSearchParams requires a Suspense boundary during static generation
+export default function PreservingPage() {
+  return (
+    <Suspense fallback={null}>
+      <PreservingContent />
+    </Suspense>
   )
 }

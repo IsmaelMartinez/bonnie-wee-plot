@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-05-19 (ADR 027 Yjs Step 3 Phase 1 cutover live — PR-A.2 wired cloud sync into the Yjs doc, PR-C flipped `USE_YJS_STORAGE` to default-on, the deployment-runbook `UPDATE allotments SET data = data` ran against production Supabase seeding pre-cutover history rows for both users; soak window now open, Step 5 cleanup is the next deliberate work)
+Last updated: 2026-07-05 (Preserving final integration session — plant-page ↔ /preserving cross-links with `?plant=` deep link, guide coverage test with shrinking `PENDING_GUIDES` list, Preserving stays in the More menu, authoring spec relocated to `src/lib/preservation/data/README.md` and the plan file deleted; the 10 data-authoring sessions are still to run)
 
 ## What's Been Completed
 
@@ -584,20 +584,49 @@ the full unit suite (1124) pass.
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.
 
-### Preserving section — foundation shipped, data authoring planned (branch `claude/food-preservation-section-akmsdt`)
+### Preserving section — foundation + integration shipped, data authoring remaining
 
 New `/preserving` section: rich per-crop preservation guides (method how-tos,
 storage life, fetch-verified free resource links, recipe ideas including cakes
 and glut bakes) building on the lightweight `Vegetable.storage` chips from
-Milestone C. Foundation shipped: `src/types/preservation.ts`,
+Milestone C. Foundation shipped in #448: `src/types/preservation.ts`,
 `src/lib/preservation/` (aggregator + shared verified resources + 14
 per-category data files), the `/preserving` page (search, method/category
-filters, expandable cards), a "Preserving" link in the More menu, and data
-integrity unit tests. `cucurbits.ts` is fully authored (7 crops) as the
-exemplar. Remaining: ~149 crops across 10 parallel-safe authoring sessions
-(one data file each) plus a final integration session —
-see `docs/plans/food-preservation-plan.md` for the session goals, authoring
-spec, and verified resource library.
+filters, expandable cards), a "Preserving" link in the More menu, data
+integrity unit tests, and `tests/preserving.spec.ts`. `cucurbits.ts` is fully
+authored (7 crops) as the exemplar.
+
+The final integration session (branch
+`claude/food-preservation-integration-qgn705`) ran ahead of the data sessions
+since all its pieces are forward-compatible:
+
+- **Cross-link:** the Storage & Preserving panel on `/plants/[id]` links to
+  `/preserving?plant=<id>` whenever a guide exists (server-side lookup, so the
+  preservation dataset stays out of other client bundles). The `/preserving`
+  page reads the `plant` query param (via `useSearchParams` in a Suspense
+  boundary) and renders that crop's card expanded and scrolled into view. E2E
+  coverage added for both directions.
+- **Coverage test:** `src/__tests__/lib/preservation-coverage.test.ts` asserts
+  every crop whose `storage.methods` include a preserve method
+  (`PRESERVE_METHODS` — freeze/jam/pickle/ferment/dry, now exported from
+  `task-generator.ts`) has a `PreservationGuide`. Because the 10 data-authoring
+  sessions had not merged yet, the 103 currently-unauthored crops sit in an
+  explicit `PENDING_GUIDES` list; a companion test fails on stale entries, so
+  each data session must delete its crops from the list and the check tightens
+  automatically to full enforcement when the list empties.
+- **Nav decision:** Preserving **stays in the More menu** for now. Only 7 of
+  ~110 preserve-method crops have guides, primary nav is already at five slots,
+  and the Simplicity First principle says don't promote until usage earns it.
+  Revisit once the data sessions land and there is usage evidence.
+- **Doc hygiene:** `docs/plans/food-preservation-plan.md` deleted. The
+  authoring spec, session table, link rules, and verified resource library the
+  pending sessions still need moved to `src/lib/preservation/data/README.md`
+  (colocated with the data files); CLAUDE.md pointer updated. Sunflower (dry
+  seeds, missed by the original plan) was added to session 10's crop list.
+
+Remaining: ~103 crops across 10 parallel-safe authoring sessions (one data
+file each) — see `src/lib/preservation/data/README.md` for session goals,
+authoring spec, and the verified resource library.
 
 ### Research-Driven Improvements: Backlog
 
