@@ -584,6 +584,21 @@ the full unit suite (1124) pass.
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.
 
+### Preserving section — foundation shipped, data authoring planned (branch `claude/food-preservation-section-akmsdt`)
+
+New `/preserving` section: rich per-crop preservation guides (method how-tos,
+storage life, fetch-verified free resource links, recipe ideas including cakes
+and glut bakes) building on the lightweight `Vegetable.storage` chips from
+Milestone C. Foundation shipped: `src/types/preservation.ts`,
+`src/lib/preservation/` (aggregator + shared verified resources + 14
+per-category data files), the `/preserving` page (search, method/category
+filters, expandable cards), a "Preserving" link in the More menu, and data
+integrity unit tests. `cucurbits.ts` is fully authored (7 crops) as the
+exemplar. Remaining: ~149 crops across 10 parallel-safe authoring sessions
+(one data file each) plus a final integration session —
+see `docs/plans/food-preservation-plan.md` for the session goals, authoring
+spec, and verified resource library.
+
 ### Research-Driven Improvements: Backlog
 
 Soil temperature, Aitor opt-in polish, and backup reminders all shipped earlier; the Gemini free tier above closes the cost-line risk that was previously parked here.

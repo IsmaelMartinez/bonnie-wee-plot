@@ -378,6 +378,7 @@ export const CATEGORY_INFO: CategoryInfo[] = [
   { id: 'herbs', name: 'Herbs', icon: 'Flower', color: 'emerald' },
   { id: 'berries', name: 'Berries', icon: 'Cherry', color: 'pink' },
   { id: 'fruit-trees', name: 'Fruit Trees', icon: 'TreeDeciduous', color: 'rose' },
+  { id: 'other', name: 'Specialty Vegetables', icon: 'Sprout', color: 'slate' },
   { id: 'annual-flowers', name: 'Annual Flowers', icon: 'Flower2', color: 'fuchsia' },
   { id: 'perennial-flowers', name: 'Perennial Flowers', icon: 'Sparkles', color: 'violet' },
   { id: 'bulbs', name: 'Bulbs', icon: 'Droplet', color: 'indigo' },

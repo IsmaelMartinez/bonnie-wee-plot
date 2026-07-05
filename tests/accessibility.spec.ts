@@ -112,6 +112,25 @@ test.describe('Accessibility - Compost Page', () => {
   })
 })
 
+test.describe('Accessibility - Preserving Page', () => {
+  test('preserving page should have no critical accessibility violations', async ({ page }) => {
+    await page.goto('/preserving')
+    await disableTours(page)
+    await checkA11y(page)
+  })
+
+  test('preserving page with expanded card should be accessible', async ({ page }) => {
+    await page.goto('/preserving')
+    await disableTours(page)
+    const summary = page.locator('details summary').first()
+    if (await summary.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await summary.click()
+      await page.waitForTimeout(200)
+      await checkA11y(page)
+    }
+  })
+})
+
 test.describe('Accessibility - Navigation', () => {
   // Helper to skip onboarding by marking setup as complete
   async function skipOnboarding(page: import('@playwright/test').Page) {
