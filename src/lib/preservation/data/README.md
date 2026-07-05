@@ -1,23 +1,11 @@
-# Preserving Section — Data Authoring Plan
+# Preserving guides — authoring spec
 
-Status: **foundation shipped** on `claude/food-preservation-section-akmsdt`.
-This plan defines the remaining work as independent goals that can run as
-**parallel sessions** — each session owns exactly one data file, so there are
-no merge conflicts between them.
+One `PreservationGuide[]` file per vegetable category. **`cucurbits.ts` is
+fully authored and is the exemplar to copy.** Each remaining file can be
+filled in its own independent session — a session owns exactly one data file,
+so parallel sessions never conflict.
 
-## What already exists (do not rebuild)
-
-- `src/types/preservation.ts` — `PreservationGuide`, `PreservationMethodGuide`, `PreservationResource`
-- `src/lib/preservation/index.ts` — aggregator, `getPreservationGuide()`, method labels
-- `src/lib/preservation/resources.ts` — **shared, fetch-verified free resources** (NCHFP, USDA, RHS, Garden Organic, FSA, Penn State, UMN, BBC Food/Good Food helpers, River Cottage, Wikibooks)
-- `src/lib/preservation/data/*.ts` — one file per category; **cucurbits.ts is fully authored and is the exemplar to copy**
-- `/preserving` page (search + method/category filters, expandable cards) linked from the "More" nav menu
-- `src/__tests__/lib/preservation-data.test.ts` — integrity tests (real plant ids, unique ids, non-empty how-tos, https URLs)
-
-Related but separate: `Vegetable.storage` (lightweight method chips + one tip,
-already on ~149 crops) stays as-is; guides go deeper and link out.
-
-## Authoring spec (every session follows this)
+## Spec (every session follows this)
 
 For each crop in your file, add one `PreservationGuide`:
 
@@ -37,7 +25,7 @@ For each crop in your file, add one `PreservationGuide`:
    cordials): BBC Food ingredient hubs first, then BBC Good Food collections,
    River Cottage for preserves-heavy crops.
 
-### Link rules (important)
+## Link rules (important)
 
 - **Free resources only** — no paywalls, no sign-up walls. Ad-supported is fine.
 - **Verify every URL you add** returns 200 before committing:
@@ -58,19 +46,21 @@ For each crop in your file, add one `PreservationGuide`:
   without pressure canning; pumpkin/squash purée is freeze-only; when in
   doubt link NCHFP and keep instructions to fridge/freeze/dry/pickle/ferment.
 
-### Definition of done (per session)
+## Definition of done (per session)
 
 - Every crop listed for the file has a guide (delete the TODO comment).
-- `npx vitest run src/__tests__/lib/preservation-data.test.ts` passes.
+- Remove your crops from `PENDING_GUIDES` in
+  `src/__tests__/lib/preservation-coverage.test.ts` (the test fails with a
+  stale-entry message if you forget).
+- `npx vitest run src/__tests__/lib/preservation-data.test.ts src/__tests__/lib/preservation-coverage.test.ts` passes.
 - `npm run lint` and `npm run type-check` pass.
 - All new URLs curl-verified 200 (paste the check output in the PR description).
 - Commit to a fresh branch, push, open a PR.
 
-## Parallel session goals
+## Session goals
 
-Each goal is self-contained: it touches only its own data file. Run any or all
-concurrently. Suggested session prompt: *"Fill `src/lib/preservation/data/<file>.ts`
-following the authoring spec in `docs/plans/food-preservation-plan.md`."*
+Suggested session prompt: *"Fill `src/lib/preservation/data/<file>.ts`
+following the authoring spec in `src/lib/preservation/data/README.md`."*
 
 | # | File | Crops (count) |
 |---|------|----------------|
@@ -83,7 +73,7 @@ following the authoring spec in `docs/plans/food-preservation-plan.md`."*
 | 7 | `herbs.ts` | parsley, coriander, mint, thyme, rosemary, chives, lovage, sorrel, oregano, sage, french-tarragon, dill, herb-fennel, lemon-balm, marjoram, bay, borage, chamomile, winter-savory, hyssop (20) |
 | 8 | `berries.ts` | strawberry, raspberry, blackcurrant, redcurrant, gooseberry, blueberry, blackberry, tayberry, loganberry, jostaberry, honeyberry, goji-berry, aronia, elderberry, sea-buckthorn (15) |
 | 9 | `fruit-trees.ts` | apple-tree, pear-tree, plum-tree, cherry-tree, damson-tree, greengage-tree, medlar-tree, quince-tree, fig-tree, mulberry-tree (10) |
-| 10 | `other.ts` + `mushrooms.ts` + `edible-extras.ts` | sweetcorn, asparagus, globe-artichoke, rhubarb, celery, cardoon, mashua; oyster-mushroom, shiitake, lions-mane, king-oyster, button-mushroom; nasturtium, calendula, lavender, bergamot, hardy-kiwi, hops (18) |
+| 10 | `other.ts` + `mushrooms.ts` + `edible-extras.ts` | sweetcorn, asparagus, globe-artichoke, rhubarb, celery, cardoon, mashua; oyster-mushroom, shiitake, lions-mane, king-oyster, button-mushroom; nasturtium, calendula, lavender, bergamot, hardy-kiwi, hops, sunflower (19) |
 
 `cucurbits.ts` (7) — ✅ done (exemplar).
 
@@ -111,19 +101,7 @@ Category-specific hints:
   membrillo for quince; medlar bletting.
 - **Other/mushrooms/extras**: sweetcorn blanch-freeze same day; rhubarb
   freezes raw + crumbles/cordial; mushrooms dry brilliantly (`NCHFP.drying`);
-  lavender/chamomile dry for tea; hops dry for brewing.
-
-## Final integration session (after data sessions merge)
-
-1. Cross-link: on `/plants/[id]`, when `getPreservationGuide(id)` exists, link
-   the Storage & Preserving panel to `/preserving?plant=<id>` (add query-param
-   support to expand that crop).
-2. Coverage test: assert every plant with `storage.methods` containing a
-   preserve method (freeze/jam/pickle/ferment/dry) has a `PreservationGuide`.
-3. E2E: `tests/preserving.spec.ts` — page loads, search filters, a card
-   expands, external links have `target="_blank"`.
-4. Consider promoting Preserving from the "More" menu to primary nav based on use.
-5. Update `docs/plans/current-plan.md`, then delete this file (doc hygiene).
+  lavender/chamomile dry for tea; hops dry for brewing; sunflower seeds dry.
 
 ## Verified resource library (fetched 2026-07-04)
 

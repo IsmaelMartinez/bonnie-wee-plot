@@ -127,7 +127,7 @@ Rich per-crop preservation guidance (method how-tos, storage life, free online r
 - `src/lib/preservation/resources.ts` - shared fetch-verified free resources (NCHFP, RHS, Garden Organic, BBC Food, etc.)
 - `src/lib/preservation/data/*.ts` - per-category guide files (parallel-authoring-safe)
 
-Authoring spec and per-category session goals: `docs/plans/food-preservation-plan.md`.
+Authoring spec and per-category session goals: `src/lib/preservation/data/README.md`. Plant detail pages cross-link to `/preserving?plant=<id>` (deep link expands that crop's card) when a guide exists. A coverage test (`src/__tests__/lib/preservation-coverage.test.ts`) asserts every crop whose `storage.methods` include a preserve method (freeze/jam/pickle/ferment/dry) has a guide, with a shrinking `PENDING_GUIDES` list for the categories not yet authored.
 
 ### Key Type Definitions
 

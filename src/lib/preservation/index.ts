@@ -5,8 +5,9 @@
  * resources, recipe ideas) for the /preserving section. Data is authored in
  * per-category files under ./data so categories can be filled independently.
  *
- * This module is only imported by the /preserving route, so the dataset is
- * code-split away from the rest of the app automatically.
+ * This module is imported by the /preserving route and by the statically
+ * rendered /plants/[id] pages (server-side only, to decide whether to show
+ * the cross-link), so the dataset stays out of every other client bundle.
  */
 
 import { StorageMethod } from '@/types/garden-planner'

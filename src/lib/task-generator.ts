@@ -352,7 +352,7 @@ function generateCareTipTasks(
  * keeping fresh). When a crop with one of these is in its harvest window we
  * nudge the user to preserve some — reusing the care-tip plumbing (C3).
  */
-const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
+export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
 
 /**
  * Whether the current month falls in a planting's harvest window. Prefers the

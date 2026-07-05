@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { vegetableIndex } from '@/lib/vegetables/index'
+import { getPreservationGuide } from '@/lib/preservation'
 import {
   MONTH_NAMES_SHORT,
   CATEGORY_INFO,
@@ -153,6 +154,7 @@ const STORAGE_METHOD_LABELS: Record<StorageMethod, string> = {
 function StoragePanel({ plant }: { plant: Vegetable }) {
   if (!plant.storage) return null
   const { methods, freshDays, tip } = plant.storage
+  const hasGuide = getPreservationGuide(plant.id) !== undefined
 
   return (
     <div>
@@ -172,6 +174,14 @@ function StoragePanel({ plant }: { plant: Vegetable }) {
         </p>
       )}
       {tip && <p className="text-sm text-zen-ink-700">{tip}</p>}
+      {hasGuide && (
+        <Link
+          href={`/preserving?plant=${plant.id}`}
+          className="inline-block mt-3 text-sm text-zen-moss-700 hover:text-zen-moss-800 hover:underline"
+        >
+          Preserving guide for {plant.name} →
+        </Link>
+      )}
     </div>
   )
 }
