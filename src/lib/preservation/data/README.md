@@ -1,13 +1,16 @@
 # Preserving guides — authoring spec
 
-One `PreservationGuide[]` file per vegetable category. **`cucurbits.ts` is
-fully authored and is the exemplar to copy.** Each remaining file can be
-filled in its own independent session — a session owns exactly one data file,
-so parallel sessions never conflict.
+One `PreservationGuide[]` file per vegetable category. **All category files
+are fully authored (2026-07-05).** This spec remains the reference for
+authoring a guide for any new crop added to the vegetable database — the
+coverage test (`src/__tests__/lib/preservation-coverage.test.ts`) fails for
+any crop whose `storage.methods` include a preserve method
+(freeze/jam/pickle/ferment/dry) but has no guide. `cucurbits.ts` was the
+exemplar; copy its tone and structure.
 
-## Spec (every session follows this)
+## Spec (every guide follows this)
 
-For each crop in your file, add one `PreservationGuide`:
+For each crop, add one `PreservationGuide`:
 
 1. **`plantId`** — must match `src/lib/vegetables/index.ts` exactly.
 2. **`summary`** — one orienting sentence (glut warning, best use, keeper vs eat-fresh).
@@ -46,38 +49,20 @@ For each crop in your file, add one `PreservationGuide`:
   without pressure canning; pumpkin/squash purée is freeze-only; when in
   doubt link NCHFP and keep instructions to fridge/freeze/dry/pickle/ferment.
 
-## Definition of done (per session)
+## Definition of done
 
-- Every crop listed for the file has a guide (delete the TODO comment).
-- Remove your crops from `PENDING_GUIDES` in
-  `src/__tests__/lib/preservation-coverage.test.ts` (the test fails with a
-  stale-entry message if you forget).
 - `npx vitest run src/__tests__/lib/preservation-data.test.ts src/__tests__/lib/preservation-coverage.test.ts` passes.
 - `npm run lint` and `npm run type-check` pass.
 - All new URLs curl-verified 200 (paste the check output in the PR description).
 - Commit to a fresh branch, push, open a PR.
 
-## Session goals
+## Coverage
 
-Suggested session prompt: *"Fill `src/lib/preservation/data/<file>.ts`
-following the authoring spec in `src/lib/preservation/data/README.md`."*
+All 14 category files are authored (~157 crops, 2026-07-05). A new crop only
+needs a guide here when it gets a `storage` field with a preserve method —
+the coverage test enforces that automatically.
 
-| # | File | Crops (count) |
-|---|------|----------------|
-| 1 | `leafy-greens.ts` | lettuce, spinach, perpetual-spinach, kale, cavolo-nero, chard, rocket, pak-choi, mizuna, land-cress, corn-salad, winter-purslane, mustard-greens, watercress, salad-burnet, orache, new-zealand-spinach, good-king-henry, radicchio, endive, ice-plant (21) |
-| 2 | `root-vegetables.ts` | carrot, beetroot, parsnip, turnip, swede, radish, jerusalem-artichoke, celeriac, salsify, hamburg-parsley, florence-fennel, mooli, black-radish, scorzonera, horseradish, chinese-artichoke, yacon, skirret, oca, ulluco (20) |
-| 3 | `brassicas.ts` | broccoli, cabbage, cauliflower, brussels-sprouts, kohlrabi, savoy-cabbage, red-cabbage, chinese-broccoli, romanesco, turnip-tops, mibuna, seakale, purple-sprouting-broccoli (13) |
-| 4 | `legumes.ts` | peas, runner-beans, broad-beans, french-beans, climbing-french-beans, borlotti-beans, edamame, mangetout, sugar-snap-peas, asparagus-peas, black-turtle-beans, fenugreek, ground-nut (13) |
-| 5 | `solanaceae.ts` | potato, early-potato, second-early-potato, maincrop-potato, cherry-tomato, plum-tomato, blight-resistant-tomato, tomatillo (8) |
-| 6 | `alliums.ts` | onion, garlic, leek, spring-onion, shallot, welsh-onion, elephant-garlic, walking-onion, potato-onion, garlic-chives, ramps (11) |
-| 7 | `herbs.ts` | parsley, coriander, mint, thyme, rosemary, chives, lovage, sorrel, oregano, sage, french-tarragon, dill, herb-fennel, lemon-balm, marjoram, bay, borage, chamomile, winter-savory, hyssop (20) |
-| 8 | `berries.ts` | strawberry, raspberry, blackcurrant, redcurrant, gooseberry, blueberry, blackberry, tayberry, loganberry, jostaberry, honeyberry, goji-berry, aronia, elderberry, sea-buckthorn (15) |
-| 9 | `fruit-trees.ts` | apple-tree, pear-tree, plum-tree, cherry-tree, damson-tree, greengage-tree, medlar-tree, quince-tree, fig-tree, mulberry-tree (10) |
-| 10 | `other.ts` + `mushrooms.ts` + `edible-extras.ts` | sweetcorn, asparagus, globe-artichoke, rhubarb, celery, cardoon, mashua; oyster-mushroom, shiitake, lions-mane, king-oyster, button-mushroom; nasturtium, calendula, lavender, bergamot, hardy-kiwi, hops, sunflower (19) |
-
-`cucurbits.ts` (7) — ✅ done (exemplar).
-
-Category-specific hints:
+Category-specific hints (kept for future guides):
 
 - **Leafy greens**: most are fridge/fresh; cooking greens (kale, chard, spinach)
   blanch-and-freeze; mustard/pak-choi can ferment (kimchi-style — link
