@@ -36,7 +36,7 @@ function ResourceLinks({ resources }: { resources: PreservationResource[] }) {
 function GuideCard({ guide, name }: { guide: PreservationGuide; name: string }) {
   return (
     <details className="group px-4 py-3">
-      <summary className="flex flex-wrap items-center gap-2 cursor-pointer list-none min-h-[44px]">
+      <summary className="flex flex-wrap items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden min-h-[44px]">
         <span className="text-sm text-zen-ink-700 font-medium">{name}</span>
         <span className="flex flex-wrap gap-1.5">
           {guide.methods.map(m => (
@@ -152,12 +152,14 @@ export default function PreservingPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="zen-input pl-10"
+              aria-label="Search crops"
             />
           </div>
           <select
             value={selectedMethod}
             onChange={e => setSelectedMethod(e.target.value as StorageMethod | 'all')}
             className="zen-select sm:w-48"
+            aria-label="Filter by preservation method"
           >
             <option value="all">All methods</option>
             {methodsInUse.map(m => (
@@ -168,6 +170,7 @@ export default function PreservingPage() {
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value as VegetableCategory | 'all')}
             className="zen-select sm:w-48"
+            aria-label="Filter by category"
           >
             <option value="all">All categories</option>
             {categoriesInUse.map(c => (
