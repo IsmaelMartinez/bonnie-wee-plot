@@ -15,17 +15,6 @@ import { PRESERVE_METHODS } from '@/lib/task-generator'
  * though its database category is brassicas).
  */
 const PENDING_GUIDES = new Set<string>([
-  // leafy-greens session
-  'spinach',
-  'perpetual-spinach',
-  'kale',
-  'cavolo-nero',
-  'chard',
-  'pak-choi',
-  'mustard-greens',
-  'orache',
-  'new-zealand-spinach',
-  'good-king-henry',
   // root-vegetables session
   'beetroot',
   'radish',
