@@ -580,6 +580,30 @@ IDs, ID stability under tip reorder/insert, same-tip-across-areas dedup,
 preserve-nudge/care-tip coexistence, and the hash itself. type-check, lint, and
 the full unit suite (1124) pass.
 
+### Care-tip dashboard crowding + ADR 025 amendment (branch `claude/care-tip-dashboard-crowding-nmp87t`)
+
+Follow-up to #447. Emitting every matching care tip meant a realistic
+multi-perennial June allotment (6 perennials + 4 annual plantings) generated 9
+`medium`-priority care tips that interleaved alphabetically with sow/transplant
+tasks (also `medium`) — with `TaskList`'s 8-task fold, 4 tips landed above the
+fold while two actionable transplant tasks were pushed behind "+N more".
+
+Fix: one tiebreak in the `generateTasksForMonth` sort — at equal priority,
+care tips rank after actionable task types. Priority semantics unchanged (a
+medium tip still outranks low-priority water/mulch reminders), no tips capped
+or hidden. Grouping tips per plant into an expandable row and per-plant caps
+were considered and rejected as larger than the problem warrants (Simplicity
+First — the existing "+N more" expander already handles overflow). Verified
+against the real database: post-fix the June scenario shows all 6 actionable
+tasks above the fold, tips grouped after them.
+
+Docs: ADR 025 gained an amendment section recording the #447 decisions the
+original design predates — content-hashed task IDs with no area component
+(dismissals survive database edits), dedup semantics (distinct tips distinct,
+same tip deduped across areas), and the new advice-below-action ordering.
+Regression test added for the sort; type-check, lint, and the full unit suite
+pass.
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.
