@@ -65,6 +65,19 @@ test.describe('Preserving Page', () => {
       has: page.locator('summary', { hasText: 'Pumpkin' }),
     })
     await expect(pumpkin).not.toHaveAttribute('open', '')
+
+    // The card stays user-controlled after the deep link: closing it and then
+    // re-rendering (typing in search) or filtering it out and back in must
+    // not pop it open again
+    await card.locator('summary').click()
+    await expect(card).not.toHaveAttribute('open', '')
+    await page.getByLabel('Search crops').fill('cour')
+    await expect(card).not.toHaveAttribute('open', '')
+    await page.getByLabel('Search crops').fill('pumpkin')
+    await expect(card).toHaveCount(0)
+    await page.getByLabel('Search crops').fill('')
+    await expect(card.locator('summary')).toBeVisible()
+    await expect(card).not.toHaveAttribute('open', '')
   })
 
   test('plant detail page should link to the preserving guide', async ({ page }) => {
@@ -72,7 +85,8 @@ test.describe('Preserving Page', () => {
     const link = page.locator('a[href="/preserving?plant=courgette"]')
     await expect(link).toBeVisible()
     await link.click()
-    await expect(page).toHaveURL(/\/preserving\?plant=courgette/)
+    // The ?plant= param is consumed once the card has expanded
+    await expect(page).toHaveURL(/\/preserving/)
     const card = page.locator('details').filter({
       has: page.locator('summary', { hasText: 'Courgette' }),
     })

@@ -45,13 +45,19 @@ function GuideCard({
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
 
-  // Deep links (/preserving?plant=<id>) land expanded and scrolled into view
+  // Deep links (/preserving?plant=<id>) land expanded and scrolled into view.
+  // Opened imperatively (not via the `open` prop) so the <details> stays
+  // uncontrolled — the user can close it and React never re-applies the
+  // attribute — and so the prerendered (param-less) HTML matches hydration.
   useEffect(() => {
-    if (defaultOpen) detailsRef.current?.scrollIntoView({ block: 'start' })
+    if (defaultOpen && detailsRef.current) {
+      detailsRef.current.open = true
+      detailsRef.current.scrollIntoView({ block: 'start' })
+    }
   }, [defaultOpen])
 
   return (
-    <details ref={detailsRef} open={defaultOpen || undefined} className="group px-4 py-3">
+    <details ref={detailsRef} className="group px-4 py-3">
       <summary className="flex flex-wrap items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden min-h-[44px]">
         <span className="text-sm text-zen-ink-700 font-medium">{name}</span>
         <span className="flex flex-wrap gap-1.5">
@@ -108,8 +114,16 @@ function PreservingContent() {
   const [search, setSearch] = useState('')
   const [selectedMethod, setSelectedMethod] = useState<StorageMethod | 'all'>('all')
   const [selectedCategory, setSelectedCategory] = useState<VegetableCategory | 'all'>('all')
-  // ?plant=<id> deep link from the plant detail page expands that crop's card
+  // ?plant=<id> deep link from the plant detail page expands that crop's card.
+  // The param is consumed (stripped from the URL) once the card has opened —
+  // child effects run first — so later re-renders, remounts, and reloads
+  // don't re-expand or re-scroll a card the user has closed.
   const highlightedPlantId = useSearchParams().get('plant')
+  useEffect(() => {
+    if (highlightedPlantId) {
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [highlightedPlantId])
 
   const indexById = useMemo(() => new Map(vegetableIndex.map(v => [v.id, v])), [])
   const methodsInUse = useMemo(() => getMethodsInUse(), [])
