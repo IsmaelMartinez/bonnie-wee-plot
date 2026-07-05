@@ -657,9 +657,11 @@ section.)**
 
 All 10 authoring sessions from the README table ran as one batch of parallel
 subagent sessions, each owning exactly one data file per the
-parallel-authoring design. **150 guides added** (leafy-greens 21, roots 20,
-herbs 20, other/mushrooms/edible-extras 19, berries 15, brassicas 13, legumes
-13, alliums 11, fruit trees 10, solanaceae 8), bringing coverage to **157/157
+parallel-authoring design. **150 guides added** (leafy-greens 21 — landed
+separately via #451, which authored the same file in parallel and merged
+first; this branch kept the #451 version — roots 20, herbs 20,
+other/mushrooms/edible-extras 19, berries 15, brassicas 13, legumes 13,
+alliums 11, fruit trees 10, solanaceae 8), bringing coverage to **157/157
 crops** across all 14 category files (cucurbits was the pre-existing
 exemplar). Every guide follows the spec: 2–4 methods simplest-first in the
 Scottish-allotment voice, storage life, shared verified resource constants,
