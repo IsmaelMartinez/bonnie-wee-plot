@@ -5,7 +5,8 @@ import {
   generateSuccessionReminders,
   generateVarietyTasks,
   getUrgency,
-  getTaskLabel
+  getTaskLabel,
+  careTipHash
 } from '@/lib/task-generator'
 import { Area, Planting, StoredVariety } from '@/types/unified-allotment'
 import { Month } from '@/types/garden-planner'
@@ -515,6 +516,198 @@ describe('task-generator', () => {
       // stage-less tips still show, stage-specific tips skipped (no plantedYear)
       expect(careTipTasks).toHaveLength(1)
       expect(careTipTasks[0].description).toBe('Cut back autumn-fruiting canes to ground level')
+    })
+
+    it('should emit every care tip matching the same month for one plant', () => {
+      // Regression: asparagus in June has three matching tips for a productive
+      // plant; the old plant+area dedupe key collapsed them to the first.
+      const area: Area = {
+        id: 'asparagus-bed',
+        name: 'Asparagus Bed',
+        kind: 'perennial-bed',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'asparagus',
+          plantedYear: 2020,
+        }
+      }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'asparagus',
+        name: 'Asparagus',
+        planting: {
+          harvestMonths: [4, 5, 6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [4, 5, 6], tip: 'From year three, cut spears when about 18cm tall', category: 'harvest', stage: 'productive' },
+          { months: [6], tip: 'Stop cutting by mid-June and let the ferny foliage grow', category: 'harvest', stage: 'productive' },
+          { months: [6, 7, 8], tip: 'Weed the bed by hand and watch for asparagus beetle', category: 'care' },
+        ],
+        perennialInfo: {
+          yearsToFirstHarvest: { min: 2, max: 3 },
+          productiveYears: { min: 15, max: 20 }
+        }
+      })
+
+      mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
+
+      const tasks = generateTasksForMonth(6 as Month, [], [area])
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(3)
+      expect(careTipTasks.map(t => t.description).sort()).toEqual([
+        'From year three, cut spears when about 18cm tall',
+        'Stop cutting by mid-June and let the ferny foliage grow',
+        'Weed the bed by hand and watch for asparagus beetle',
+      ])
+      // Each tip must be independently dismissable, so IDs must be distinct
+      expect(new Set(careTipTasks.map(t => t.id)).size).toBe(3)
+    })
+
+    it('should keep care-tip task IDs stable when tips are inserted or reordered', () => {
+      const area: Area = {
+        id: 'raspberry-patch',
+        name: 'Raspberry Patch',
+        kind: 'berry',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'raspberry',
+          plantedYear: 2020,
+        }
+      }
+
+      const netTip = { months: [7], tip: 'Net fruit to protect from birds', category: 'protect' }
+      const weedTip = { months: [7], tip: 'Weed around the canes', category: 'care' }
+      const vegetable = {
+        id: 'raspberry',
+        name: 'Raspberry',
+        planting: {
+          harvestMonths: [7, 8],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+      }
+
+      mockGetVegetableById.mockReturnValue({ ...vegetable, careTips: [netTip, weedTip] })
+      const before = generateTasksForMonth(7 as Month, [], [area])
+        .find(t => t.description === 'Net fruit to protect from birds')
+
+      // Prepend a new tip and swap the order of the existing two
+      const newTip = { months: [7], tip: 'Tie in new canes as they grow', category: 'care' }
+      mockGetVegetableById.mockReturnValue({ ...vegetable, careTips: [newTip, weedTip, netTip] })
+      const after = generateTasksForMonth(7 as Month, [], [area])
+        .find(t => t.description === 'Net fruit to protect from birds')
+
+      // Same tip keeps the same ID, so month-scoped dismissals survive
+      // vegetable-database edits (the old index-based IDs did not)
+      expect(before?.id).toBeDefined()
+      expect(after?.id).toBe(before?.id)
+    })
+
+    it('should dedupe the same care tip across multiple areas of the same plant', () => {
+      const makeArea = (id: string, name: string): Area => ({
+        id,
+        name,
+        kind: 'perennial-bed',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'asparagus',
+          plantedYear: 2020,
+        }
+      })
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'asparagus',
+        name: 'Asparagus',
+        planting: {
+          harvestMonths: [4, 5, 6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        careTips: [
+          { months: [6], tip: 'Stop cutting by mid-June and let the ferny foliage grow', category: 'harvest' },
+        ],
+      })
+
+      const tasks = generateTasksForMonth(6 as Month, [], [
+        makeArea('asparagus-bed-1', 'Asparagus Bed 1'),
+        makeArea('asparagus-bed-2', 'Asparagus Bed 2'),
+      ])
+
+      // Generic per-plant advice: one task, not one per bed
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(1)
+      expect(careTipTasks[0].areaId).toBeDefined()
+    })
+
+    it('should keep preserve nudges and care tips for the same plant distinct', () => {
+      // Preserve nudges reuse the care-tip task type; the per-tip dedupe key
+      // must not collapse them with a real care tip for the same plant.
+      const area: Area = {
+        id: 'asparagus-bed',
+        name: 'Asparagus Bed',
+        kind: 'perennial-bed',
+        canHavePlantings: true,
+        primaryPlant: {
+          plantId: 'asparagus',
+          plantedYear: 2020,
+        }
+      }
+      const planting: Planting = { id: 'p1', plantId: 'asparagus' }
+
+      mockGetVegetableById.mockReturnValue({
+        id: 'asparagus',
+        name: 'Asparagus',
+        planting: {
+          harvestMonths: [4, 5, 6],
+          sowIndoorsMonths: [],
+          sowOutdoorsMonths: [],
+          transplantMonths: []
+        },
+        storage: {
+          methods: ['freeze'],
+          tip: 'Blanch and freeze a glut.',
+        },
+        careTips: [
+          { months: [6], tip: 'Stop cutting by mid-June and let the ferny foliage grow', category: 'harvest' },
+        ],
+      })
+
+      const tasks = generateTasksForMonth(
+        6 as Month,
+        [{ planting, areaId: 'asparagus-bed', areaName: 'Asparagus Bed' }],
+        [area]
+      )
+
+      const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
+      expect(careTipTasks).toHaveLength(2)
+      expect(careTipTasks.map(t => t.description).sort()).toEqual([
+        'Glut of Asparagus?',
+        'Stop cutting by mid-June and let the ferny foliage grow',
+      ])
+    })
+  })
+
+  describe('careTipHash', () => {
+    it('is deterministic for the same plant and tip text', () => {
+      expect(careTipHash('asparagus', 'Stop cutting by mid-June')).toBe(
+        careTipHash('asparagus', 'Stop cutting by mid-June')
+      )
+    })
+
+    it('differs for different tip text or plant', () => {
+      const base = careTipHash('asparagus', 'Stop cutting by mid-June')
+      expect(careTipHash('asparagus', 'Weed the bed by hand')).not.toBe(base)
+      expect(careTipHash('rhubarb', 'Stop cutting by mid-June')).not.toBe(base)
+    })
+
+    it('produces a short url/id-safe token', () => {
+      expect(careTipHash('asparagus', 'Stop cutting by mid-June')).toMatch(/^[0-9a-z]{1,7}$/)
     })
   })
 

@@ -551,6 +551,35 @@ Four valid items from Gemini's #444 review that shipped to main:
 Existing entries untouched. type-check, lint clean; plant-data-integrity,
 task-generator, and vegetable-database suites all pass.
 
+### Care-tip task dedup + stable IDs (branch `claude/care-tip-dedup-design-9o1nmw`)
+
+Fixed two coupled design smells in the care-tip pipeline (`src/lib/task-generator.ts`)
+that the #446 review exposed:
+
+- **Dedup collapsed same-month tips.** `taskDedupeKey` keyed care-tips on
+  plant + area + month, so a plant with several tips in one month (asparagus in
+  June has three for a productive plant) silently showed only the first on the
+  Today dashboard. Decided semantics: **distinct tips are distinct tasks**; the
+  *same* tip is deduped across areas (generic per-plant advice, matching the
+  one-per-plant pattern of sow tasks and preserve nudges). The dedupe key for
+  `care-tip` tasks is now the task ID itself, which encodes plant + tip content
+  + month. Preserve nudges (which reuse the care-tip type with `preserve-nudge-*`
+  IDs) stay distinct automatically.
+- **IDs embedded the tip's array index.** `care-tip-<areaId>-<vegId>-<tipIdx>-<month>`
+  meant inserting or reordering tips in the vegetable database silently
+  invalidated month-scoped dismissals in localStorage on deploy. IDs are now
+  `care-tip-<plantId>-<hash>-<month>` where the hash is a short FNV-1a of
+  plantId + tip text (`careTipHash`, exported) — order-independent and free of
+  area churn. Dismissed-task records are month-scoped, so existing dismissals
+  under old IDs worst-case reappear once mid-month and self-heal at rollover.
+
+The dashboard copes with several tips per plant per month by construction —
+`TaskList` renders a flat list keyed by `task.id`, capped at 8 with a "+N more"
+expander. Regression tests added for: all same-month tips emitted with distinct
+IDs, ID stability under tip reorder/insert, same-tip-across-areas dedup,
+preserve-nudge/care-tip coexistence, and the hash itself. type-check, lint, and
+the full unit suite (1124) pass.
+
 ### Up Next: Phase 1 soak then Step 5 cleanup
 
 The soak window is open. Success criterion is qualitative for the two-user cohort: both real users use the app on the flag for ~3–5 days each, run at least one manual cross-device conflict (edit on phone and laptop, watch the conflict-replace path actually re-hydrate the Yjs doc from cloud), and report no data anomalies. The Yjs binary on each device is the source of truth from this point; the legacy `allotment-unified-data` localStorage key is being mirrored from Yjs and is the rollback floor. Step 5 then deletes `useSyncedStorage`, the legacy branch of every domain-hook method, `useYjsToLegacyMirror`, the `bwp-storage-flag` BroadcastChannel, the legacy localStorage key, and the same-tab broadcast apparatus from PR #369 (the `bonnie:storage-update` CustomEvent, the `instanceId`/`sameTabSeq` bookkeeping, the `recordSavedState`/`recordAdoptedState` helpers, the `recentSavesRef` echo dedup) — every line of that broadcast becomes redundant the day the legacy chain leaves the tree. `serializeToJson` and `decodeDocState` stay forever (rollback + GDPR export + debug). Separate follow-ups worth filing: rename `src/lib/yjs-spike/` → `src/lib/yjs/`, consolidate `src/hooks/allotment/yjs-helpers.ts` with the now-internal `assignDefined` in `allotment-yjs.ts`, and tighten the still-`addInitScript`-pattern Playwright seeds (homepage / onboarding / boost-this-bed) to also clear Yjs IDB if those tests start contaminating each other later.
