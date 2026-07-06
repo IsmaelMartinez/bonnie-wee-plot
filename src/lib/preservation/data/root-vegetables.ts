@@ -14,6 +14,10 @@ import {
   bbcGoodFoodCollection,
 } from '../resources'
 
+/** Shared fallback collections for roots without a BBC Food hub of their own */
+const ROOT_VEG_RECIPES = bbcGoodFoodCollection('root-vegetable-recipes', 'Root vegetable recipes')
+const RADISH_RECIPES = bbcGoodFoodCollection('radish-recipes', 'Radish recipes')
+
 export const rootVegetablesPreservation: PreservationGuide[] = [
   {
     plantId: 'carrot',
@@ -61,8 +65,8 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
       },
       {
         method: 'pickle',
-        how: 'Boil until tender, slip the skins, slice and pack in spiced vinegar. The classic route for a glut.',
-        storageLife: '6–12 months in sealed jars',
+        how: 'Boil until tender, slip the skins, slice and pack in spiced vinegar. Keep the jars in the fridge, or water-bath process them (see NCHFP) if you want them shelf-stable.',
+        storageLife: '3–4 months in the fridge; 1 year+ if water-bath processed',
         resources: [NCHFP.pickling, BBC_GOOD_FOOD.pickles],
       },
       {
@@ -75,6 +79,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('beetroot', 'Beetroot'),
       bbcGoodFoodCollection('beetroot-recipes', 'Beetroot recipes'),
+      BBC_GOOD_FOOD.chutneys,
     ],
   },
   {
@@ -100,7 +105,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('parsnip', 'Parsnip')],
+    recipeIdeas: [
+      bbcFoodIngredient('parsnip', 'Parsnip'),
+      bbcGoodFoodCollection('parsnip-recipes', 'Parsnip recipes'),
+    ],
   },
   {
     plantId: 'turnip',
@@ -125,7 +133,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('turnip', 'Turnip')],
+    recipeIdeas: [
+      bbcFoodIngredient('turnip', 'Turnip'),
+      bbcGoodFoodCollection('turnip-recipes', 'Turnip recipes'),
+    ],
   },
   {
     plantId: 'swede',
@@ -150,7 +161,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('swede', 'Swede')],
+    recipeIdeas: [
+      bbcFoodIngredient('swede', 'Swede'),
+      bbcGoodFoodCollection('swede-recipes', 'Swede recipes'),
+    ],
   },
   {
     plantId: 'radish',
@@ -176,6 +190,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('radish', 'Radish'),
+      RADISH_RECIPES,
       BBC_GOOD_FOOD.pickles,
     ],
   },
@@ -202,7 +217,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('jerusalem_artichoke', 'Jerusalem artichoke')],
+    recipeIdeas: [
+      bbcFoodIngredient('jerusalem_artichoke', 'Jerusalem artichoke'),
+      bbcGoodFoodCollection('jerusalem-artichoke-recipes', 'Jerusalem artichoke recipes'),
+    ],
   },
   {
     plantId: 'celeriac',
@@ -227,7 +245,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('celeriac', 'Celeriac')],
+    recipeIdeas: [
+      bbcFoodIngredient('celeriac', 'Celeriac'),
+      bbcGoodFoodCollection('celeriac-recipes', 'Celeriac recipes'),
+    ],
   },
   {
     plantId: 'salsify',
@@ -252,7 +273,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('salsify', 'Salsify')],
+    recipeIdeas: [bbcFoodIngredient('salsify', 'Salsify'), ROOT_VEG_RECIPES],
   },
   {
     plantId: 'hamburg-parsley',
@@ -277,6 +298,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
   {
     plantId: 'florence-fennel',
@@ -334,7 +356,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [UMN_SAUERKRAUT, NCHFP.fermenting],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('daikon', 'Daikon (mooli)')],
+    recipeIdeas: [bbcFoodIngredient('daikon', 'Daikon (mooli)'), RADISH_RECIPES],
   },
   {
     plantId: 'black-radish',
@@ -359,7 +381,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.pickling],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('radish', 'Radish')],
+    recipeIdeas: [bbcFoodIngredient('radish', 'Radish'), RADISH_RECIPES],
   },
   {
     plantId: 'scorzonera',
@@ -384,7 +406,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('salsify', 'Salsify')],
+    recipeIdeas: [bbcFoodIngredient('salsify', 'Salsify'), ROOT_VEG_RECIPES],
   },
   {
     plantId: 'horseradish',
@@ -439,6 +461,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.pickling],
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
   {
     plantId: 'yacon',
@@ -461,6 +484,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         storageLife: '1–2 weeks once cut',
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
   {
     plantId: 'skirret',
@@ -485,6 +509,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
   {
     plantId: 'oca',
@@ -508,6 +533,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
   {
     plantId: 'ulluco',
@@ -532,5 +558,6 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
+    recipeIdeas: [ROOT_VEG_RECIPES],
   },
 ]
