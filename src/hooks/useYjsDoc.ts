@@ -1,23 +1,22 @@
 /**
- * useYjsDoc Hook (ADR 027 Step 3, PR-A foundation)
+ * useYjsDoc Hook (ADR 027)
  *
  * Owns the Y.Doc, the SyncedStore instance, the IndexeddbPersistence
  * provider, and the React state that publishes the derived
- * `AllotmentData | null` snapshot to consumers.
+ * `AllotmentData | null` snapshot to consumers. This is the canonical
+ * local storage engine; `useAllotmentData` composes it with
+ * `useCloudSync`.
  *
  * Lifecycle on mount:
  *   1. Construct doc + SyncedStore + IndexeddbPersistence.
  *   2. await provider.whenSynced.
  *   3. If the doc is empty (all top-level arrays empty and meta map has
- *      no keys), read legacy `allotment-unified-data` from localStorage,
- *      run it through `initializeStorage` / `migrateData` to bring it to
- *      the current schema, then `hydrateFromJson` it into the store.
+ *      no keys), read the legacy `allotment-unified-data` key from
+ *      localStorage (written by import / restore / fresh-init), run it
+ *      through the schema migration to bring it to the current version,
+ *      then `hydrateFromJson` it into the store.
  *   4. Subscribe `doc.on('update', ...)`. On every update, call
  *      `serializeToJson(store)` and push the result through `setState`.
- *
- * This hook is wired into the rest of the app only when
- * `USE_YJS_STORAGE === true`. Default-off in the first release ship of
- * Step 3; PR-B ports the seven domain hooks behind the same flag.
  */
 
 'use client'
@@ -33,12 +32,11 @@ import {
   hydrateFromJson,
   serializeToJson,
   type AllotmentStoreShape,
-} from '@/lib/yjs-spike/allotment-yjs'
+} from '@/lib/yjs/allotment-yjs'
 import {
   validateAllotmentData,
   migrateSchemaForImport,
 } from '@/services/allotment-storage'
-import type { SyncStatus } from '@/types/storage'
 
 /**
  * Name of the IndexedDB database used by `y-indexeddb` for the
@@ -183,29 +181,15 @@ export interface UseYjsDocReturn {
    */
   replaceFromJson: (json: AllotmentData) => void
   /**
-   * "Use mine" conflict-resolution path: read the current snapshot,
-   * push it through the mirror so the legacy chain picks it up, then
-   * await the cloud-push flush.
-   */
-  serializeAndPush: () => Promise<void>
-  /**
-   * Awaits any pending IndexedDB persistence writes plus the mirror's
-   * own pending mirror write. Mirrors the shape of the legacy
-   * `usePersistedStorage.flushSave` so callers see the same contract.
+   * Awaits any pending IndexedDB persistence writes. Callers see the
+   * same "everything saved locally" contract the legacy chain offered.
    */
   flushSave: () => Promise<boolean>
   /**
-   * Mirrors `usePersistedStorage.isSyncedFromOtherTab`. Fires when the
-   * `y-indexeddb` cross-tab broadcast updates this tab's doc.
+   * Fires when the `y-indexeddb` cross-tab broadcast updates this tab's
+   * doc, so existing "synced from another tab" affordances light up.
    */
   isSyncedFromOtherTab: boolean
-  /**
-   * Mirrors `useSyncedStorage.syncStatus`. PR-A leaves this `'disabled'`
-   * — cloud sync remains on the legacy chain via the mirror adapter
-   * during Step 3 soak. PR-B / PR-C may extend this once the cutover
-   * runbook runs.
-   */
-  syncStatus: SyncStatus
 }
 
 /**
@@ -329,32 +313,14 @@ export function useYjsDoc(): UseYjsDocReturn {
     }
   }, [])
 
-  // `serializeAndPush` is the "use mine" half of the conflict-resolution
-  // contract that lives on the legacy chain. PR-A only exposes the
-  // surface so PR-B / PR-C can wire it into the conflict dialog without
-  // re-shaping the hook. The actual cloud push stays on
-  // `useSyncedStorage.flushPush`, which the mirror adapter triggers
-  // automatically when the next snapshot reaches `usePersistedStorage`.
-  // We expose `serializeAndPush` here for symmetry with the spec — the
-  // wiring lives in `useAllotmentData` when the flag is on.
-  const serializeAndPush = useCallback(async (): Promise<void> => {
-    // The actual push happens through the mirror once the next snapshot
-    // is published. Awaiting the local flush is the closest equivalent
-    // to "everything is safely staged for cloud sync" we can offer
-    // without coupling this hook to `useSyncedStorage`.
-    await flushSave()
-  }, [flushSave])
-
   return {
     data,
     isLoading,
     error,
     mutate,
     replaceFromJson,
-    serializeAndPush,
     flushSave,
     isSyncedFromOtherTab,
-    syncStatus: 'disabled',
   }
 }
 

@@ -6,7 +6,7 @@ import {
   serializeToJson,
   encodeDocState,
   decodeDocState,
-} from '@/lib/yjs-spike/allotment-yjs'
+} from '@/lib/yjs/allotment-yjs'
 import type { AllotmentData } from '@/types/unified-allotment'
 
 function makeFixture(): AllotmentData {
@@ -148,7 +148,7 @@ function makeFixture(): AllotmentData {
   }
 }
 
-describe('yjs-spike: allotment-yjs', () => {
+describe('yjs: allotment-yjs', () => {
   describe('hydrate + serialize round-trip', () => {
     it('preserves the full AllotmentData shape', () => {
       const original = makeFixture()
@@ -356,7 +356,7 @@ describe('yjs-spike: allotment-yjs', () => {
       const jsonSize = new TextEncoder().encode(JSON.stringify(original)).length
 
       console.log(
-        `[yjs-spike] fixture sizes — JSON: ${jsonSize}B, Yjs binary: ${binarySize}B, ratio: ${(
+        `[yjs] fixture sizes — JSON: ${jsonSize}B, Yjs binary: ${binarySize}B, ratio: ${(
           binarySize / jsonSize
         ).toFixed(2)}`,
       )

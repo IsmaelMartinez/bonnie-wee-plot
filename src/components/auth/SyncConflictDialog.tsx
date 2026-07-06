@@ -2,7 +2,7 @@
 
 import { Cloud, Smartphone } from 'lucide-react'
 import Dialog from '@/components/ui/Dialog'
-import type { SyncConflict } from '@/hooks/useSyncedStorage'
+import type { SyncConflict } from '@/hooks/useCloudSync'
 
 interface SyncConflictDialogProps {
   conflict: SyncConflict

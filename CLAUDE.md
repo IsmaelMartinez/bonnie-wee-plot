@@ -76,11 +76,11 @@ Query functions in `src/lib/variety-queries.ts`:
 
 ### State Management
 
-`useAllotment` hook (`src/hooks/useAllotment.ts`) is the single source of truth for allotment state. It wraps the storage service and provides:
-- CRUD operations for plantings and maintenance tasks
+`useAllotment` hook (`src/hooks/useAllotment.ts`) is the single source of truth for allotment state. It composes the domain hooks in `src/hooks/allotment/` over the Yjs storage engine (`useAllotmentData` → `useYjsDoc`, see ADR 027) and provides:
+- CRUD operations for plantings and maintenance tasks (all writes go through `mutate(fn)` against the SyncedStore proxy)
 - Year/bed selection
-- Multi-tab sync via storage events
-- Debounced saves with status tracking
+- Cross-tab sync via `y-indexeddb`'s IndexedDB broadcast
+- Cloud sync + conflict status via `useCloudSync`
 
 ### Storage Service
 
@@ -186,15 +186,17 @@ Environment: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBL
 
 Supabase stores AllotmentData as a JSONB document per user in the `allotments` table (schema in `sql/001-allotments.sql`). Row Level Security restricts access via Clerk JWT `sub` claim.
 
-The sync architecture layers: `useAllotment` -> `useAllotmentData` -> `useSyncedStorage` -> `usePersistedStorage` (localStorage). The `useSyncedStorage` hook (`src/hooks/useSyncedStorage.ts`) adds cloud sync when authenticated: initial load reconciles with LWW on `meta.updatedAt`, saves push asynchronously to Supabase, and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`.
+The sync architecture layers: `useAllotment` -> `useAllotmentData` -> (`useYjsDoc` for local IndexedDB persistence + `useCloudSync` for Supabase). The `useCloudSync` hook (`src/hooks/useCloudSync.ts`) consumes the Yjs snapshot directly and adds cloud sync when authenticated: initial load reconciles with LWW on `meta.updatedAt`, edits push asynchronously to Supabase (30s debounce, unload flush), and reconnection triggers a re-sync via `useNetworkStatus.justReconnected`. (The pre-Step-5 chain routed through `useSyncedStorage` + `usePersistedStorage` + a Yjs→legacy mirror; ADR 027 Step 5 removed that legacy local chain and ported the cloud half onto the Yjs snapshot.)
 
 The Supabase client module (`src/lib/supabase/client.ts`) provides `createAnonClient()`, `createAuthClient(token)`, and `isSupabaseConfigured()`. The sync service (`src/lib/supabase/sync.ts`) provides `fetchRemote()`, `pushToRemote()`, and `deleteRemote()`.
 
 Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Clerk JWT template named "supabase" must be created in the Clerk Dashboard (JWT Templates > New template > Supabase preset). The template claims should be `{ "aud": "authenticated", "role": "authenticated", "email": "{{user.primary_email_address}}" }` — do not include `sub` as it is a reserved claim that Clerk sets automatically to the user ID. The signing key must be the Supabase JWT Secret (Project Settings > API > JWT Secret), algorithm HS256. The RLS policies in `sql/001-allotments.sql` use `auth.jwt() ->> 'sub'` to match rows to users.
 
-### Yjs Sync Spike (ADR 027)
+### Yjs Storage Engine (ADR 027)
 
-`src/lib/yjs-spike/allotment-yjs.ts` is a proof-of-concept that maps `AllotmentData` onto a Yjs document via SyncedStore (`@syncedstore/core`). It exports `createAllotmentDoc`, `hydrateFromJson`, `serializeToJson`, and `encodeDocState` / `decodeDocState` for the eventual BYTEA round-trip. The module is **not wired into `useAllotment` yet** — Step 2 of ADR 027 ships the shape, hydrate/serialize, and CRDT-merge tests in isolation; Step 3 will replace `useSyncedStorage` with a `useYjsDoc` hook. Treat this directory as exploratory until that integration lands.
+`src/lib/yjs/allotment-yjs.ts` maps `AllotmentData` onto a Yjs document via SyncedStore (`@syncedstore/core`). It exports `createAllotmentDoc`, `hydrateFromJson`, `serializeToJson`, `encodeDocState` / `decodeDocState` for the BYTEA round-trip, and the shared write-site helpers `withoutUndefined` / `assignDefined` used by the domain hooks. This is the canonical local storage engine: `useYjsDoc` (`src/hooks/useYjsDoc.ts`) owns the `Y.Doc`, the `y-indexeddb` persistence provider, and the published `AllotmentData` snapshot; `useAllotmentData` composes it with `useCloudSync`. Domain-hook mutations write through `mutate(fn)` against the SyncedStore proxy.
+
+`serializeToJson` and `decodeDocState` are permanent infrastructure — they back the rollback path (decode binary → JSON → restore), the GDPR `/api/account` export once cloud storage moves to BYTEA (Step 4), and per-user binary debugging. Do not delete them. On first run, `useYjsDoc` hydrates the doc from the legacy `allotment-unified-data` localStorage key (still written by the import / restore / fresh-init flows); the legacy debounced-save chain that used to mirror back into that key was removed in Step 5.
 
 ### GDPR Compliance
 

@@ -4,9 +4,8 @@
  * Task scheduling for perennial plant maintenance.
  * Handles maintenance task CRUD and completion tracking.
  *
- * Two-branch methods (ADR 027 Step 3, PR-B): see useAllotmentAreas for
- * the convention. The Yjs branch mutates `store.maintenanceTasks` in
- * place.
+ * Writes go through `mutate(fn)` against the SyncedStore proxy (ADR 027;
+ * legacy `setData` branch removed in Step 5).
  */
 
 'use client'
@@ -21,21 +20,15 @@ import {
   getMaintenanceTasks,
   getTasksForMonth,
   getTasksForArea as storageGetTasksForArea,
-  addMaintenanceTask as storageAddTask,
-  updateMaintenanceTask as storageUpdateTask,
-  completeMaintenanceTask as storageCompleteTask,
-  removeMaintenanceTask as storageRemoveTask,
 } from '@/services/allotment-storage'
 import { generateId } from '@/lib/utils'
-import { USE_YJS_STORAGE } from '@/config/release-visibility'
 import type { MutateFn } from './useAllotmentData'
-import { assignDefined, withoutUndefined } from './yjs-helpers'
+import { assignDefined, withoutUndefined } from '@/lib/yjs/allotment-yjs'
 
 // ============ HOOK TYPES ============
 
 export interface UseAllotmentMaintenanceProps {
   data: AllotmentData | null
-  setData: (data: AllotmentData | ((prev: AllotmentData | null) => AllotmentData | null)) => void
   mutate: MutateFn
 }
 
@@ -53,7 +46,6 @@ export interface UseAllotmentMaintenanceReturn {
 
 export function useAllotmentMaintenance({
   data,
-  setData,
   mutate,
 }: UseAllotmentMaintenanceProps): UseAllotmentMaintenanceReturn {
 
@@ -75,64 +67,44 @@ export function useAllotmentMaintenance({
   const addTask = useCallback((task: NewMaintenanceTask) => {
     if (!data) return
 
-    if (USE_YJS_STORAGE) {
-      mutate(store => {
-        const newTask: MaintenanceTask = withoutUndefined({
-          ...task,
-          id: generateId('task'),
-        })
-        store.maintenanceTasks.push(newTask)
+    mutate(store => {
+      const newTask: MaintenanceTask = withoutUndefined({
+        ...task,
+        id: generateId('task'),
       })
-      return
-    }
-
-    setData(storageAddTask(data, task))
-  }, [data, setData, mutate])
+      store.maintenanceTasks.push(newTask)
+    })
+  }, [data, mutate])
 
   const updateTask = useCallback((taskId: string, updates: Partial<Omit<MaintenanceTask, 'id'>>) => {
     if (!data) return
 
-    if (USE_YJS_STORAGE) {
-      mutate(store => {
-        const t = store.maintenanceTasks.find(x => x.id === taskId)
-        if (!t) return
-        assignDefined(t as unknown as Record<string, unknown>, updates as Record<string, unknown>)
-      })
-      return
-    }
-
-    setData(storageUpdateTask(data, taskId, updates))
-  }, [data, setData, mutate])
+    mutate(store => {
+      const t = store.maintenanceTasks.find(x => x.id === taskId)
+      if (!t) return
+      assignDefined(t as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+    })
+  }, [data, mutate])
 
   const completeTask = useCallback((taskId: string) => {
     if (!data) return
 
-    if (USE_YJS_STORAGE) {
-      mutate(store => {
-        const t = store.maintenanceTasks.find(x => x.id === taskId)
-        if (!t) return
-        t.lastCompleted = new Date().toISOString()
-      })
-      return
-    }
-
-    setData(storageCompleteTask(data, taskId))
-  }, [data, setData, mutate])
+    mutate(store => {
+      const t = store.maintenanceTasks.find(x => x.id === taskId)
+      if (!t) return
+      t.lastCompleted = new Date().toISOString()
+    })
+  }, [data, mutate])
 
   const removeTask = useCallback((taskId: string) => {
     if (!data) return
 
-    if (USE_YJS_STORAGE) {
-      mutate(store => {
-        const idx = store.maintenanceTasks.findIndex(t => t.id === taskId)
-        if (idx === -1) return
-        store.maintenanceTasks.splice(idx, 1)
-      })
-      return
-    }
-
-    setData(storageRemoveTask(data, taskId))
-  }, [data, setData, mutate])
+    mutate(store => {
+      const idx = store.maintenanceTasks.findIndex(t => t.id === taskId)
+      if (idx === -1) return
+      store.maintenanceTasks.splice(idx, 1)
+    })
+  }, [data, mutate])
 
   return {
     getMaintenanceTasks: getMaintenanceTasksData,
