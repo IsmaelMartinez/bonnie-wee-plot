@@ -89,13 +89,18 @@ describe('useYjsDoc', () => {
     await resetIndexedDB()
   })
 
-  it('returns data:null when both IndexedDB and legacy localStorage are empty', async () => {
+  it('seeds a fresh default allotment when both IndexedDB and legacy localStorage are empty', async () => {
+    // On a brand-new device the first-run seed runs `initializeStorage()`,
+    // which creates and persists a default allotment (the same seed the
+    // pre-Step-5 legacy chain produced). The doc therefore hydrates to
+    // non-null default data rather than staying empty.
     const { result } = renderHook(() => useYjsDoc())
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await waitFor(() => expect(result.current.data).not.toBeNull())
 
-    expect(result.current.data).toBeNull()
     expect(result.current.error).toBeNull()
+    expect(result.current.data?.version).toBeGreaterThanOrEqual(1)
+    expect(Array.isArray(result.current.data?.layout.areas)).toBe(true)
   })
 
   it('hydrates from legacy localStorage when IndexedDB is empty', async () => {
