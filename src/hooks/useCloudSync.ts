@@ -1,19 +1,30 @@
 'use client'
 
 /**
- * useSyncedStorage Hook
+ * useCloudSync Hook (ADR 027 Step 5)
  *
- * Wraps usePersistedStorage with Supabase cloud sync when authenticated.
- * localStorage always stays active as the offline cache.
- * When signed in, changes are pushed to Supabase asynchronously.
- * On load, cloud data is fetched and reconciled:
- *  - First sync for a device/user: cloud always wins
- *  - Subsequent syncs: LWW (last-write-wins) with conflict detection
+ * Supabase cloud sync driven directly off the Yjs snapshot publisher.
+ *
+ * Before Step 5 this logic lived in `useSyncedStorage`, wrapped around
+ * the legacy `usePersistedStorage` localStorage chain and fed by the
+ * Yjs → legacy mirror. Step 5 deletes that chain; the cloud half —
+ * fetch / push / LWW-guard / conflict dialog, the 30 s push debounce,
+ * and the unload flush — is preserved here and consumes the Yjs
+ * `AllotmentData` snapshot instead of a `usePersistedStorage` instance.
+ *
+ * Reconciliation model (unchanged from `useSyncedStorage`):
+ *  - First sync for a device/user: cloud always wins.
+ *  - Subsequent syncs: LWW on `meta.updatedAt` with content-equality
+ *    short-circuit, a "structurally smaller" safety net (the 2026-05-08
+ *    incident guard), and a conflict dialog when both sides diverge.
+ *
+ * The CRDT-merge win that Yjs unlocks lands when Step 4 moves the cloud
+ * transport onto Yjs itself; until then the cloud copy stays JSONB + LWW
+ * and this hook is the bridge.
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useOptionalAuth } from './useOptionalAuth'
-import { usePersistedStorage, UsePersistedStorageOptions, UsePersistedStorageReturn } from './usePersistedStorage'
 import { useNetworkStatus } from './useNetworkStatus'
 import {
   fetchRemote,
@@ -22,6 +33,11 @@ import {
   isLocalStructurallySmaller,
 } from '@/lib/supabase/sync'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
+import {
+  createAllotmentDoc,
+  hydrateFromJson,
+  serializeToJson,
+} from '@/lib/yjs/allotment-yjs'
 import type { AllotmentData } from '@/types/unified-allotment'
 import type { SyncStatus } from '@/types/storage'
 
@@ -33,26 +49,56 @@ export interface SyncConflict {
   remoteUpdatedAt: string
 }
 
-export interface UseSyncedStorageReturn<T> extends UsePersistedStorageReturn<T> {
+export interface UseCloudSyncOptions {
+  /**
+   * The live Yjs snapshot (`null` while the doc is still loading). This
+   * is the canonical local state; `useCloudSync` never writes to it
+   * except through `applyRemote`.
+   */
+  data: AllotmentData | null
+  /**
+   * Adopt a remote snapshot into the Yjs doc — the Step 5 replacement
+   * for the legacy `usePersistedStorage.setData`. Wired to
+   * `useYjsDoc.replaceFromJson`.
+   */
+  applyRemote: (data: AllotmentData) => void
+  /**
+   * Flush pending local (IndexedDB) persistence — wired to
+   * `useYjsDoc.flushSave`. Used by the unload handler so the local cache
+   * is durable before the final cloud push.
+   */
+  flushLocal: () => Promise<boolean>
+  /**
+   * `true` when the current snapshot change was driven by another tab's
+   * `y-indexeddb` broadcast rather than a local edit. The push effect
+   * skips scheduling a push in that case: the tab that made the edit
+   * pushes it, so a non-editing sibling tab re-pushing the same content
+   * would only amplify writes and add duplicate history rows.
+   */
+  isSyncedFromOtherTab?: boolean
+}
+
+export interface UseCloudSyncReturn {
   syncStatus: SyncStatus
   syncError: string | null
   syncConflict: SyncConflict | null
   resolveConflict: (choice: 'cloud' | 'local') => void
   /**
-   * Cancel the pending push debounce (if any) and immediately push the latest
-   * pending snapshot to the cloud. Resolves once the push completes (or
-   * immediately if there is nothing pending). Used by the unload listener and
-   * exposed for callers that need to force a flush before navigating away.
+   * Cancel the pending push debounce (if any) and immediately push the
+   * latest pending snapshot to the cloud. Resolves once the push
+   * completes (or immediately if there is nothing pending). Used by the
+   * unload listener and exposed for callers that need to force a flush
+   * before navigating away.
    */
   flushPush: () => Promise<void>
 }
 
 /**
- * How long to coalesce push-to-cloud calls after a local save. A burst of
- * `setData` calls (e.g. toggling tasks, editing a name) all collapse to one
- * push and one history row instead of one per save. Cloud lags local by up
- * to this much, which is fine for a single-user app — the local cache is
- * always current.
+ * How long to coalesce push-to-cloud calls after a local change. A burst
+ * of mutations (e.g. toggling tasks, editing a name) all collapse to one
+ * push and one history row instead of one per change. Cloud lags local
+ * by up to this much, which is fine for a single-user app — the local
+ * cache is always current.
  */
 const PUSH_DEBOUNCE_MS = 30_000
 
@@ -86,10 +132,28 @@ function toTimestamp(value?: string): number {
   return Number.isNaN(ts) ? 0 : ts
 }
 
-export function useSyncedStorage(
-  options: UsePersistedStorageOptions<AllotmentData>
-): UseSyncedStorageReturn<AllotmentData> {
-  const local = usePersistedStorage<AllotmentData>(options)
+/**
+ * Round-trip a raw remote snapshot through the same hydrate/serialize
+ * path the live Yjs doc uses. `applyRemote` writes the remote into the
+ * doc, which then republishes a *normalized* snapshot (undefined fields
+ * dropped, optional arrays defaulted to `[]`). Recording the normalized
+ * content fingerprint as the "just pulled" marker means the push effect
+ * recognises the republished snapshot and skips re-pushing it — the same
+ * no-redundant-push guarantee `useSyncedStorage` had when it wrote the
+ * raw remote straight to localStorage.
+ */
+function normalizedContentSnapshot(data: AllotmentData): string {
+  const { store } = createAllotmentDoc()
+  hydrateFromJson(store, data)
+  return contentSnapshot(serializeToJson(store))
+}
+
+export function useCloudSync({
+  data,
+  applyRemote,
+  flushLocal,
+  isSyncedFromOtherTab,
+}: UseCloudSyncOptions): UseCloudSyncReturn {
   const { getToken, userId, isSignedIn } = useOptionalAuth()
   const { isOnline, justReconnected } = useNetworkStatus()
 
@@ -116,12 +180,12 @@ export function useSyncedStorage(
     activeUserIdRef.current !== expectedUserId
 
   const applyRemoteSnapshot = (remoteData: AllotmentData) => {
-    // Use content-only fingerprint so a subsequent local save (which may
-    // re-stamp meta.updatedAt) doesn't look like a content change to the
-    // push effect.
-    const snapshot = contentSnapshot(remoteData)
+    // Mark the (normalized) content we're adopting so the push effect,
+    // which fires when the Yjs doc republishes the adopted snapshot,
+    // recognises it and skips the round-trip back to the cloud.
+    const snapshot = normalizedContentSnapshot(remoteData)
     pulledSnapshotRef.current = snapshot
-    local.setData(remoteData)
+    applyRemote(remoteData)
     lastPushedRef.current = snapshot
   }
 
@@ -130,7 +194,7 @@ export function useSyncedStorage(
     try {
       return await getToken({ template: 'supabase' })
     } catch (err) {
-      console.error('[useSyncedStorage] Failed to get auth token:', err)
+      console.error('[useCloudSync] Failed to get auth token:', err)
       return null
     }
   }
@@ -153,7 +217,7 @@ export function useSyncedStorage(
           lastPushedRef.current = contentSnapshot(conflict.local)
         }
       } catch (err) {
-        console.error('[useSyncedStorage] Failed to push after conflict resolution:', err)
+        console.error('[useCloudSync] Failed to push after conflict resolution:', err)
       }
     }
 
@@ -169,11 +233,11 @@ export function useSyncedStorage(
     initialSyncDoneRef.current = false
   }, [userId])
 
-  // Initial sync: fetch cloud data and reconcile with local
-  // Depends on !!local.data to re-trigger when data becomes available after loading
-  const hasLocalData = !!local.data
+  // Initial sync: fetch cloud data and reconcile with local.
+  // Depends on !!data to re-trigger once the Yjs snapshot becomes available.
+  const hasData = !!data
   useEffect(() => {
-    if (!canSync || !userId || local.isLoading || !local.data) return
+    if (!canSync || !userId || !data) return
     if (initialSyncDoneRef.current) return
     if (syncInProgressRef.current && syncInProgressUserRef.current === userId) return
     syncInProgressRef.current = true
@@ -196,16 +260,16 @@ export function useSyncedStorage(
 
         if (!remote) {
           // First-time cloud user — push local data up
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(token, syncUserId, data)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = contentSnapshot(local.data!)
+          lastPushedRef.current = contentSnapshot(data)
           markSynced(syncUserId)
           setSyncStatus('synced')
           setSyncError(null)
           return
         }
 
-        const localData = local.data!
+        const localData = data
         const flag = getSyncFlag(syncUserId)
         const isFirstSync = !flag
 
@@ -268,9 +332,9 @@ export function useSyncedStorage(
             setSyncStatus('conflict')
             return
           }
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(token, syncUserId, data)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = contentSnapshot(local.data!)
+          lastPushedRef.current = contentSnapshot(data)
         } else {
           // Equal timestamps but the content snapshots disagree (otherwise
           // we'd have short-circuited above). Neither side claims to have
@@ -293,7 +357,7 @@ export function useSyncedStorage(
         setSyncError(null)
       } catch (err) {
         if (isStaleSyncUser(syncUserId)) return
-        console.error('[useSyncedStorage] Initial sync failed:', err)
+        console.error('[useCloudSync] Initial sync failed:', err)
         setSyncStatus('error')
         setSyncError(err instanceof Error ? err.message : 'Sync failed')
       } finally {
@@ -309,7 +373,7 @@ export function useSyncedStorage(
 
     doInitialSync()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canSync, userId, local.isLoading, hasLocalData])
+  }, [canSync, userId, hasData])
 
   // Perform a push immediately. Used by the debounce timer, flushPush, and the
   // unload listener. Updates lastPushedRef + sync status on success.
@@ -328,7 +392,7 @@ export function useSyncedStorage(
       setSyncError(null)
     } catch (err) {
       if (isStaleSyncUser(syncUserId)) return
-      console.error('[useSyncedStorage] Push failed:', err)
+      console.error('[useCloudSync] Push failed:', err)
       setSyncStatus('error')
       setSyncError(err instanceof Error ? err.message : 'Sync failed')
     }
@@ -351,18 +415,28 @@ export function useSyncedStorage(
     await performPush(dataToPush, syncUserId)
   }, [performPush])
 
-  // Push to cloud after local save completes (only after initial sync is done).
-  // Coalesces a burst of saves into a single push via PUSH_DEBOUNCE_MS — every
-  // new save resets the timer; the latest data wins.
+  // Push to cloud after the Yjs snapshot changes (only after initial sync is
+  // done). Coalesces a burst of edits into a single push via
+  // PUSH_DEBOUNCE_MS — every new snapshot resets the timer; the latest data
+  // wins. The Yjs doc republishes a fresh `data` reference on every mutation,
+  // so a reference change is the change signal (the old chain used
+  // `usePersistedStorage.saveStatus === 'saved'`).
   useEffect(() => {
-    if (!canSync || !userId || !local.data) return
-    if (local.saveStatus !== 'saved') return
+    if (!canSync || !userId || !data) return
     if (syncInProgressRef.current) return
     if (!initialSyncDoneRef.current) return
+    // A cross-tab `y-indexeddb` broadcast republishes `data` on the
+    // receiving tab too; the tab that made the edit is responsible for
+    // pushing it, so skip here to avoid every open tab re-pushing the
+    // same content. `isSyncedFromOtherTab` is intentionally not in the
+    // dep array: it self-resets to `false` ~3s later, and re-running
+    // this effect on that reset (with `data` unchanged) would schedule
+    // exactly the spurious push we are avoiding.
+    if (isSyncedFromOtherTab) return
 
-    const serialized = contentSnapshot(local.data)
+    const serialized = contentSnapshot(data)
 
-    // Skip push if this save matches the snapshot we just pulled from cloud
+    // Skip push if this snapshot matches the one we just pulled from cloud.
     if (pulledSnapshotRef.current && serialized === pulledSnapshotRef.current) {
       pulledSnapshotRef.current = null
       return
@@ -373,7 +447,7 @@ export function useSyncedStorage(
 
     // Schedule (or reset) the debounced push. Capture the latest data + user
     // in refs so the timer always pushes the most recent snapshot.
-    pendingPushDataRef.current = local.data
+    pendingPushDataRef.current = data
     pendingPushUserRef.current = userId
     if (pushTimerRef.current) {
       clearTimeout(pushTimerRef.current)
@@ -389,7 +463,7 @@ export function useSyncedStorage(
       void performPush(dataToPush, syncUserId)
     }, PUSH_DEBOUNCE_MS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [local.saveStatus, canSync, userId])
+  }, [data, canSync, userId])
 
   // Cleanup pending timer on unmount so stray timers don't fire after the
   // component is gone (would set state on an unmounted hook).
@@ -403,16 +477,14 @@ export function useSyncedStorage(
   }, [])
 
   // Flush both local persistence and the pending cloud push when the tab is
-  // closing. Just calling local.flushSave() is not sufficient — that would
-  // trigger the push effect, which would start a fresh PUSH_DEBOUNCE_MS timer
-  // the user is no longer around for. So flush the local cache first, then
-  // bypass the debounce by calling flushPush() directly.
+  // closing. Flush the local (IndexedDB) cache first, then bypass the debounce
+  // by calling flushPush() directly so the queued snapshot reaches the cloud.
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!canSync) return
 
     const handleUnload = () => {
-      void local.flushSave().then(() => flushPush())
+      void flushLocal().then(() => flushPush())
     }
     window.addEventListener('pagehide', handleUnload)
     window.addEventListener('beforeunload', handleUnload)
@@ -420,12 +492,11 @@ export function useSyncedStorage(
       window.removeEventListener('pagehide', handleUnload)
       window.removeEventListener('beforeunload', handleUnload)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canSync, flushPush])
+  }, [canSync, flushPush, flushLocal])
 
   // Reconnect sync
   useEffect(() => {
-    if (!justReconnected || !canSync || !userId || !local.data) return
+    if (!justReconnected || !canSync || !userId || !data) return
     const syncUserId = userId
 
     const resync = async () => {
@@ -438,11 +509,11 @@ export function useSyncedStorage(
         const remote = await fetchRemote(token, syncUserId)
         if (isStaleSyncUser(syncUserId)) return
         if (!remote) {
-          await pushToRemote(token, syncUserId, local.data!)
+          await pushToRemote(token, syncUserId, data)
           if (isStaleSyncUser(syncUserId)) return
-          lastPushedRef.current = contentSnapshot(local.data!)
+          lastPushedRef.current = contentSnapshot(data)
         } else {
-          const localData = local.data!
+          const localData = data
           const localTime = toTimestamp(localData.meta?.updatedAt)
           const remoteTime = toTimestamp(remote.updatedAt)
           const flag = getSyncFlag(syncUserId)
@@ -486,9 +557,9 @@ export function useSyncedStorage(
               setSyncStatus('conflict')
               return
             }
-            await pushToRemote(token, syncUserId, local.data!)
+            await pushToRemote(token, syncUserId, data)
             if (isStaleSyncUser(syncUserId)) return
-            lastPushedRef.current = contentSnapshot(local.data!)
+            lastPushedRef.current = contentSnapshot(data)
           }
         }
         markSynced(syncUserId)
@@ -526,7 +597,6 @@ export function useSyncedStorage(
   }, [isSignedIn, isOnline])
 
   return {
-    ...local,
     syncStatus,
     syncError,
     syncConflict,

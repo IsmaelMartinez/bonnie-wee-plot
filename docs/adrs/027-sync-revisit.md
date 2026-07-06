@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted, spike in flight (Step 1 ADR + Step 2 PoC merged in PR #364 on 2026-05-13; Steps 3–5 outstanding). Supersedes the cloud-sync portion of ADR 024 once Step 5 retires the LWW machinery; the share/receive flow described there remains.
+Accepted. Step 1 ADR + Step 2 PoC merged in PR #364 (2026-05-13); Step 3 integration behind `USE_YJS_STORAGE` shipped in PRs #382–#388, defaulted on 2026-05-19; Step 5 cleanup (this note) retired the legacy chain. Step 4 (Yjs binary as the cloud transport) remains outstanding — the cloud copy is still Supabase JSONB + LWW, now driven off the Yjs snapshot by `useCloudSync`. Supersedes the cloud-sync portion of ADR 024; the share/receive flow described there remains.
 
 ## Date
 
@@ -75,6 +75,16 @@ Step three replaces `useSyncedStorage` with a `useYjsDoc` hook. The `usePersiste
 Step four migrates live users. A one-shot import reads each user's current `allotments.data` JSONB row, hydrates a Yjs doc from it, and snapshots the binary state into a new `BYTEA` column (e.g. `allotments.yjs_state`) or a dedicated `allotment_yjs` table — `JSONB` cannot hold raw binary, so reusing `allotments.data` directly is not an option. The migration should run as a dual-write phase: keep updating both the legacy JSONB and the new Yjs binary for a short window so the cut-over is reversible per user if a decoding bug surfaces. The `allotment_history` table from #332 is the safety net during the migration — every user has at least one recovery point predating the migration.
 
 Step five retires the LWW machinery: `useSyncedStorage`, `contentSnapshot`, `isLocalStructurallySmaller`, the conflict dialog, the BEFORE-UPDATE history trigger (the history table itself stays as a defensive backup). The share / receive flow described in ADR 024 stays — it serves a different purpose (one-shot transfer to a new device without sign-in) that Yjs does not replace.
+
+### Step 5 shipped (cleanup)
+
+With `USE_YJS_STORAGE` default-on since 2026-05-19 and the soak window clear of data anomalies, Step 5 deleted the legacy storage chain and its rollback scaffolding:
+
+- The `USE_YJS_STORAGE` flag is gone; `useAllotmentData` composes `useYjsDoc` (canonical local engine, IndexedDB via `y-indexeddb`) with `useCloudSync` unconditionally. The eight domain hooks (`useAllotmentAreas`, `useAllotmentPlantings`, `useAllotmentVarieties`, `useAllotmentCustomTasks`, `useAllotmentMaintenance`, `useAllotmentNotes`, `useAllotmentCareLogs`, `useCompost`) keep only their `mutate()` branch — the legacy `setData` branch and the `setData` prop are removed.
+- Deleted: `useSyncedStorage`, `usePersistedStorage`, `useYjsToLegacyMirror`, `StorageFlagReloadBanner`, the `bwp-storage-flag` BroadcastChannel, the legacy `allotment-unified-data` debounced-save write path, and the same-tab broadcast apparatus from PR #369 (`bonnie:storage-update` CustomEvent, `instanceId` / `sameTabSeq` bookkeeping, `recordSavedState` / `recordAdoptedState`, and the `recentSavesRef` echo dedup). On first run `useYjsDoc` seeds the doc via `initializeStorage()` (read + migrate the `allotment-unified-data` key, or create + persist a fresh default allotment on a brand-new device — the same seed the legacy chain produced); only the mirror/auto-save write path is gone, so mutations persist to IndexedDB rather than that key. Cross-tab sync now rides `y-indexeddb`'s IndexedDB broadcast.
+- **Cloud sync preserved via `useCloudSync`** (`src/hooks/useCloudSync.ts`): the Supabase fetch/push/LWW-guard/conflict-dialog layer, the 30s push debounce, and the unload flush (PRs #331/#332/#338) were ported off `usePersistedStorage` to consume the Yjs snapshot directly. On a `'cloud'` conflict resolution it adopts the remote via `useYjsDoc.replaceFromJson`; on `'local'` it pushes the current snapshot. A `normalizedContentSnapshot` round-trips the adopted remote through hydrate/serialize so the republished snapshot isn't pushed straight back.
+- `serializeToJson` and `decodeDocState` stay permanently (rollback, GDPR export, debug), per the Step 3 spec.
+- Follow-ups folded in: `src/lib/yjs-spike/` → `src/lib/yjs/`; the domain-hook `yjs-helpers.ts` (`withoutUndefined` / `assignDefined`) consolidated into `allotment-yjs.ts`; the `addInitScript` Playwright seeds (homepage / onboarding) now clear the Yjs IndexedDB on first load via `tests/utils/storage.ts`; the path-parity test became a Yjs-path regression test (`allotment-yjs-storage.test.ts`).
 
 ## Consequences
 

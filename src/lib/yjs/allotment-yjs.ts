@@ -1,19 +1,23 @@
 /**
- * Yjs spike (ADR 027 Step 2)
+ * Yjs allotment document (ADR 027)
  *
  * Maps the mutable parts of AllotmentData onto a Yjs document via the
  * SyncedStore proxy wrapper. The 192-entry vegetable database stays in
  * TypeScript modules and is not in scope for this file.
  *
  * Scope of this file: shape definition, doc creation, hydration from an
- * existing AllotmentData JSON snapshot, and serialization back to plain
- * AllotmentData JSON. Consumers of the existing useAllotment API should
- * be able to read the resulting shape with no destructuring changes;
- * writes change from "replace the root object" to "mutate the proxy in
- * place".
+ * existing AllotmentData JSON snapshot, serialization back to plain
+ * AllotmentData JSON, binary encode/decode, and the shared write-site
+ * helpers (`withoutUndefined` / `assignDefined`) the domain hooks use to
+ * strip `undefined` before writing to the proxy. Consumers of the
+ * useAllotment API read the resulting shape with no destructuring
+ * changes; writes go through the SyncedStore proxy in place rather than
+ * replacing the root object.
  *
- * Not yet covered: useAllotmentData / useAllotment integration, the
- * useYjsDoc hook (Step 3), live-user migration (Step 4).
+ * `serializeToJson` and `decodeDocState` are permanent infrastructure
+ * (ADR 027 Step 5): they back the rollback path (decode binary → JSON →
+ * restore), the GDPR `/api/account` export, and per-user binary
+ * debugging. Do not delete them.
  */
 
 import * as Y from 'yjs'
@@ -219,14 +223,20 @@ export function decodeDocState(update: Uint8Array): {
   return { store, doc }
 }
 
-// ============ internals ============
+// ============ write-site helpers ============
 
 /**
  * Assign a source object's defined-only fields into a Yjs-backed target
  * object. Skips `undefined` values — Yjs cannot represent undefined and
  * SyncedStore will throw or silently lose them depending on the path.
+ *
+ * Shared by `hydrateFromJson` (copying `meta`) and by every domain-hook
+ * write site that patches an existing Y.Map field-by-field from a
+ * partial update record (e.g. the `PlantingUpdate` shape). Nested object
+ * / array values are cloned first so the proxy never shares a reference
+ * with the caller's source object.
  */
-function assignDefined<T extends object>(target: T, source: T): void {
+export function assignDefined<T extends object>(target: T, source: Partial<T>): void {
   for (const [key, value] of Object.entries(source)) {
     if (value === undefined) continue
     // SyncedStore expands plain object values into Y.Maps. Clone first
@@ -235,6 +245,30 @@ function assignDefined<T extends object>(target: T, source: T): void {
       isPlainObject(value) || Array.isArray(value) ? cloneJson(value) : value
   }
 }
+
+/**
+ * Returns a shallow copy of `obj` with `undefined`-valued fields
+ * removed. Use at the push site for Yjs branches that build a record
+ * from optional inputs — the legacy `AllotmentData` snapshots carried
+ * `undefined` optionals freely (JSON.stringify drops them on the way to
+ * storage), but the SyncedStore proxy cannot represent `undefined`, so
+ * they must be stripped at the assignment site instead.
+ *
+ * The generic is widened to `object` (not `Record<string, unknown>`) so
+ * the helper accepts typed records like `Planting` or `SeasonRecord`
+ * whose fields use literal-string unions rather than bare `string`s.
+ */
+export function withoutUndefined<T extends object>(obj: T): T {
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value
+    }
+  }
+  return result as T
+}
+
+// ============ internals ============
 
 /**
  * Plain structural clone via JSON. We already serialize ISO date strings

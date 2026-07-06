@@ -1,23 +1,22 @@
 /**
- * useYjsDoc Hook (ADR 027 Step 3, PR-A foundation)
+ * useYjsDoc Hook (ADR 027)
  *
  * Owns the Y.Doc, the SyncedStore instance, the IndexeddbPersistence
  * provider, and the React state that publishes the derived
- * `AllotmentData | null` snapshot to consumers.
+ * `AllotmentData | null` snapshot to consumers. This is the canonical
+ * local storage engine; `useAllotmentData` composes it with
+ * `useCloudSync`.
  *
  * Lifecycle on mount:
  *   1. Construct doc + SyncedStore + IndexeddbPersistence.
  *   2. await provider.whenSynced.
  *   3. If the doc is empty (all top-level arrays empty and meta map has
- *      no keys), read legacy `allotment-unified-data` from localStorage,
- *      run it through `initializeStorage` / `migrateData` to bring it to
- *      the current schema, then `hydrateFromJson` it into the store.
+ *      no keys), seed it via `initializeStorage()` — which reads and
+ *      migrates the legacy `allotment-unified-data` key, or creates and
+ *      persists a fresh default allotment on a brand-new device — then
+ *      `hydrateFromJson` the result into the store.
  *   4. Subscribe `doc.on('update', ...)`. On every update, call
  *      `serializeToJson(store)` and push the result through `setState`.
- *
- * This hook is wired into the rest of the app only when
- * `USE_YJS_STORAGE === true`. Default-off in the first release ship of
- * Step 3; PR-B ports the seven domain hooks behind the same flag.
  */
 
 'use client'
@@ -27,18 +26,13 @@ import * as Y from 'yjs'
 import { getYjsDoc } from '@syncedstore/core'
 import { IndexeddbPersistence } from 'y-indexeddb'
 import type { AllotmentData } from '@/types/unified-allotment'
-import { STORAGE_KEY } from '@/types/unified-allotment'
 import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
   type AllotmentStoreShape,
-} from '@/lib/yjs-spike/allotment-yjs'
-import {
-  validateAllotmentData,
-  migrateSchemaForImport,
-} from '@/services/allotment-storage'
-import type { SyncStatus } from '@/types/storage'
+} from '@/lib/yjs/allotment-yjs'
+import { initializeStorage } from '@/services/allotment-storage'
 
 /**
  * Name of the IndexedDB database used by `y-indexeddb` for the
@@ -112,18 +106,22 @@ function acquireSingleton(): YjsSingleton {
       }
     }
     // First-run hydration: if the doc is still empty after IDB sync,
-    // pull the legacy localStorage snapshot in. This is single-shot
-    // because the singleton's `whenReady` is the only place that runs
-    // it — subsequent `useYjsDoc` mounts await the same Promise and
-    // see a non-empty doc. The IDB is authoritative on later boots;
-    // the import flow (`clearYjsIndexedDb`) and the in-app Clear Local
-    // Data button explicitly clear IDB when the user intends to
-    // discard the doc.
+    // seed it from `initializeStorage()` — which reads and migrates the
+    // existing legacy `allotment-unified-data` key, or creates and
+    // persists a fresh default allotment when the key is absent (a
+    // brand-new device). This is the same seed the pre-Step-5 legacy
+    // chain produced, so a fresh device gets the default allotment
+    // rather than a null doc. Single-shot because the singleton's
+    // `whenReady` is the only place that runs it — subsequent
+    // `useYjsDoc` mounts await the same Promise and see a non-empty doc.
+    // The IDB is authoritative on later boots; the import flow
+    // (`clearYjsIndexedDb`) and the in-app Clear Local Data button
+    // explicitly clear IDB when the user intends to discard the doc.
     if (isStoreEmpty(store)) {
-      const legacy = readLegacyAllotment()
-      if (legacy) {
+      const seed = loadSeedAllotment()
+      if (seed) {
         doc.transact(() => {
-          hydrateFromJson(store, legacy)
+          hydrateFromJson(store, seed)
         }, localOrigin)
       }
     }
@@ -183,29 +181,15 @@ export interface UseYjsDocReturn {
    */
   replaceFromJson: (json: AllotmentData) => void
   /**
-   * "Use mine" conflict-resolution path: read the current snapshot,
-   * push it through the mirror so the legacy chain picks it up, then
-   * await the cloud-push flush.
-   */
-  serializeAndPush: () => Promise<void>
-  /**
-   * Awaits any pending IndexedDB persistence writes plus the mirror's
-   * own pending mirror write. Mirrors the shape of the legacy
-   * `usePersistedStorage.flushSave` so callers see the same contract.
+   * Awaits any pending IndexedDB persistence writes. Callers see the
+   * same "everything saved locally" contract the legacy chain offered.
    */
   flushSave: () => Promise<boolean>
   /**
-   * Mirrors `usePersistedStorage.isSyncedFromOtherTab`. Fires when the
-   * `y-indexeddb` cross-tab broadcast updates this tab's doc.
+   * Fires when the `y-indexeddb` cross-tab broadcast updates this tab's
+   * doc, so existing "synced from another tab" affordances light up.
    */
   isSyncedFromOtherTab: boolean
-  /**
-   * Mirrors `useSyncedStorage.syncStatus`. PR-A leaves this `'disabled'`
-   * — cloud sync remains on the legacy chain via the mirror adapter
-   * during Step 3 soak. PR-B / PR-C may extend this once the cutover
-   * runbook runs.
-   */
-  syncStatus: SyncStatus
 }
 
 /**
@@ -329,70 +313,38 @@ export function useYjsDoc(): UseYjsDocReturn {
     }
   }, [])
 
-  // `serializeAndPush` is the "use mine" half of the conflict-resolution
-  // contract that lives on the legacy chain. PR-A only exposes the
-  // surface so PR-B / PR-C can wire it into the conflict dialog without
-  // re-shaping the hook. The actual cloud push stays on
-  // `useSyncedStorage.flushPush`, which the mirror adapter triggers
-  // automatically when the next snapshot reaches `usePersistedStorage`.
-  // We expose `serializeAndPush` here for symmetry with the spec — the
-  // wiring lives in `useAllotmentData` when the flag is on.
-  const serializeAndPush = useCallback(async (): Promise<void> => {
-    // The actual push happens through the mirror once the next snapshot
-    // is published. Awaiting the local flush is the closest equivalent
-    // to "everything is safely staged for cloud sync" we can offer
-    // without coupling this hook to `useSyncedStorage`.
-    await flushSave()
-  }, [flushSave])
-
   return {
     data,
     isLoading,
     error,
     mutate,
     replaceFromJson,
-    serializeAndPush,
     flushSave,
     isSyncedFromOtherTab,
-    syncStatus: 'disabled',
   }
 }
 
 /**
- * Read the legacy `allotment-unified-data` key directly, validate it,
- * and run any pending schema migrations. Returns `null` when the key is
- * absent, malformed, or fails validation — letting the caller leave
- * the Yjs doc empty rather than back-filling fresh-init data.
+ * Produce the first-run seed for the Yjs doc.
  *
- * Importantly, this does NOT call `initializeStorage`: that function
- * auto-creates a fresh allotment when the key is missing, which is the
- * right behaviour for the legacy chain on a brand-new device but the
- * wrong behaviour for the Yjs path's first-run signal.
+ * Delegates to `initializeStorage()`, the canonical storage entry point:
+ * it reads and validates/migrates the existing legacy
+ * `allotment-unified-data` key, or — on a brand-new device where the key
+ * is absent — creates and persists a fresh default allotment. Both cases
+ * return current-schema data to hydrate. This matches the pre-Step-5
+ * behaviour where the legacy chain ran `initializeStorage()` and the Yjs
+ * doc hydrated from whatever it wrote to localStorage; a fresh device
+ * therefore gets the default allotment rather than a null doc.
+ *
+ * Returns `null` only when there is no `window` (SSR) or the storage
+ * layer fails outright, leaving the doc empty for the caller to surface
+ * the loading/error state.
  */
-function readLegacyAllotment(): AllotmentData | null {
+function loadSeedAllotment(): AllotmentData | null {
   if (typeof window === 'undefined') return null
-  let stored: string | null = null
   try {
-    stored = localStorage.getItem(STORAGE_KEY)
-  } catch {
-    return null
-  }
-  if (!stored) return null
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(stored)
-  } catch {
-    return null
-  }
-  const validation = validateAllotmentData(parsed)
-  if (!validation.valid) return null
-  const data = parsed as AllotmentData
-  // Run schema migrations so the Yjs hydrate sees current-shape data.
-  // `migrateSchemaForImport` is the same migration entry point the
-  // import path already uses, so we inherit its tested coverage rather
-  // than duplicating the version-by-version walk here.
-  try {
-    return migrateSchemaForImport(data)
+    const result = initializeStorage()
+    return result.success && result.data ? result.data : null
   } catch {
     return null
   }

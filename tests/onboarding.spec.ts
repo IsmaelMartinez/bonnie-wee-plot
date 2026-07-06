@@ -1,4 +1,14 @@
 import { test, expect, Page } from '@playwright/test';
+import { clearYjsIdbOnFirstLoad } from './utils/storage';
+
+// Clear any stale Yjs IndexedDB before the app first boots so the
+// `addInitScript` localStorage seeds below hydrate the Yjs doc instead of
+// being shadowed by IDB left over from a prior test in the same worker.
+// Gated to the first load, so the in-test reloads that assert persistence
+// keep the IndexedDB the app has written.
+test.beforeEach(async ({ page }) => {
+  await clearYjsIdbOnFirstLoad(page);
+});
 
 // ============ HELPERS ============
 

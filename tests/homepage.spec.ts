@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { checkA11y } from './utils/accessibility';
+import { clearYjsIdbOnFirstLoad } from './utils/storage';
+
+// Clear any stale Yjs IndexedDB before the app first boots so the
+// `addInitScript` localStorage seeds below hydrate the Yjs doc instead of
+// being shadowed by IDB left over from a prior test in the same worker.
+test.beforeEach(async ({ page }) => {
+  await clearYjsIdbOnFirstLoad(page);
+});
 
 async function disableTours(page: import('@playwright/test').Page) {
   await page.evaluate(() => {

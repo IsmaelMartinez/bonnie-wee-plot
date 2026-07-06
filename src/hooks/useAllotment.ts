@@ -40,9 +40,8 @@ import {
   GridPosition,
 } from '@/types/unified-allotment'
 import { PhysicalBedId, RotationGroup, PhysicalBed, AllotmentItemRef, AllotmentItemType, PermanentPlanting, InfrastructureItem } from '@/types/garden-planner'
-import { SaveStatus } from './usePersistedStorage'
-import type { SyncStatus } from '@/types/storage'
-import type { SyncConflict } from './useSyncedStorage'
+import type { SaveStatus, SyncStatus } from '@/types/storage'
+import type { SyncConflict } from './useCloudSync'
 
 // Import sub-hooks
 import { useAllotmentData } from './allotment/useAllotmentData'
@@ -55,7 +54,7 @@ import { useAllotmentNotes } from './allotment/useAllotmentNotes'
 import { useAllotmentCareLogs } from './allotment/useAllotmentCareLogs'
 
 // Re-export SaveStatus for backward compatibility
-export type { SaveStatus } from './usePersistedStorage'
+export type { SaveStatus } from '@/types/storage'
 
 // ============ HOOK TYPES ============
 
@@ -201,7 +200,6 @@ export function useAllotment(): UseAllotmentReturn {
   const dataHook = useAllotmentData()
   const {
     data,
-    setData,
     mutate,
     currentSeason,
     selectedYear,
@@ -231,7 +229,7 @@ export function useAllotment(): UseAllotmentReturn {
   }, [baseSelectYear])
 
   // Phase 2: Areas and Varieties (parallel)
-  const areasHook = useAllotmentAreas({ data, setData, mutate })
+  const areasHook = useAllotmentAreas({ data, mutate })
   const {
     selectedBedId,
     selectedItemRef,
@@ -251,7 +249,7 @@ export function useAllotment(): UseAllotmentReturn {
     restoreArea,
   } = areasHook
 
-  const varietiesHook = useAllotmentVarieties({ data, setData, mutate })
+  const varietiesHook = useAllotmentVarieties({ data, mutate })
   const {
     getVarieties,
     getVarietiesForYear,
@@ -274,7 +272,6 @@ export function useAllotment(): UseAllotmentReturn {
   // Phase 3: Plantings (depends on data and selectedYear)
   const plantingsHook = useAllotmentPlantings({
     data,
-    setData,
     mutate,
     selectedYear,
     setSelectedYear: baseSelectYear,
@@ -298,7 +295,7 @@ export function useAllotment(): UseAllotmentReturn {
   } = plantingsHook
 
   // Phase 4: Custom Tasks, Maintenance, Notes, CareLogs (parallel)
-  const customTasksHook = useAllotmentCustomTasks({ data, setData, mutate })
+  const customTasksHook = useAllotmentCustomTasks({ data, mutate })
   const {
     getCustomTasks,
     addCustomTask,
@@ -307,7 +304,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeCustomTask,
   } = customTasksHook
 
-  const maintenanceHook = useAllotmentMaintenance({ data, setData, mutate })
+  const maintenanceHook = useAllotmentMaintenance({ data, mutate })
   const {
     getMaintenanceTasks,
     getTasksForMonth,
@@ -318,7 +315,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeMaintenanceTask,
   } = maintenanceHook
 
-  const notesHook = useAllotmentNotes({ data, setData, mutate, selectedYear })
+  const notesHook = useAllotmentNotes({ data, mutate, selectedYear })
   const {
     getAreaNotes,
     addAreaNote,
@@ -329,7 +326,7 @@ export function useAllotment(): UseAllotmentReturn {
     removeGardenEvent,
   } = notesHook
 
-  const careLogsHook = useAllotmentCareLogs({ data, setData, mutate, selectedYear })
+  const careLogsHook = useAllotmentCareLogs({ data, mutate, selectedYear })
   const {
     addCareLog,
     updateCareLog,

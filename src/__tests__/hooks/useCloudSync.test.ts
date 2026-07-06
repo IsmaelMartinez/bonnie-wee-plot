@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { useSyncedStorage, getSyncFlag } from '@/hooks/useSyncedStorage'
+import { useCloudSync, getSyncFlag } from '@/hooks/useCloudSync'
 import type { AllotmentData } from '@/types/unified-allotment'
 
 // Mock auth — use mutable variables so tests can override
@@ -41,29 +41,10 @@ vi.mock('@/hooks/useNetworkStatus', () => ({
   useNetworkStatus: () => ({ isOnline: mockIsOnline, isOffline: !mockIsOnline, justReconnected: mockJustReconnected }),
 }))
 
-// Mock usePersistedStorage — use mutable return values
-let mockLocalData: AllotmentData | null = null
-let mockIsLoading = false
-let mockSaveStatus = 'idle'
-const mockSetData = vi.fn()
-const mockFlushSave = vi.fn().mockResolvedValue(true)
-vi.mock('@/hooks/usePersistedStorage', () => ({
-  usePersistedStorage: vi.fn(() => ({
-    data: mockLocalData,
-    setData: mockSetData,
-    isLoading: mockIsLoading,
-    error: null,
-    saveError: null,
-    saveStatus: mockSaveStatus,
-    lastSavedAt: null,
-    isSyncedFromOtherTab: false,
-    reload: vi.fn(),
-    flushSave: mockFlushSave,
-    clearSaveError: vi.fn(),
-    cancelPendingSave: vi.fn(),
-    retrySave: vi.fn(),
-  })),
-}))
+// The Yjs-snapshot sinks the hook writes through. `applyRemote` stands in for
+// `useYjsDoc.replaceFromJson`; `flushLocal` for `useYjsDoc.flushSave`.
+const applyRemote = vi.fn()
+const flushLocal = vi.fn().mockResolvedValue(true)
 
 const makeTestData = (updatedAt: string, overrides?: Partial<AllotmentData>): AllotmentData =>
   ({
@@ -95,56 +76,55 @@ const makeBootstrapData = (updatedAt: string): AllotmentData =>
     compost: [],
   }) as unknown as AllotmentData
 
-const hookOptions = {
-  storageKey: 'test',
-  load: vi.fn(() => ({ success: true as const, data: undefined })),
-  save: vi.fn(() => ({ success: true as const })),
+// Render `useCloudSync` with a given Yjs snapshot. Rerender with a fresh
+// `data` reference to simulate a mutation publishing a new snapshot (the
+// Step 5 replacement for the legacy `saveStatus === 'saved'` push signal).
+function renderCloudSync(initialData: AllotmentData | null) {
+  return renderHook(
+    ({ data }: { data: AllotmentData | null }) =>
+      useCloudSync({ data, applyRemote, flushLocal }),
+    { initialProps: { data: initialData } },
+  )
 }
 
-describe('useSyncedStorage', () => {
+describe('useCloudSync', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetToken.mockResolvedValue('test-token')
+    flushLocal.mockResolvedValue(true)
     mockUserId = 'user-123'
     mockIsSignedIn = true
     mockIsOnline = true
     mockJustReconnected = false
-    mockLocalData = null
-    mockIsLoading = false
-    mockSaveStatus = 'idle'
     // Clear sync flags
     localStorage.clear()
   })
 
-  it('exposes the same interface as usePersistedStorage plus syncStatus and conflict', () => {
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+  it('exposes syncStatus, conflict, and flush surface', () => {
+    const { result } = renderCloudSync(null)
 
-    expect(result.current).toHaveProperty('data')
-    expect(result.current).toHaveProperty('setData')
-    expect(result.current).toHaveProperty('isLoading')
-    expect(result.current).toHaveProperty('saveStatus')
     expect(result.current).toHaveProperty('syncStatus')
     expect(result.current).toHaveProperty('syncError')
     expect(result.current).toHaveProperty('syncConflict')
     expect(result.current).toHaveProperty('resolveConflict')
+    expect(result.current).toHaveProperty('flushPush')
   })
 
   it('syncStatus is "disabled" when not signed in', () => {
     mockUserId = null
     mockIsSignedIn = false
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(null)
 
     expect(result.current.syncStatus).toBe('disabled')
   })
 
   it('pushes local data to cloud when no remote data exists', async () => {
     const localData = makeTestData('2026-03-04T12:00:00Z')
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue(null)
     mockPushToRemote.mockResolvedValue(undefined)
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
@@ -154,47 +134,41 @@ describe('useSyncedStorage', () => {
     expect(getSyncFlag('user-123')).not.toBeNull()
   })
 
-  // NEW: First sync for a new device — cloud always wins, even with setupCompleted local data
   it('cloud wins on first sync for new device, even when local has setupCompleted', async () => {
     const localData = makeBootstrapData('2026-03-04T14:00:00Z')
     const remoteData = makeTestData('2026-03-04T10:00:00Z')
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-04T10:00:00Z',
     })
     // No sync flag — first time for this device/user
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
-    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(applyRemote).toHaveBeenCalledWith(remoteData)
     expect(mockPushToRemote).not.toHaveBeenCalled()
   })
 
-  // NEW: First sync — cloud wins regardless of timestamps
   it('cloud wins on first sync even when local timestamp is newer', async () => {
     const localData = makeTestData('2026-03-04T18:00:00Z')
     const remoteData = makeTestData('2026-03-04T10:00:00Z')
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-04T10:00:00Z',
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
-    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(applyRemote).toHaveBeenCalledWith(remoteData)
   })
 
-  // LWW: subsequent sync when only remote changed
   it('updates local data when cloud is newer on subsequent sync (LWW)', async () => {
-    // Set a past sync time
     const pastSyncTime = '2026-03-01T12:00:00Z'
     localStorage.setItem(
       'bonnie-synced-user-123',
@@ -202,27 +176,23 @@ describe('useSyncedStorage', () => {
     )
 
     const localData = makeTestData(pastSyncTime) // local unchanged since last sync
-    // Remote has different content (an extra variety) so the content
-    // short-circuit doesn't fire — we want the LWW newer-wins path.
     const remoteData = makeTestData('2026-03-10T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-10T14:00:00Z',
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
-    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(applyRemote).toHaveBeenCalledWith(remoteData)
     expect(mockPushToRemote).not.toHaveBeenCalled()
   })
 
-  // LWW: subsequent sync when only local changed
   it('pushes to cloud when local is newer on subsequent sync (LWW)', async () => {
     const pastSyncTime = '2026-03-01T12:00:00Z'
     localStorage.setItem(
@@ -230,30 +200,25 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    // Local has extra content vs remote so it isn't structurally smaller —
-    // the safety check requires local >= remote on every axis to push.
     const localData = makeTestData('2026-03-10T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: makeTestData(pastSyncTime), // remote unchanged, different content
       updatedAt: pastSyncTime,
     })
     mockPushToRemote.mockResolvedValue(undefined)
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('synced')
     })
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(mockSetData).not.toHaveBeenCalled()
+    expect(applyRemote).not.toHaveBeenCalled()
   })
 
-  // NEW: Bidirectional conflict detection
   it('detects conflict when both local and remote changed since last sync', async () => {
-    // Simulate a previous sync at a known time
     const pastSyncTime = '2026-03-04T12:00:00Z'
     localStorage.setItem(
       'bonnie-synced-user-123',
@@ -266,13 +231,12 @@ describe('useSyncedStorage', () => {
     const remoteData = makeTestData('2026-03-05T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-05T14:00:00Z',
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('conflict')
@@ -280,12 +244,11 @@ describe('useSyncedStorage', () => {
     expect(result.current.syncConflict).not.toBeNull()
     expect(result.current.syncConflict!.local).toBe(localData)
     expect(result.current.syncConflict!.remote).toBe(remoteData)
-    // Neither setData nor pushToRemote should be called during conflict
-    expect(mockSetData).not.toHaveBeenCalled()
+    // Neither applyRemote nor pushToRemote should be called during conflict
+    expect(applyRemote).not.toHaveBeenCalled()
     expect(mockPushToRemote).not.toHaveBeenCalled()
   })
 
-  // NEW: Conflict resolution — choose cloud
   it('resolves conflict by choosing cloud version', async () => {
     const pastSyncTime = '2026-03-04T12:00:00Z'
     localStorage.setItem(
@@ -299,13 +262,12 @@ describe('useSyncedStorage', () => {
     const remoteData = makeTestData('2026-03-05T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-05T14:00:00Z',
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('conflict')
@@ -315,12 +277,11 @@ describe('useSyncedStorage', () => {
       result.current.resolveConflict('cloud')
     })
 
-    expect(mockSetData).toHaveBeenCalledWith(remoteData)
+    expect(applyRemote).toHaveBeenCalledWith(remoteData)
     expect(result.current.syncStatus).toBe('synced')
     expect(result.current.syncConflict).toBeNull()
   })
 
-  // NEW: Conflict resolution — choose local
   it('resolves conflict by choosing local version', async () => {
     const pastSyncTime = '2026-03-04T12:00:00Z'
     localStorage.setItem(
@@ -334,14 +295,13 @@ describe('useSyncedStorage', () => {
     const remoteData = makeTestData('2026-03-05T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: '2026-03-05T14:00:00Z',
     })
     mockPushToRemote.mockResolvedValue(undefined)
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('conflict')
@@ -357,8 +317,7 @@ describe('useSyncedStorage', () => {
   })
 
   // Cloud-overwrite incident regression: a stale local with a newer timestamp
-  // (e.g. fooled by saveAllotmentData's old unconditional bump or a
-  // load-time migration) must NOT silently overwrite a richer cloud snapshot.
+  // must NOT silently overwrite a richer cloud snapshot.
   it('routes through conflict when local is structurally smaller than remote despite a newer local timestamp', async () => {
     const pastSyncTime = '2026-03-01T12:00:00Z'
     localStorage.setItem(
@@ -366,7 +325,6 @@ describe('useSyncedStorage', () => {
       JSON.stringify({ lastSyncedAt: pastSyncTime })
     )
 
-    // Local has a newer updatedAt but FEWER varieties than remote.
     const localData = makeTestData('2026-03-10T14:00:00Z', {
       varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
     })
@@ -377,13 +335,12 @@ describe('useSyncedStorage', () => {
         { id: 'v3', name: 'Carrot' },
       ] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: pastSyncTime,
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('conflict')
@@ -393,11 +350,6 @@ describe('useSyncedStorage', () => {
     expect(result.current.syncConflict?.remote).toBe(remoteData)
   })
 
-  // Regression: when local and remote have identical timestamps but their
-  // CONTENT disagrees (typically a one-sided load-time data repair), the
-  // old code path silently kept local. With the content-snapshot
-  // short-circuit at the top, we know we only reach the equal-timestamp
-  // branch when content has already diverged — so route to conflict.
   it('routes through conflict when timestamps are equal but content differs', async () => {
     const sharedTime = '2026-03-04T12:00:00Z'
     localStorage.setItem(
@@ -414,19 +366,18 @@ describe('useSyncedStorage', () => {
         { id: 'v2', name: 'Pea' },
       ] as unknown as AllotmentData['varieties'],
     })
-    mockLocalData = localData
     mockFetchRemote.mockResolvedValue({
       data: remoteData,
       updatedAt: sharedTime,
     })
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('conflict')
     })
     expect(mockPushToRemote).not.toHaveBeenCalled()
-    expect(mockSetData).not.toHaveBeenCalled()
+    expect(applyRemote).not.toHaveBeenCalled()
     expect(result.current.syncConflict?.local).toBe(localData)
     expect(result.current.syncConflict?.remote).toBe(remoteData)
   })
@@ -434,7 +385,6 @@ describe('useSyncedStorage', () => {
   it('ignores stale initial-sync results when user changes mid-request', async () => {
     const localData = makeTestData('2026-03-04T14:00:00Z')
     const staleRemoteData = makeTestData('2026-03-04T18:00:00Z')
-    mockLocalData = localData
     mockPushToRemote.mockResolvedValue(undefined)
 
     let resolveFirstFetch: (value: { data: AllotmentData; updatedAt: string }) => void = () => undefined
@@ -449,14 +399,14 @@ describe('useSyncedStorage', () => {
       )
       .mockResolvedValueOnce(null)
 
-    const { result, rerender } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result, rerender } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(mockFetchRemote).toHaveBeenCalledTimes(1)
     })
 
     mockUserId = 'user-456'
-    rerender()
+    rerender({ data: localData })
 
     await waitFor(() => {
       expect(mockFetchRemote).toHaveBeenCalledTimes(2)
@@ -475,16 +425,16 @@ describe('useSyncedStorage', () => {
       expect(result.current.syncStatus).toBe('synced')
     })
 
-    expect(mockSetData).not.toHaveBeenCalledWith(staleRemoteData)
+    expect(applyRemote).not.toHaveBeenCalledWith(staleRemoteData)
     expect(mockPushToRemote).not.toHaveBeenCalledWith('test-token', 'user-123', localData)
     expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-456', localData)
   })
 
   it('sets error status on sync failure', async () => {
-    mockLocalData = makeTestData('2026-03-04T12:00:00Z')
+    const localData = makeTestData('2026-03-04T12:00:00Z')
     mockFetchRemote.mockRejectedValue(new Error('Network error'))
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     await waitFor(() => {
       expect(result.current.syncStatus).toBe('error')
@@ -494,24 +444,22 @@ describe('useSyncedStorage', () => {
 
   it('shows offline status when not connected', () => {
     mockIsOnline = false
-    mockLocalData = makeTestData('2026-03-04T12:00:00Z')
+    const localData = makeTestData('2026-03-04T12:00:00Z')
 
-    const { result } = renderHook(() => useSyncedStorage(hookOptions))
+    const { result } = renderCloudSync(localData)
 
     expect(result.current.syncStatus).toBe('offline')
   })
 
-  // Push debounce: a burst of saves within PUSH_DEBOUNCE_MS (30s) should
-  // collapse to a single push of the latest snapshot. This is the dampener
-  // for the cloud-history "4 snapshots in 1 minute" noise observed in
-  // production after #332/#331 landed.
+  // Push debounce: a burst of snapshot changes within PUSH_DEBOUNCE_MS (30s)
+  // should collapse to a single push of the latest snapshot.
   describe('push debounce', () => {
-    // Drive useSyncedStorage past initial sync so the push effect arms.
-    // Returns a `triggerSave(data)` helper that updates mockLocalData and
-    // walks saveStatus through saving → saved so the push effect refires.
+    // Drive useCloudSync past initial sync so the push effect arms. Returns a
+    // `triggerSave(data)` helper that rerenders with a fresh snapshot
+    // reference so the push effect refires (the Yjs doc publishes a new
+    // `data` reference on every mutation).
     const setupSyncedHook = async () => {
       const initialData = makeTestData('2026-04-01T12:00:00Z')
-      mockLocalData = initialData
       // Past sync flag — subsequent-sync path
       const pastSyncTime = '2026-03-01T12:00:00Z'
       localStorage.setItem(
@@ -526,7 +474,7 @@ describe('useSyncedStorage', () => {
       })
       mockPushToRemote.mockResolvedValue(undefined)
 
-      const hook = renderHook(() => useSyncedStorage(hookOptions))
+      const hook = renderCloudSync(initialData)
       await waitFor(() => {
         expect(hook.result.current.syncStatus).toBe('synced')
       })
@@ -535,11 +483,7 @@ describe('useSyncedStorage', () => {
       expect(mockPushToRemote).not.toHaveBeenCalled()
 
       const triggerSave = async (data: AllotmentData) => {
-        mockLocalData = data
-        mockSaveStatus = 'saving'
-        hook.rerender()
-        mockSaveStatus = 'saved'
-        hook.rerender()
+        hook.rerender({ data })
         // Let any microtasks queued by the effect drain
         await Promise.resolve()
       }
@@ -645,7 +589,7 @@ describe('useSyncedStorage', () => {
 
         await act(async () => {
           window.dispatchEvent(new Event('beforeunload'))
-          // flushSave is awaited inside the listener; drain the chain
+          // flushLocal is awaited inside the listener; drain the chain
           await Promise.resolve()
           await Promise.resolve()
           await Promise.resolve()
@@ -655,7 +599,57 @@ describe('useSyncedStorage', () => {
           expect(mockPushToRemote).toHaveBeenCalledTimes(1)
         })
         expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v1)
-        expect(mockFlushSave).toHaveBeenCalled()
+        expect(flushLocal).toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('does not push a snapshot that arrived from another tab', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        const initialData = makeTestData('2026-04-01T12:00:00Z')
+        localStorage.setItem(
+          'bonnie-synced-user-123',
+          JSON.stringify({ lastSyncedAt: '2026-03-01T12:00:00Z' }),
+        )
+        mockFetchRemote.mockResolvedValue({
+          data: initialData,
+          updatedAt: '2026-04-01T12:00:00Z',
+        })
+        mockPushToRemote.mockResolvedValue(undefined)
+
+        const hook = renderHook(
+          ({ data, isSyncedFromOtherTab }: { data: AllotmentData | null; isSyncedFromOtherTab: boolean }) =>
+            useCloudSync({ data, applyRemote, flushLocal, isSyncedFromOtherTab }),
+          { initialProps: { data: initialData as AllotmentData | null, isSyncedFromOtherTab: false } },
+        )
+        await waitFor(() => {
+          expect(hook.result.current.syncStatus).toBe('synced')
+        })
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+
+        // A cross-tab broadcast publishes a fresh snapshot on this tab AND
+        // flags it as synced-from-another-tab — the editing tab pushes it, so
+        // this tab must not.
+        const fromOtherTab = makeTestData('2026-04-01T12:00:05Z', {
+          varieties: [
+            { id: 'v1', name: 'Tomato' },
+            { id: 'v2', name: 'Pea' },
+          ] as unknown as AllotmentData['varieties'],
+        })
+        await act(async () => {
+          hook.rerender({ data: fromOtherTab, isSyncedFromOtherTab: true })
+          await Promise.resolve()
+        })
+
+        await act(async () => {
+          vi.advanceTimersByTime(35_000)
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+
+        expect(mockPushToRemote).not.toHaveBeenCalled()
       } finally {
         vi.useRealTimers()
       }

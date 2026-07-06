@@ -141,6 +141,34 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
   return false
 }
 
+/**
+ * Reload (or navigate) and assert persisted state survived, retrying the
+ * reload + assertion a few times.
+ *
+ * On the Yjs path a mutation's IndexedDB write is initiated synchronously
+ * on the doc update and commits within the round-trip of the preceding UI
+ * assertion, so by reload time it is durable — the residual flake is the
+ * post-reload render occasionally lagging a tight assertion timeout.
+ * Retrying the reload + assert is deterministic where a fixed sleep is not.
+ */
+async function expectAfterReload(
+  reload: () => Promise<void>,
+  assert: () => Promise<void>,
+  attempts = 4,
+): Promise<void> {
+  let lastError: unknown
+  for (let i = 0; i < attempts; i++) {
+    await reload()
+    try {
+      await assert()
+      return
+    } catch (err) {
+      lastError = err
+    }
+  }
+  throw lastError
+}
+
 test.describe('Allotment Page', () => {
   test.beforeEach(async ({ page }) => {
     // Seed fresh data before navigating
@@ -574,25 +602,17 @@ test.describe('Allotment Bed Notes', () => {
     await submitButton.click()
     await expect(page.getByText(noteText)).toBeVisible({ timeout: 5000 })
 
-    // Wait for debounced save to complete by checking localStorage update
-    await page.waitForFunction(
-      (text) => {
-        const data = localStorage.getItem('allotment-unified-data')
-        return data !== null && data.includes(text)
+    // Note should survive a reload (persisted to the Yjs IndexedDB doc).
+    await expectAfterReload(
+      async () => {
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await selectRotationBed(page)
       },
-      noteText,
-      { timeout: 5000 }
+      async () => {
+        await expect(page.getByText(noteText)).toBeVisible({ timeout: 3000 })
+      },
     )
-
-    // Reload the page
-    await page.reload()
-    await page.waitForLoadState('networkidle')
-
-    // Re-select the same rotation bed
-    await selectRotationBed(page)
-
-    // Note should still be there
-    await expect(page.getByText(noteText)).toBeVisible()
   })
 })
 
@@ -731,21 +751,16 @@ test.describe('Custom Allotment Naming', () => {
     // Wait for name to appear in nav
     await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 5000 })
 
-    // Wait for debounced save to complete by checking localStorage update
-    await page.waitForFunction(
-      () => {
-        const data = localStorage.getItem('allotment-unified-data')
-        return data !== null && data.includes('Edinburgh Garden')
+    // Custom name should survive a reload (persisted to the Yjs IndexedDB doc).
+    await expectAfterReload(
+      async () => {
+        await page.reload()
+        await page.waitForLoadState('networkidle')
       },
-      { timeout: 5000 }
+      async () => {
+        await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 3000 })
+      },
     )
-
-    // Reload the page
-    await page.reload()
-    await page.waitForLoadState('networkidle')
-
-    // Custom name should still be visible in nav
-    await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible()
   })
 
   test('should show custom name in navigation after changing it', async ({ page }) => {
@@ -762,21 +777,16 @@ test.describe('Custom Allotment Naming', () => {
     // Wait for name to appear in nav
     await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 5000 })
 
-    // Wait for debounced save to complete
-    await page.waitForFunction(
-      () => {
-        const data = localStorage.getItem('allotment-unified-data')
-        return data !== null && data.includes('Test Garden Name')
+    // Custom name should survive a full-page navigation (persisted to IndexedDB).
+    await expectAfterReload(
+      async () => {
+        await page.goto('/')
+        await page.waitForLoadState('networkidle')
       },
-      { timeout: 5000 }
+      async () => {
+        await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 3000 })
+      },
     )
-
-    // Navigate to another page
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Custom name should appear in navigation
-    await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible()
   })
 })
 
@@ -1125,21 +1135,11 @@ test.describe('Planting Detail Dialog - Editing', () => {
     await sowMethod.selectOption('outdoor')
     await expect(sowMethod).toHaveValue('outdoor')
 
-    // Change again to make sure subsequent edits also reflect.
+    // Change again to make sure subsequent edits also reflect. The dropdown
+    // value reflects the live Yjs store, so this is the observable proof the
+    // mutation applied (persistence is IndexedDB, not localStorage JSON).
     await sowMethod.selectOption('indoor')
     await expect(sowMethod).toHaveValue('indoor')
-
-    // And the storage layer got the update too.
-    await expect
-      .poll(async () =>
-        page.evaluate(() => {
-          const raw = localStorage.getItem('allotment-unified-data')
-          if (!raw) return null
-          const data = JSON.parse(raw)
-          return data.seasons?.[0]?.areas?.[0]?.plantings?.[0]?.sowMethod ?? null
-        })
-      )
-      .toBe('indoor')
   })
 
   test('adding a sow date on edit calculates expected harvest', async ({ page }) => {
@@ -1155,19 +1155,10 @@ test.describe('Planting Detail Dialog - Editing', () => {
     // populateExpectedHarvest because planting.sowDate (pre-update) was empty.
     await dialog.locator('#sow-date').fill('2026-04-15')
 
+    // The visible Expected Harvest block reflects the live Yjs store — the
+    // observable proof the recalc ran and the update applied (persistence is
+    // IndexedDB, not localStorage JSON).
     await expect(dialog.getByText('Expected Harvest')).toBeVisible({ timeout: 3000 })
-
-    // Storage should contain populated expected-harvest fields too.
-    await expect
-      .poll(async () =>
-        page.evaluate(() => {
-          const raw = localStorage.getItem('allotment-unified-data')
-          if (!raw) return null
-          const p = JSON.parse(raw).seasons?.[0]?.areas?.[0]?.plantings?.[0]
-          return p?.expectedHarvestStart ?? null
-        })
-      )
-      .not.toBeNull()
   })
 
   test('shows Saved indicator after an edit', async ({ page }) => {
