@@ -175,7 +175,7 @@ export const climbers: Vegetable[] = [
   {
     id: 'hardy-kiwi',
     storage: {
-      methods: ['fridge', 'freeze'],
+      methods: ['fridge', 'freeze', 'jam'],
       freshDays: 14,
       tip: 'Pick firm and ripen a few at a time indoors; keep the rest cool in the fridge, or freeze the glut.',
     },

@@ -70,7 +70,7 @@ export const other: Vegetable[] = [
   {
     id: 'jerusalem-artichoke',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Best left in the ground and dug as needed — the knobbly tubers don’t keep long once lifted.',
     },
     name: 'Jerusalem Artichoke',
@@ -163,7 +163,7 @@ export const other: Vegetable[] = [
   {
     id: 'asparagus',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'pickle'],
       freshDays: 4,
       tip: 'Best eaten the day you cut it; stand spears in water in the fridge, or blanch and freeze a glut.',
     },
@@ -226,7 +226,7 @@ export const other: Vegetable[] = [
   {
     id: 'globe-artichoke',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'pickle'],
       freshDays: 7,
       tip: 'Best fresh; keeps about a week in the fridge. Blanch and freeze trimmed hearts to preserve a glut, or keep cooked hearts in oil in the fridge for a few days.',
     },
@@ -281,7 +281,7 @@ export const other: Vegetable[] = [
   {
     id: 'celery',
     storage: {
-      methods: ['fridge', 'freeze'],
+      methods: ['fridge', 'freeze', 'dry'],
       freshDays: 14,
       tip: 'Keeps a couple of weeks in the fridge; freeze chopped for soups and stews (cooked use only).',
     },
@@ -324,7 +324,7 @@ export const other: Vegetable[] = [
   {
     id: 'cardoon',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'freeze'],
       freshDays: 7,
       tip: 'Use the blanched stems fresh within a week; always cook before eating.',
     },

@@ -9,7 +9,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'carrot',
     storage: {
-      methods: ['store-cool', 'fridge'],
+      methods: ['store-cool', 'fridge', 'freeze'],
       tip: 'Lift and store in boxes of damp sand somewhere cool and frost-free.',
     },
     name: 'Carrot',
@@ -52,7 +52,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'beetroot',
     storage: {
-      methods: ['store-cool', 'fridge', 'pickle'],
+      methods: ['store-cool', 'fridge', 'pickle', 'freeze'],
       tip: 'Twist off the tops and store in damp sand, or pickle the glut.',
     },
     name: 'Beetroot',
@@ -93,7 +93,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'parsnip',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Leave in the ground — frost sweetens the roots — and lift through winter, or store in boxes of damp sand somewhere cool.',
     },
     name: 'Parsnip',
@@ -135,7 +135,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'salsify',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Hardy enough to leave in the ground over a Scottish winter; lift as needed or store roots in a box of damp sand.',
     },
     name: 'Salsify',
@@ -171,7 +171,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'hamburg-parsley',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Fully hardy; leave roots in the ground and lift through winter, or pack them in damp sand in a cool shed.',
     },
     name: 'Hamburg Parsley',
@@ -206,7 +206,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'florence-fennel',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'freeze', 'pickle'],
       freshDays: 10,
       tip: 'Best eaten fresh; keep whole bulbs in the fridge salad drawer for a week or so.',
     },
@@ -290,7 +290,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'black-radish',
     storage: {
-      methods: ['fridge', 'store-cool'],
+      methods: ['fridge', 'store-cool', 'pickle'],
       freshDays: 21,
       tip: 'A good winter keeper; stores for weeks in the fridge or packed in damp sand in a cool shed.',
     },
@@ -331,7 +331,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'scorzonera',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Fully hardy; leave the long roots in the ground and lift as needed, or store in a box of damp sand.',
     },
     name: 'Scorzonera',
@@ -368,7 +368,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'horseradish',
     storage: {
-      methods: ['store-cool', 'fridge', 'pickle'],
+      methods: ['store-cool', 'fridge', 'pickle', 'ferment'],
       tip: 'Store roots in damp sand in a cool shed; grated horseradish keeps for months preserved in vinegar.',
     },
     name: 'Horseradish',
@@ -412,7 +412,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'chinese-artichoke',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'pickle'],
       freshDays: 7,
       tip: 'Crosnes do not store long; lift as needed and eat fresh, or keep a few days in the fridge in a sealed bag.',
     },
@@ -485,7 +485,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'celeriac',
     storage: {
-      methods: ['store-cool', 'fridge'],
+      methods: ['store-cool', 'fridge', 'freeze'],
       tip: 'Trim the roots and tops, then store in boxes of damp sand somewhere cool, or keep in the fridge for a few weeks.',
     },
     name: 'Celeriac',
@@ -527,7 +527,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'skirret',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Hardy; leave the root clusters in the ground over winter and lift as needed, or store in damp sand.',
     },
     name: 'Skirret',
@@ -564,7 +564,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'oca',
     storage: {
-      methods: ['store-cool'],
+      methods: ['store-cool', 'freeze'],
       tip: 'Lift after the first frost, green the tubers in light for a few days to mellow oxalates, then store cool and dark.',
     },
     name: 'Oca',
@@ -601,7 +601,7 @@ export const rootVegetables: Vegetable[] = [
   {
     id: 'ulluco',
     storage: {
-      methods: ['store-cool', 'fridge'],
+      methods: ['store-cool', 'fridge', 'freeze'],
       tip: 'Handle the soft tubers gently; a fairly short keeper, so store cool and dark and use within a few weeks.',
     },
     name: 'Ulluco',

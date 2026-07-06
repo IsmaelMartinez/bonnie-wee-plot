@@ -9,7 +9,7 @@ export const legumes: Vegetable[] = [
   {
     id: 'runner-beans',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'jam'],
       freshDays: 5,
       tip: 'Glut crop — pick young and often. Blanch and freeze, or salt down in jars.',
     },
@@ -102,7 +102,7 @@ export const legumes: Vegetable[] = [
   {
     id: 'broad-beans',
     storage: {
-      methods: ['fresh', 'freeze'],
+      methods: ['fresh', 'freeze', 'dry'],
       freshDays: 5,
       tip: 'Freeze podded beans; let the last pods dry on the plant for storing dried.',
     },
@@ -190,7 +190,7 @@ export const legumes: Vegetable[] = [
   {
     id: 'climbing-french-beans',
     storage: {
-      methods: ['fresh', 'freeze'],
+      methods: ['fresh', 'freeze', 'dry'],
       freshDays: 5,
       tip: 'Blanch and freeze the glut; leave some pods to dry for haricot beans.',
     },
@@ -440,7 +440,7 @@ export const legumes: Vegetable[] = [
   {
     id: 'black-turtle-beans',
     storage: {
-      methods: ['dry', 'store-cool'],
+      methods: ['dry', 'store-cool', 'freeze'],
       tip: 'A drying bean — let the pods dry fully on the plant, then shell and keep the beans in airtight jars.',
     },
     name: 'Black Turtle Beans',

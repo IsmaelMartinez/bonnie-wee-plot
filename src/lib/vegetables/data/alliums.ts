@@ -9,7 +9,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'onion',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'pickle', 'jam'],
       tip: 'Cure until the necks are papery, then store in nets somewhere cool and dry.',
     },
     name: 'Onion',
@@ -52,7 +52,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'garlic',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Dry the bulbs thoroughly, then plait or net and hang somewhere cool and airy.',
     },
     name: 'Garlic',
@@ -92,7 +92,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'leek',
     storage: {
-      methods: ['fresh', 'fridge'],
+      methods: ['fresh', 'fridge', 'freeze'],
       tip: 'Very hardy — leave standing in the ground over winter and lift as needed; keeps about a week in the fridge once pulled.',
     },
     name: 'Leek',
@@ -182,7 +182,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'shallot',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'pickle'],
       tip: 'Dry the bulbs off thoroughly, then net or tray them somewhere cool and airy — they keep right through to spring.',
     },
     name: 'Shallot',
@@ -266,7 +266,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'elephant-garlic',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure the bulbs after lifting, then keep somewhere cool, dry and airy.',
     },
     name: 'Elephant Garlic',
@@ -303,7 +303,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'walking-onion',
     storage: {
-      methods: ['cure', 'store-cool', 'fridge'],
+      methods: ['cure', 'store-cool', 'fridge', 'pickle'],
       freshDays: 10,
       tip: 'Cure the topset bulbils for storing; use the green tops fresh.',
     },
@@ -344,7 +344,7 @@ export const alliums: Vegetable[] = [
   {
     id: 'potato-onion',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'pickle'],
       tip: 'An excellent keeper: cure well and store cool and dry like shallots.',
     },
     name: 'Potato Onion',

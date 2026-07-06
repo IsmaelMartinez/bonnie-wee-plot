@@ -41,7 +41,7 @@ export const annualFlowers: Vegetable[] = [
   {
     id: 'sunflower',
     storage: {
-      methods: ['dry'],
+      methods: ['dry', 'freeze'],
       tip: 'Cut seed heads when the backs turn brown, dry them fully somewhere airy, then rub out the seeds and store airtight.',
     },
     name: 'Sunflower',

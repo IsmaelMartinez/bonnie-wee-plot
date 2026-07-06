@@ -9,7 +9,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'courgette',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze', 'jam'],
+      methods: ['fresh', 'fridge', 'freeze', 'jam', 'pickle'],
       freshDays: 7,
       tip: 'Glut crop — pick small and often. Freeze grated for soups and cakes, or make chutney.',
     },
@@ -57,7 +57,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'squash',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure in the sun 10–14 days until the skin hardens, then store somewhere cool, dry and frost-free for months.',
     },
     name: 'Winter Squash',
@@ -104,7 +104,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'pumpkin',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure the skin hard, then store somewhere cool and dry — keeps for months.',
     },
     name: 'Pumpkin',
@@ -150,7 +150,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'patty-pan-squash',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'pickle'],
       freshDays: 7,
       tip: 'A summer squash like courgette — pick small and often; freeze sliced or grated for soups and bakes.',
     },
@@ -197,7 +197,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'butternut-squash',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure 2 weeks until the skin is hard, then store cool and dry well into winter.',
     },
     name: 'Butternut Squash',
@@ -243,7 +243,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'spaghetti-squash',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure the skin hard, then store somewhere cool and dry — keeps for months like other winter squash.',
     },
     name: 'Spaghetti Squash',
@@ -289,7 +289,7 @@ export const cucurbits: Vegetable[] = [
   {
     id: 'acorn-squash',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Cure 10–14 days until the skin hardens, then store cool and dry; eats best within a couple of months.',
     },
     name: 'Acorn Squash',
