@@ -9,7 +9,7 @@ export const solanaceae: Vegetable[] = [
   {
     id: 'potato',
     storage: {
-      methods: ['store-cool'],
+      methods: ['store-cool', 'freeze'],
       tip: 'Store dry and unwashed in paper or hessian sacks somewhere cool and dark.',
     },
     name: 'Potatoes (Tatties)',
@@ -50,7 +50,7 @@ export const solanaceae: Vegetable[] = [
   {
     id: 'early-potato',
     storage: {
-      methods: ['fresh', 'fridge'],
+      methods: ['fresh', 'fridge', 'freeze'],
       freshDays: 7,
       tip: 'New tatties do not keep — dig only what you need and eat within a few days of lifting.',
     },
@@ -92,7 +92,7 @@ export const solanaceae: Vegetable[] = [
   {
     id: 'second-early-potato',
     storage: {
-      methods: ['fresh', 'store-cool'],
+      methods: ['fresh', 'store-cool', 'freeze'],
       freshDays: 14,
       tip: 'Best eaten within a few weeks; keep any spare cool and dark for short-term storage only.',
     },
@@ -134,7 +134,7 @@ export const solanaceae: Vegetable[] = [
   {
     id: 'maincrop-potato',
     storage: {
-      methods: ['cure', 'store-cool'],
+      methods: ['cure', 'store-cool', 'freeze'],
       tip: 'Let the skins set in the ground, dry off, then store in paper sacks in the dark for winter.',
     },
     name: 'Maincrop Potato',
@@ -224,7 +224,7 @@ export const solanaceae: Vegetable[] = [
   {
     id: 'plum-tomato',
     storage: {
-      methods: ['fresh', 'freeze', 'dry'],
+      methods: ['fresh', 'freeze', 'dry', 'jam'],
       freshDays: 7,
       tip: 'The best sauce tomato — cook into passata, or roast and freeze the glut.',
     },

@@ -431,7 +431,7 @@ export const fruitTrees: Vegetable[] = [
   {
     id: 'quince-tree',
     storage: {
-      methods: ['store-cool', 'jam'],
+      methods: ['store-cool', 'jam', 'freeze'],
       tip: 'Keeps cool and aromatic for weeks; never eaten raw, so cook into membrillo, jelly or jam.',
     },
     name: 'Quince Tree',
@@ -489,7 +489,7 @@ export const fruitTrees: Vegetable[] = [
   {
     id: 'fig-tree',
     storage: {
-      methods: ['fresh', 'dry', 'jam'],
+      methods: ['fresh', 'dry', 'jam', 'freeze'],
       freshDays: 3,
       tip: 'Eat ripe figs fresh within a couple of days; a glut dries well or makes a fine jam.',
     },

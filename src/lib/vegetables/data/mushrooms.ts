@@ -44,7 +44,7 @@ export const mushrooms: Vegetable[] = [
   {
     id: 'shiitake',
     storage: {
-      methods: ['dry', 'fridge'],
+      methods: ['dry', 'fridge', 'freeze'],
       freshDays: 7,
       tip: 'Dries superbly and the flavour deepens — thread caps to dry then store airtight; keep fresh caps a week in a paper bag.',
     },
@@ -78,6 +78,11 @@ export const mushrooms: Vegetable[] = [
   },
   {
     id: 'lions-mane',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 4,
+      tip: 'Browns and sours fast — use within days; saute then freeze, or dry chunks and blitz to powder for broths.',
+    },
     name: "Lion's Mane",
     category: 'mushrooms',
     description: 'Unusual white cascading mushroom. Medicinal benefits for brain health.',
@@ -108,6 +113,11 @@ export const mushrooms: Vegetable[] = [
   },
   {
     id: 'king-oyster',
+    storage: {
+      methods: ['fridge', 'dry', 'freeze'],
+      freshDays: 8,
+      tip: 'Dense flesh keeps a week or more in a paper bag in the fridge; slice thick to dry, or saute then freeze.',
+    },
     name: 'King Oyster',
     category: 'mushrooms',
     description: 'Large meaty mushroom with thick stem. Excellent texture for cooking.',
@@ -138,6 +148,11 @@ export const mushrooms: Vegetable[] = [
   },
   {
     id: 'button-mushroom',
+    storage: {
+      methods: ['fridge', 'freeze', 'dry'],
+      freshDays: 6,
+      tip: 'Keep in a paper bag in the fridge and use within the week; saute then freeze the surplus, or dry slices for powder.',
+    },
     name: 'Button Mushroom',
     category: 'mushrooms',
     description: 'Classic white mushroom. Grows on composted manure substrate.',

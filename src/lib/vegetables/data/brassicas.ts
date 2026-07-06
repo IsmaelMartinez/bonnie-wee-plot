@@ -9,7 +9,7 @@ export const brassicas: Vegetable[] = [
   {
     id: 'swede',
     storage: {
-      methods: ['store-cool', 'fresh'],
+      methods: ['store-cool', 'fresh', 'freeze'],
       tip: 'Very hardy — leave in the ground and lift as needed, or store the roots in boxes of damp sand somewhere cool and frost-free.',
     },
     name: 'Swede (Neeps)',
@@ -51,7 +51,7 @@ export const brassicas: Vegetable[] = [
   {
     id: 'turnip',
     storage: {
-      methods: ['store-cool', 'fridge'],
+      methods: ['store-cool', 'fridge', 'freeze'],
       tip: 'Eat small ones fresh; twist the tops off maincrop turnips and store in boxes of damp sand somewhere cool.',
     },
     name: 'Turnip',
@@ -460,7 +460,7 @@ export const brassicas: Vegetable[] = [
   {
     id: 'red-cabbage',
     storage: {
-      methods: ['fridge', 'store-cool', 'pickle'],
+      methods: ['fridge', 'store-cool', 'pickle', 'ferment'],
       tip: 'Keeps for weeks somewhere cool; classic pickled or cooked into chutney.',
     },
     name: 'Red Cabbage',
@@ -547,7 +547,7 @@ export const brassicas: Vegetable[] = [
   {
     id: 'romanesco',
     storage: {
-      methods: ['fridge', 'freeze'],
+      methods: ['fridge', 'freeze', 'pickle'],
       freshDays: 7,
       tip: 'Treat like cauliflower; blanch florets to freeze a glut.',
     },
@@ -629,7 +629,7 @@ export const brassicas: Vegetable[] = [
   {
     id: 'mibuna',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'ferment'],
       freshDays: 5,
       tip: 'Pick young leaves for the salad bowl; does not freeze well.',
     },

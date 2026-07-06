@@ -463,7 +463,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'french-tarragon',
     storage: {
-      methods: ['fridge', 'freeze'],
+      methods: ['fridge', 'freeze', 'pickle'],
       freshDays: 7,
       tip: 'Freeze sprigs or steep in vinegar; loses much flavour if dried.',
     },
@@ -726,7 +726,7 @@ export const herbs: Vegetable[] = [
   {
     id: 'borage',
     storage: {
-      methods: ['fresh'],
+      methods: ['fresh', 'freeze'],
       freshDays: 2,
       tip: 'Use flowers and leaves fresh; they wilt fast, so pick just before use.',
     },

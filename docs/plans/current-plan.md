@@ -1,6 +1,6 @@
 # Current Plan
 
-Last updated: 2026-07-05 (Preserving data authoring complete — all 10 authoring sessions run as one parallel batch, 150 new guides bringing coverage to 157/157, `PENDING_GUIDES` deleted so the coverage test now enforces fully, Preserving stays in the More menu pending usage evidence)
+Last updated: 2026-07-06 (Preservation guide / storage.methods drift fixed — 60 crops back-filled so guide-advertised preserve methods now drive glut nudges and coverage; new consistency test enforces the invariant going forward)
 
 ## What's Been Completed
 
@@ -694,6 +694,36 @@ Follow-through from the integration session:
 
 Verification: full unit suite (1135 passed), type-check, lint, and
 `tests/preserving.spec.ts` (chromium) all green.
+
+### Preservation guide / storage.methods drift fixed (branch `claude/preservation-storage-methods-drift-i93ix8`)
+
+Follow-up flagged in PR #453's review: `PreservationGuide.methods` and
+`Vegetable.storage.methods` could silently drift, and the app behaved
+inconsistently when they did — the Today-dashboard glut nudge
+(`PRESERVE_METHODS` gate in `task-generator.ts`) and the coverage test both
+key off `storage.methods`, so a crop whose guide said "freeze it" but whose
+storage data lacked `freeze` never got a glut nudge and its guide sat
+outside coverage enforcement.
+
+- **Audit:** 65 drift entries across 60 crops (e.g. carrot/parsnip/celeriac
+  guides had `freeze`, onion had `pickle` + `jam`, red-cabbage had `ferment`
+  — none in their `storage.methods`). Three mushroom crops (lions-mane,
+  king-oyster, button-mushroom) had no `storage` field at all despite fully
+  authored guides.
+- **Back-fill:** all drifted methods added to `storage.methods` in
+  `src/lib/vegetables/data/` (the guides were fetch-verified during
+  authoring, so every drifted method is sound advice), and storage blocks
+  (methods, freshDays, tip) authored for the three mushrooms from their
+  guides. This deliberately makes those crops eligible for glut nudges and
+  coverage enforcement.
+- **Invariant test:** new
+  `src/__tests__/lib/preservation-storage-consistency.test.ts` asserts every
+  guide method that is in `PRESERVE_METHODS` (freeze/jam/pickle/ferment/dry)
+  appears in that crop's `storage.methods`, with a non-vacuous floor of >100
+  checked method entries.
+
+Verification: full unit suite (1137 passed), lint, type-check, and the full
+Playwright suite (134 passed, CI-style against a production build) all green.
 
 ### Research-Driven Improvements: Backlog
 

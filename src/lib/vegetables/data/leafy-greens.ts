@@ -171,7 +171,7 @@ export const leafyGreens: Vegetable[] = [
   {
     id: 'chard',
     storage: {
-      methods: ['fresh', 'fridge', 'freeze'],
+      methods: ['fresh', 'fridge', 'freeze', 'pickle'],
       freshDays: 4,
       tip: 'Cut outer leaves regularly to keep it coming; blanch and freeze a glut like spinach.',
     },
@@ -211,7 +211,7 @@ export const leafyGreens: Vegetable[] = [
   {
     id: 'rocket',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'freeze'],
       freshDays: 4,
       tip: 'Best eaten fresh; store dry in a sealed bag and use within a few days.',
     },
@@ -440,7 +440,7 @@ export const leafyGreens: Vegetable[] = [
   {
     id: 'watercress',
     storage: {
-      methods: ['fridge', 'fresh'],
+      methods: ['fridge', 'fresh', 'freeze'],
       freshDays: 3,
       tip: 'Best fresh; stand stems in water or wrap damp in the fridge and use quickly.',
     },
