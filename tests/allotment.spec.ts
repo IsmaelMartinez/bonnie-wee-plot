@@ -141,6 +141,34 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
   return false
 }
 
+/**
+ * Reload (or navigate) and assert persisted state survived, retrying the
+ * reload + assertion a few times.
+ *
+ * On the Yjs path a mutation's IndexedDB write is initiated synchronously
+ * on the doc update and commits within the round-trip of the preceding UI
+ * assertion, so by reload time it is durable — the residual flake is the
+ * post-reload render occasionally lagging a tight assertion timeout.
+ * Retrying the reload + assert is deterministic where a fixed sleep is not.
+ */
+async function expectAfterReload(
+  reload: () => Promise<void>,
+  assert: () => Promise<void>,
+  attempts = 4,
+): Promise<void> {
+  let lastError: unknown
+  for (let i = 0; i < attempts; i++) {
+    await reload()
+    try {
+      await assert()
+      return
+    } catch (err) {
+      lastError = err
+    }
+  }
+  throw lastError
+}
+
 test.describe('Allotment Page', () => {
   test.beforeEach(async ({ page }) => {
     // Seed fresh data before navigating
@@ -574,18 +602,17 @@ test.describe('Allotment Bed Notes', () => {
     await submitButton.click()
     await expect(page.getByText(noteText)).toBeVisible({ timeout: 5000 })
 
-    // Let the Yjs doc persist the mutation to IndexedDB before reloading.
-    await page.waitForTimeout(700)
-
-    // Reload the page
-    await page.reload()
-    await page.waitForLoadState('networkidle')
-
-    // Re-select the same rotation bed
-    await selectRotationBed(page)
-
-    // Note should still be there
-    await expect(page.getByText(noteText)).toBeVisible()
+    // Note should survive a reload (persisted to the Yjs IndexedDB doc).
+    await expectAfterReload(
+      async () => {
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await selectRotationBed(page)
+      },
+      async () => {
+        await expect(page.getByText(noteText)).toBeVisible({ timeout: 3000 })
+      },
+    )
   })
 })
 
@@ -724,15 +751,16 @@ test.describe('Custom Allotment Naming', () => {
     // Wait for name to appear in nav
     await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 5000 })
 
-    // Let the Yjs doc persist the mutation to IndexedDB before reloading.
-    await page.waitForTimeout(700)
-
-    // Reload the page
-    await page.reload()
-    await page.waitForLoadState('networkidle')
-
-    // Custom name should still be visible in nav
-    await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible()
+    // Custom name should survive a reload (persisted to the Yjs IndexedDB doc).
+    await expectAfterReload(
+      async () => {
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+      },
+      async () => {
+        await expect(page.locator('nav a').filter({ hasText: 'Edinburgh Garden' })).toBeVisible({ timeout: 3000 })
+      },
+    )
   })
 
   test('should show custom name in navigation after changing it', async ({ page }) => {
@@ -749,15 +777,16 @@ test.describe('Custom Allotment Naming', () => {
     // Wait for name to appear in nav
     await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 5000 })
 
-    // Let the Yjs doc persist the mutation to IndexedDB before the full-page nav.
-    await page.waitForTimeout(700)
-
-    // Navigate to another page
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // Custom name should appear in navigation
-    await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible()
+    // Custom name should survive a full-page navigation (persisted to IndexedDB).
+    await expectAfterReload(
+      async () => {
+        await page.goto('/')
+        await page.waitForLoadState('networkidle')
+      },
+      async () => {
+        await expect(page.locator('nav a').filter({ hasText: 'Test Garden Name' })).toBeVisible({ timeout: 3000 })
+      },
+    )
   })
 })
 

@@ -87,6 +87,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     data: yjs.data,
     applyRemote: yjs.replaceFromJson,
     flushLocal: yjs.flushSave,
+    isSyncedFromOtherTab: yjs.isSyncedFromOtherTab,
   })
 
   // Initialise `selectedYear` from the first published snapshot.
@@ -113,10 +114,17 @@ export function useAllotmentData(): UseAllotmentDataReturn {
       sawFirstSnapshotRef.current = true
       return
     }
+    // A cross-tab / cloud update also republishes `yjs.data`; that isn't
+    // a local save, so don't flash "Saved" for it. `isSyncedFromOtherTab`
+    // is read but kept out of the dep array on purpose: it self-resets to
+    // `false` ~3s later, and re-running on that reset (with `data`
+    // unchanged) would flash a spurious "Saved".
+    if (yjs.isSyncedFromOtherTab) return
     setSaveStatus('saved')
     setLastSavedAt(new Date())
     const timer = setTimeout(() => setSaveStatus('idle'), 2000)
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yjs.data])
 
   // Save-error surfacing. There is no separate local-save error channel

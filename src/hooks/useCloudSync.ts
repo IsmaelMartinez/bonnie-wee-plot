@@ -68,6 +68,14 @@ export interface UseCloudSyncOptions {
    * is durable before the final cloud push.
    */
   flushLocal: () => Promise<boolean>
+  /**
+   * `true` when the current snapshot change was driven by another tab's
+   * `y-indexeddb` broadcast rather than a local edit. The push effect
+   * skips scheduling a push in that case: the tab that made the edit
+   * pushes it, so a non-editing sibling tab re-pushing the same content
+   * would only amplify writes and add duplicate history rows.
+   */
+  isSyncedFromOtherTab?: boolean
 }
 
 export interface UseCloudSyncReturn {
@@ -144,6 +152,7 @@ export function useCloudSync({
   data,
   applyRemote,
   flushLocal,
+  isSyncedFromOtherTab,
 }: UseCloudSyncOptions): UseCloudSyncReturn {
   const { getToken, userId, isSignedIn } = useOptionalAuth()
   const { isOnline, justReconnected } = useNetworkStatus()
@@ -416,6 +425,14 @@ export function useCloudSync({
     if (!canSync || !userId || !data) return
     if (syncInProgressRef.current) return
     if (!initialSyncDoneRef.current) return
+    // A cross-tab `y-indexeddb` broadcast republishes `data` on the
+    // receiving tab too; the tab that made the edit is responsible for
+    // pushing it, so skip here to avoid every open tab re-pushing the
+    // same content. `isSyncedFromOtherTab` is intentionally not in the
+    // dep array: it self-resets to `false` ~3s later, and re-running
+    // this effect on that reset (with `data` unchanged) would schedule
+    // exactly the spurious push we are avoiding.
+    if (isSyncedFromOtherTab) return
 
     const serialized = contentSnapshot(data)
 

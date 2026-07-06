@@ -604,5 +604,55 @@ describe('useCloudSync', () => {
         vi.useRealTimers()
       }
     })
+
+    it('does not push a snapshot that arrived from another tab', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        const initialData = makeTestData('2026-04-01T12:00:00Z')
+        localStorage.setItem(
+          'bonnie-synced-user-123',
+          JSON.stringify({ lastSyncedAt: '2026-03-01T12:00:00Z' }),
+        )
+        mockFetchRemote.mockResolvedValue({
+          data: initialData,
+          updatedAt: '2026-04-01T12:00:00Z',
+        })
+        mockPushToRemote.mockResolvedValue(undefined)
+
+        const hook = renderHook(
+          ({ data, isSyncedFromOtherTab }: { data: AllotmentData | null; isSyncedFromOtherTab: boolean }) =>
+            useCloudSync({ data, applyRemote, flushLocal, isSyncedFromOtherTab }),
+          { initialProps: { data: initialData as AllotmentData | null, isSyncedFromOtherTab: false } },
+        )
+        await waitFor(() => {
+          expect(hook.result.current.syncStatus).toBe('synced')
+        })
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+
+        // A cross-tab broadcast publishes a fresh snapshot on this tab AND
+        // flags it as synced-from-another-tab — the editing tab pushes it, so
+        // this tab must not.
+        const fromOtherTab = makeTestData('2026-04-01T12:00:05Z', {
+          varieties: [
+            { id: 'v1', name: 'Tomato' },
+            { id: 'v2', name: 'Pea' },
+          ] as unknown as AllotmentData['varieties'],
+        })
+        await act(async () => {
+          hook.rerender({ data: fromOtherTab, isSyncedFromOtherTab: true })
+          await Promise.resolve()
+        })
+
+        await act(async () => {
+          vi.advanceTimersByTime(35_000)
+          await Promise.resolve()
+          await Promise.resolve()
+        })
+
+        expect(mockPushToRemote).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
   })
 })

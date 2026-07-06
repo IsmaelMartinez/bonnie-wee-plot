@@ -216,7 +216,7 @@ export function useAllotmentPlantings({
         'sowDate' in updates || 'transplantDate' in updates || 'actualHarvestEnd' in updates
       const statusExplicitlySet = 'status' in updates
 
-      assignDefined(p as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(p, updates)
       if (datesChanged && !statusExplicitlySet && p.status !== 'removed') {
         p.status = inferStatusFromDates(p)
       }

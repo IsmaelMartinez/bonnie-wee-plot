@@ -100,7 +100,7 @@ export function useAllotmentCareLogs({
       const log = areaSeason.careLogs.find(l => l.id === entryId)
       if (!log) return
       const now = new Date().toISOString()
-      assignDefined(log as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(log, updates)
       season.updatedAt = now
       store.meta.updatedAt = now
     })

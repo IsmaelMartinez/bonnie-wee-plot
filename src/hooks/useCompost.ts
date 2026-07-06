@@ -138,7 +138,7 @@ export function useCompost(): UseCompostReturn {
     mutate(store => {
       const pile = store.compost.find(p => p.id === pileId)
       if (!pile) return
-      assignDefined(pile as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(pile, updates)
       pile.updatedAt = new Date().toISOString()
     })
   }, [allotmentData, mutate])

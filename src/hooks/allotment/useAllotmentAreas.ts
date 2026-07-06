@@ -189,7 +189,7 @@ export function useAllotmentAreas({
     mutate(store => {
       const area = store.areas.find(a => a.id === areaId)
       if (!area) return
-      assignDefined(area as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(area, updates)
       store.meta.updatedAt = new Date().toISOString()
     })
   }, [data, mutate])

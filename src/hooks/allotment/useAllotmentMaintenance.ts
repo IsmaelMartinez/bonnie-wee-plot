@@ -82,7 +82,7 @@ export function useAllotmentMaintenance({
     mutate(store => {
       const t = store.maintenanceTasks.find(x => x.id === taskId)
       if (!t) return
-      assignDefined(t as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(t, updates)
     })
   }, [data, mutate])
 

@@ -106,7 +106,7 @@ export function useAllotmentNotes({
       const n = areaSeason.notes.find(x => x.id === noteId)
       if (!n) return
       const now = new Date().toISOString()
-      assignDefined(n as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(n, updates)
       n.updatedAt = now
       season.updatedAt = now
     })

@@ -106,7 +106,7 @@ export function useAllotmentVarieties({
     mutate(store => {
       const v = store.varieties.find(x => x.id === id)
       if (!v) return
-      assignDefined(v as unknown as Record<string, unknown>, updates as Record<string, unknown>)
+      assignDefined(v, updates)
       store.meta.updatedAt = new Date().toISOString()
     })
   }, [data, mutate])

@@ -236,7 +236,7 @@ export function decodeDocState(update: Uint8Array): {
  * / array values are cloned first so the proxy never shares a reference
  * with the caller's source object.
  */
-export function assignDefined<T extends object>(target: T, source: T): void {
+export function assignDefined<T extends object>(target: T, source: Partial<T>): void {
   for (const [key, value] of Object.entries(source)) {
     if (value === undefined) continue
     // SyncedStore expands plain object values into Y.Maps. Clone first
