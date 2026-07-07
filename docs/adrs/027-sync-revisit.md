@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Step 1 ADR + Step 2 PoC merged in PR #364 (2026-05-13); Step 3 integration behind `USE_YJS_STORAGE` shipped in PRs #382–#388, defaulted on 2026-05-19; Step 5 cleanup (this note) retired the legacy chain. Step 4 (Yjs binary as the cloud transport) remains outstanding — the cloud copy is still Supabase JSONB + LWW, now driven off the Yjs snapshot by `useCloudSync`. Supersedes the cloud-sync portion of ADR 024; the share/receive flow described there remains.
+Accepted. Step 1 ADR + Step 2 PoC merged in PR #364 (2026-05-13); Step 3 integration behind `USE_YJS_STORAGE` shipped in PRs #382–#388, defaulted on 2026-05-19; Step 5 cleanup retired the legacy chain. Step 4 (Yjs binary as the cloud transport) is now implemented — the cloud copy is exchanged as Yjs binary CRDT state and merged server-side-equivalently, and the LWW machinery is retired (see the Step 4 note below). Supersedes the cloud-sync portion of ADR 024; the share/receive flow described there remains.
 
 ## Date
 
@@ -85,6 +85,58 @@ With `USE_YJS_STORAGE` default-on since 2026-05-19 and the soak window clear of 
 - **Cloud sync preserved via `useCloudSync`** (`src/hooks/useCloudSync.ts`): the Supabase fetch/push/LWW-guard/conflict-dialog layer, the 30s push debounce, and the unload flush (PRs #331/#332/#338) were ported off `usePersistedStorage` to consume the Yjs snapshot directly. On a `'cloud'` conflict resolution it adopts the remote via `useYjsDoc.replaceFromJson`; on `'local'` it pushes the current snapshot. A `normalizedContentSnapshot` round-trips the adopted remote through hydrate/serialize so the republished snapshot isn't pushed straight back.
 - `serializeToJson` and `decodeDocState` stay permanently (rollback, GDPR export, debug), per the Step 3 spec.
 - Follow-ups folded in: `src/lib/yjs-spike/` → `src/lib/yjs/`; the domain-hook `yjs-helpers.ts` (`withoutUndefined` / `assignDefined`) consolidated into `allotment-yjs.ts`; the `addInitScript` Playwright seeds (homepage / onboarding) now clear the Yjs IndexedDB on first load via `tests/utils/storage.ts`; the path-parity test became a Yjs-path regression test (`allotment-yjs-storage.test.ts`).
+
+### Step 4 shipped (Yjs binary cloud transport)
+
+Step 4 moves the cloud store/exchange from Supabase JSONB + LWW to the Yjs
+document as **binary** CRDT state, retiring the LWW machinery the ADR listed.
+Two transport-shaped decisions in the original outline were revisited against the
+actual two-user reality and settled as follows.
+
+**Transport: keep Vercel/Supabase request/response, not Cloudflare Durable
+Objects.** The ADR's decision section targeted Durable Objects hosting
+y-websocket for *real-time* sync. Step 4 instead exchanges Yjs *binary
+updates/state* over the existing serverless shape: pull remote → `Y.applyUpdate`
+(true CRDT merge) → push the merged full-state with optimistic-concurrency (CAS)
+retry. This delivers the headline win the ADR is for — concurrent edits merge,
+LWW is gone — without the new infra dependency (Wrangler, Workers Paid, Clerk JWT
+verification inside a Worker) and bus-factor increase that the "Negative"
+consequences below flag. The cost is that propagation is not real-time (a device
+sees another's edits on its next pull, as with the prior 30s-debounced model).
+Durable Objects remain the documented path if real-time is ever required.
+
+**Storage: new BYTEA columns, JSONB kept as a derived mirror.** `allotments`
+gains `yjs_state BYTEA` (the authoritative encoded doc) and `yjs_updated_at
+TIMESTAMPTZ` (the CAS token); RLS is unchanged (the existing per-row policies
+cover the new columns). `allotments.data` JSONB is retained and rewritten on
+every push from the merged doc, so the `allotment_history` trigger, the GDPR
+`/api/account` export, and Supabase Studio inspection all keep working unchanged,
+and per-user rollback stays trivial. This means LWW *reconciliation* is retired
+(merge replaces it) even though the JSONB column persists as a read-only view.
+
+**The lineage constraint (the load-bearing subtlety).** CRDT merge is only
+duplicate-free when all devices share one document lineage. The per-device local
+docs were hydrated independently in Step 3/5 and do **not** share history, so a
+naive binary merge would union — and duplicate — all pre-existing shared content.
+Step 4 therefore forces a one-time **adoption**: on a device's first Step-4 sync
+it clears its local doc and applies the canonical cloud binary on top (via a new
+`bwp-yjs-synced-<userId>` flag, distinct from the LWW-era flag so every device
+adopts once). The one-shot migration (JSONB → binary) is serialised to a single
+canonical lineage by the CAS write: if two devices migrate concurrently, the
+loser re-fetches and adopts the winner's binary. After adoption, edits are true
+concurrent operations on the shared lineage and merge cleanly.
+
+**Retired.** `useSyncedStorage`'s successor guards are gone: `contentSnapshot`,
+`isLocalStructurallySmaller`, the `SyncConflict` type, `SyncConflictDialog`, the
+`resolveConflict`/`syncConflict` surface, the `'conflict'` sync status, and the
+JSONB `pushToRemote`. `fetchRemote`/`deleteRemote` stay (GDPR export + history).
+The `allotment_history` table and its trigger stay as the defensive backup.
+
+Implementation: `sql/004-allotment-yjs.sql`, `src/lib/supabase/sync-binary.ts`,
+the binary surface on `useYjsDoc` (`encodeState` / `mergeRemoteUpdate` /
+`adoptRemoteUpdate` / `hasUpdatesBeyond`), and the reworked `useCloudSync`.
+Deployment steps (including the pre-migration history-row seeding) are in
+`docs/runbooks/adr-027-step-4-yjs-binary-migration.md`.
 
 ## Consequences
 

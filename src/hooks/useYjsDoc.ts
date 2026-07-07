@@ -30,6 +30,7 @@ import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
+  clearAllotmentStore,
   type AllotmentStoreShape,
 } from '@/lib/yjs/allotment-yjs'
 import { initializeStorage } from '@/services/allotment-storage'
@@ -66,6 +67,13 @@ interface YjsSingleton {
   whenReady: Promise<{ providerError: string | null }>
   /** Origin tag for transactions initiated locally by `useYjsDoc` consumers. */
   localOrigin: symbol
+  /**
+   * Origin tag for updates applied from the cloud transport (ADR 027 Step 4).
+   * Distinct from `localOrigin` so the update handler flags
+   * `isSyncedFromOtherTab` and the cloud push effect does not treat a
+   * just-merged remote update as a fresh local edit to push straight back.
+   */
+  remoteOrigin: symbol
   /** Number of mounted `useYjsDoc` consumers. */
   refCount: number
 }
@@ -95,6 +103,7 @@ function acquireSingleton(): YjsSingleton {
   }
 
   const localOrigin = Symbol('useYjsDoc-shared-local')
+  const remoteOrigin = Symbol('useYjsDoc-shared-remote')
 
   const whenReady = (async () => {
     if (provider) {
@@ -134,6 +143,7 @@ function acquireSingleton(): YjsSingleton {
     provider,
     whenReady,
     localOrigin,
+    remoteOrigin,
     refCount: 1,
   }
   return singleton
@@ -176,10 +186,45 @@ export interface UseYjsDocReturn {
   mutate: (fn: (store: AllotmentStoreShape) => void) => void
   /**
    * Idempotent replace path: clears the doc and re-hydrates from `json`.
-   * Used by the cloud-sync conflict-resolution callback when the user
-   * picks "use cloud".
+   * Used by the `reload()` import/restore flow and by the Step 4 migration
+   * when the only cloud copy is the pre-migration JSONB.
    */
   replaceFromJson: (json: AllotmentData) => void
+  /**
+   * Read the current snapshot on demand (not from React state). Callers in
+   * the async cloud-push path need the live post-merge snapshot rather than a
+   * possibly-stale closed-over `data`.
+   */
+  getSnapshot: () => AllotmentData | null
+  /**
+   * Encode the whole document as a Yjs binary update
+   * (`Y.encodeStateAsUpdate`) for the cloud push. `null` before the doc is
+   * ready.
+   */
+  encodeState: () => Uint8Array | null
+  /**
+   * Merge a remote Yjs update into the live doc (`Y.applyUpdate`). This is the
+   * CRDT merge that replaces last-write-wins: concurrent edits from another
+   * device converge instead of one side overwriting the other. Tagged with the
+   * remote origin so it lights the "synced from another source" affordance and
+   * is not mistaken for a fresh local edit.
+   */
+  mergeRemoteUpdate: (update: Uint8Array) => void
+  /**
+   * Adopt a canonical remote lineage: clear the local doc (dropping the
+   * first-run default seed / an independent pre-migration lineage) and then
+   * `Y.applyUpdate` the remote on top. Used on a device's first Step 4 sync so
+   * every device converges on one shared document lineage — a prerequisite for
+   * duplicate-free CRDT merge, since the per-device local docs were hydrated
+   * independently in Step 3/5 and do not share history.
+   */
+  adoptRemoteUpdate: (update: Uint8Array) => void
+  /**
+   * Does the live doc hold any structs or deletes that `remoteUpdate` does
+   * not? Used by the push path to skip a redundant cloud write when the local
+   * doc is already fully contained in the remote state (a pure pull).
+   */
+  hasUpdatesBeyond: (remoteUpdate: Uint8Array) => boolean
   /**
    * Awaits any pending IndexedDB persistence writes. Callers see the
    * same "everything saved locally" contract the legacy chain offered.
@@ -302,6 +347,50 @@ export function useYjsDoc(): UseYjsDocReturn {
     }, sg.localOrigin)
   }, [])
 
+  const getSnapshot = useCallback((): AllotmentData | null => {
+    const sg = singletonRef.current
+    if (!sg) return null
+    return serializeToJson(sg.store)
+  }, [])
+
+  const encodeState = useCallback((): Uint8Array | null => {
+    const sg = singletonRef.current
+    if (!sg) return null
+    return Y.encodeStateAsUpdate(sg.doc)
+  }, [])
+
+  const mergeRemoteUpdate = useCallback((update: Uint8Array) => {
+    const sg = singletonRef.current
+    if (!sg) return
+    Y.applyUpdate(sg.doc, update, sg.remoteOrigin)
+  }, [])
+
+  const adoptRemoteUpdate = useCallback((update: Uint8Array) => {
+    const sg = singletonRef.current
+    if (!sg) return
+    // Drop the local lineage (default seed or an independent pre-migration
+    // doc), then load the canonical remote lineage on top. Because the store
+    // is emptied first, the applied update does not union with stale local
+    // content, so no duplicates survive.
+    sg.doc.transact(() => {
+      clearAllotmentStore(sg.store)
+    }, sg.localOrigin)
+    Y.applyUpdate(sg.doc, update, sg.remoteOrigin)
+  }, [])
+
+  const hasUpdatesBeyond = useCallback((remoteUpdate: Uint8Array): boolean => {
+    const sg = singletonRef.current
+    if (!sg) return false
+    // Encode only what the local doc has beyond the remote's state vector,
+    // then check whether that diff carries any real content (new structs or
+    // deletes). An empty diff means the local doc is fully contained in the
+    // remote — nothing to push.
+    const remoteVector = Y.encodeStateVectorFromUpdate(remoteUpdate)
+    const diff = Y.encodeStateAsUpdate(sg.doc, remoteVector)
+    const { structs, ds } = Y.decodeUpdate(diff)
+    return structs.length > 0 || ds.clients.size > 0
+  }, [])
+
   const flushSave = useCallback(async (): Promise<boolean> => {
     const sg = singletonRef.current
     if (!sg || !sg.provider) return true
@@ -319,6 +408,11 @@ export function useYjsDoc(): UseYjsDocReturn {
     error,
     mutate,
     replaceFromJson,
+    getSnapshot,
+    encodeState,
+    mergeRemoteUpdate,
+    adoptRemoteUpdate,
+    hasUpdatesBeyond,
     flushSave,
     isSyncedFromOtherTab,
   }

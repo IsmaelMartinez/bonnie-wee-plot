@@ -6,10 +6,11 @@
  *
  * Storage engine (ADR 027): the Yjs document (`useYjsDoc`) is the
  * canonical local engine, backed by IndexedDB via `y-indexeddb`. Cloud
- * sync runs through `useCloudSync`, which consumes the Yjs snapshot
- * directly (fetch / push / LWW-guard / conflict dialog). Domain hooks
- * write through `mutate(fn)` against the SyncedStore proxy; there is no
- * legacy `setData`/localStorage chain any more (Step 5 retired it).
+ * sync runs through `useCloudSync`, which exchanges the doc as binary
+ * CRDT state and merges concurrent edits server-side-equivalently (Step 4;
+ * no last-write-wins, no conflict dialog). Domain hooks write through
+ * `mutate(fn)` against the SyncedStore proxy; there is no legacy
+ * `setData`/localStorage chain any more (Step 5 retired it).
  */
 
 'use client'
@@ -27,7 +28,6 @@ import {
 import { useYjsDoc } from '../useYjsDoc'
 import { useCloudSync } from '../useCloudSync'
 import type { SaveStatus, SyncStatus } from '@/types/storage'
-import type { SyncConflict } from '../useCloudSync'
 import type { AllotmentStoreShape } from '@/lib/yjs/allotment-yjs'
 
 // Re-export SaveStatus for backward compatibility
@@ -56,8 +56,6 @@ export interface UseAllotmentDataReturn {
   isSyncedFromOtherTab: boolean
   syncStatus: SyncStatus
   syncError: string | null
-  syncConflict: SyncConflict | null
-  resolveConflict: (choice: 'cloud' | 'local') => void
 
   // Actions
   selectYear: (year: number) => void
@@ -78,14 +76,19 @@ export function useAllotmentData(): UseAllotmentDataReturn {
   // Canonical local engine: the Yjs doc backed by IndexedDB.
   const yjs = useYjsDoc()
 
-  // Cloud sync consumes the Yjs snapshot directly. On a `'cloud'`
-  // conflict resolution it adopts the remote snapshot into the doc via
-  // `replaceFromJson`; on `'local'` it pushes the current snapshot. The
-  // unload flush drives IndexedDB persistence (`flushSave`) before the
-  // final push.
+  // Cloud sync exchanges the Yjs doc as binary CRDT state (ADR 027 Step 4).
+  // It merges remote updates into the doc (`mergeRemoteUpdate`), adopts the
+  // canonical lineage on a device's first sync (`adoptRemoteUpdate`), and
+  // pushes the live encoded state. The unload flush drives IndexedDB
+  // persistence (`flushSave`) before the final push.
   const cloud = useCloudSync({
     data: yjs.data,
-    applyRemote: yjs.replaceFromJson,
+    getSnapshot: yjs.getSnapshot,
+    encodeState: yjs.encodeState,
+    mergeRemoteUpdate: yjs.mergeRemoteUpdate,
+    adoptRemoteUpdate: yjs.adoptRemoteUpdate,
+    replaceFromJson: yjs.replaceFromJson,
+    hasUpdatesBeyond: yjs.hasUpdatesBeyond,
     flushLocal: yjs.flushSave,
     isSyncedFromOtherTab: yjs.isSyncedFromOtherTab,
   })
@@ -201,8 +204,6 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     isSyncedFromOtherTab: yjs.isSyncedFromOtherTab,
     syncStatus: cloud.syncStatus,
     syncError: cloud.syncError,
-    syncConflict: cloud.syncConflict,
-    resolveConflict: cloud.resolveConflict,
 
     // Actions
     selectYear,

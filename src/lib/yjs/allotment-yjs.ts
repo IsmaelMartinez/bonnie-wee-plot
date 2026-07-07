@@ -105,23 +105,9 @@ export function hydrateFromJson(
 
   doc.transact(() => {
     // Clear top-level collections so re-hydration replaces rather than
-    // appends. `meta` is also cleared key-by-key: assignDefined skips
-    // undefined values, so without an explicit clear, fields present in
-    // the previous hydrate that are absent in the new input would
-    // silently persist (a hydrate of a backup without `aiAdvisorEnabled`
-    // should leave the proxy without that field, not preserve a stale
-    // `true`). `state` has a closed set of fields all written below, so
-    // it does not need clearing.
-    store.areas.splice(0, store.areas.length)
-    store.seasons.splice(0, store.seasons.length)
-    store.customTasks.splice(0, store.customTasks.length)
-    store.maintenanceTasks.splice(0, store.maintenanceTasks.length)
-    store.gardenEvents.splice(0, store.gardenEvents.length)
-    store.varieties.splice(0, store.varieties.length)
-    store.compost.splice(0, store.compost.length)
-    for (const key of Object.keys(store.meta)) {
-      delete (store.meta as unknown as Record<string, unknown>)[key]
-    }
+    // appends. See `clearAllotmentStore` for why `meta` is cleared
+    // key-by-key.
+    clearAllotmentStore(store)
 
     // Top-level primitives go into the `state` map.
     store.state.currentYear = data.currentYear
@@ -221,6 +207,34 @@ export function decodeDocState(update: Uint8Array): {
   const { store } = createAllotmentDoc(doc)
   Y.applyUpdate(doc, update)
   return { store, doc }
+}
+
+/**
+ * Empty every mutable container in the store: the top-level Y.Arrays and the
+ * `meta` Y.Map. Must run inside a Yjs transaction (callers wrap it).
+ *
+ * `meta` is cleared key-by-key rather than replaced because `assignDefined`
+ * skips undefined values — without an explicit clear, fields present in a
+ * previous hydrate that are absent in the new input would silently persist (a
+ * hydrate of a backup without `aiAdvisorEnabled` should leave the proxy
+ * without that field, not preserve a stale `true`). `state` has a closed set
+ * of fields that every hydrate overwrites, so it does not need clearing.
+ *
+ * Used by `hydrateFromJson` (clear-then-load) and by the Step 4 first-sync
+ * adoption path in `useYjsDoc` (clear the local default seed, then
+ * `Y.applyUpdate` the canonical cloud lineage on top).
+ */
+export function clearAllotmentStore(store: AllotmentStoreShape): void {
+  store.areas.splice(0, store.areas.length)
+  store.seasons.splice(0, store.seasons.length)
+  store.customTasks.splice(0, store.customTasks.length)
+  store.maintenanceTasks.splice(0, store.maintenanceTasks.length)
+  store.gardenEvents.splice(0, store.gardenEvents.length)
+  store.varieties.splice(0, store.varieties.length)
+  store.compost.splice(0, store.compost.length)
+  for (const key of Object.keys(store.meta)) {
+    delete (store.meta as unknown as Record<string, unknown>)[key]
+  }
 }
 
 // ============ write-site helpers ============
