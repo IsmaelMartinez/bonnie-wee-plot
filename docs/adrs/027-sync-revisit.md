@@ -119,12 +119,17 @@ duplicate-free when all devices share one document lineage. The per-device local
 docs were hydrated independently in Step 3/5 and do **not** share history, so a
 naive binary merge would union — and duplicate — all pre-existing shared content.
 Step 4 therefore forces a one-time **adoption**: on a device's first Step-4 sync
-it clears its local doc and applies the canonical cloud binary on top (via a new
-`bwp-yjs-synced-<userId>` flag, distinct from the LWW-era flag so every device
-adopts once). The one-shot migration (JSONB → binary) is serialised to a single
-canonical lineage by the CAS write: if two devices migrate concurrently, the
-loser re-fetches and adopts the winner's binary. After adoption, edits are true
-concurrent operations on the shared lineage and merge cleanly.
+it loads the canonical cloud binary into a fresh, empty Yjs doc that replaces the
+seeded local one (resetting IndexedDB), via a new `bwp-yjs-synced-<userId>` flag
+distinct from the LWW-era flag so every device adopts once. Adopting into a fresh
+doc (rather than clearing the seeded doc in place) is load-bearing: Yjs resolves a
+Y.Map key — every `meta` field — to the item with the highest clientID regardless
+of deletion, so clearing in place would let a local delete-tombstone with an
+outranking clientID drop `meta` fields ~half the time. The one-shot migration
+(JSONB → binary) is serialised to a single canonical lineage by the CAS write: if
+two devices migrate concurrently, the loser re-fetches and adopts the winner's
+binary. After adoption, edits are true concurrent operations on the shared lineage
+and merge cleanly.
 
 **Retired.** `useSyncedStorage`'s successor guards are gone: `contentSnapshot`,
 `isLocalStructurallySmaller`, the `SyncConflict` type, `SyncConflictDialog`, the

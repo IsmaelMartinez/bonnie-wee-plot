@@ -5,12 +5,20 @@
  *  - Independent local docs (hydrated separately, as Step 3/5 produced) would
  *    DUPLICATE shared content under naive merge — the hazard that forces
  *    one-time adoption.
- *  - `clearAllotmentStore` + `Y.applyUpdate` (what `useYjsDoc.adoptRemoteUpdate`
- *    does) collapses to the canonical content with no duplicates, and once
- *    adopted, subsequent edits merge cleanly (the CRDT win).
+ *  - Adopting the remote into a FRESH doc (what `useYjsDoc.adoptRemoteUpdate`
+ *    does) collapses to the canonical content with no duplicates and no `meta`
+ *    loss, and once adopted, subsequent edits merge cleanly (the CRDT win).
  *  - The migration / GDPR decode path (binary -> JSON) is loss-free.
  *  - The "local fully contained in remote" check (what `hasUpdatesBeyond`
  *    does) skips a redundant push on a pure pull.
+ *
+ * Every doc that participates in a cross-lineage merge/adopt is created with an
+ * explicit, distinct `clientID`. Yjs derives clientIDs from lib0's RNG, which
+ * falls back to a low-entropy generator when browser crypto is absent (as in
+ * CI). Two independently-created docs can then collide, and `applyUpdate` would
+ * silently drop the "already-seen" structs of the colliding client — a test-only
+ * artifact (production uses real random clientIDs). Fixed ids make these tests
+ * deterministic regardless of environment.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -21,7 +29,7 @@ import {
   serializeToJson,
   encodeDocState,
   decodeDocState,
-  clearAllotmentStore,
+  type AllotmentStoreShape,
 } from '@/lib/yjs/allotment-yjs'
 import type { AllotmentData } from '@/types/unified-allotment'
 
@@ -56,10 +64,25 @@ function makeFixture(): AllotmentData {
   } as unknown as AllotmentData
 }
 
-/** Mirror of `useYjsDoc.adoptRemoteUpdate`: clear local, then apply remote. */
-function adopt(store: ReturnType<typeof createAllotmentDoc>['store'], doc: Y.Doc, remoteUpdate: Uint8Array) {
-  doc.transact(() => clearAllotmentStore(store))
+/** Create a store/doc with an explicit clientID (see file docstring). */
+function docWithClientId(clientId: number): { store: AllotmentStoreShape; doc: Y.Doc } {
+  const doc = new Y.Doc()
+  doc.clientID = clientId
+  const { store } = createAllotmentDoc(doc)
+  return { store, doc }
+}
+
+/**
+ * Mirror of `useYjsDoc.adoptRemoteUpdate`: load the remote lineage into a
+ * FRESH, empty doc (never the seeded local doc), so there are no competing
+ * local Y.Map items — the remote's `meta` fields always win regardless of
+ * clientID ordering. `clientId` fixes the adopting doc's id for deterministic
+ * future-edit merges (see file docstring).
+ */
+function adopt(remoteUpdate: Uint8Array, clientId: number): { store: AllotmentStoreShape; doc: Y.Doc } {
+  const { store, doc } = docWithClientId(clientId)
   Y.applyUpdate(doc, remoteUpdate)
+  return { store, doc }
 }
 
 /** Mirror of `useYjsDoc.hasUpdatesBeyond`. */
@@ -74,9 +97,9 @@ describe('yjs Step 4: binary cloud transport', () => {
   describe('the lineage hazard', () => {
     it('naive merge of two INDEPENDENT docs with the same content DUPLICATES it', () => {
       // Two devices that each hydrated the same JSON independently (Step 3/5).
-      const { store: a, doc: docA } = createAllotmentDoc()
+      const { store: a, doc: docA } = docWithClientId(101)
       hydrateFromJson(a, makeFixture())
-      const { store: b, doc: docB } = createAllotmentDoc()
+      const { store: b, doc: docB } = docWithClientId(202)
       hydrateFromJson(b, makeFixture())
 
       Y.applyUpdate(docA, encodeDocState(docB))
@@ -90,42 +113,36 @@ describe('yjs Step 4: binary cloud transport', () => {
   })
 
   describe('adoption', () => {
-    it('adopt (clear + applyUpdate) yields the canonical content without duplicates', () => {
-      // Fresh device seeded with a DIFFERENT default, then signs in and adopts
-      // the canonical cloud doc.
+    it('adopt (fresh doc + applyUpdate) yields the canonical content without duplicates', () => {
+      // A device that adopts must end up with exactly the cloud content, even
+      // though it had a different local default seed. The seed is discarded —
+      // adoption loads the remote into a fresh doc — so `meta` (a Y.Map) is not
+      // subject to the local-delete-vs-remote-set clientID race.
       const cloudFixture = makeFixture()
-      const { store: cloudStore, doc: cloudDoc } = createAllotmentDoc()
+      const { store: cloudStore, doc: cloudDoc } = docWithClientId(101)
       hydrateFromJson(cloudStore, cloudFixture)
       const cloudUpdate = encodeDocState(cloudDoc)
 
-      const seed: AllotmentData = {
-        ...makeFixture(),
-        layout: { areas: [{ id: 'default-seed', name: 'My First Bed', kind: 'rotation-bed', canHavePlantings: true, createdAt: '2026-06-01T00:00:00.000Z' } as unknown as AllotmentData['layout']['areas'][number]] },
-        seasons: [],
-        varieties: [],
-      }
-      const { store: local, doc: localDoc } = createAllotmentDoc()
-      hydrateFromJson(local, seed)
-
-      adopt(local, localDoc, cloudUpdate)
+      // Adopting doc has a HIGHER clientID than the cloud — the exact case that
+      // broke the old clear-in-place approach (local meta delete would win).
+      const { store: local } = adopt(cloudUpdate, 202)
 
       const result = serializeToJson(local)
       expect(result).toEqual(cloudFixture)
-      // The local default seed is gone, no duplicate beds.
+      // No duplicate beds, meta intact.
       expect(result.layout.areas.map((ar) => ar.id)).toEqual(['bed-a'])
+      expect(result.meta.name).toBe('Test Allotment')
     })
 
     it('after both devices adopt the same lineage, concurrent edits merge with no duplicates', () => {
       const cloudFixture = makeFixture()
-      const { store: cloudStore, doc: cloudDoc } = createAllotmentDoc()
+      const { store: cloudStore, doc: cloudDoc } = docWithClientId(101)
       hydrateFromJson(cloudStore, cloudFixture)
       const canonical = encodeDocState(cloudDoc)
 
-      // Two devices adopt the canonical lineage.
-      const { store: a, doc: docA } = createAllotmentDoc()
-      adopt(a, docA, canonical)
-      const { store: b, doc: docB } = createAllotmentDoc()
-      adopt(b, docB, canonical)
+      // Two devices adopt the canonical lineage into fresh docs.
+      const { store: a, doc: docA } = adopt(canonical, 202)
+      const { store: b, doc: docB } = adopt(canonical, 303)
 
       // Concurrent edits: A renames the bed, B adds a variety.
       a.areas[0].name = 'Bed A — by A'
@@ -149,7 +166,7 @@ describe('yjs Step 4: binary cloud transport', () => {
     it('hydrate -> encode -> decode -> serialize is loss-free', () => {
       const original = makeFixture()
       // Migration seed: hydrate the JSONB mirror, encode to binary.
-      const { store, doc } = createAllotmentDoc()
+      const { store, doc } = docWithClientId(101)
       hydrateFromJson(store, original)
       const binary = encodeDocState(doc)
 
@@ -161,12 +178,11 @@ describe('yjs Step 4: binary cloud transport', () => {
 
   describe('redundant-push guard', () => {
     it('hasUpdatesBeyond is false for a pure pull and true after a local edit', () => {
-      const { store: cloudStore, doc: cloudDoc } = createAllotmentDoc()
+      const { store: cloudStore, doc: cloudDoc } = docWithClientId(101)
       hydrateFromJson(cloudStore, makeFixture())
       const remote = encodeDocState(cloudDoc)
 
-      const { store: local, doc: localDoc } = createAllotmentDoc()
-      adopt(local, localDoc, remote)
+      const { store: local, doc: localDoc } = adopt(remote, 202)
       // Adopted exactly the remote — nothing new to push.
       expect(hasUpdatesBeyond(localDoc, remote)).toBe(false)
 

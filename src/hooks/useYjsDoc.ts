@@ -30,7 +30,6 @@ import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
-  clearAllotmentStore,
   type AllotmentStoreShape,
 } from '@/lib/yjs/allotment-yjs'
 import { initializeStorage } from '@/services/allotment-storage'
@@ -55,6 +54,8 @@ const YJS_DOC_NAME = 'bwp-allotment-yjs'
  * page reload. The singleton makes hydration single-shot by
  * construction.
  */
+type DocUpdateListener = (update: Uint8Array, origin: unknown) => void
+
 interface YjsSingleton {
   doc: Y.Doc
   store: AllotmentStoreShape
@@ -74,11 +75,36 @@ interface YjsSingleton {
    * just-merged remote update as a fresh local edit to push straight back.
    */
   remoteOrigin: symbol
+  /**
+   * Per-consumer update listeners. The singleton attaches ONE `boundListener`
+   * to the current `doc` and fans out to these, so `adoptRemoteUpdate` can
+   * swap the underlying `Y.Doc` (see its docstring) and re-point the single
+   * doc listener without every consumer having to re-subscribe.
+   */
+  listeners: Set<DocUpdateListener>
+  /** The one listener attached to `doc`; moved to the new doc on adopt. */
+  boundListener: DocUpdateListener
   /** Number of mounted `useYjsDoc` consumers. */
   refCount: number
 }
 
 let singleton: YjsSingleton | null = null
+
+/**
+ * Delete the Yjs IndexedDB database, resolving even if another tab holds it
+ * open (the caller has already torn down this tab's provider). Shared by
+ * `adoptRemoteUpdate` (reset persistence to the adopted lineage) and
+ * `clearYjsIndexedDb` (import/restore).
+ */
+function deleteYjsDatabase(): Promise<void> {
+  if (typeof indexedDB === 'undefined') return Promise.resolve()
+  return new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(YJS_DOC_NAME)
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error ?? new Error('Failed to delete Yjs IndexedDB'))
+    request.onblocked = () => resolve()
+  })
+}
 
 function acquireSingleton(): YjsSingleton {
   if (singleton) {
@@ -104,6 +130,11 @@ function acquireSingleton(): YjsSingleton {
 
   const localOrigin = Symbol('useYjsDoc-shared-local')
   const remoteOrigin = Symbol('useYjsDoc-shared-remote')
+  const listeners = new Set<DocUpdateListener>()
+  const boundListener: DocUpdateListener = (update, origin) => {
+    for (const listener of listeners) listener(update, origin)
+  }
+  doc.on('update', boundListener)
 
   const whenReady = (async () => {
     if (provider) {
@@ -144,6 +175,8 @@ function acquireSingleton(): YjsSingleton {
     whenReady,
     localOrigin,
     remoteOrigin,
+    listeners,
+    boundListener,
     refCount: 1,
   }
   return singleton
@@ -158,6 +191,7 @@ function releaseSingleton(): void {
   // instance even if another mount races in.
   const current = singleton
   singleton = null
+  current.doc.off('update', current.boundListener)
   if (current.provider) {
     // `destroy` returns a Promise but we don't await it during
     // cleanup — React unmount is synchronous. The provider tears
@@ -211,14 +245,22 @@ export interface UseYjsDocReturn {
    */
   mergeRemoteUpdate: (update: Uint8Array) => void
   /**
-   * Adopt a canonical remote lineage: clear the local doc (dropping the
-   * first-run default seed / an independent pre-migration lineage) and then
-   * `Y.applyUpdate` the remote on top. Used on a device's first Step 4 sync so
-   * every device converges on one shared document lineage — a prerequisite for
+   * Adopt a canonical remote lineage on a device's first Step 4 sync so every
+   * device converges on one shared document lineage — a prerequisite for
    * duplicate-free CRDT merge, since the per-device local docs were hydrated
    * independently in Step 3/5 and do not share history.
+   *
+   * The remote update is applied into a FRESH, empty `Y.Doc` (not the seeded
+   * local doc) which then replaces the singleton's doc; IndexedDB is reset to
+   * the adopted lineage. Applying onto the existing local doc would be unsound:
+   * clearing the local seed leaves delete-tombstones, and Yjs resolves a Y.Map
+   * key (e.g. every `meta` field) to the item with the highest clientID
+   * regardless of deletion — so if the local doc's clientID outranked the
+   * remote's, the local delete would win and the field would vanish. Loading
+   * into an empty doc has no competing local items, so the remote always wins.
+   * Resolves once the adopted state has been persisted.
    */
-  adoptRemoteUpdate: (update: Uint8Array) => void
+  adoptRemoteUpdate: (update: Uint8Array) => Promise<void>
   /**
    * Does the live doc hold any structs or deletes that `remoteUpdate` does
    * not? Used by the push path to skip a redundant cloud write when the local
@@ -267,9 +309,9 @@ export function useYjsDoc(): UseYjsDocReturn {
       setData(snapshot)
       // Any update that isn't tagged with the shared local origin came
       // from somewhere else: the IndexeddbPersistence cross-tab
-      // broadcast, or a `Y.applyUpdate` from a future cloud transport.
-      // Flag it so existing UI affordances ("Synced from another tab")
-      // light up.
+      // broadcast, or a `Y.applyUpdate` from the cloud transport (merge /
+      // adopt). Flag it so existing UI affordances ("Synced from another
+      // tab") light up.
       if (origin !== sg.localOrigin) {
         setIsSyncedFromOtherTab(true)
         if (syncedFlagTimeout) clearTimeout(syncedFlagTimeout)
@@ -279,7 +321,9 @@ export function useYjsDoc(): UseYjsDocReturn {
         }, 3000)
       }
     }
-    sg.doc.on('update', handleUpdate)
+    // Subscribe via the singleton's listener set (not `doc.on` directly) so
+    // `adoptRemoteUpdate` can swap the underlying doc without us re-subscribing.
+    sg.listeners.add(handleUpdate)
 
     const init = async () => {
       try {
@@ -322,7 +366,7 @@ export function useYjsDoc(): UseYjsDocReturn {
         clearTimeout(syncedFlagTimeout)
         syncedFlagTimeout = null
       }
-      sg.doc.off('update', handleUpdate)
+      sg.listeners.delete(handleUpdate)
       singletonRef.current = null
       releaseSingleton()
     }
@@ -365,17 +409,45 @@ export function useYjsDoc(): UseYjsDocReturn {
     Y.applyUpdate(sg.doc, update, sg.remoteOrigin)
   }, [])
 
-  const adoptRemoteUpdate = useCallback((update: Uint8Array) => {
+  const adoptRemoteUpdate = useCallback(async (update: Uint8Array): Promise<void> => {
     const sg = singletonRef.current
     if (!sg) return
-    // Drop the local lineage (default seed or an independent pre-migration
-    // doc), then load the canonical remote lineage on top. Because the store
-    // is emptied first, the applied update does not union with stale local
-    // content, so no duplicates survive.
-    sg.doc.transact(() => {
-      clearAllotmentStore(sg.store)
-    }, sg.localOrigin)
-    Y.applyUpdate(sg.doc, update, sg.remoteOrigin)
+    // Load the canonical remote lineage into a FRESH, empty doc (see the
+    // interface docstring for why this must not reuse the seeded local doc).
+    const freshDoc = new Y.Doc()
+    const { store: freshStore } = createAllotmentDoc(freshDoc)
+    Y.applyUpdate(freshDoc, update)
+
+    // Re-point the single doc listener from the old doc to the fresh one, then
+    // swap the singleton's references so every consumer (and mutate / encode /
+    // merge) now operates on the adopted doc.
+    const oldDoc = sg.doc
+    const oldProvider = sg.provider
+    oldDoc.off('update', sg.boundListener)
+    freshDoc.on('update', sg.boundListener)
+    sg.doc = freshDoc
+    sg.store = freshStore
+
+    // Reset IndexedDB to the adopted lineage: without this, on reload the old
+    // provider's on-disk local lineage would load and re-merge, reintroducing
+    // the duplicate/`meta`-loss the adoption just avoided.
+    if (oldProvider) {
+      try {
+        await oldProvider.destroy()
+        await deleteYjsDatabase()
+        const provider = new IndexeddbPersistence(YJS_DOC_NAME, freshDoc)
+        sg.provider = provider
+        await provider.whenSynced
+      } catch {
+        sg.provider = null
+      }
+    }
+    oldDoc.destroy()
+
+    // Publish the adopted snapshot to all consumers (the applyUpdate above
+    // fired before the listener was attached to `freshDoc`, on purpose, so we
+    // emit once here with the remote origin).
+    sg.boundListener(new Uint8Array(0), sg.remoteOrigin)
   }, [])
 
   const hasUpdatesBeyond = useCallback((remoteUpdate: Uint8Array): boolean => {

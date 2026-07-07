@@ -57,8 +57,8 @@ export interface UseCloudSyncOptions {
   encodeState: () => Uint8Array | null
   /** Merge a remote Yjs update into the live doc (the CRDT merge). */
   mergeRemoteUpdate: (update: Uint8Array) => void
-  /** Adopt a canonical remote lineage (clear local, then apply remote). */
-  adoptRemoteUpdate: (update: Uint8Array) => void
+  /** Adopt a canonical remote lineage (load remote into a fresh doc + swap). */
+  adoptRemoteUpdate: (update: Uint8Array) => void | Promise<void>
   /** Replace the doc from JSON — used to migrate a JSONB-only cloud row. */
   replaceFromJson: (data: AllotmentData) => void
   /** Does the live doc hold anything the remote update does not? */
@@ -239,7 +239,7 @@ export function useCloudSync({
     // merge (see module docstring).
     if (firstDeviceSync) {
       if (remote.update) {
-        adoptRemoteUpdate(remote.update)
+        await adoptRemoteUpdate(remote.update)
         return
       }
       // Migration: cloud has JSONB but no binary. Hydrate it and CAS-seed the
@@ -255,7 +255,7 @@ export function useCloudSync({
       if (res.casConflict) {
         const fresh = await fetchRemoteBinary(token, syncUserId)
         if (isStaleSyncUser(syncUserId)) return
-        if (fresh.update) adoptRemoteUpdate(fresh.update)
+        if (fresh.update) await adoptRemoteUpdate(fresh.update)
       }
       return
     }

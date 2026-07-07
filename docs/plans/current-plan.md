@@ -18,9 +18,11 @@ rather than one side overwriting the other.
   unchanged.
 - **Migration:** lazy, per user, on first authenticated sync (JSONB → hydrate →
   encode → CAS-write `yjs_state`). Every device performs a one-time **adoption** of
-  the canonical cloud lineage (new `bwp-yjs-synced-<userId>` flag) so independently
-  hydrated local docs converge on one lineage — a prerequisite for duplicate-free
-  merge. CAS serialises concurrent migrations to a single lineage.
+  the canonical cloud lineage — loading the cloud binary into a fresh doc that
+  replaces the seeded local one (avoiding a Y.Map key-clientID race that clearing
+  in place would hit) — so independently hydrated local docs converge on one
+  lineage, a prerequisite for duplicate-free merge. CAS serialises concurrent
+  migrations to a single lineage.
 - **Retired:** `contentSnapshot`, `isLocalStructurallySmaller`, `SyncConflict`,
   `SyncConflictDialog`, `resolveConflict`/`syncConflict`, the `'conflict'` sync
   status, and JSONB `pushToRemote`. `fetchRemote`/`deleteRemote` + the

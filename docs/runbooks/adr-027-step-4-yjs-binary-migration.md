@@ -64,10 +64,11 @@ unconditional for signed-in users.
 On a signed-in user's next sync, per device:
 
 - **Cloud row has `yjs_state` (already migrated):** the device *adopts* the
-  canonical lineage (clears its local seed, applies the cloud binary) — a
-  one-time step so every device shares one document lineage (a prerequisite for
-  duplicate-free CRDT merge, since Step 3/5 hydrated each device's local doc
-  independently). Thereafter it merges.
+  canonical lineage (loads the cloud binary into a fresh doc that replaces the
+  seeded local one, resetting IndexedDB) — a one-time step so every device
+  shares one document lineage (a prerequisite for duplicate-free CRDT merge,
+  since Step 3/5 hydrated each device's local doc independently). Thereafter it
+  merges.
 - **Cloud row has JSONB only (`yjs_state IS NULL`):** the device migrates —
   hydrates a doc from `data`, encodes it, and CAS-writes `yjs_state`. If two
   devices race, the CAS serialises them to one lineage; the loser re-fetches and
