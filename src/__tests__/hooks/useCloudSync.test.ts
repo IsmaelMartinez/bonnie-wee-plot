@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { useCloudSync, getSyncFlag } from '@/hooks/useCloudSync'
+import { useCloudSync, hasAdoptedLineage } from '@/hooks/useCloudSync'
 import type { AllotmentData } from '@/types/unified-allotment'
+import type { RemoteBinary } from '@/lib/supabase/sync-binary'
 
-// Mock auth — use mutable variables so tests can override
+// Mock auth — mutable so tests can override
 let mockUserId: string | null = 'user-123'
-let mockIsSignedIn: boolean | false = true
+let mockIsSignedIn = true
 const mockGetToken = vi.fn()
 
 vi.mock('@/hooks/useOptionalAuth', () => ({
@@ -16,640 +17,325 @@ vi.mock('@/hooks/useOptionalAuth', () => ({
   }),
 }))
 
-// Mock Supabase sync — keep contentSnapshot/isLocalStructurallySmaller real
-// since they are pure helpers that the hook depends on for its logic.
-const mockFetchRemote = vi.fn()
-const mockPushToRemote = vi.fn()
-vi.mock('@/lib/supabase/sync', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/supabase/sync')>('@/lib/supabase/sync')
-  return {
-    ...actual,
-    fetchRemote: (...args: unknown[]) => mockFetchRemote(...args),
-    pushToRemote: (...args: unknown[]) => mockPushToRemote(...args),
-  }
-})
+// Mock the binary sync service
+const mockFetchRemoteBinary = vi.fn()
+const mockPushBinary = vi.fn()
+vi.mock('@/lib/supabase/sync-binary', () => ({
+  fetchRemoteBinary: (...args: unknown[]) => mockFetchRemoteBinary(...args),
+  pushBinary: (...args: unknown[]) => mockPushBinary(...args),
+}))
 
-// Mock Supabase client
 vi.mock('@/lib/supabase/client', () => ({
   isSupabaseConfigured: vi.fn(() => true),
 }))
 
-// Mock network status
 let mockIsOnline = true
 let mockJustReconnected = false
 vi.mock('@/hooks/useNetworkStatus', () => ({
   useNetworkStatus: () => ({ isOnline: mockIsOnline, isOffline: !mockIsOnline, justReconnected: mockJustReconnected }),
 }))
 
-// The Yjs-snapshot sinks the hook writes through. `applyRemote` stands in for
-// `useYjsDoc.replaceFromJson`; `flushLocal` for `useYjsDoc.flushSave`.
-const applyRemote = vi.fn()
+// Yjs-doc prop spies
+const getSnapshot = vi.fn<() => AllotmentData | null>()
+const encodeState = vi.fn<() => Uint8Array | null>()
+const mergeRemoteUpdate = vi.fn()
+const adoptRemoteUpdate = vi.fn()
+const replaceFromJson = vi.fn()
+const hasUpdatesBeyond = vi.fn<() => boolean>()
 const flushLocal = vi.fn().mockResolvedValue(true)
 
-const makeTestData = (updatedAt: string, overrides?: Partial<AllotmentData>): AllotmentData =>
-  ({
-    version: 16,
-    meta: { name: 'Test', updatedAt },
-    layout: { areas: [{ id: 'bed-a', kind: 'rotation-bed', name: 'Bed A' }] },
-    seasons: [],
-    currentYear: 2026,
-    varieties: [{ id: 'v1', name: 'Tomato' }],
-    ...overrides,
-  }) as unknown as AllotmentData
+const SNAPSHOT = {
+  version: 22,
+  meta: { name: 'Test', updatedAt: '2026-07-01T00:00:00Z' },
+  layout: { areas: [] },
+  seasons: [],
+  currentYear: 2026,
+  varieties: [],
+} as unknown as AllotmentData
 
-const makeBootstrapData = (updatedAt: string): AllotmentData =>
-  ({
-    version: 16,
-    meta: {
-      name: 'My Allotment',
-      location: 'Edinburgh, Scotland',
-      updatedAt,
-      setupCompleted: true,
-    },
-    layout: { areas: [] },
-    seasons: [{ year: 2026, status: 'current', areas: [], createdAt: updatedAt, updatedAt }],
-    currentYear: 2026,
-    varieties: [],
-    customTasks: [],
-    maintenanceTasks: [],
-    gardenEvents: [],
-    compost: [],
-  }) as unknown as AllotmentData
+const LOCAL_STATE = new Uint8Array([1, 2, 3])
 
-// Render `useCloudSync` with a given Yjs snapshot. Rerender with a fresh
-// `data` reference to simulate a mutation publishing a new snapshot (the
-// Step 5 replacement for the legacy `saveStatus === 'saved'` push signal).
-function renderCloudSync(initialData: AllotmentData | null) {
+const remote = (over: Partial<RemoteBinary> = {}): RemoteBinary => ({
+  exists: true,
+  update: new Uint8Array([9, 9, 9]),
+  yjsUpdatedAt: '2026-07-01T09:00:00Z',
+  jsonb: SNAPSHOT,
+  ...over,
+})
+
+function renderCloudSync(
+  initialData: AllotmentData | null = SNAPSHOT,
+  isSyncedFromOtherTab = false,
+) {
   return renderHook(
-    ({ data }: { data: AllotmentData | null }) =>
-      useCloudSync({ data, applyRemote, flushLocal }),
-    { initialProps: { data: initialData } },
+    (props: { data: AllotmentData | null; isSyncedFromOtherTab: boolean }) =>
+      useCloudSync({
+        data: props.data,
+        getSnapshot,
+        encodeState,
+        mergeRemoteUpdate,
+        adoptRemoteUpdate,
+        replaceFromJson,
+        hasUpdatesBeyond,
+        flushLocal,
+        isSyncedFromOtherTab: props.isSyncedFromOtherTab,
+      }),
+    { initialProps: { data: initialData, isSyncedFromOtherTab } },
   )
 }
 
-describe('useCloudSync', () => {
+describe('useCloudSync (binary transport)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetToken.mockResolvedValue('test-token')
+    getSnapshot.mockReturnValue(SNAPSHOT)
+    encodeState.mockReturnValue(LOCAL_STATE)
+    hasUpdatesBeyond.mockReturnValue(true)
     flushLocal.mockResolvedValue(true)
+    mockPushBinary.mockResolvedValue({ ok: true, casConflict: false, yjsUpdatedAt: 'T-new' })
     mockUserId = 'user-123'
     mockIsSignedIn = true
     mockIsOnline = true
     mockJustReconnected = false
-    // Clear sync flags
     localStorage.clear()
   })
 
-  it('exposes syncStatus, conflict, and flush surface', () => {
+  it('exposes the sync surface (no conflict fields)', () => {
     const { result } = renderCloudSync(null)
-
     expect(result.current).toHaveProperty('syncStatus')
     expect(result.current).toHaveProperty('syncError')
-    expect(result.current).toHaveProperty('syncConflict')
-    expect(result.current).toHaveProperty('resolveConflict')
     expect(result.current).toHaveProperty('flushPush')
+    expect(result.current).not.toHaveProperty('syncConflict')
+    expect(result.current).not.toHaveProperty('resolveConflict')
   })
 
-  it('syncStatus is "disabled" when not signed in', () => {
+  it('is disabled when not signed in', () => {
     mockUserId = null
     mockIsSignedIn = false
-
     const { result } = renderCloudSync(null)
-
     expect(result.current.syncStatus).toBe('disabled')
   })
 
-  it('pushes local data to cloud when no remote data exists', async () => {
-    const localData = makeTestData('2026-03-04T12:00:00Z')
-    mockFetchRemote.mockResolvedValue(null)
-    mockPushToRemote.mockResolvedValue(undefined)
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    // Should set the sync flag
-    expect(getSyncFlag('user-123')).not.toBeNull()
-  })
-
-  it('cloud wins on first sync for new device, even when local has setupCompleted', async () => {
-    const localData = makeBootstrapData('2026-03-04T14:00:00Z')
-    const remoteData = makeTestData('2026-03-04T10:00:00Z')
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-04T10:00:00Z',
-    })
-    // No sync flag — first time for this device/user
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(applyRemote).toHaveBeenCalledWith(remoteData)
-    expect(mockPushToRemote).not.toHaveBeenCalled()
-  })
-
-  it('cloud wins on first sync even when local timestamp is newer', async () => {
-    const localData = makeTestData('2026-03-04T18:00:00Z')
-    const remoteData = makeTestData('2026-03-04T10:00:00Z')
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-04T10:00:00Z',
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(applyRemote).toHaveBeenCalledWith(remoteData)
-  })
-
-  it('updates local data when cloud is newer on subsequent sync (LWW)', async () => {
-    const pastSyncTime = '2026-03-01T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData(pastSyncTime) // local unchanged since last sync
-    const remoteData = makeTestData('2026-03-10T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-10T14:00:00Z',
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(applyRemote).toHaveBeenCalledWith(remoteData)
-    expect(mockPushToRemote).not.toHaveBeenCalled()
-  })
-
-  it('pushes to cloud when local is newer on subsequent sync (LWW)', async () => {
-    const pastSyncTime = '2026-03-01T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData('2026-03-10T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: makeTestData(pastSyncTime), // remote unchanged, different content
-      updatedAt: pastSyncTime,
-    })
-    mockPushToRemote.mockResolvedValue(undefined)
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(applyRemote).not.toHaveBeenCalled()
-  })
-
-  it('detects conflict when both local and remote changed since last sync', async () => {
-    const pastSyncTime = '2026-03-04T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData('2026-03-05T10:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
-    })
-    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-05T14:00:00Z',
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('conflict')
-    })
-    expect(result.current.syncConflict).not.toBeNull()
-    expect(result.current.syncConflict!.local).toBe(localData)
-    expect(result.current.syncConflict!.remote).toBe(remoteData)
-    // Neither applyRemote nor pushToRemote should be called during conflict
-    expect(applyRemote).not.toHaveBeenCalled()
-    expect(mockPushToRemote).not.toHaveBeenCalled()
-  })
-
-  it('resolves conflict by choosing cloud version', async () => {
-    const pastSyncTime = '2026-03-04T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData('2026-03-05T10:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
-    })
-    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-05T14:00:00Z',
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('conflict')
-    })
-
-    await act(async () => {
-      result.current.resolveConflict('cloud')
-    })
-
-    expect(applyRemote).toHaveBeenCalledWith(remoteData)
-    expect(result.current.syncStatus).toBe('synced')
-    expect(result.current.syncConflict).toBeNull()
-  })
-
-  it('resolves conflict by choosing local version', async () => {
-    const pastSyncTime = '2026-03-04T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData('2026-03-05T10:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-local', name: 'Local-only' }] as unknown as AllotmentData['varieties'],
-    })
-    const remoteData = makeTestData('2026-03-05T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v-remote', name: 'Remote-only' }] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: '2026-03-05T14:00:00Z',
-    })
-    mockPushToRemote.mockResolvedValue(undefined)
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('conflict')
-    })
-
-    await act(async () => {
-      result.current.resolveConflict('local')
-    })
-
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(result.current.syncStatus).toBe('synced')
-    expect(result.current.syncConflict).toBeNull()
-  })
-
-  // Cloud-overwrite incident regression: a stale local with a newer timestamp
-  // must NOT silently overwrite a richer cloud snapshot.
-  it('routes through conflict when local is structurally smaller than remote despite a newer local timestamp', async () => {
-    const pastSyncTime = '2026-03-01T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: pastSyncTime })
-    )
-
-    const localData = makeTestData('2026-03-10T14:00:00Z', {
-      varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
-    })
-    const remoteData = makeTestData(pastSyncTime, {
-      varieties: [
-        { id: 'v1', name: 'Tomato' },
-        { id: 'v2', name: 'Pea' },
-        { id: 'v3', name: 'Carrot' },
-      ] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: pastSyncTime,
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('conflict')
-    })
-    expect(mockPushToRemote).not.toHaveBeenCalled()
-    expect(result.current.syncConflict?.local).toBe(localData)
-    expect(result.current.syncConflict?.remote).toBe(remoteData)
-  })
-
-  it('routes through conflict when timestamps are equal but content differs', async () => {
-    const sharedTime = '2026-03-04T12:00:00Z'
-    localStorage.setItem(
-      'bonnie-synced-user-123',
-      JSON.stringify({ lastSyncedAt: sharedTime })
-    )
-
-    const localData = makeTestData(sharedTime, {
-      varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
-    })
-    const remoteData = makeTestData(sharedTime, {
-      varieties: [
-        { id: 'v1', name: 'Tomato' },
-        { id: 'v2', name: 'Pea' },
-      ] as unknown as AllotmentData['varieties'],
-    })
-    mockFetchRemote.mockResolvedValue({
-      data: remoteData,
-      updatedAt: sharedTime,
-    })
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('conflict')
-    })
-    expect(mockPushToRemote).not.toHaveBeenCalled()
-    expect(applyRemote).not.toHaveBeenCalled()
-    expect(result.current.syncConflict?.local).toBe(localData)
-    expect(result.current.syncConflict?.remote).toBe(remoteData)
-  })
-
-  it('ignores stale initial-sync results when user changes mid-request', async () => {
-    const localData = makeTestData('2026-03-04T14:00:00Z')
-    const staleRemoteData = makeTestData('2026-03-04T18:00:00Z')
-    mockPushToRemote.mockResolvedValue(undefined)
-
-    let resolveFirstFetch: (value: { data: AllotmentData; updatedAt: string }) => void = () => undefined
-    let hasFirstFetchResolver = false
-    mockFetchRemote
-      .mockImplementationOnce(
-        () =>
-          new Promise(resolve => {
-            resolveFirstFetch = resolve as (value: { data: AllotmentData; updatedAt: string }) => void
-            hasFirstFetchResolver = true
-          })
-      )
-      .mockResolvedValueOnce(null)
-
-    const { result, rerender } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(mockFetchRemote).toHaveBeenCalledTimes(1)
-    })
-
-    mockUserId = 'user-456'
-    rerender({ data: localData })
-
-    await waitFor(() => {
-      expect(mockFetchRemote).toHaveBeenCalledTimes(2)
-    })
-
-    if (!hasFirstFetchResolver) {
-      throw new Error('Expected first fetch resolver to be set')
-    }
-
-    resolveFirstFetch({
-      data: staleRemoteData,
-      updatedAt: '2026-03-04T18:00:00Z',
-    })
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('synced')
-    })
-
-    expect(applyRemote).not.toHaveBeenCalledWith(staleRemoteData)
-    expect(mockPushToRemote).not.toHaveBeenCalledWith('test-token', 'user-123', localData)
-    expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-456', localData)
-  })
-
-  it('sets error status on sync failure', async () => {
-    const localData = makeTestData('2026-03-04T12:00:00Z')
-    mockFetchRemote.mockRejectedValue(new Error('Network error'))
-
-    const { result } = renderCloudSync(localData)
-
-    await waitFor(() => {
-      expect(result.current.syncStatus).toBe('error')
-    })
-    expect(result.current.syncError).toBe('Network error')
-  })
-
-  it('shows offline status when not connected', () => {
+  it('is offline when not connected', () => {
     mockIsOnline = false
-    const localData = makeTestData('2026-03-04T12:00:00Z')
-
-    const { result } = renderCloudSync(localData)
-
+    const { result } = renderCloudSync()
     expect(result.current.syncStatus).toBe('offline')
   })
 
-  // Push debounce: a burst of snapshot changes within PUSH_DEBOUNCE_MS (30s)
-  // should collapse to a single push of the latest snapshot.
-  describe('push debounce', () => {
-    // Drive useCloudSync past initial sync so the push effect arms. Returns a
-    // `triggerSave(data)` helper that rerenders with a fresh snapshot
-    // reference so the push effect refires (the Yjs doc publishes a new
-    // `data` reference on every mutation).
-    const setupSyncedHook = async () => {
-      const initialData = makeTestData('2026-04-01T12:00:00Z')
-      // Past sync flag — subsequent-sync path
-      const pastSyncTime = '2026-03-01T12:00:00Z'
-      localStorage.setItem(
-        'bonnie-synced-user-123',
-        JSON.stringify({ lastSyncedAt: pastSyncTime })
-      )
-      // Remote matches initial local content so the content short-circuit
-      // fires; no push happens during initial sync.
-      mockFetchRemote.mockResolvedValue({
-        data: initialData,
-        updatedAt: '2026-04-01T12:00:00Z',
-      })
-      mockPushToRemote.mockResolvedValue(undefined)
+  it('first cloud user: pushes local as the canonical document', async () => {
+    mockFetchRemoteBinary.mockResolvedValue(remote({ exists: false, update: null, yjsUpdatedAt: null, jsonb: null }))
 
-      const hook = renderCloudSync(initialData)
-      await waitFor(() => {
-        expect(hook.result.current.syncStatus).toBe('synced')
-      })
-      // Initial sync did not push (content matched), so the push counter
-      // starts at zero for the debounce assertions below.
-      expect(mockPushToRemote).not.toHaveBeenCalled()
+    const { result } = renderCloudSync()
 
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(mockPushBinary).toHaveBeenCalledWith(
+      'test-token',
+      'user-123',
+      LOCAL_STATE,
+      SNAPSHOT,
+      { rowExists: false, expectedYjsUpdatedAt: null },
+    )
+    expect(adoptRemoteUpdate).not.toHaveBeenCalled()
+    expect(hasAdoptedLineage('user-123')).toBe(true)
+  })
+
+  it('first device sync (binary present): ADOPTS the cloud lineage, no push', async () => {
+    const update = new Uint8Array([5, 5])
+    mockFetchRemoteBinary.mockResolvedValue(remote({ update }))
+
+    const { result } = renderCloudSync()
+
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(adoptRemoteUpdate).toHaveBeenCalledWith(update)
+    expect(mergeRemoteUpdate).not.toHaveBeenCalled()
+    expect(mockPushBinary).not.toHaveBeenCalled()
+    expect(hasAdoptedLineage('user-123')).toBe(true)
+  })
+
+  it('migration: cloud has JSONB only — hydrate and CAS-seed the binary', async () => {
+    mockFetchRemoteBinary.mockResolvedValue(remote({ update: null, yjsUpdatedAt: null }))
+
+    const { result } = renderCloudSync()
+
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(replaceFromJson).toHaveBeenCalledWith(SNAPSHOT)
+    expect(mockPushBinary).toHaveBeenCalledWith(
+      'test-token',
+      'user-123',
+      LOCAL_STATE,
+      SNAPSHOT,
+      { rowExists: true, expectedYjsUpdatedAt: null },
+    )
+  })
+
+  it('migration CAS loss: adopts the binary written by the device that migrated first', async () => {
+    const winnerUpdate = new Uint8Array([7, 7])
+    mockFetchRemoteBinary
+      .mockResolvedValueOnce(remote({ update: null, yjsUpdatedAt: null })) // initial: not migrated
+      .mockResolvedValueOnce(remote({ update: winnerUpdate })) // re-fetch after CAS loss
+    mockPushBinary.mockResolvedValue({ ok: false, casConflict: true, yjsUpdatedAt: null })
+
+    const { result } = renderCloudSync()
+
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(replaceFromJson).toHaveBeenCalledWith(SNAPSHOT)
+    expect(adoptRemoteUpdate).toHaveBeenCalledWith(winnerUpdate)
+  })
+
+  it('subsequent sync: merges the remote update and pushes the merged state', async () => {
+    localStorage.setItem('bwp-yjs-synced-user-123', JSON.stringify({ adoptedAt: '2026-06-01T00:00:00Z' }))
+    const update = new Uint8Array([4, 4])
+    mockFetchRemoteBinary.mockResolvedValue(remote({ update, yjsUpdatedAt: 'T5' }))
+    hasUpdatesBeyond.mockReturnValue(true)
+
+    const { result } = renderCloudSync()
+
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(adoptRemoteUpdate).not.toHaveBeenCalled()
+    expect(mergeRemoteUpdate).toHaveBeenCalledWith(update)
+    expect(mockPushBinary).toHaveBeenCalledWith(
+      'test-token',
+      'user-123',
+      LOCAL_STATE,
+      SNAPSHOT,
+      { rowExists: true, expectedYjsUpdatedAt: 'T5' },
+    )
+  })
+
+  it('subsequent sync, pure pull: merges but skips the redundant push', async () => {
+    localStorage.setItem('bwp-yjs-synced-user-123', JSON.stringify({ adoptedAt: '2026-06-01T00:00:00Z' }))
+    const update = new Uint8Array([4, 4])
+    mockFetchRemoteBinary.mockResolvedValue(remote({ update, yjsUpdatedAt: 'T5' }))
+    hasUpdatesBeyond.mockReturnValue(false)
+
+    const { result } = renderCloudSync()
+
+    await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+    expect(mergeRemoteUpdate).toHaveBeenCalledWith(update)
+    expect(mockPushBinary).not.toHaveBeenCalled()
+  })
+
+  it('sets error status when the JWT template is missing', async () => {
+    mockGetToken.mockResolvedValue(null)
+    const { result } = renderCloudSync()
+    await waitFor(() => expect(result.current.syncStatus).toBe('error'))
+    expect(result.current.syncError).toContain('supabase')
+  })
+
+  it('sets error status on a fetch failure', async () => {
+    mockFetchRemoteBinary.mockRejectedValue(new Error('Network error'))
+    const { result } = renderCloudSync()
+    await waitFor(() => expect(result.current.syncStatus).toBe('error'))
+    expect(result.current.syncError).toBe('Network error')
+  })
+
+  describe('debounced push', () => {
+    // Drive the hook past initial sync (pure pull, no push) so the push effect
+    // arms and the push counter starts at zero.
+    const setupSynced = async () => {
+      localStorage.setItem('bwp-yjs-synced-user-123', JSON.stringify({ adoptedAt: '2026-06-01T00:00:00Z' }))
+      mockFetchRemoteBinary.mockResolvedValue(remote({ update: new Uint8Array([1]), yjsUpdatedAt: 'T0' }))
+      hasUpdatesBeyond.mockReturnValue(false) // initial sync is a pure pull
+      const hook = renderCloudSync()
+      await waitFor(() => expect(hook.result.current.syncStatus).toBe('synced'))
+      expect(mockPushBinary).not.toHaveBeenCalled()
+      // From here on, local edits have something to push.
+      hasUpdatesBeyond.mockReturnValue(true)
       const triggerSave = async (data: AllotmentData) => {
-        hook.rerender({ data })
-        // Let any microtasks queued by the effect drain
+        hook.rerender({ data, isSyncedFromOtherTab: false })
         await Promise.resolve()
       }
-
       return { ...hook, triggerSave }
     }
 
-    it('coalesces a burst of 3 rapid saves into a single push of the latest snapshot', async () => {
+    it('coalesces a burst of saves into a single push after the window', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       try {
-        const { triggerSave } = await setupSyncedHook()
-
-        const v1 = makeTestData('2026-04-01T12:00:01Z', {
-          varieties: [{ id: 'v1', name: 'Tomato' }] as unknown as AllotmentData['varieties'],
-        })
-        const v2 = makeTestData('2026-04-01T12:00:02Z', {
-          varieties: [
-            { id: 'v1', name: 'Tomato' },
-            { id: 'v2', name: 'Pea' },
-          ] as unknown as AllotmentData['varieties'],
-        })
-        const v3 = makeTestData('2026-04-01T12:00:03Z', {
-          varieties: [
-            { id: 'v1', name: 'Tomato' },
-            { id: 'v2', name: 'Pea' },
-            { id: 'v3', name: 'Carrot' },
-          ] as unknown as AllotmentData['varieties'],
-        })
+        const { triggerSave } = await setupSynced()
+        const v = (n: number) => ({ ...SNAPSHOT, currentYear: 2026 + n }) as AllotmentData
 
         await act(async () => {
-          await triggerSave(v1)
+          await triggerSave(v(1))
           vi.advanceTimersByTime(5_000)
-          await triggerSave(v2)
+          await triggerSave(v(2))
           vi.advanceTimersByTime(5_000)
-          await triggerSave(v3)
+          await triggerSave(v(3))
         })
-        // Still inside the debounce window — no push yet
-        expect(mockPushToRemote).not.toHaveBeenCalled()
+        expect(mockPushBinary).not.toHaveBeenCalled()
 
-        // Advance past the 30s debounce window
         await act(async () => {
           vi.advanceTimersByTime(30_000)
-          // Drain the async push chain
           await Promise.resolve()
           await Promise.resolve()
         })
 
-        await waitFor(() => {
-          expect(mockPushToRemote).toHaveBeenCalledTimes(1)
-        })
-        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v3)
+        await waitFor(() => expect(mockPushBinary).toHaveBeenCalledTimes(1))
       } finally {
         vi.useRealTimers()
       }
     })
 
-    it('flushPush() cancels the pending debounce and pushes immediately', async () => {
+    it('flushPush() cancels the debounce and pushes immediately', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       try {
-        const { result, triggerSave } = await setupSyncedHook()
-
-        const v1 = makeTestData('2026-04-01T12:00:01Z', {
-          varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
-        })
-
+        const { result, triggerSave } = await setupSynced()
         await act(async () => {
-          await triggerSave(v1)
+          await triggerSave({ ...SNAPSHOT, currentYear: 2030 } as AllotmentData)
         })
-        expect(mockPushToRemote).not.toHaveBeenCalled()
+        expect(mockPushBinary).not.toHaveBeenCalled()
 
         await act(async () => {
           await result.current.flushPush()
         })
+        expect(mockPushBinary).toHaveBeenCalledTimes(1)
 
-        expect(mockPushToRemote).toHaveBeenCalledTimes(1)
-        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v1)
-
-        // Timer should be cancelled — advancing past the window must not
-        // produce a second push.
         await act(async () => {
           vi.advanceTimersByTime(60_000)
           await Promise.resolve()
         })
-        expect(mockPushToRemote).toHaveBeenCalledTimes(1)
+        expect(mockPushBinary).toHaveBeenCalledTimes(1)
       } finally {
         vi.useRealTimers()
       }
     })
 
-    it('beforeunload triggers a flush of the pending push', async () => {
+    it('beforeunload flushes local then pushes the pending change', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       try {
-        const { triggerSave } = await setupSyncedHook()
-
-        const v1 = makeTestData('2026-04-01T12:00:01Z', {
-          varieties: [{ id: 'v1', name: 'Tomato' }, { id: 'v2', name: 'Pea' }] as unknown as AllotmentData['varieties'],
-        })
-
+        const { triggerSave } = await setupSynced()
         await act(async () => {
-          await triggerSave(v1)
+          await triggerSave({ ...SNAPSHOT, currentYear: 2031 } as AllotmentData)
         })
-        expect(mockPushToRemote).not.toHaveBeenCalled()
+        expect(mockPushBinary).not.toHaveBeenCalled()
 
         await act(async () => {
           window.dispatchEvent(new Event('beforeunload'))
-          // flushLocal is awaited inside the listener; drain the chain
           await Promise.resolve()
           await Promise.resolve()
           await Promise.resolve()
         })
 
-        await waitFor(() => {
-          expect(mockPushToRemote).toHaveBeenCalledTimes(1)
-        })
-        expect(mockPushToRemote).toHaveBeenCalledWith('test-token', 'user-123', v1)
+        await waitFor(() => expect(mockPushBinary).toHaveBeenCalledTimes(1))
         expect(flushLocal).toHaveBeenCalled()
       } finally {
         vi.useRealTimers()
       }
     })
 
-    it('does not push a snapshot that arrived from another tab', async () => {
+    it('does not schedule a push for a snapshot that arrived from another tab', async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       try {
-        const initialData = makeTestData('2026-04-01T12:00:00Z')
-        localStorage.setItem(
-          'bonnie-synced-user-123',
-          JSON.stringify({ lastSyncedAt: '2026-03-01T12:00:00Z' }),
-        )
-        mockFetchRemote.mockResolvedValue({
-          data: initialData,
-          updatedAt: '2026-04-01T12:00:00Z',
-        })
-        mockPushToRemote.mockResolvedValue(undefined)
-
-        const hook = renderHook(
-          ({ data, isSyncedFromOtherTab }: { data: AllotmentData | null; isSyncedFromOtherTab: boolean }) =>
-            useCloudSync({ data, applyRemote, flushLocal, isSyncedFromOtherTab }),
-          { initialProps: { data: initialData as AllotmentData | null, isSyncedFromOtherTab: false } },
-        )
-        await waitFor(() => {
-          expect(hook.result.current.syncStatus).toBe('synced')
-        })
-        expect(mockPushToRemote).not.toHaveBeenCalled()
-
-        // A cross-tab broadcast publishes a fresh snapshot on this tab AND
-        // flags it as synced-from-another-tab — the editing tab pushes it, so
-        // this tab must not.
-        const fromOtherTab = makeTestData('2026-04-01T12:00:05Z', {
-          varieties: [
-            { id: 'v1', name: 'Tomato' },
-            { id: 'v2', name: 'Pea' },
-          ] as unknown as AllotmentData['varieties'],
-        })
+        const { rerender } = await setupSynced()
+        // A cross-tab broadcast republishes with isSyncedFromOtherTab=true.
         await act(async () => {
-          hook.rerender({ data: fromOtherTab, isSyncedFromOtherTab: true })
+          rerender({ data: { ...SNAPSHOT, currentYear: 2099 } as AllotmentData, isSyncedFromOtherTab: true })
           await Promise.resolve()
         })
-
         await act(async () => {
           vi.advanceTimersByTime(35_000)
           await Promise.resolve()
-          await Promise.resolve()
         })
-
-        expect(mockPushToRemote).not.toHaveBeenCalled()
+        expect(mockPushBinary).not.toHaveBeenCalled()
       } finally {
         vi.useRealTimers()
       }

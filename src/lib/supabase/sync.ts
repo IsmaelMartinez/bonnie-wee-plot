@@ -1,53 +1,25 @@
 import { createAuthClient } from './client'
 import type { AllotmentData } from '@/types/unified-allotment'
 
+/**
+ * JSON read/delete helpers for the `allotments` JSONB mirror.
+ *
+ * ADR 027 Step 4 moved the cloud *transport* to Yjs binary (see
+ * `sync-binary.ts`), which now owns the read-merge-write path. The `data`
+ * JSONB column is kept as a derived mirror, and these functions still serve
+ * the GDPR export (`GET /api/account`, which needs JSON back) and the
+ * server-side history table. The old JSONB last-write-wins push
+ * (`pushToRemote`) and its content/size guards were retired with the LWW
+ * machinery.
+ */
+
 export interface RemoteData {
   data: AllotmentData
   updatedAt: string
 }
 
 /**
- * Stable content fingerprint for an AllotmentData blob with `meta.updatedAt`
- * blanked out. Used by the sync layer to decide whether two snapshots are the
- * same regardless of timestamp drift — schema migrations, data repair, and
- * other load-time side effects can churn `updatedAt` without changing any
- * meaningful content, and we don't want that to trigger a cloud push.
- */
-export function contentSnapshot(data: AllotmentData): string {
-  return JSON.stringify({ ...data, meta: { ...data.meta, updatedAt: '' } })
-}
-
-/**
- * Heuristic: does `local` look structurally smaller than `remote` on any of
- * the user-facing axes (plantings, areas, varieties)? Used as a safety net on
- * initial sync — if LWW says "push local" but local has fewer plantings/areas/
- * varieties than remote, treat it as a conflict instead of silently
- * overwriting cloud data with what is probably a stale or freshly-initialised
- * local copy.
- */
-export function isLocalStructurallySmaller(local: AllotmentData, remote: AllotmentData): boolean {
-  const countPlantings = (d: AllotmentData) =>
-    (d.seasons || []).reduce(
-      (sum, s) => sum + (s.areas || []).reduce((a, area) => a + (area.plantings?.length || 0), 0),
-      0
-    )
-  const localPlantings = countPlantings(local)
-  const remotePlantings = countPlantings(remote)
-  if (localPlantings < remotePlantings) return true
-
-  const localAreas = local.layout?.areas?.length || 0
-  const remoteAreas = remote.layout?.areas?.length || 0
-  if (localAreas < remoteAreas) return true
-
-  const localVarieties = local.varieties?.length || 0
-  const remoteVarieties = remote.varieties?.length || 0
-  if (localVarieties < remoteVarieties) return true
-
-  return false
-}
-
-/**
- * Fetch the user's allotment from Supabase.
+ * Fetch the user's allotment JSONB from Supabase.
  * Returns null if no row exists (first-time user).
  */
 export async function fetchRemote(
@@ -71,32 +43,6 @@ export async function fetchRemote(
     data: data.data as AllotmentData,
     updatedAt: data.updated_at,
   }
-}
-
-/**
- * Upsert the user's allotment to Supabase.
- * Uses ON CONFLICT on user_id to update if exists, insert if not.
- */
-export async function pushToRemote(
-  token: string,
-  userId: string,
-  allotmentData: AllotmentData
-): Promise<void> {
-  const client = createAuthClient(token)
-  const { error } = await client
-    .from('allotments')
-    .upsert(
-      {
-        user_id: userId,
-        data: allotmentData,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    )
-    .select()
-    .single()
-
-  if (error) throw new Error(error.message)
 }
 
 /**

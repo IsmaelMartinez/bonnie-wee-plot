@@ -1,6 +1,36 @@
 # Current Plan
 
-Last updated: 2026-07-06 (Preservation guide / storage.methods drift fixed — 60 crops back-filled so guide-advertised preserve methods now drive glut nudges and coverage; new consistency test enforces the invariant going forward)
+Last updated: 2026-07-07 (ADR 027 Step 4 shipped — cloud sync moved to Yjs binary CRDT state; LWW machinery and the conflict dialog retired)
+
+## ADR 027 Step 4 — Yjs binary cloud transport (shipped)
+
+The cloud copy now exchanges the Yjs document as **binary** CRDT state instead of
+full-JSON last-write-wins. Concurrent edits across devices merge (`Y.applyUpdate`)
+rather than one side overwriting the other.
+
+- **Transport:** kept the existing Vercel/Supabase request/response shape (not
+  Cloudflare Durable Objects). Sync is pull → `Y.applyUpdate` merge → push the
+  merged full-state with optimistic-concurrency (CAS) retry. LWW-free and
+  conflict-free; not real-time (edits propagate on next pull).
+- **Storage:** `sql/004-allotment-yjs.sql` adds `yjs_state BYTEA` + `yjs_updated_at`
+  to `allotments`. `data` JSONB is kept as a derived mirror written on every push,
+  so the history trigger, GDPR export, and Studio inspection are unchanged. RLS
+  unchanged.
+- **Migration:** lazy, per user, on first authenticated sync (JSONB → hydrate →
+  encode → CAS-write `yjs_state`). Every device performs a one-time **adoption** of
+  the canonical cloud lineage — loading the cloud binary into a fresh doc that
+  replaces the seeded local one (avoiding a Y.Map key-clientID race that clearing
+  in place would hit) — so independently hydrated local docs converge on one
+  lineage, a prerequisite for duplicate-free merge. CAS serialises concurrent
+  migrations to a single lineage.
+- **Retired:** `contentSnapshot`, `isLocalStructurallySmaller`, `SyncConflict`,
+  `SyncConflictDialog`, `resolveConflict`/`syncConflict`, the `'conflict'` sync
+  status, and JSONB `pushToRemote`. `fetchRemote`/`deleteRemote` + the
+  `allotment_history` table stay (GDPR export, history, defensive backup).
+- **Files:** `src/lib/supabase/sync-binary.ts`, binary surface on `useYjsDoc`,
+  reworked `useCloudSync`. Deployment steps (incl. pre-migration history seeding)
+  in `docs/runbooks/adr-027-step-4-yjs-binary-migration.md`; ADR 027 has the
+  Step 4 completion note.
 
 ## What's Been Completed
 

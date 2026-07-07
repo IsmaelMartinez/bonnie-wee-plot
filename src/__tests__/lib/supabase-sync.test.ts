@@ -1,18 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   fetchRemote,
-  pushToRemote,
   deleteRemote,
   fetchHistoryList,
   fetchHistorySnapshot,
-  contentSnapshot,
-  isLocalStructurallySmaller,
 } from '@/lib/supabase/sync'
 import type { AllotmentData } from '@/types/unified-allotment'
 
 // Mock the Supabase client module
 const mockSelect = vi.fn()
-const mockUpsert = vi.fn()
 const mockDelete = vi.fn()
 const mockEq = vi.fn()
 const mockSingle = vi.fn()
@@ -21,11 +17,6 @@ const mockFrom = vi.fn(() => ({
   select: mockSelect.mockReturnValue({
     eq: mockEq.mockReturnValue({
       single: mockSingle,
-    }),
-  }),
-  upsert: mockUpsert.mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      single: vi.fn(),
     }),
   }),
   delete: mockDelete.mockReturnValue({
@@ -80,31 +71,6 @@ describe('fetchRemote', () => {
   })
 })
 
-describe('pushToRemote', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('upserts data with user_id and onConflict', async () => {
-    const mockUpsertFn = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockFrom.mockReturnValueOnce({ upsert: mockUpsertFn } as any)
-
-    await pushToRemote('token', 'user-123', mockData)
-    expect(mockFrom).toHaveBeenCalledWith('allotments')
-    expect(mockUpsertFn).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'user-123',
-        data: mockData,
-        updated_at: expect.any(String),
-      }),
-      { onConflict: 'user_id' }
-    )
-  })
-})
-
 describe('deleteRemote', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -114,104 +80,6 @@ describe('deleteRemote', () => {
     expect(mockFrom).toHaveBeenCalledWith('allotments')
     expect(mockDelete).toHaveBeenCalled()
     expect(mockEq).toHaveBeenCalledWith('user_id', 'user-123')
-  })
-})
-
-function makeData(overrides: Partial<AllotmentData> = {}): AllotmentData {
-  return {
-    version: 21,
-    meta: {
-      name: 'Test',
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-05-08T12:00:00Z',
-    },
-    layout: { areas: [] },
-    seasons: [],
-    currentYear: 2026,
-    varieties: [],
-    ...overrides,
-  } as unknown as AllotmentData
-}
-
-describe('contentSnapshot', () => {
-  it('returns the same fingerprint regardless of meta.updatedAt', () => {
-    const a = makeData({
-      meta: {
-        name: 'Test',
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-05-08T12:00:00Z',
-      },
-    } as unknown as Partial<AllotmentData>)
-    const b = makeData({
-      meta: {
-        name: 'Test',
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-05-08T18:00:00Z',
-      },
-    } as unknown as Partial<AllotmentData>)
-    expect(contentSnapshot(a)).toBe(contentSnapshot(b))
-  })
-
-  it('returns different fingerprints when content changes', () => {
-    const a = makeData({ currentYear: 2026 })
-    const b = makeData({ currentYear: 2027 })
-    expect(contentSnapshot(a)).not.toBe(contentSnapshot(b))
-  })
-})
-
-describe('isLocalStructurallySmaller', () => {
-  it('returns true when local has fewer plantings than remote', () => {
-    const remote = makeData({
-      seasons: [
-        {
-          year: 2026,
-          status: 'current',
-          areas: [
-            { areaId: 'a', plantings: [{ id: 'p1' }, { id: 'p2' }] },
-          ],
-        } as unknown,
-      ] as unknown as AllotmentData['seasons'],
-    })
-    const local = makeData({
-      seasons: [
-        {
-          year: 2026,
-          status: 'current',
-          areas: [{ areaId: 'a', plantings: [{ id: 'p1' }] }],
-        } as unknown,
-      ] as unknown as AllotmentData['seasons'],
-    })
-    expect(isLocalStructurallySmaller(local, remote)).toBe(true)
-  })
-
-  it('returns true when local has fewer areas than remote', () => {
-    const remote = makeData({ layout: { areas: [{ id: 'a' }, { id: 'b' }] } as unknown as AllotmentData['layout'] })
-    const local = makeData({ layout: { areas: [{ id: 'a' }] } as unknown as AllotmentData['layout'] })
-    expect(isLocalStructurallySmaller(local, remote)).toBe(true)
-  })
-
-  it('returns true when local has fewer varieties than remote', () => {
-    const remote = makeData({ varieties: [{ id: 'v1' }, { id: 'v2' }] as unknown as AllotmentData['varieties'] })
-    const local = makeData({ varieties: [{ id: 'v1' }] as unknown as AllotmentData['varieties'] })
-    expect(isLocalStructurallySmaller(local, remote)).toBe(true)
-  })
-
-  it('returns false when local matches remote on all axes', () => {
-    const data = makeData({
-      layout: { areas: [{ id: 'a' }] } as unknown as AllotmentData['layout'],
-      varieties: [{ id: 'v1' }] as unknown as AllotmentData['varieties'],
-    })
-    expect(isLocalStructurallySmaller(data, data)).toBe(false)
-  })
-
-  it('returns false when local has more content than remote', () => {
-    const local = makeData({
-      varieties: [{ id: 'v1' }, { id: 'v2' }] as unknown as AllotmentData['varieties'],
-    })
-    const remote = makeData({
-      varieties: [{ id: 'v1' }] as unknown as AllotmentData['varieties'],
-    })
-    expect(isLocalStructurallySmaller(local, remote)).toBe(false)
   })
 })
 

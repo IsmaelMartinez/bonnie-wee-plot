@@ -385,11 +385,12 @@ describe('allotment Yjs storage', () => {
     hook.unmount()
   }, 30_000)
 
-  it('adopts the cloud payload after resolveConflict("cloud")', async () => {
-    // Cloud-sync regression: a `'cloud'` conflict resolution must write the
-    // remote snapshot into the Yjs doc (via `replaceFromJson`) so the
-    // visible `data` becomes the cloud version. Requires Supabase wiring, so
-    // this test mounts in an isolated module registry with auth + sync mocks.
+  it('adopts the cloud lineage on a device\'s first Step-4 sync', async () => {
+    // Cloud-sync regression (ADR 027 Step 4): on a device's first sync, the
+    // cloud's canonical Yjs lineage must be *adopted* — the local seed cleared
+    // and the remote binary applied on top — so the visible `data` becomes the
+    // cloud version with no duplicated content. Requires Supabase wiring, so
+    // this mounts in an isolated module registry with auth + binary-sync mocks.
     const remoteData: AllotmentData = {
       ...makeFixture(),
       meta: {
@@ -406,11 +407,29 @@ describe('allotment Yjs storage', () => {
 
     vi.resetModules()
     applyDeterministicMocks()
+
+    // Build the canonical cloud binary from the *fresh* module registry — the
+    // same one the app's Yjs doc will use — so the cloud doc and the app's
+    // local doc draw distinct Yjs clientIDs. (Building it from the pre-reset
+    // module registry would collide clientIDs once resetModules reseeds lib0's
+    // crypto-less RNG, and applyUpdate would drop the "already-seen" structs.)
+    const yjsMod = await import('@/lib/yjs/allotment-yjs')
+    const { store: cloudStore, doc: cloudDoc } = yjsMod.createAllotmentDoc()
+    // Force a distinct clientID before writing any content. lib0's RNG is
+    // deterministic in this env (no browser crypto), so the cloud doc and the
+    // app's local doc would otherwise draw the SAME clientID; applyUpdate would
+    // then skip the remote's low-clock meta structs as "already seen". A fixed,
+    // out-of-band id guarantees the two lineages never collide. (Not a concern
+    // in production, where clientIDs come from real random draws.)
+    cloudDoc.clientID = 4242424242
+    yjsMod.hydrateFromJson(cloudStore, remoteData)
+    const remoteUpdate = yjsMod.encodeDocState(cloudDoc)
+
     vi.doMock('@/hooks/useOptionalAuth', () => ({
       clerkAvailable: true,
       useOptionalAuth: () => ({
         getToken: async () => 'token',
-        userId: 'user-conflict',
+        userId: 'user-adopt',
         isSignedIn: true,
       }),
     }))
@@ -419,25 +438,17 @@ describe('allotment Yjs storage', () => {
       createAnonClient: () => null,
       createAuthClient: () => null,
     }))
-    vi.doMock('@/lib/supabase/sync', async () => {
-      const actual = await vi.importActual<typeof import('@/lib/supabase/sync')>(
-        '@/lib/supabase/sync',
-      )
-      return {
-        ...actual,
-        fetchRemote: async () => ({
-          data: remoteData,
-          updatedAt: '2026-05-16T11:00:00.000Z',
-        }),
-        pushToRemote: async () => undefined,
-      }
-    })
-    // Pre-seed a sync flag so the initial sync treats this as a *subsequent*
-    // sync (which can produce a conflict) with both sides changed.
-    localStorage.setItem(
-      'bonnie-synced-user-conflict',
-      JSON.stringify({ lastSyncedAt: '2024-01-01T00:00:00.000Z' }),
-    )
+    vi.doMock('@/lib/supabase/sync-binary', () => ({
+      fetchRemoteBinary: async () => ({
+        exists: true,
+        update: remoteUpdate,
+        yjsUpdatedAt: '2026-05-16T11:00:00.000Z',
+        jsonb: remoteData,
+      }),
+      pushBinary: async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
+    }))
+    // No `bwp-yjs-synced-user-adopt` flag set → this is the device's first
+    // sync, so the adopt path (not merge) runs.
 
     const localFixture: AllotmentData = {
       ...makeFixture(),
@@ -457,21 +468,16 @@ describe('allotment Yjs storage', () => {
       expect(hook.result.current.data).not.toBeNull()
     })
 
-    await waitFor(() => {
-      expect(hook.result.current.syncConflict).not.toBeNull()
-    }, { timeout: 5000 })
-
-    await act(async () => {
-      hook.result.current.resolveConflict('cloud')
-    })
-
+    // The local seed is adopted-over by the cloud lineage.
     await waitFor(() => {
       expect(hook.result.current.data?.meta.name).toBe('Cloud Allotment')
-    })
+    }, { timeout: 5000 })
+    // No duplicated areas from merging independent lineages.
+    expect(hook.result.current.data?.layout.areas).toHaveLength(2)
 
     hook.unmount()
     vi.doUnmock('@/hooks/useOptionalAuth')
     vi.doUnmock('@/lib/supabase/client')
-    vi.doUnmock('@/lib/supabase/sync')
+    vi.doUnmock('@/lib/supabase/sync-binary')
   }, 30_000)
 })
