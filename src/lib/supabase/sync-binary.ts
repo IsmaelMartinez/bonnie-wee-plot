@@ -74,12 +74,16 @@ const HEX = '0123456789abcdef'
  * the format PostgREST accepts for writing and returns when reading.
  */
 export function bytesToPgHex(bytes: Uint8Array): string {
-  let out = '\\x'
-  for (let i = 0; i < bytes.length; i++) {
+  // Build into a pre-allocated array and join once — appending to a string in
+  // the loop would allocate an intermediate string per byte, which adds up for
+  // larger doc states.
+  const len = bytes.length
+  const parts = new Array<string>(len)
+  for (let i = 0; i < len; i++) {
     const b = bytes[i]
-    out += HEX[b >> 4] + HEX[b & 0x0f]
+    parts[i] = HEX[b >> 4] + HEX[b & 0x0f]
   }
-  return out
+  return '\\x' + parts.join('')
 }
 
 /**

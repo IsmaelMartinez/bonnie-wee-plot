@@ -148,7 +148,10 @@ export function useCloudSync({
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('disabled')
   const [syncError, setSyncError] = useState<string | null>(null)
   const syncInProgressRef = useRef(false)
-  const syncInProgressUserRef = useRef<string | null>(null)
+  // Set when a sync is requested while another is in flight; the in-flight run
+  // starts one more pass on completion so an edit that landed mid-sync is not
+  // stranded until the next edit.
+  const pendingSyncRef = useRef(false)
   const initialSyncDoneRef = useRef(false)
   const activeUserIdRef = useRef<string | null>(userId)
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -178,6 +181,19 @@ export function useCloudSync({
 
   // ---- reconciliation primitives (binary merge) --------------------------
 
+  // The live encoded state + JSON snapshot, or throw. Returning silently here
+  // would let `runSync` report `synced` without anything having been pushed.
+  // In practice this only fires if the doc is torn down mid-sync; surfacing it
+  // as an error is honest and is caught by `runSync`.
+  const encodeLiveOrThrow = (): { state: Uint8Array; json: AllotmentData } => {
+    const state = encodeState()
+    const json = getSnapshot()
+    if (!state || !json) {
+      throw new Error('Yjs doc not ready — cannot encode local state for cloud sync')
+    }
+    return { state, json }
+  }
+
   // Adopted device, ongoing sync: merge remote into local, then push the merged
   // state with CAS retry. Skips the write when local is fully contained in
   // remote (a pure pull).
@@ -191,9 +207,7 @@ export function useCloudSync({
       mergeRemoteUpdate(remote.update)
       if (!hasUpdatesBeyond(remote.update)) return // pure pull — nothing to push
     }
-    const state = encodeState()
-    const json = getSnapshot()
-    if (!state || !json) return
+    const { state, json } = encodeLiveOrThrow()
     // `expected = null` seeds the binary on a row that only has JSONB (the
     // defensive migration path for a device flagged as adopted but whose cloud
     // row predates binary); otherwise CAS against the token we just read.
@@ -203,7 +217,10 @@ export function useCloudSync({
       expectedYjsUpdatedAt: expected,
     })
     if (res.casConflict) {
-      if (attempts <= 0) return
+      if (attempts <= 0) {
+        // Repeated concurrent-write conflicts — do not claim success.
+        throw new Error('Cloud push failed after repeated concurrent-write conflicts')
+      }
       const fresh = await fetchRemoteBinary(token, syncUserId)
       if (isStaleSyncUser(syncUserId)) return
       await mergeAndPush(token, syncUserId, fresh, attempts - 1)
@@ -219,9 +236,7 @@ export function useCloudSync({
   ): Promise<void> => {
     // No cloud row yet — push local as the canonical document.
     if (!remote.exists) {
-      const state = encodeState()
-      const json = getSnapshot()
-      if (!state || !json) return
+      const { state, json } = encodeLiveOrThrow()
       const res = await pushBinary(token, syncUserId, state, json, {
         rowExists: false,
         expectedYjsUpdatedAt: null,
@@ -245,9 +260,7 @@ export function useCloudSync({
       // Migration: cloud has JSONB but no binary. Hydrate it and CAS-seed the
       // binary. A lost CAS means another device migrated first — adopt theirs.
       if (remote.jsonb) replaceFromJson(remote.jsonb)
-      const state = encodeState()
-      const json = getSnapshot()
-      if (!state || !json) return
+      const { state, json } = encodeLiveOrThrow()
       const res = await pushBinary(token, syncUserId, state, json, {
         rowExists: true,
         expectedYjsUpdatedAt: remote.yjsUpdatedAt, // null pre-migration
@@ -265,8 +278,16 @@ export function useCloudSync({
   }
 
   // One full sync pass: fetch + reconcile + status. Shared by the initial-sync,
-  // debounced-push, reconnect, and flush paths.
+  // debounced-push, reconnect, and flush paths. The in-progress lock is owned
+  // here (not by each caller) so overlapping syncs cannot interleave: a call
+  // made while a sync is in flight requests a single follow-up pass instead,
+  // which runs against the latest live doc state on completion.
   const runSync = async (syncUserId: string): Promise<void> => {
+    if (syncInProgressRef.current) {
+      pendingSyncRef.current = true
+      return
+    }
+    syncInProgressRef.current = true
     try {
       setSyncStatus('syncing')
       const token = await getSupabaseToken()
@@ -291,6 +312,14 @@ export function useCloudSync({
       console.error('[useCloudSync] Sync failed:', err)
       setSyncStatus('error')
       setSyncError(err instanceof Error ? err.message : 'Sync failed')
+    } finally {
+      syncInProgressRef.current = false
+      // A sync was requested mid-flight — run one more pass with the now-latest
+      // state (guards against stranding an edit that landed during the run).
+      if (pendingSyncRef.current && !isStaleSyncUser(syncUserId)) {
+        pendingSyncRef.current = false
+        void runSync(syncUserId)
+      }
     }
   }
   runSyncRef.current = runSync
@@ -306,17 +335,10 @@ export function useCloudSync({
   useEffect(() => {
     if (!canSync || !userId || !data) return
     if (initialSyncDoneRef.current) return
-    if (syncInProgressRef.current && syncInProgressUserRef.current === userId) return
-    syncInProgressRef.current = true
-    syncInProgressUserRef.current = userId
     const syncUserId = userId
 
     ;(async () => {
       await runSyncRef.current(syncUserId)
-      if (syncInProgressUserRef.current === syncUserId) {
-        syncInProgressRef.current = false
-        syncInProgressUserRef.current = null
-      }
       if (!isStaleSyncUser(syncUserId)) {
         initialSyncDoneRef.current = true
       }
@@ -326,10 +348,11 @@ export function useCloudSync({
 
   // Debounced push after a local mutation republishes the snapshot. A burst of
   // edits collapses into one fetch-merge-push. Skips cross-tab / just-merged
-  // republishes (`isSyncedFromOtherTab`) — the editing tab owns the push.
+  // republishes (`isSyncedFromOtherTab`) — the editing tab owns the push. The
+  // in-progress lock lives in `runSync`, so it is safe to schedule even while a
+  // sync is in flight (it queues a follow-up pass).
   useEffect(() => {
     if (!canSync || !userId || !data) return
-    if (syncInProgressRef.current) return
     if (!initialSyncDoneRef.current) return
     if (isSyncedFromOtherTab) return
 
@@ -384,10 +407,10 @@ export function useCloudSync({
     }
   }, [canSync, flushPush, flushLocal])
 
-  // Reconnect sync.
+  // Reconnect sync. `runSync` owns the lock, so it queues behind any in-flight
+  // sync rather than overlapping it.
   useEffect(() => {
     if (!justReconnected || !canSync || !userId || !data) return
-    if (syncInProgressRef.current) return
     const syncUserId = userId
     void runSyncRef.current(syncUserId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -398,6 +421,7 @@ export function useCloudSync({
     if (!isSignedIn || !isSupabaseConfigured()) {
       setSyncStatus('disabled')
       syncInProgressRef.current = false
+      pendingSyncRef.current = false
       initialSyncDoneRef.current = false
       if (pushTimerRef.current) {
         clearTimeout(pushTimerRef.current)
