@@ -88,6 +88,84 @@ No server-side backfill script is required.
 - GDPR export: `GET /api/account` still returns JSON (from the `data` mirror).
 - Settings → Data → cloud history still lists snapshots and restores.
 
+## Verifying the BYTEA round-trip against real PostgREST
+
+The unit suite mocks the Supabase client, so it proves the hex codec is
+internally consistent but **not** that a `bytea` column survives PostgREST's
+wire encoding byte-identically. That gap is closed by a guarded integration
+test, `src/__tests__/integration/bytea-roundtrip.integration.test.ts`, which
+drives the real `pushBinary` / `fetchRemoteBinary` (→ `@supabase/supabase-js` →
+PostgREST) against a live Postgres+PostgREST stack. It is skipped unless
+`BYTEA_REST_URL` is set, so it never runs in normal `npm run test:unit` / CI.
+
+**Result of running it (2026-07): the BYTEA hex round-trip works byte-identical.
+No PostgREST bytea surprise; the base64-text fallback below is NOT needed.** The
+test also confirms: the JSONB mirror is preserved, the `yjs_updated_at` CAS
+token advances on update and rejects a stale token, the lazy JSONB→binary
+migration seeds `yjs_state` via the `IS NULL` predicate, and two racing
+migrations serialise to one lineage (one wins, one gets `casConflict`).
+
+To run it against a disposable local stack (Docker required):
+
+```bash
+# 1. Postgres with the production schema (sql/001 + sql/004) and Supabase-shaped
+#    roles + auth.jwt(); PostgREST in front with a known JWT secret.
+docker run -d --name pg -e POSTGRES_PASSWORD=postgres -p 55432:5432 postgres:16-alpine
+#    (apply sql/001 + sql/004, create anon/authenticated/authenticator roles and
+#     an auth.jwt() = current_setting('request.jwt.claims') helper)
+docker run -d --name pgrst -p 33000:3000 \
+  -e PGRST_DB_URI="postgres://authenticator:authpass@pg:5432/postgres" \
+  -e PGRST_DB_ANON_ROLE=anon -e PGRST_JWT_SECRET="<secret>" postgrest/postgrest:v12.2.3
+
+# 2. `@supabase/supabase-js` ALWAYS appends `/rest/v1` to the base URL (the real
+#    Supabase REST path), but PostgREST serves tables at root — so point the
+#    client at a tiny proxy that strips `/rest/v1` (or a gateway that maps it).
+#    BYTEA_REST_URL is that proxied base (e.g. http://localhost:33001).
+
+# 3. Mint an HS256 JWT whose `sub` == BYTEA_REST_USER_ID and `role` ==
+#    "authenticated", signed with PGRST_JWT_SECRET. Then:
+BYTEA_REST_URL=http://localhost:33001 BYTEA_REST_ANON_KEY=anon \
+BYTEA_REST_JWT="<jwt>" BYTEA_REST_USER_ID=<sub> \
+  npx vitest run src/__tests__/integration/bytea-roundtrip.integration.test.ts
+```
+
+Notes learned while wiring this up:
+- The integration test must run in the **node** vitest environment
+  (`// @vitest-environment node` at the top of the file) — jsdom's fetch fails
+  against a local PostgREST.
+- Against a real Supabase project you can set `BYTEA_REST_URL` directly to the
+  project REST URL (`https://<ref>.supabase.co`) and mint the JWT with the
+  Supabase JWT secret; no proxy needed there because Supabase already serves
+  `/rest/v1`. Use a throwaway `user_id` and delete the row afterwards (the test
+  cleans up its own `BYTEA_REST_USER_ID` row).
+
+## Verifying cross-device merge end-to-end (Playwright)
+
+`tests/cloud-sync-merge.spec.ts` runs the real cross-device merge in two browser
+contexts against an in-memory Supabase REST stub (`tests/utils/supabase-stub.ts`,
+shared `yjs_state` + `yjs_updated_at`): device A and device B sign in as the same
+user, each makes a different edit **offline**, both reconnect and sync, and both
+converge to the union with no duplicated areas and no lost `meta`.
+
+It needs a **test-mode production build** with Supabase env present (values are
+arbitrary — every REST call is intercepted by the stub):
+
+```bash
+NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE=true \
+NEXT_PUBLIC_SUPABASE_URL=https://stub.supabase.co \
+NEXT_PUBLIC_SUPABASE_ANON_KEY=stub-anon-key \
+  npm run build
+CI=1 npx playwright test cloud-sync-merge.spec.ts
+```
+
+The spec **skips itself** (via `window.__bwpTest.cloudConfigured`) if the build
+lacks Supabase env, so the rest of the suite is unaffected when it is absent.
+Auth in test mode is a strictly-gated stub in `useOptionalAuth` (Clerk is never
+involved); `NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE` must be `false`/unset in real
+builds. If the environment's Chromium revision differs from the one
+`@playwright/test` pins, run `scripts/pw-browser-symlink.sh` first (symlinks the
+pinned revision onto the installed build — no download).
+
 ## Rollback
 
 Because `data` JSONB is kept current on every push, rollback is a redeploy of
@@ -98,8 +176,10 @@ the pre-Step-4 build — the JSONB LWW path resumes against up-to-date data. The
 ## Notes / limits
 
 - `yjs_state` is stored as `BYTEA` and travels over PostgREST as a `\x…` hex
-  string; the codec lives in `sync-binary.ts`. If a future PostgREST/Supabase
-  change makes bytea round-tripping awkward, the fallback is a `text` column
+  string; the codec lives in `sync-binary.ts`. This has been **verified
+  byte-identical against real PostgREST** (see "Verifying the BYTEA round-trip"
+  above), so the round-trip is sound as shipped. If a future PostgREST/Supabase
+  change ever makes bytea round-tripping awkward, the fallback is a `text` column
   holding base64 — a one-line column-type change plus swapping the codec.
 - Real-time propagation is out of scope (a device sees another's edits on its
   next pull, as with the previous 30s-debounced model). Cloudflare Durable
