@@ -23,15 +23,23 @@ import type { BrowserContext, Route } from '@playwright/test'
 interface Row {
   user_id: string
   yjs_state: string
-  yjs_updated_at: string
+  // Nullable to match the real column: `yjs_updated_at` is NULL on a
+  // pre-migration row, which the `is.null` CAS predicate below checks for.
+  yjs_updated_at: string | null
   data: unknown
 }
 
-const CORS: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': '*',
-  'Access-Control-Expose-Headers': '*',
+/**
+ * CORS for the fulfilled responses. `Access-Control-Allow-Headers` reflects the
+ * preflight's requested headers (rather than a bare `*`, which some Chromium
+ * builds reject) so the browser lets supabase-js's custom headers through.
+ */
+function corsHeaders(requestHeaders?: string): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': requestHeaders || 'authorization,apikey,content-type,prefer',
+  }
 }
 
 export class SupabaseStub {
@@ -47,7 +55,9 @@ export class SupabaseStub {
 
   /** Attach the stub's route handler to a browser context. */
   async attach(context: BrowserContext): Promise<void> {
-    await context.route('**/rest/v1/**', (route) => this.handle(route))
+    // Scoped to the one table this stub models so it never intercepts unrelated
+    // Supabase REST calls (rpc, other tables) a future test might add.
+    await context.route('**/rest/v1/allotments*', (route) => this.handle(route))
   }
 
   getRow(userId: string): Row | undefined {
@@ -57,7 +67,7 @@ export class SupabaseStub {
   private json(route: Route, status: number, body: unknown) {
     return route.fulfill({
       status,
-      headers: { 'Content-Type': 'application/json', ...CORS },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders() },
       body: JSON.stringify(body),
     })
   }
@@ -67,7 +77,10 @@ export class SupabaseStub {
     const method = req.method()
 
     if (method === 'OPTIONS') {
-      await route.fulfill({ status: 204, headers: CORS })
+      await route.fulfill({
+        status: 204,
+        headers: corsHeaders(req.headers()['access-control-request-headers']),
+      })
       return
     }
 
@@ -122,7 +135,7 @@ export class SupabaseStub {
       const casFilter = params.get('yjs_updated_at') ?? ''
       const casOk = row
         ? casFilter === 'is.null'
-          ? row.yjs_updated_at == null
+          ? row.yjs_updated_at === null
           : casFilter === `eq.${row.yjs_updated_at}`
         : false
       if (!row || !casOk) {
@@ -142,7 +155,8 @@ export class SupabaseStub {
 
     if (method === 'DELETE') {
       this.rows.delete(userId)
-      await this.json(route, 204, null)
+      // A 204 must not carry a body — headers only.
+      await route.fulfill({ status: 204, headers: corsHeaders() })
       return
     }
 

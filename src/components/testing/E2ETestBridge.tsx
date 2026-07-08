@@ -9,9 +9,10 @@
  *
  * It reads/writes the shared Yjs doc via `useYjsDoc` directly — it does NOT
  * open its own cloud sync (the app's Navigation already drives one), so the
- * bridge never doubles the sync path it is meant to observe. This file is not
- * imported by any production route; the gate in `layout.tsx` keeps it out of
- * real builds.
+ * bridge never doubles the sync path it is meant to observe. `layout.tsx`
+ * imports this module unconditionally but only *renders* the component when
+ * `NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true'`, so it is inert (never mounted,
+ * never touches `window`) in real builds.
  */
 
 import { useEffect, useRef } from 'react'

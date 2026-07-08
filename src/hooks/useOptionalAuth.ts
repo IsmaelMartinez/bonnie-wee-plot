@@ -39,7 +39,9 @@ function usePlaywrightTestAuth(): AuthReturn {
       return null
     }
   }
-  const [userId, setUserId] = useState<string | null>(read)
+  // Start `null` so the initial client render matches the server-rendered HTML
+  // (no hydration mismatch); the effect below reads localStorage on mount.
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const update = () => setUserId(read())
@@ -65,6 +67,9 @@ function usePlaywrightTestAuth(): AuthReturn {
         /* ignore */
       }
       setUserId(null)
+      // Notify any other hook instances in this same tab (the `storage` event
+      // does not fire in the tab that made the change).
+      window.dispatchEvent(new Event('bwp-e2e-auth'))
     },
     userEmail: userId ? 'e2e@example.com' : undefined,
   }

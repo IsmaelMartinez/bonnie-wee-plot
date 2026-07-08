@@ -91,8 +91,13 @@ function encodedFixture(): { bytes: Uint8Array; json: AllotmentData } {
 }
 
 describe.skipIf(!REST_URL)('BYTEA round-trip against real PostgREST', () => {
+  let originalUrl: string | undefined
+  let originalAnonKey: string | undefined
+
   beforeAll(() => {
-    // The client reads these at call time.
+    // Capture then override — the client reads these at call time.
+    originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    originalAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     process.env.NEXT_PUBLIC_SUPABASE_URL = REST_URL
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = ANON_KEY
   })
@@ -105,6 +110,10 @@ describe.skipIf(!REST_URL)('BYTEA round-trip against real PostgREST', () => {
     } catch {
       /* ignore */
     }
+    // Restore globals so this file does not leak config into other tests
+    // sharing the Vitest process.
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnonKey
   })
 
   it('pure hex codec matches Postgres bytea output for a known vector', () => {
