@@ -11,9 +11,13 @@ import { AitorChatProvider } from '@/contexts/AitorChatContext'
 import AitorAuthGate from '@/components/ai-advisor/AitorAuthGate'
 import TourProvider from '@/components/onboarding/TourProvider'
 import TourKeyboardShortcut from '@/components/onboarding/TourKeyboardShortcut'
+import E2ETestBridge from '@/components/testing/E2ETestBridge'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
+
+// Mounted only in Playwright test-mode builds — see E2ETestBridge.
+const isPlaywrightTestMode = process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST_MODE === 'true'
 
 export const metadata: Metadata = {
   title: 'Bonnie Wee Plot',
@@ -62,6 +66,7 @@ export default function RootLayout({
           {/* Aitor (AI advisor) is rendered for signed-in users only — see AitorAuthGate. */}
           <AitorAuthGate />
           <TourKeyboardShortcut />
+          {isPlaywrightTestMode && <E2ETestBridge />}
           </TourProvider>
         </AitorChatProvider>
         </AuthProvider>
