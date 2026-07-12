@@ -12,6 +12,9 @@ import { Area, Planting, AreaSeason, GridPosition } from '@/types/unified-allotm
 import { wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
 
+import 'react-grid-layout/css/styles.css'
+import 'react-resizable/css/styles.css'
+
 // On narrow screens the 12-column grid is given at least this pixel width so
 // cells stay legible and tappable; the grid then scrolls horizontally (like a
 // map) instead of collapsing to a separate, non-spatial list view.
@@ -21,9 +24,6 @@ const MOBILE_MIN_GRID_WIDTH = 520
 // devices normal touches scroll the page/grid and only a deliberate grab on the
 // handle starts a move.
 const DRAG_HANDLE_CLASS = 'bwp-drag-handle'
-
-import 'react-grid-layout/css/styles.css'
-import 'react-resizable/css/styles.css'
 
 interface AllotmentGridProps {
   onItemSelect?: (ref: AllotmentItemRef | null) => void
@@ -455,10 +455,14 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             layout: configToLayout(items, isEditing),
             cols: cols,
             rowHeight: 50,
-            width: gridPixelWidth - 16,
+            // Guard against a negative width before the first client-side
+            // measurement completes (ReactGridLayout mishandles negative widths).
+            width: Math.max(0, gridPixelWidth - 16),
             margin: [6, 6],
             containerPadding: [0, 0],
-            onLayoutChange: (layout: LayoutItem[]) => handleLayoutChange([...layout]),
+            // handleLayoutChange is memoized and does not mutate the layout,
+            // so pass it directly rather than allocating a new closure per render.
+            onLayoutChange: handleLayoutChange,
             isDraggable: isEditing,
             isResizable: isEditing,
             // Restrict dragging to an explicit handle so touches that aren't on

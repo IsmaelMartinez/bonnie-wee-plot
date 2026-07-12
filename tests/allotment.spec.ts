@@ -124,7 +124,7 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
     await gridItem.click()
     // Wait for the add affordance to appear (robust for CI). Desktop shows the
     // sidebar detail panel ("Add"); mobile opens the bottom sheet ("Add Plant").
-    const addButton = page.locator('button').filter({ hasText: /^(Add|Add Plant)$/ }).first()
+    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/ }).first()
     await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
@@ -135,7 +135,7 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
     await mobileItem.click()
     // Wait for the add affordance to appear (robust for CI). Desktop shows the
     // sidebar detail panel ("Add"); mobile opens the bottom sheet ("Add Plant").
-    const addButton = page.locator('button').filter({ hasText: /^(Add|Add Plant)$/ }).first()
+    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/ }).first()
     await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
