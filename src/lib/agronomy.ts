@@ -162,8 +162,15 @@ const CROP_OVERRIDES: Readonly<Record<string, Partial<FamilyDefaults> & { family
  * Resolve the rotation family for a plant id. Prefers an explicit override,
  * then the crop's database category, then 'Other'.
  */
+/** Own-property override lookup — avoids inherited keys (`__proto__`, `toString`). */
+function getOverride(plantId: string): (typeof CROP_OVERRIDES)[string] | undefined {
+  return Object.prototype.hasOwnProperty.call(CROP_OVERRIDES, plantId)
+    ? CROP_OVERRIDES[plantId]
+    : undefined
+}
+
 export function getRotationFamily(plantId: string): RotationFamily {
-  const override = CROP_OVERRIDES[plantId]
+  const override = getOverride(plantId)
   if (override?.family) return override.family
   const veg = getVegetableById(plantId)
   if (veg) {
@@ -182,7 +189,7 @@ export function getRotationFamily(plantId: string): RotationFamily {
 export function getCropAgronomy(plantId: string): CropAgronomy {
   const family = getRotationFamily(plantId)
   const base = FAMILY_DEFAULTS[family]
-  const override = CROP_OVERRIDES[plantId]
+  const override = getOverride(plantId)
 
   // Prefer the Scotland-tuned database maturity when no explicit override.
   let typicalDaysToMaturity = override?.typicalDaysToMaturity ?? base.typicalDaysToMaturity
@@ -208,5 +215,5 @@ export function getCropAgronomy(plantId: string): CropAgronomy {
 
 /** True when we hold explicit (non-defaulted) agronomy for this crop. */
 export function hasExplicitAgronomy(plantId: string): boolean {
-  return plantId in CROP_OVERRIDES
+  return Object.prototype.hasOwnProperty.call(CROP_OVERRIDES, plantId)
 }

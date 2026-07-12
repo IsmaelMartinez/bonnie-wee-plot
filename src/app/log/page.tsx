@@ -14,7 +14,7 @@
  * season (schema v23). Nothing here computes agronomy — capture only.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Sprout,
@@ -71,7 +71,10 @@ const SEVERITY_LABELS: Record<ObservationSeverity, string> = {
 }
 
 function today(): string {
-  return new Date().toISOString().split('T')[0]
+  // Local date in YYYY-MM-DD (en-CA), so "today" rolls over at the user's
+  // midnight rather than UTC's — otherwise the default/max date is off by a
+  // day for anyone not on UTC.
+  return new Date().toLocaleDateString('en-CA')
 }
 
 export default function QuickLogPage() {
@@ -93,12 +96,19 @@ export default function QuickLogPage() {
   const [unit, setUnit] = useState<'g' | 'count'>('g')
   const [plantingId, setPlantingId] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState<string | null>(null)
+  const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clear a pending flash timeout on unmount so it never fires on an
+  // unmounted component.
+  useEffect(() => () => {
+    if (flashTimeout.current) clearTimeout(flashTimeout.current)
+  }, [])
 
   // Beds that can hold plantings, with the active ones (something planted this
   // season) surfaced first so the muddy-thumb path lands on the right bed fast.
   const beds = useMemo(() => {
     const all = getAllAreas().filter((a: Area) => a.canHavePlantings && !a.isArchived)
-    const activeCount = (a: Area) => (currentSeason?.areas.find(s => s.areaId === a.id)?.plantings.length ?? 0)
+    const activeCount = (a: Area) => (currentSeason?.areas?.find(s => s.areaId === a.id)?.plantings?.length ?? 0)
     return [...all].sort((a, b) => {
       const diff = activeCount(b) - activeCount(a)
       if (diff !== 0) return diff
@@ -109,7 +119,7 @@ export default function QuickLogPage() {
   // Plantings in the chosen bed this season — lets an observation name a crop.
   const bedPlantings = useMemo(() => {
     if (!bedId) return []
-    return getPlantings(bedId)
+    return getPlantings(bedId) ?? []
   }, [bedId, getPlantings])
 
   const selectedBed = beds.find(b => b.id === bedId) ?? null
@@ -148,7 +158,10 @@ export default function QuickLogPage() {
       ? getVegetableById(bedPlantings.find(p => p.id === plantingId)?.plantId ?? '')?.name
       : undefined
     setSavedFlash(`${event.label}${cropName ? ` · ${cropName}` : ''} logged in ${selectedBed?.name ?? 'bed'}`)
-    window.setTimeout(() => setSavedFlash(null), 2500)
+    // Reset the flash timer on each save so a rapid second save doesn't get its
+    // confirmation cleared early by the previous save's timeout.
+    if (flashTimeout.current) clearTimeout(flashTimeout.current)
+    flashTimeout.current = setTimeout(() => setSavedFlash(null), 2500)
     resetForNextEntry()
   }
 
