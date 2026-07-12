@@ -27,6 +27,7 @@ import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
+  dedupeStore,
   encodeDocState,
   decodeDocState,
   type AllotmentStoreShape,
@@ -109,6 +110,63 @@ describe('yjs Step 4: binary cloud transport', () => {
       const merged = serializeToJson(a)
       expect(merged.layout.areas.length).toBe(2)
       expect(merged.layout.areas.filter((ar) => ar.id === 'bed-a').length).toBe(2)
+    })
+
+    it('dedupeStore repairs a document duplicated by a naive lineage-merge', () => {
+      // The safety net (`useYjsDoc` runs `dedupeStore` after every merge/adopt
+      // and on load): even if the adoption gate leaks and two same-content
+      // lineages merge, the duplication is collapsed back to one copy — and the
+      // repair is a real Yjs mutation, so it propagates to the cloud.
+      const { store: a, doc: docA } = docWithClientId(101)
+      hydrateFromJson(a, makeFixture())
+      const { store: b, doc: docB } = docWithClientId(202)
+      hydrateFromJson(b, makeFixture())
+      Y.applyUpdate(docA, encodeDocState(docB))
+
+      expect(serializeToJson(a).layout.areas.length).toBe(2) // duplicated
+
+      const changed = dedupeStore(a)
+      expect(changed).toBe(true)
+
+      const repaired = serializeToJson(a)
+      expect(repaired.layout.areas.map((ar) => ar.id)).toEqual(['bed-a'])
+      expect(repaired.varieties.map((v) => v.id)).toEqual(['var-1'])
+      expect(repaired.seasons.map((s) => s.year)).toEqual([2026])
+      // A second pass is a no-op — the repair is idempotent.
+      expect(dedupeStore(a)).toBe(false)
+    })
+
+    it('in-place dedupe preserves a concurrent edit from a device on the shared lineage', () => {
+      // The repair deletes only the duplicate structs, not the canonical ones,
+      // so an edit another device makes to a canonical entity still merges in.
+      // (A clear-and-reload repair would tombstone that entity and drop the
+      // edit.)
+      const canonicalDoc = new Y.Doc()
+      canonicalDoc.clientID = 101
+      const { store: canonicalStore } = createAllotmentDoc(canonicalDoc)
+      hydrateFromJson(canonicalStore, makeFixture())
+      const canonical = encodeDocState(canonicalDoc)
+
+      // Device A adopts the canonical lineage, then suffers a bad merge with an
+      // INDEPENDENT same-content lineage — bed-a is now duplicated on A.
+      const { store: a, doc: docA } = adopt(canonical, 202)
+      const { store: rogueStore, doc: rogueDoc } = docWithClientId(303)
+      hydrateFromJson(rogueStore, makeFixture())
+      Y.applyUpdate(docA, encodeDocState(rogueDoc))
+      expect(serializeToJson(a).layout.areas.length).toBe(2)
+
+      // Device B is on the shared canonical lineage and renames the bed.
+      const { store: b, doc: docB } = adopt(canonical, 404)
+      b.areas[0].name = 'Bed A — renamed by B'
+
+      // A repairs its duplication in place, then B's edit merges in.
+      dedupeStore(a)
+      Y.applyUpdate(docA, encodeDocState(docB))
+
+      const result = serializeToJson(a)
+      expect(result.layout.areas.map((ar) => ar.id)).toEqual(['bed-a'])
+      // B's concurrent rename survived the repair.
+      expect(result.layout.areas[0].name).toBe('Bed A — renamed by B')
     })
   })
 
