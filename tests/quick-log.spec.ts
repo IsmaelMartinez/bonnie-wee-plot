@@ -33,9 +33,11 @@ async function seedBed(page: import('@playwright/test').Page) {
         varieties: [],
       })
     )
+    // useTour only reads { completed, dismissed }; seed exactly that shape so
+    // the intent is clear and matches production. (/log has no tour anyway.)
     localStorage.setItem(
       'bonnie-wee-plot-tours',
-      JSON.stringify({ disabled: true, completed: [], dismissed: [], pageVisits: {} })
+      JSON.stringify({ completed: [], dismissed: [] })
     )
   })
 }
