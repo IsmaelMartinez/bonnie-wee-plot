@@ -124,7 +124,11 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
     await gridItem.click()
     // Wait for the add affordance to appear (robust for CI). Desktop shows the
     // sidebar detail panel ("Add"); mobile opens the bottom sheet ("Add Plant").
-    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/ }).first()
+    // Match the *visible* add button only: on desktop the sidebar detail panel
+    // ("Add"); on mobile the bottom sheet ("Add Plant"). The desktop sidebar is
+    // still in the DOM but CSS-hidden (`hidden lg:block`) on mobile, so without
+    // the visibility filter `.first()` would grab that hidden button and fail.
+    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/, visible: true }).first()
     await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
@@ -135,7 +139,11 @@ async function selectRotationBed(page: import('@playwright/test').Page) {
     await mobileItem.click()
     // Wait for the add affordance to appear (robust for CI). Desktop shows the
     // sidebar detail panel ("Add"); mobile opens the bottom sheet ("Add Plant").
-    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/ }).first()
+    // Match the *visible* add button only: on desktop the sidebar detail panel
+    // ("Add"); on mobile the bottom sheet ("Add Plant"). The desktop sidebar is
+    // still in the DOM but CSS-hidden (`hidden lg:block`) on mobile, so without
+    // the visibility filter `.first()` would grab that hidden button and fail.
+    const addButton = page.locator('button').filter({ hasText: /^\s*(Add|Add Plant)\s*$/, visible: true }).first()
     await expect(addButton).toBeVisible({ timeout: 10000 })
     return true
   }
