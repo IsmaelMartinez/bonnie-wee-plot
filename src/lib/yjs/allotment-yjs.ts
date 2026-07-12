@@ -33,7 +33,7 @@ import type {
   StoredVariety,
 } from '@/types/unified-allotment'
 import type { CompostPile } from '@/types/compost'
-import { dedupeAllotmentData } from './dedupe'
+import { dedupeAllotmentCollections } from './dedupe'
 
 /**
  * Top-level shape of the collaborative document.
@@ -189,24 +189,30 @@ export function serializeToJson(store: AllotmentStoreShape): AllotmentData {
 
 /**
  * Collapse duplicate entities in a live store back to a single copy, keyed by
- * stable id (`season.year` for seasons). Returns `true` when it rewrote the
- * store, `false` for an already-clean store (which is left untouched — no Yjs
+ * stable id (`season.year` for seasons). Returns `true` when it removed at least
+ * one duplicate, `false` for an already-clean store (left untouched — no Yjs
  * update is emitted, so a healthy document never churns).
  *
  * The convergence guarantee behind the binary CRDT transport (ADR 027 Step 4):
  * if the adoption gate ever leaks and two same-content lineages merge, this
  * repairs the duplication. `useYjsDoc` runs it after every merge/adopt and on
- * load; the repair is applied via `hydrateFromJson` (clear + reload in one
- * transaction), so the resulting deletes propagate through the CRDT to the
- * cloud and to every other device. See `dedupe.ts`.
+ * load. The repair is applied **in place** — only the duplicate entries are
+ * spliced out of the SyncedStore arrays, so every other struct keeps its Yjs
+ * identity (no tombstone bloat, and concurrent edits from other devices to
+ * unrelated fields are preserved). The resulting granular deletes propagate
+ * through the CRDT to the cloud and to every other device. Callers wrap this in
+ * a Yjs transaction so the splices emit a single update. See `dedupe.ts`.
  */
 export function dedupeStore(store: AllotmentStoreShape): boolean {
-  const json = serializeToJson(store)
-  const { data, changed } = dedupeAllotmentData(json)
-  if (changed) {
-    hydrateFromJson(store, data)
-  }
-  return changed
+  return dedupeAllotmentCollections({
+    areas: store.areas,
+    seasons: store.seasons,
+    varieties: store.varieties,
+    compost: store.compost,
+    customTasks: store.customTasks,
+    maintenanceTasks: store.maintenanceTasks,
+    gardenEvents: store.gardenEvents,
+  })
 }
 
 /**
