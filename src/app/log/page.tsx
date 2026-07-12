@@ -101,8 +101,11 @@ export default function QuickLogPage() {
   const [note, setNote] = useState('')
   const [severity, setSeverity] = useState<ObservationSeverity>(2)
   const [quantity, setQuantity] = useState('')
-  // Match the app's existing harvest units (HarvestTracker uses kg/count/…) so
-  // per-bed totals stay in one unit and don't silently mix kg with grams.
+  // Deliberately limited to kg + count for the fast one-handed path. Both are
+  // drawn from HarvestTracker's unit vocabulary (kg/lbs/count/bunches/baskets),
+  // so /log never introduces a unit the rest of the app doesn't use (e.g.
+  // grams). It doesn't enforce a single unit across a bed's entries — that
+  // stays the user's choice, same as HarvestTracker.
   const [unit, setUnit] = useState<'kg' | 'count'>('kg')
   const [plantingId, setPlantingId] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState<string | null>(null)
