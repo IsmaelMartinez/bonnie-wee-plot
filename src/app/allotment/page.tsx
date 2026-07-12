@@ -427,21 +427,18 @@ function AllotmentPageContent() {
                 <span className="truncate">Plot Overview - {selectedYear}</span>
               </h2>
 
-              {/* Draggable Grid Layout */}
-              <div className="overflow-x-auto -mx-3 sm:mx-0">
-                <div className="px-3 sm:px-0 sm:min-w-0 md:min-w-[500px]">
-                  <AllotmentGrid
-                    onItemSelect={handleItemSelect}
-                    selectedItemRef={selectedItemRef}
-                    getPlantingsForBed={getPlantings}
-                    areas={getAllAreas()}
-                    areaSeasons={currentSeason?.areas}
-                    selectedYear={selectedYear}
-                    onPositionChange={handlePositionChange}
-                    onAddArea={() => setShowAddAreaDialog(true)}
-                  />
-                </div>
-              </div>
+              {/* Spatial Grid Layout — the grid manages its own horizontal
+                  scroll so the layout stays legible on mobile. */}
+              <AllotmentGrid
+                onItemSelect={handleItemSelect}
+                selectedItemRef={selectedItemRef}
+                getPlantingsForBed={getPlantings}
+                areas={getAllAreas()}
+                areaSeasons={currentSeason?.areas}
+                selectedYear={selectedYear}
+                onPositionChange={handlePositionChange}
+                onAddArea={() => setShowAddAreaDialog(true)}
+              />
             </div>
           </div>
 

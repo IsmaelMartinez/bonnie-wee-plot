@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import ReactGridLayout from 'react-grid-layout'
-import { Lock, Unlock, Move, Plus } from 'lucide-react'
+import { Lock, Unlock, Move, Plus, GripVertical } from 'lucide-react'
 import {
   DEFAULT_GRID_LAYOUT,
   GridItemConfig
@@ -11,7 +11,16 @@ import { AllotmentItemRef } from '@/types/garden-planner'
 import { Area, Planting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
-import AllotmentMobileView from './AllotmentMobileView'
+
+// On narrow screens the 12-column grid is given at least this pixel width so
+// cells stay legible and tappable; the grid then scrolls horizontally (like a
+// map) instead of collapsing to a separate, non-spatial list view.
+const MOBILE_MIN_GRID_WIDTH = 520
+
+// Drag is restricted to this handle (shown only in edit mode) so that on touch
+// devices normal touches scroll the page/grid and only a deliberate grab on the
+// handle starts a move.
+const DRAG_HANDLE_CLASS = 'bwp-drag-handle'
 
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -135,7 +144,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
   const [mounted, setMounted] = useState(false)
   const [width, setWidth] = useState(800)
   const [isMobile, setIsMobile] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   // Keyboard navigation state for accessibility
   const [focusedIndex, setFocusedIndex] = useState(0)
@@ -159,11 +168,11 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     setMounted(true)
   }, [])
 
-  // Track container width and mobile state
+  // Track available width and mobile state
   useEffect(() => {
     const updateWidth = () => {
-      if (containerRef.current) {
-        setWidth(containerRef.current.offsetWidth)
+      if (wrapperRef.current) {
+        setWidth(wrapperRef.current.clientWidth)
       }
       // Consider mobile if window width is less than 768px (Tailwind's md breakpoint)
       setIsMobile(window.innerWidth < 768)
@@ -173,6 +182,10 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     window.addEventListener('resize', updateWidth)
     return () => window.removeEventListener('resize', updateWidth)
   }, [mounted])
+
+  // The grid keeps a minimum pixel width on mobile so cells stay legible; the
+  // wrapper scrolls horizontally when the layout is wider than the viewport.
+  const gridPixelWidth = isMobile ? Math.max(width, MOBILE_MIN_GRID_WIDTH) : width
 
   // Notify parent when editing state changes
   useEffect(() => {
@@ -357,19 +370,6 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     )
   }
 
-  // Show mobile view on small screens
-  if (isMobile && visibleAreas) {
-    return (
-      <AllotmentMobileView
-        areas={visibleAreas}
-        selectedItemRef={selectedItemRef}
-        onItemSelect={onItemSelect}
-        getPlantingsForBed={getPlantingsForBed}
-        selectedYear={selectedYear}
-      />
-    )
-  }
-
   return (
     <div className="space-y-4">
       {/* Controls */}
@@ -410,6 +410,14 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         )}
       </div>
 
+      {/* Edit-mode hint — how to move items (touch-friendly) */}
+      {isEditing && (
+        <div className="flex items-center gap-2 text-xs text-zen-stone-600 bg-zen-stone-50 rounded-lg px-3 py-2">
+          <GripVertical className="w-4 h-4 text-zen-stone-400 shrink-0" aria-hidden="true" />
+          <span>Drag the handle on each area to move it. Drag its bottom-right corner to resize.</span>
+        </div>
+      )}
+
       {/* Year filtering feedback */}
       {visibleAreas && areas && visibleAreas.length < areas.length && (
         <div className="text-sm text-zen-stone-600 bg-zen-stone-50 rounded-lg p-3">
@@ -429,13 +437,15 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
         </div>
       )}
 
-      {/* Grid */}
-      <div
-        ref={containerRef}
-        className="bg-gradient-to-b from-green-100/50 to-emerald-100/50 rounded-xl p-2 overflow-hidden"
-        role="grid"
-        aria-label={`Allotment layout grid for ${selectedYear}. ${items.length} areas total.`}
-      >
+      {/* Grid — horizontally scrollable so the spatial layout stays legible on
+          narrow screens instead of collapsing into a non-spatial list. */}
+      <div ref={wrapperRef} className="overflow-x-auto overscroll-x-contain">
+        <div
+          style={{ width: gridPixelWidth }}
+          className="bg-gradient-to-b from-green-100/50 to-emerald-100/50 rounded-xl p-2"
+          role="grid"
+          aria-label={`Allotment layout grid for ${selectedYear}. ${items.length} areas total.`}
+        >
         {/* North label */}
         <div className="text-center text-gray-500 text-xs font-bold mb-1" aria-hidden="true">NORTH</div>
 
@@ -445,12 +455,16 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
             layout: configToLayout(items, isEditing),
             cols: cols,
             rowHeight: 50,
-            width: width - 16,
+            width: gridPixelWidth - 16,
             margin: [6, 6],
             containerPadding: [0, 0],
             onLayoutChange: (layout: LayoutItem[]) => handleLayoutChange([...layout]),
             isDraggable: isEditing,
             isResizable: isEditing,
+            // Restrict dragging to an explicit handle so touches that aren't on
+            // the handle scroll the page/grid rather than accidentally moving an
+            // area. When not editing, dragging is disabled entirely.
+            draggableHandle: isEditing ? `.${DRAG_HANDLE_CLASS}` : undefined,
             compactType: null,
             preventCollision: false,
             useCSSTransforms: false,
@@ -537,6 +551,20 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
                     </div>
                   )}
                 </button>
+
+                {/* Drag handle — only present in edit mode. Sits outside the
+                    select button so grabbing it moves the area (via
+                    draggableHandle) without also selecting it. touch-none keeps
+                    the drag gesture from being stolen by scroll. */}
+                {isEditing && !item.static && (
+                  <div
+                    className={`${DRAG_HANDLE_CLASS} absolute top-1 left-1 z-10 flex items-center justify-center w-8 h-8 rounded-md bg-white/85 text-zen-ink-600 shadow cursor-move touch-none`}
+                    aria-hidden="true"
+                    title={`Drag to move ${itemLabel}`}
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                )}
               </div>
             )
           })}
@@ -544,6 +572,7 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
 
         {/* South label */}
         <div className="text-center text-gray-500 text-xs font-bold mt-1" aria-hidden="true">SOUTH (Entry)</div>
+        </div>
       </div>
 
       {/* Screen reader instructions */}

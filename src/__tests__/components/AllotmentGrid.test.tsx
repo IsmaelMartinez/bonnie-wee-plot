@@ -42,11 +42,6 @@ vi.mock('@/components/allotment/BedItem', () => ({
   ),
 }))
 
-// Mock AllotmentMobileView component
-vi.mock('@/components/allotment/AllotmentMobileView', () => ({
-  default: () => <div data-testid="mobile-view">Mobile View</div>,
-}))
-
 // Mock CSS imports
 vi.mock('react-grid-layout/css/styles.css', () => ({}))
 vi.mock('react-resizable/css/styles.css', () => ({}))
@@ -630,7 +625,7 @@ describe('AllotmentGrid Component', () => {
   })
 
   describe('Mobile view', () => {
-    it('shows mobile view when window width is less than 768px', async () => {
+    it('renders the same spatial grid on mobile (no separate list view)', async () => {
       // Set mobile viewport
       Object.defineProperty(window, 'innerWidth', { value: 500, configurable: true })
 
@@ -647,12 +642,16 @@ describe('AllotmentGrid Component', () => {
       // Trigger resize event
       fireEvent(window, new Event('resize'))
 
+      // The unified view keeps the spatial grid on mobile, showing all areas
+      // in place rather than collapsing to a grouped list.
       await waitFor(() => {
-        expect(screen.getByTestId('mobile-view')).toBeInTheDocument()
+        expect(screen.getByRole('grid')).toBeInTheDocument()
+        expect(screen.getByTestId('bed-item-Bed A')).toBeInTheDocument()
+        expect(screen.getByTestId('bed-item-Apple Tree')).toBeInTheDocument()
       })
     })
 
-    it('shows desktop grid when window width is 768px or more', async () => {
+    it('shows the spatial grid on desktop', async () => {
       // Set desktop viewport
       Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true })
 
@@ -670,12 +669,11 @@ describe('AllotmentGrid Component', () => {
       fireEvent(window, new Event('resize'))
 
       await waitFor(() => {
-        expect(screen.queryByTestId('mobile-view')).not.toBeInTheDocument()
         expect(screen.getByRole('grid')).toBeInTheDocument()
       })
     })
 
-    it('responds to window resize events', async () => {
+    it('keeps the spatial grid across window resize events', async () => {
       const areas = createTestAreas()
 
       render(
@@ -691,20 +689,21 @@ describe('AllotmentGrid Component', () => {
         expect(screen.getByRole('grid')).toBeInTheDocument()
       })
 
-      // Resize to mobile
+      // Resize to mobile - grid remains (unified spatial view)
       Object.defineProperty(window, 'innerWidth', { value: 500, configurable: true })
       fireEvent(window, new Event('resize'))
 
       await waitFor(() => {
-        expect(screen.getByTestId('mobile-view')).toBeInTheDocument()
+        expect(screen.getByRole('grid')).toBeInTheDocument()
+        expect(screen.getByTestId('bed-item-Bed A')).toBeInTheDocument()
       })
 
-      // Resize back to desktop
+      // Resize back to desktop - still the grid
       Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true })
       fireEvent(window, new Event('resize'))
 
       await waitFor(() => {
-        expect(screen.queryByTestId('mobile-view')).not.toBeInTheDocument()
+        expect(screen.getByRole('grid')).toBeInTheDocument()
       })
     })
   })
