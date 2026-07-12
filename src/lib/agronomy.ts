@@ -87,8 +87,12 @@ const FAMILY_DEFAULTS: Readonly<Record<RotationFamily, FamilyDefaults>> = {
 /**
  * Map the vegetable database's category to a rotation family. This gives every
  * crop a family (and therefore default agronomy) without an explicit entry.
- * Categories that don't map cleanly (herbs, flowers, trees, mushrooms) fall
- * through to 'Other' — the Season Observer focuses on annual veg beds.
+ * Only the categories below map by category; everything else falls through to
+ * 'Other'. That includes broad veg categories that don't map cleanly to a
+ * single family — `leafy-greens` and `root-vegetables` split across
+ * Brassica/Chenopod and Umbellifer/Chenopod — as well as non-veg categories
+ * (herbs, flowers, trees, mushrooms). Crops needing a precise family get a
+ * per-crop override below (e.g. kale, carrot, beetroot).
  */
 const CATEGORY_TO_FAMILY: Readonly<Partial<Record<VegetableCategory, RotationFamily>>> = {
   legumes: 'Legume',

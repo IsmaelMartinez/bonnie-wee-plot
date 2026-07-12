@@ -61,7 +61,9 @@ const EVENTS: EventConfig[] = [
   { type: 'thinned', label: 'Thinned', icon: Scissors, color: 'zen-stone' },
   { type: 'bolted', label: 'Bolted', icon: AlertTriangle, color: 'zen-kitsune' },
   { type: 'damage', label: 'Damage', icon: AlertTriangle, needsSeverity: true, color: 'zen-kitsune' },
-  { type: 'note', label: 'Note', icon: StickyNote, color: 'zen-ink' },
+  // Free-form note maps to the existing 'observation' care-log type — we don't
+  // keep a separate near-identical 'note' type (simplicity-first).
+  { type: 'observation', label: 'Note', icon: StickyNote, color: 'zen-ink' },
 ]
 
 const SEVERITY_LABELS: Record<ObservationSeverity, string> = {
@@ -71,10 +73,16 @@ const SEVERITY_LABELS: Record<ObservationSeverity, string> = {
 }
 
 function today(): string {
-  // Local date in YYYY-MM-DD (en-CA), so "today" rolls over at the user's
-  // midnight rather than UTC's — otherwise the default/max date is off by a
-  // day for anyone not on UTC.
-  return new Date().toLocaleDateString('en-CA')
+  // Build YYYY-MM-DD from local date parts. Using local (not UTC) parts means
+  // "today" rolls over at the user's midnight, so the date input's default and
+  // max aren't off by a day outside UTC. Constructing it by hand (rather than
+  // toLocaleDateString) guarantees the exact format <input type="date"> needs,
+  // independent of the runtime's locale/ICU behaviour.
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export default function QuickLogPage() {
@@ -93,7 +101,9 @@ export default function QuickLogPage() {
   const [note, setNote] = useState('')
   const [severity, setSeverity] = useState<ObservationSeverity>(2)
   const [quantity, setQuantity] = useState('')
-  const [unit, setUnit] = useState<'g' | 'count'>('g')
+  // Match the app's existing harvest units (HarvestTracker uses kg/count/…) so
+  // per-bed totals stay in one unit and don't silently mix kg with grams.
+  const [unit, setUnit] = useState<'kg' | 'count'>('kg')
   const [plantingId, setPlantingId] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState<string | null>(null)
   const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -329,7 +339,7 @@ export default function QuickLogPage() {
                         className="flex-1 min-h-[48px] px-3 border border-zen-stone-200 rounded-zen"
                       />
                       <div className="flex rounded-zen overflow-hidden border border-zen-stone-200">
-                        {(['g', 'count'] as const).map(u => (
+                        {(['kg', 'count'] as const).map(u => (
                           <button
                             key={u}
                             onClick={() => setUnit(u)}
@@ -338,7 +348,7 @@ export default function QuickLogPage() {
                               unit === u ? 'bg-zen-moss-600 text-white' : 'bg-white text-zen-ink-700'
                             }`}
                           >
-                            {u === 'g' ? 'grams' : 'count'}
+                            {u}
                           </button>
                         ))}
                       </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Scissors, Droplets, Sprout, Layers, Bug, Eye, Package, X, Check, Flower2, ShieldAlert, AlertTriangle, StickyNote } from 'lucide-react'
+import { Plus, Scissors, Droplets, Sprout, Layers, Bug, Eye, Package, X, Check, Flower2, ShieldAlert, AlertTriangle } from 'lucide-react'
 import { CareLogEntry, NewCareLogEntry, CareLogType } from '@/types/unified-allotment'
 
 interface CareLogSectionProps {
@@ -30,7 +30,6 @@ const CARE_TYPE_CONFIG: Record<CareLogType, { icon: typeof Scissors; label: stri
   'disease': { icon: ShieldAlert, label: 'Disease', color: 'zen-kitsune' },
   'bolted': { icon: AlertTriangle, label: 'Bolted', color: 'zen-kitsune' },
   'damage': { icon: AlertTriangle, label: 'Damage', color: 'zen-kitsune' },
-  'note': { icon: StickyNote, label: 'Note', color: 'zen-ink' },
 }
 
 // Care activities offered in the permanent-area manual entry dropdown. The

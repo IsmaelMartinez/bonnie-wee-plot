@@ -415,7 +415,8 @@ export type CareLogType =
   | 'spray'
   | 'harvest'
   | 'other'
-  // Observations (Season Observer)
+  // Observations (Season Observer). 'observation' is the free-form note type
+  // (a distinct 'note' would be a near-identical synonym — kept as one).
   | 'observation'   // generic note tied to a bed/planting
   | 'germinated'
   | 'thinned'
@@ -424,7 +425,6 @@ export type CareLogType =
   | 'disease'
   | 'bolted'
   | 'damage'
-  | 'note'
 
 /**
  * Severity of a negative observation (pest, disease, damage), 1 (minor) to
