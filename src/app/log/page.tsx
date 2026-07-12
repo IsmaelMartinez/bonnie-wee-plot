@@ -85,6 +85,21 @@ function today(): string {
   return `${y}-${m}-${day}`
 }
 
+/**
+ * Normalise a date-input value before it is stored. The `<input type="date">`
+ * max only constrains the picker UI — a user can still clear the field (empty
+ * string) or type an invalid/future date. Empty or malformed values fall back
+ * to today; future dates clamp to today (YYYY-MM-DD string compare is safe for
+ * this format). Guarantees every stored entry has a valid, non-future date, so
+ * renderers like CareLogSection.formatDate never hit an invalid Date and future
+ * dates never leak into a season report.
+ */
+function normalizeLogDate(raw: string): string {
+  const t = today()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(new Date(raw).getTime())) return t
+  return raw > t ? t : raw
+}
+
 export default function QuickLogPage() {
   const {
     isLoading,
@@ -151,7 +166,7 @@ export default function QuickLogPage() {
 
     const entry: NewCareLogEntry = {
       type: event.type,
-      date,
+      date: normalizeLogDate(date),
     }
     const trimmed = note.trim()
     if (trimmed) entry.description = trimmed
