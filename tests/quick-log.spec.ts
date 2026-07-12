@@ -50,11 +50,19 @@ test.describe('Quick Log capture', () => {
     // Page renders.
     await expect(page.getByRole('heading', { name: /Quick Log/i })).toBeVisible()
 
-    // Step 1 — pick the seeded bed.
-    await page.getByRole('button', { name: /Bed A/ }).click()
+    const bed = page.getByRole('button', { name: /Bed A/ })
+    const noteButton = page.getByRole('button', { name: 'Note', exact: true })
+
+    // Step 1 — pick the seeded bed. Retry the tap until the event grid appears:
+    // the bed button is server-rendered, so a tap can land before React
+    // hydration wires up its handler (dev cold-start) and be lost.
+    await expect(async () => {
+      await bed.click()
+      await expect(noteButton).toBeVisible({ timeout: 1000 })
+    }).toPass({ timeout: 15000 })
 
     // Step 2 — pick an event (the free-form Note maps to an observation).
-    await page.getByRole('button', { name: 'Note', exact: true }).click()
+    await noteButton.click()
 
     // Step 3 — save. Everything past bed + event is optional.
     await page.getByRole('button', { name: 'Save', exact: true }).click()

@@ -36,6 +36,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getVegetableById } from '@/lib/vegetable-database'
 import type { CareLogType, NewCareLogEntry, ObservationSeverity } from '@/types/unified-allotment'
 import type { Area } from '@/types/unified-allotment'
+import { normalizeLogDate, todayLocalISO } from '@/lib/log-date'
 
 interface EventConfig {
   type: CareLogType
@@ -72,33 +73,8 @@ const SEVERITY_LABELS: Record<ObservationSeverity, string> = {
   3: 'Severe',
 }
 
-function today(): string {
-  // Build YYYY-MM-DD from local date parts. Using local (not UTC) parts means
-  // "today" rolls over at the user's midnight, so the date input's default and
-  // max aren't off by a day outside UTC. Constructing it by hand (rather than
-  // toLocaleDateString) guarantees the exact format <input type="date"> needs,
-  // independent of the runtime's locale/ICU behaviour.
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-/**
- * Normalise a date-input value before it is stored. The `<input type="date">`
- * max only constrains the picker UI — a user can still clear the field (empty
- * string) or type an invalid/future date. Empty or malformed values fall back
- * to today; future dates clamp to today (YYYY-MM-DD string compare is safe for
- * this format). Guarantees every stored entry has a valid, non-future date, so
- * renderers like CareLogSection.formatDate never hit an invalid Date and future
- * dates never leak into a season report.
- */
-function normalizeLogDate(raw: string): string {
-  const t = today()
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(new Date(raw).getTime())) return t
-  return raw > t ? t : raw
-}
+// today() aliases the shared helper so the JSX below reads the same as before.
+const today = todayLocalISO
 
 export default function QuickLogPage() {
   const {
@@ -164,9 +140,14 @@ export default function QuickLogPage() {
   const handleSave = () => {
     if (!bedId || !event || !currentSeason) return
 
+    const normalizedDate = normalizeLogDate(date)
+    // Keep the picker in sync with what actually gets stored, so a clamped or
+    // corrected date isn't silently different from what the field shows.
+    if (normalizedDate !== date) setDate(normalizedDate)
+
     const entry: NewCareLogEntry = {
       type: event.type,
-      date: normalizeLogDate(date),
+      date: normalizedDate,
     }
     const trimmed = note.trim()
     if (trimmed) entry.description = trimmed
