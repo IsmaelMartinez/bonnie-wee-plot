@@ -10,8 +10,12 @@ import {
   UMN_HARVEST_STORAGE,
   UMN_SAUERKRAUT,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
+  bbcFoodRecipe,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
+  greatBritishChefsRecipe,
 } from '../resources'
 
 /** Shared fallback collections for roots without a BBC Food hub of their own */
@@ -45,6 +49,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('carrot', 'Carrot'),
       bbcGoodFoodCollection('carrot-cake-recipes', 'Carrot cake recipes'),
+      bbcGoodFoodRecipe('carrot-coriander-soup', 'Carrot & coriander soup'),
     ],
   },
   {
@@ -79,7 +84,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('beetroot', 'Beetroot'),
       bbcGoodFoodCollection('beetroot-recipes', 'Beetroot recipes'),
-      BBC_GOOD_FOOD.chutneys,
+      bbcFoodRecipe('borschbeetrootsoup_12298', 'Borsch (beetroot soup)'),
     ],
   },
   {
@@ -108,6 +113,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('parsnip', 'Parsnip'),
       bbcGoodFoodCollection('parsnip-recipes', 'Parsnip recipes'),
+      bbcGoodFoodRecipe('spiced-parsnip-soup', 'Spiced parsnip soup'),
     ],
   },
   {
@@ -136,6 +142,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('turnip', 'Turnip'),
       bbcGoodFoodCollection('turnip-recipes', 'Turnip recipes'),
+      greatBritishChefsRecipe('clapshot-recipe', 'Clapshot'),
     ],
   },
   {
@@ -164,6 +171,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('swede', 'Swede'),
       bbcGoodFoodCollection('swede-recipes', 'Swede recipes'),
+      bbcGoodFoodRecipe('neeps-tatties', 'Neeps & tatties'),
     ],
   },
   {
@@ -220,6 +228,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('jerusalem_artichoke', 'Jerusalem artichoke'),
       bbcGoodFoodCollection('jerusalem-artichoke-recipes', 'Jerusalem artichoke recipes'),
+      greatBritishChefsRecipe('jerusalem-artichoke-soup-recipe', 'Jerusalem artichoke (Palestine) soup'),
     ],
   },
   {
@@ -248,6 +257,7 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('celeriac', 'Celeriac'),
       bbcGoodFoodCollection('celeriac-recipes', 'Celeriac recipes'),
+      bbcGoodFoodRecipe('celeriac-remoulade', 'Celeriac remoulade'),
     ],
   },
   {
@@ -437,7 +447,10 @@ export const rootVegetablesPreservation: PreservationGuide[] = [
         resources: [NCHFP.fermenting],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('horseradish', 'Horseradish')],
+    recipeIdeas: [
+      bbcFoodIngredient('horseradish', 'Horseradish'),
+      bbcFoodDish('horseradish_sauce', 'Horseradish sauce'),
+    ],
   },
   {
     plantId: 'chinese-artichoke',

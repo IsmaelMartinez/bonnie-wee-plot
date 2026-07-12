@@ -7,8 +7,11 @@ import { PreservationGuide } from '@/types/preservation'
 import {
   NCHFP,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
+  bbcFoodRecipe,
   bbcGoodFoodCollection,
+  greatBritishChefsRecipe,
 } from '../resources'
 
 export const herbsPreservation: PreservationGuide[] = [
@@ -88,6 +91,7 @@ export const herbsPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('mint', 'Mint'),
       bbcGoodFoodCollection('mint-recipes', 'Mint recipes'),
+      bbcFoodDish('mint_sauce', 'Mint sauce'),
     ],
   },
   {
@@ -176,7 +180,10 @@ export const herbsPreservation: PreservationGuide[] = [
         resources: [NCHFP.drying],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('lovage', 'Lovage')],
+    recipeIdeas: [
+      bbcFoodIngredient('lovage', 'Lovage'),
+      bbcFoodRecipe('lettuceandlovagesoup_14299', 'Lettuce and lovage soup'),
+    ],
   },
   {
     plantId: 'sorrel',
@@ -194,7 +201,10 @@ export const herbsPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('sorrel', 'Sorrel')],
+    recipeIdeas: [
+      bbcFoodIngredient('sorrel', 'Sorrel'),
+      greatBritishChefsRecipe('sorrel-soup-recipe', 'Sorrel soup (green borscht)'),
+    ],
   },
   {
     plantId: 'oregano',

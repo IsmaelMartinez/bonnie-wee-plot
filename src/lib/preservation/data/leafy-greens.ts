@@ -9,7 +9,10 @@ import {
   UMN_SAUERKRAUT,
   UMN_HARVEST_STORAGE,
   bbcFoodIngredient,
+  bbcFoodRecipe,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
+  greatBritishChefsRecipe,
 } from '../resources'
 
 export const leafyGreensPreservation: PreservationGuide[] = [
@@ -32,6 +35,7 @@ export const leafyGreensPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('lettuce', 'Lettuce'),
       bbcGoodFoodCollection('lettuce-recipes', 'Lettuce recipes'),
+      greatBritishChefsRecipe('lettuce-soup-recipe', 'Lettuce soup'),
     ],
   },
   {
@@ -57,6 +61,7 @@ export const leafyGreensPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('spinach', 'Spinach'),
       bbcGoodFoodCollection('spinach-recipes', 'Spinach recipes'),
+      bbcGoodFoodRecipe('eggs-florentine', 'Eggs Florentine'),
     ],
   },
   {
@@ -101,6 +106,7 @@ export const leafyGreensPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('kale', 'Kale'),
       bbcGoodFoodCollection('kale-recipes', 'Kale recipes'),
+      bbcGoodFoodRecipe('colcannon', 'Colcannon'),
     ],
   },
   {
@@ -304,7 +310,10 @@ export const leafyGreensPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('watercress', 'Watercress')],
+    recipeIdeas: [
+      bbcFoodIngredient('watercress', 'Watercress'),
+      bbcFoodRecipe('watercresssoup_93505', 'Watercress soup'),
+    ],
   },
   {
     plantId: 'salad-burnet',
