@@ -44,7 +44,8 @@ precedent).
 
 1. **Model extensions** (`src/types/unified-allotment.ts`)
    - `CareLogType` gained observation values: `germinated`, `thinned`,
-     `flowering`, `pest`, `disease`, `bolted`, `damage`, `note`. `water`/`feed`
+     `flowering`, `pest`, `disease`, `bolted`, `damage`. Free-form notes reuse
+     the existing `observation` type (no separate `note` synonym). `water`/`feed`
      double as the brief's `watered`/`fed`, so they are not duplicated.
    - `CareLogEntry` gained `severity?: 1|2|3`, `photoId?`, `plantingId?`.
    - `Planting` gained `endedOn?` (when a planting left the bed).
