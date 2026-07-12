@@ -153,6 +153,17 @@ export function migrateSchema(data: AllotmentData): AllotmentData {
     return migrateSchema(migrated)
   }
 
+  // Version 22 -> 23: Season Observer. Added agronomic observation CareLogType
+  // values (germinated, thinned, flowering, pest, disease, bolted, damage, note),
+  // CareLogEntry.severity / photoId / plantingId, and Planting.endedOn. No data
+  // transform needed — every new field is optional and the new care-log types
+  // only appear on entries the user creates going forward.
+  if (migrated.version < 23) {
+    migrated.version = 23
+    logger.info('Schema migration complete', { from: 22, to: 23, change: 'added Season Observer observation care-log types and fields' })
+    return migrateSchema(migrated)
+  }
+
   migrated.version = CURRENT_SCHEMA_VERSION
   return migrated
 }
