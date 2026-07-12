@@ -33,6 +33,7 @@ import type {
   StoredVariety,
 } from '@/types/unified-allotment'
 import type { CompostPile } from '@/types/compost'
+import { dedupeAllotmentData } from './dedupe'
 
 /**
  * Top-level shape of the collaborative document.
@@ -184,6 +185,28 @@ export function serializeToJson(store: AllotmentStoreShape): AllotmentData {
     varieties: snapshot.varieties,
     compost: snapshot.compost,
   }
+}
+
+/**
+ * Collapse duplicate entities in a live store back to a single copy, keyed by
+ * stable id (`season.year` for seasons). Returns `true` when it rewrote the
+ * store, `false` for an already-clean store (which is left untouched — no Yjs
+ * update is emitted, so a healthy document never churns).
+ *
+ * The convergence guarantee behind the binary CRDT transport (ADR 027 Step 4):
+ * if the adoption gate ever leaks and two same-content lineages merge, this
+ * repairs the duplication. `useYjsDoc` runs it after every merge/adopt and on
+ * load; the repair is applied via `hydrateFromJson` (clear + reload in one
+ * transaction), so the resulting deletes propagate through the CRDT to the
+ * cloud and to every other device. See `dedupe.ts`.
+ */
+export function dedupeStore(store: AllotmentStoreShape): boolean {
+  const json = serializeToJson(store)
+  const { data, changed } = dedupeAllotmentData(json)
+  if (changed) {
+    hydrateFromJson(store, data)
+  }
+  return changed
 }
 
 /**

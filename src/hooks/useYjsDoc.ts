@@ -30,6 +30,7 @@ import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
+  dedupeStore,
   type AllotmentStoreShape,
 } from '@/lib/yjs/allotment-yjs'
 import { initializeStorage } from '@/services/allotment-storage'
@@ -164,6 +165,14 @@ function acquireSingleton(): YjsSingleton {
           hydrateFromJson(store, seed)
         }, localOrigin)
       }
+    } else {
+      // Self-heal: a doc restored from IndexedDB may already carry duplicate
+      // entities from a prior bad lineage-merge (see `dedupe.ts`). Collapse
+      // them on load. `localOrigin` so the repair is treated as a local edit
+      // and pushed to the cloud; a no-op on a clean doc.
+      doc.transact(() => {
+        dedupeStore(store)
+      }, localOrigin)
     }
     return { providerError }
   })()
@@ -407,6 +416,13 @@ export function useYjsDoc(): UseYjsDocReturn {
     const sg = singletonRef.current
     if (!sg) return
     Y.applyUpdate(sg.doc, update, sg.remoteOrigin)
+    // A CRDT merge of two independently-hydrated lineages duplicates shared
+    // content. Collapse it right after the merge; `localOrigin` so the repair
+    // deletes are pushed to the cloud (converging every device). No-op when the
+    // merge produced no duplicates — the healthy steady state is untouched.
+    sg.doc.transact(() => {
+      dedupeStore(sg.store)
+    }, sg.localOrigin)
   }, [])
 
   const adoptRemoteUpdate = useCallback(async (update: Uint8Array): Promise<void> => {
@@ -443,6 +459,15 @@ export function useYjsDoc(): UseYjsDocReturn {
       }
     }
     oldDoc.destroy()
+
+    // Defence in depth: if the IndexedDB reset above was blocked (another tab
+    // held the DB open, so `deleteYjsDatabase` resolved without deleting), the
+    // new provider's `whenSynced` will have merged the stale local lineage back
+    // into `freshDoc`, reintroducing duplicates. Collapse them now so adoption
+    // always lands on a clean, single-copy document. No-op otherwise.
+    sg.doc.transact(() => {
+      dedupeStore(sg.store)
+    }, sg.localOrigin)
 
     // Publish the adopted snapshot to all consumers (the applyUpdate above
     // fired before the listener was attached to `freshDoc`, on purpose, so we

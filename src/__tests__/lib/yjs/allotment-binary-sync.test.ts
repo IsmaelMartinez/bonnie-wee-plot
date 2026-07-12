@@ -27,6 +27,7 @@ import {
   createAllotmentDoc,
   hydrateFromJson,
   serializeToJson,
+  dedupeStore,
   encodeDocState,
   decodeDocState,
   type AllotmentStoreShape,
@@ -109,6 +110,30 @@ describe('yjs Step 4: binary cloud transport', () => {
       const merged = serializeToJson(a)
       expect(merged.layout.areas.length).toBe(2)
       expect(merged.layout.areas.filter((ar) => ar.id === 'bed-a').length).toBe(2)
+    })
+
+    it('dedupeStore repairs a document duplicated by a naive lineage-merge', () => {
+      // The safety net (`useYjsDoc` runs `dedupeStore` after every merge/adopt
+      // and on load): even if the adoption gate leaks and two same-content
+      // lineages merge, the duplication is collapsed back to one copy — and the
+      // repair is a real Yjs mutation, so it propagates to the cloud.
+      const { store: a, doc: docA } = docWithClientId(101)
+      hydrateFromJson(a, makeFixture())
+      const { store: b, doc: docB } = docWithClientId(202)
+      hydrateFromJson(b, makeFixture())
+      Y.applyUpdate(docA, encodeDocState(docB))
+
+      expect(serializeToJson(a).layout.areas.length).toBe(2) // duplicated
+
+      const changed = dedupeStore(a)
+      expect(changed).toBe(true)
+
+      const repaired = serializeToJson(a)
+      expect(repaired.layout.areas.map((ar) => ar.id)).toEqual(['bed-a'])
+      expect(repaired.varieties.map((v) => v.id)).toEqual(['var-1'])
+      expect(repaired.seasons.map((s) => s.year)).toEqual([2026])
+      // A second pass is a no-op — the repair is idempotent.
+      expect(dedupeStore(a)).toBe(false)
     })
   })
 
