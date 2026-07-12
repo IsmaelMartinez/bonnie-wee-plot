@@ -37,6 +37,26 @@ function clonePlain<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+/** Push clones of every `source` item onto `target` (a plain or proxy array). */
+function appendClones<T>(target: T[], source: readonly T[] | undefined): void {
+  if (!source) return
+  for (const item of source) target.push(clonePlain(item))
+}
+
+/**
+ * Copy each listed field from `source` onto `target` where `target` does not
+ * already have a value. Object/array values are cloned (a Y.Map cannot be
+ * shared between parents). Used to preserve a dropped duplicate's fields on the
+ * kept copy instead of silently discarding them.
+ */
+function fillMissing<T extends object, K extends keyof T>(target: T, source: T, keys: K[]): void {
+  for (const key of keys) {
+    if (target[key] !== undefined || source[key] === undefined) continue
+    const value = source[key]
+    target[key] = (typeof value === 'object' && value !== null ? clonePlain(value) : value) as T[K]
+  }
+}
+
 /**
  * Remove later entries whose key was already seen, keeping the first
  * occurrence. Splices in place (works on a plain array or a SyncedStore proxy
@@ -58,9 +78,11 @@ function dedupeArrayInPlace<T>(array: T[], key: (item: T) => string | number): b
 
 /**
  * Collapse the areas of a single season by `areaId`, in place. When the same
- * area appears twice, the extra copy's plantings are cloned into the kept copy
- * (union, so none are lost) before the duplicate area is spliced out; then each
- * remaining area's plantings are deduped by planting id.
+ * area appears twice, the extra copy's id'd child arrays (plantings, notes,
+ * careLogs) are unioned into the kept copy and any scalar/object field the kept
+ * copy is missing (rotationGroup, harvest totals, gridPosition) is filled from
+ * it — so a diverged duplicate loses nothing — before the duplicate area is
+ * spliced out. The unioned child arrays are then deduped by id.
  */
 function mergeAreaSeasonsInPlace(areas: AreaSeason[]): boolean {
   let changed = false
@@ -76,18 +98,23 @@ function mergeAreaSeasonsInPlace(areas: AreaSeason[]): boolean {
     }
     removeAt.push(i)
     changed = true
-    const extra = area.plantings ?? []
-    if (extra.length > 0) {
-      if (!existing.plantings) existing.plantings = []
-      for (const planting of extra) existing.plantings.push(clonePlain(planting))
+    appendClones(existing.plantings, area.plantings)
+    if (area.notes?.length) {
+      if (!existing.notes) existing.notes = []
+      appendClones(existing.notes, area.notes)
     }
+    if (area.careLogs?.length) {
+      if (!existing.careLogs) existing.careLogs = []
+      appendClones(existing.careLogs, area.careLogs)
+    }
+    fillMissing(existing, area, ['rotationGroup', 'harvestTotal', 'harvestUnit', 'gridPosition'])
   }
   for (let i = removeAt.length - 1; i >= 0; i--) areas.splice(removeAt[i], 1)
 
   for (const area of areas) {
-    if (area.plantings && dedupeArrayInPlace<Planting>(area.plantings, (p) => p.id)) {
-      changed = true
-    }
+    if (dedupeArrayInPlace<Planting>(area.plantings, (p) => p.id)) changed = true
+    if (area.notes && dedupeArrayInPlace(area.notes, (n) => n.id)) changed = true
+    if (area.careLogs && dedupeArrayInPlace(area.careLogs, (c) => c.id)) changed = true
   }
   return changed
 }
@@ -95,7 +122,10 @@ function mergeAreaSeasonsInPlace(areas: AreaSeason[]): boolean {
 /**
  * Collapse seasons by `year`, in place. A duplicate same-year season has its
  * areas cloned into the kept season (which `mergeAreaSeasonsInPlace` then folds
- * together, unioning plantings) before the duplicate season is spliced out.
+ * together, unioning plantings) before the duplicate season is spliced out. The
+ * kept season's metadata is merged conservatively so a diverged duplicate loses
+ * nothing: earliest `createdAt`, latest `updatedAt`, and `status`/`notes`
+ * filled if the kept copy lacks them.
  */
 function mergeSeasonsInPlace(seasons: SeasonRecord[]): boolean {
   let changed = false
@@ -111,16 +141,19 @@ function mergeSeasonsInPlace(seasons: SeasonRecord[]): boolean {
     }
     removeAt.push(i)
     changed = true
-    const extra = season.areas ?? []
-    if (extra.length > 0) {
-      if (!existing.areas) existing.areas = []
-      for (const area of extra) existing.areas.push(clonePlain(area))
+    appendClones(existing.areas, season.areas)
+    if (season.createdAt && (!existing.createdAt || season.createdAt < existing.createdAt)) {
+      existing.createdAt = season.createdAt
     }
+    if (season.updatedAt && (!existing.updatedAt || season.updatedAt > existing.updatedAt)) {
+      existing.updatedAt = season.updatedAt
+    }
+    fillMissing(existing, season, ['status', 'notes'])
   }
   for (let i = removeAt.length - 1; i >= 0; i--) seasons.splice(removeAt[i], 1)
 
   for (const season of seasons) {
-    if (season.areas && mergeAreaSeasonsInPlace(season.areas)) changed = true
+    if (mergeAreaSeasonsInPlace(season.areas)) changed = true
   }
   return changed
 }

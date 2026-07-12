@@ -118,6 +118,68 @@ describe('dedupeAllotmentData', () => {
     expect(data.seasons[0].areas[0].plantings.map((p) => p.id).sort()).toEqual(['p1', 'p2'])
   })
 
+  it('unions notes and careLogs (by id) when collapsing duplicate area entries', () => {
+    const dup = makeClean()
+    const season = dup.seasons[0]
+    season.areas = [
+      {
+        areaId: 'bed-a',
+        plantings: [],
+        notes: [{ id: 'n1', content: 'shared', type: 'info', createdAt: 'x', updatedAt: 'x' }],
+        careLogs: [{ id: 'cl1', type: 'water', date: '2026-03-01' }],
+      },
+      {
+        areaId: 'bed-a',
+        plantings: [],
+        notes: [
+          { id: 'n1', content: 'shared', type: 'info', createdAt: 'x', updatedAt: 'x' },
+          { id: 'n2', content: 'only on the duplicate', type: 'warning', createdAt: 'x', updatedAt: 'x' },
+        ],
+        careLogs: [{ id: 'cl2', type: 'feed', date: '2026-03-02' }],
+      },
+    ] as never
+
+    const { data, changed } = dedupeAllotmentData(dup)
+
+    expect(changed).toBe(true)
+    const area = data.seasons[0].areas[0]
+    // n1 not doubled, n2 preserved from the dropped duplicate.
+    expect(area.notes!.map((n) => n.id).sort()).toEqual(['n1', 'n2'])
+    expect(area.careLogs!.map((c) => c.id).sort()).toEqual(['cl1', 'cl2'])
+  })
+
+  it('fills area fields the kept copy is missing from the dropped duplicate', () => {
+    const dup = makeClean()
+    dup.seasons[0].areas = [
+      { areaId: 'bed-a', plantings: [] },
+      { areaId: 'bed-a', plantings: [], harvestTotal: 3, harvestUnit: 'kg' },
+    ] as never
+
+    const { data } = dedupeAllotmentData(dup)
+
+    const area = data.seasons[0].areas[0]
+    expect(area.harvestTotal).toBe(3)
+    expect(area.harvestUnit).toBe('kg')
+  })
+
+  it('preserves season metadata (earliest createdAt, latest updatedAt) when collapsing by year', () => {
+    const dup = makeClean()
+    const base = dup.seasons[0]
+    base.createdAt = '2026-01-05T00:00:00.000Z'
+    base.updatedAt = '2026-05-01T00:00:00.000Z'
+    const other = JSON.parse(JSON.stringify(base)) as typeof base
+    other.createdAt = '2026-01-01T00:00:00.000Z' // earlier
+    other.updatedAt = '2026-06-01T00:00:00.000Z' // later
+    dup.seasons = [base, other]
+
+    const { data, changed } = dedupeAllotmentData(dup)
+
+    expect(changed).toBe(true)
+    expect(data.seasons).toHaveLength(1)
+    expect(data.seasons[0].createdAt).toBe('2026-01-01T00:00:00.000Z')
+    expect(data.seasons[0].updatedAt).toBe('2026-06-01T00:00:00.000Z')
+  })
+
   it('does not mutate the input', () => {
     const dup = makeClean()
     dup.layout.areas.push({ ...dup.layout.areas[0] })
