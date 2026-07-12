@@ -17,7 +17,10 @@ async function seedBed(page: import('@playwright/test').Page) {
     localStorage.setItem(
       'allotment-unified-data',
       JSON.stringify({
-        version: 18,
+        // Seed the current schema version so this /log smoke test doesn't run
+        // migrations (the v23 additions are optional). Keep in step with
+        // CURRENT_SCHEMA_VERSION in src/types/unified-allotment.ts.
+        version: 23,
         meta: { name: 'My Allotment', setupCompleted: true, createdAt: now, updatedAt: now },
         layout: {
           areas: [
