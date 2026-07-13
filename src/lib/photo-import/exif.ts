@@ -45,6 +45,9 @@ const TAG_GPS_LON = 0x0004
 
 const IFD_ENTRY_SIZE = 12
 
+/** Byte size per element of the TIFF field types we handle: 1=BYTE, 2=ASCII, 3=SHORT, 4=LONG, 5=RATIONAL. */
+const TYPE_SIZES: Record<number, number> = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8 }
+
 interface IfdEntry {
   tag: number
   type: number
@@ -58,16 +61,20 @@ interface IfdEntry {
  * string ("YYYY-MM-DDTHH:MM:SS"), or undefined if malformed. EXIF has no
  * timezone; we keep the camera's local wall-clock time, which is exactly
  * what "what happened on the plot that day" wants.
+ *
+ * Impossible calendar dates (e.g. 2026:02:31) are rejected by round-tripping
+ * the date part through a UTC Date — an overflowed value (Feb 31 → Mar 3)
+ * won't match what was written. Same technique as `normalizeLogDate`.
  */
 export function exifDateToIso(raw: string): string | undefined {
   const m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(raw.trim())
   if (!m) return undefined
   const [, y, mo, d, h, mi, s] = m
-  const month = Number(mo)
-  const day = Number(d)
-  if (month < 1 || month > 12 || day < 1 || day > 31) return undefined
+  const datePart = `${y}-${mo}-${d}`
+  const dt = new Date(`${datePart}T00:00:00Z`)
+  if (Number.isNaN(dt.getTime()) || dt.toISOString().slice(0, 10) !== datePart) return undefined
   if (Number(h) > 23 || Number(mi) > 59 || Number(s) > 60) return undefined
-  return `${y}-${mo}-${d}T${h}:${mi}:${s}`
+  return `${datePart}T${h}:${mi}:${s}`
 }
 
 /**
@@ -148,9 +155,8 @@ function readIfd(
     const tag = view.getUint16(at, little)
     const type = view.getUint16(at + 2, little)
     const cnt = view.getUint32(at + 4, little)
-    // Types: 1=BYTE 2=ASCII 3=SHORT 4=LONG 5=RATIONAL — sizes in bytes:
-    const typeSize = type === 1 || type === 2 ? 1 : type === 3 ? 2 : type === 4 ? 4 : type === 5 ? 8 : 0
-    if (typeSize === 0) continue
+    const typeSize = TYPE_SIZES[type]
+    if (typeSize === undefined) continue
     const byteLen = typeSize * cnt
     // Values <= 4 bytes are stored inline in the value word; larger values
     // store an offset (relative to the TIFF header) there instead.

@@ -38,7 +38,7 @@ import {
   type DraftPipelineResult,
   type PhotoMetaRecord,
 } from '@/lib/photo-import/pipeline'
-import { putPhoto } from '@/services/photo-store'
+import { putPhotos, type StoredPhoto } from '@/services/photo-store'
 import type { Area, NewCareLogEntry } from '@/types/unified-allotment'
 
 const EXCLUSION_LABELS: Record<string, string> = {
@@ -70,6 +70,13 @@ export default function PhotoImportPage() {
   const filesRef = useRef<Map<string, File>>(new Map())
   const previewUrlsRef = useRef<Map<string, string>>(new Map())
   const [, setPreviewVersion] = useState(0)
+  // Drafts whose care-log entry has actually been written. If a save fails
+  // partway, the confirm button stays active for retry — and a retry must
+  // only process the genuinely unsaved remainder, because addCareLog
+  // appends: re-running an already-saved draft would duplicate its
+  // observation entry. (putPhotos is an idempotent overwrite by id, so
+  // photos don't have this problem.)
+  const savedPhotoIdsRef = useRef<Set<string>>(new Set())
 
   const plotCoordinates = data?.meta.coordinates
 
@@ -109,24 +116,38 @@ export default function PhotoImportPage() {
     setBedByDate({})
     revokeAllPreviews()
     filesRef.current.clear()
+    savedPhotoIdsRef.current.clear()
 
+    // Parse in parallel, but in modest chunks: each in-flight file holds its
+    // full ArrayBuffer until parsed, so unbounded Promise.all over a
+    // multi-hundred-photo camera roll would balloon memory. Eight at a time
+    // keeps the I/O pipelined without that risk; chunk results are appended
+    // in order so record order stays stable.
+    const PARSE_CONCURRENCY = 8
+    const files = Array.from(fileList)
     const records: PhotoMetaRecord[] = []
-    for (const file of Array.from(fileList)) {
-      const id = generateId('photo')
-      let exif: ReturnType<typeof parseExif> = {}
-      try {
-        exif = parseExif(await file.arrayBuffer())
-      } catch {
-        // Unreadable file — fall through with empty EXIF; the pipeline
-        // will report it as excluded rather than aborting the import.
-      }
-      filesRef.current.set(id, file)
-      previewUrlsRef.current.set(id, URL.createObjectURL(file))
-      const record: PhotoMetaRecord = { id, fileName: file.name }
-      if (exif.takenAt) record.takenAt = exif.takenAt
-      if (exif.latitude !== undefined) record.latitude = exif.latitude
-      if (exif.longitude !== undefined) record.longitude = exif.longitude
-      records.push(record)
+    for (let i = 0; i < files.length; i += PARSE_CONCURRENCY) {
+      const chunk = files.slice(i, i + PARSE_CONCURRENCY)
+      const parsed = await Promise.all(
+        chunk.map(async file => {
+          const id = generateId('photo')
+          let exif: ReturnType<typeof parseExif> = {}
+          try {
+            exif = parseExif(await file.arrayBuffer())
+          } catch {
+            // Unreadable file — fall through with empty EXIF; the pipeline
+            // will report it as excluded rather than aborting the import.
+          }
+          filesRef.current.set(id, file)
+          previewUrlsRef.current.set(id, URL.createObjectURL(file))
+          const record: PhotoMetaRecord = { id, fileName: file.name }
+          if (exif.takenAt) record.takenAt = exif.takenAt
+          if (exif.latitude !== undefined) record.latitude = exif.latitude
+          if (exif.longitude !== undefined) record.longitude = exif.longitude
+          return record
+        })
+      )
+      records.push(...parsed)
     }
 
     const pipelineResult = buildDraftObservations(records, {
@@ -143,28 +164,45 @@ export default function PhotoImportPage() {
     setSavingDate(group.date)
     setSaveError(null)
 
-    let saved = 0
+    // Only the drafts the user kept, minus anything a previous (partially
+    // failed) attempt already saved — see savedPhotoIdsRef.
+    const pending = group.drafts.filter(
+      draft =>
+        !excludedPhotos[draft.photoId] &&
+        !savedPhotoIdsRef.current.has(draft.photoId) &&
+        filesRef.current.has(draft.photoId)
+    )
+
+    // 1. All blobs into the local-only photo store in one transaction —
+    // all-or-nothing, so a failure here persists nothing and retry is safe.
+    const photos: StoredPhoto[] = pending.map(draft => {
+      const exifJson: Record<string, string | number> = { takenAt: draft.takenAt }
+      if (draft.latitude !== undefined) exifJson.latitude = draft.latitude
+      if (draft.longitude !== undefined) exifJson.longitude = draft.longitude
+      return {
+        id: draft.photoId,
+        blob: filesRef.current.get(draft.photoId)!,
+        takenAt: draft.takenAt,
+        ...(draft.latitude !== undefined ? { latitude: draft.latitude } : {}),
+        ...(draft.longitude !== undefined ? { longitude: draft.longitude } : {}),
+        bedId,
+        exifJson: JSON.stringify(exifJson),
+      }
+    })
     try {
-      for (const draft of group.drafts) {
-        if (excludedPhotos[draft.photoId]) continue
-        const file = filesRef.current.get(draft.photoId)
-        if (!file) continue
+      await putPhotos(photos)
+    } catch {
+      setSaveError(
+        `Could not save the photos for ${formatGroupDate(group.date)}. Nothing was imported for that day — please try again.`
+      )
+      setSavingDate(null)
+      return
+    }
 
-        // 1. Blob into the local-only photo store first…
-        const exifJson: Record<string, string | number> = { takenAt: draft.takenAt }
-        if (draft.latitude !== undefined) exifJson.latitude = draft.latitude
-        if (draft.longitude !== undefined) exifJson.longitude = draft.longitude
-        await putPhoto({
-          id: draft.photoId,
-          blob: file,
-          takenAt: draft.takenAt,
-          ...(draft.latitude !== undefined ? { latitude: draft.latitude } : {}),
-          ...(draft.longitude !== undefined ? { longitude: draft.longitude } : {}),
-          bedId,
-          exifJson: JSON.stringify(exifJson),
-        })
-
-        // 2. …then the observation care-log entry referencing it by id.
+    // 2. …then the observation care-log entries referencing them by id,
+    // marking each draft saved so a retry never duplicates an entry.
+    try {
+      for (const draft of pending) {
         const entry: NewCareLogEntry = {
           type: 'observation',
           date: draft.date,
@@ -173,12 +211,14 @@ export default function PhotoImportPage() {
         if (caption) entry.description = caption
         entry.photoId = draft.photoId
         addCareLog(bedId, entry)
-        saved++
+        savedPhotoIdsRef.current.add(draft.photoId)
       }
-      setConfirmedDates(prev => ({ ...prev, [group.date]: saved }))
+      const totalSaved = group.drafts.filter(d => savedPhotoIdsRef.current.has(d.photoId)).length
+      setConfirmedDates(prev => ({ ...prev, [group.date]: totalSaved }))
     } catch {
+      const savedCount = group.drafts.filter(d => savedPhotoIdsRef.current.has(d.photoId)).length
       setSaveError(
-        `Could not save all photos for ${group.date}. ${saved} saved before the error — you can retry the rest.`
+        `Could not log every photo for ${formatGroupDate(group.date)}. ${savedCount} saved so far — retry to finish the rest (already-saved photos won't be duplicated).`
       )
     } finally {
       setSavingDate(null)

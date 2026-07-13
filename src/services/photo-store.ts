@@ -11,6 +11,11 @@
  * This is a minimal promise wrapper over raw IndexedDB — no Dexie, no second
  * storage framework (y-indexeddb owns the *structured* data; this DB holds
  * binary blobs only).
+ *
+ * Durability: IndexedDB writes are only guaranteed once the *transaction*
+ * completes — a request's `onsuccess` can fire and the transaction still
+ * abort afterwards (e.g. quota exceeded at commit). Every promise here
+ * therefore resolves on `tx.oncomplete`, never on request success alone.
  */
 
 export interface StoredPhoto {
@@ -54,28 +59,77 @@ function openDb(): Promise<IDBDatabase> {
   })
 }
 
-/** Run one operation in its own transaction, closing the db afterwards. */
-async function withStore<T>(
+/**
+ * Run `work` against the object store in its own transaction, resolving with
+ * `getResult()` only once the transaction has committed (see the durability
+ * note above), and closing the db afterwards. Rejects on transaction error
+ * or abort; `work` may also wire per-request rejection via the `reject` it
+ * receives.
+ */
+async function inTransaction<T>(
   mode: IDBTransactionMode,
-  operation: (store: IDBObjectStore) => IDBRequest<T>
+  work: (store: IDBObjectStore, reject: (reason: unknown) => void) => () => T
 ): Promise<T> {
   const db = await openDb()
   try {
     return await new Promise<T>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, mode)
-      const request = operation(tx.objectStore(STORE_NAME))
-      request.onsuccess = () => resolve(request.result)
-      request.onerror = () => reject(request.error ?? new Error('Photo store operation failed'))
+      tx.onerror = () => reject(tx.error ?? new Error('Photo store transaction failed'))
       tx.onabort = () => reject(tx.error ?? new Error('Photo store transaction aborted'))
+      let getResult: () => T
+      try {
+        getResult = work(tx.objectStore(STORE_NAME), reject)
+      } catch (err) {
+        // A synchronous throw (e.g. a record that can't provide the keyPath)
+        // must abort the transaction, or requests issued before the throw
+        // would still auto-commit — breaking all-or-nothing semantics.
+        try {
+          tx.abort()
+        } catch {
+          // Already aborting/finished — nothing more to do.
+        }
+        reject(err)
+        return
+      }
+      tx.oncomplete = () => resolve(getResult())
     })
   } finally {
     db.close()
   }
 }
 
-/** Store (or overwrite) a photo record. */
+/** Run one IDB request in its own transaction; resolve its result on commit. */
+function withStore<T>(
+  mode: IDBTransactionMode,
+  operation: (store: IDBObjectStore) => IDBRequest<T>
+): Promise<T> {
+  return inTransaction<T>(mode, (store, reject) => {
+    const request = operation(store)
+    request.onerror = () =>
+      reject(request.error ?? new Error('Photo store operation failed'))
+    return () => request.result
+  })
+}
+
+/**
+ * Store (or overwrite) a batch of photo records in a single transaction.
+ * All-or-nothing: if any record fails, the transaction aborts and none of
+ * the batch is persisted. Resolves only after the transaction commits.
+ */
+export async function putPhotos(photos: StoredPhoto[]): Promise<void> {
+  if (photos.length === 0) return
+  await inTransaction<void>('readwrite', (store, reject) => {
+    for (const photo of photos) {
+      const request = store.put(photo)
+      request.onerror = () => reject(request.error ?? new Error('Photo store put failed'))
+    }
+    return () => undefined
+  })
+}
+
+/** Store (or overwrite) a single photo record. */
 export async function putPhoto(photo: StoredPhoto): Promise<void> {
-  await withStore('readwrite', store => store.put(photo))
+  await putPhotos([photo])
 }
 
 /** Fetch one photo record (with blob), or null if absent. */
@@ -89,13 +143,26 @@ export async function deletePhoto(id: string): Promise<void> {
   await withStore('readwrite', store => store.delete(id))
 }
 
-/** List all stored photos' metadata (blobs omitted to keep it cheap). */
+/**
+ * List all stored photos' metadata. Iterates with a cursor, stripping the
+ * `blob` from each record as it streams past, so at most one record's blob
+ * is materialised at a time (rather than `getAll()` holding every blob in
+ * memory simultaneously).
+ */
 export async function listPhotos(): Promise<StoredPhotoMeta[]> {
-  const all = await withStore<StoredPhoto[]>('readonly', store => store.getAll())
-  return all.map(photo => {
-    const meta: StoredPhotoMeta & { blob?: Blob } = { ...photo }
-    delete meta.blob
-    return meta
+  return inTransaction<StoredPhotoMeta[]>('readonly', (store, reject) => {
+    const metas: StoredPhotoMeta[] = []
+    const request = store.openCursor()
+    request.onsuccess = () => {
+      const cursor = request.result
+      if (!cursor) return
+      const meta: StoredPhotoMeta & { blob?: Blob } = { ...(cursor.value as StoredPhoto) }
+      delete meta.blob
+      metas.push(meta)
+      cursor.continue()
+    }
+    request.onerror = () => reject(request.error ?? new Error('Photo store cursor failed'))
+    return () => metas
   })
 }
 

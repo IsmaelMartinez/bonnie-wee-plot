@@ -18,6 +18,14 @@ describe('exifDateToIso', () => {
     expect(exifDateToIso('2026:13:12 09:30:00')).toBeUndefined() // month 13
     expect(exifDateToIso('2026:04:12 25:30:00')).toBeUndefined() // hour 25
   })
+
+  it('rejects impossible calendar dates instead of letting them roll over', () => {
+    expect(exifDateToIso('2026:02:31 10:00:00')).toBeUndefined() // Feb 31 (would roll to Mar 3)
+    expect(exifDateToIso('2026:04:31 10:00:00')).toBeUndefined() // April has 30 days
+    expect(exifDateToIso('2026:02:29 10:00:00')).toBeUndefined() // 2026 is not a leap year
+    expect(exifDateToIso('2026:06:00 10:00:00')).toBeUndefined() // day 0
+    expect(exifDateToIso('2024:02:29 10:00:00')).toBe('2024-02-29T10:00:00') // real leap day
+  })
 })
 
 describe('parseExif', () => {

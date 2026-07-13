@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import {
   putPhoto,
+  putPhotos,
   getPhoto,
   deletePhoto,
   listPhotos,
@@ -80,6 +81,39 @@ describe('photo-store', () => {
     await deletePhoto('photo-1')
     expect(await getPhoto('photo-1')).toBeNull()
     await expect(deletePhoto('photo-1')).resolves.toBeUndefined()
+  })
+
+  describe('putPhotos (batch)', () => {
+    it('stores a whole batch in one call and every record is durable after resolve', async () => {
+      await putPhotos([makePhoto('batch-1'), makePhoto('batch-2'), makePhoto('batch-3')])
+
+      // The promise resolved on tx.oncomplete, so a fresh transaction must
+      // already see every record — no post-hoc flushing.
+      const list = await listPhotos()
+      expect(list.map(p => p.id).sort()).toEqual(['batch-1', 'batch-2', 'batch-3'])
+      expect(await getPhoto('batch-2')).not.toBeNull()
+    })
+
+    it('is a no-op for an empty batch', async () => {
+      await expect(putPhotos([])).resolves.toBeUndefined()
+      expect(await listPhotos()).toHaveLength(0)
+    })
+
+    it('rejects (and persists nothing) when a record in the batch is invalid', async () => {
+      // keyPath is 'id'; a record without one makes the put throw, which
+      // must surface as a rejection — not a silent success on request
+      // callbacks that never fire.
+      const invalid = { ...makePhoto('will-not-matter') } as Partial<StoredPhoto>
+      delete invalid.id
+      await expect(
+        putPhotos([makePhoto('batch-ok'), invalid as StoredPhoto])
+      ).rejects.toBeTruthy()
+      // All-or-nothing: the transaction was aborted, so the valid sibling
+      // that was queued before the failure must not have been committed.
+      expect(await getPhoto('batch-ok')).toBeNull()
+      expect(await getPhoto('will-not-matter')).toBeNull()
+      expect(await listPhotos()).toHaveLength(0)
+    })
   })
 
   describe('object URLs', () => {
