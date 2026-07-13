@@ -9,8 +9,10 @@ import {
   GARDEN_ORGANIC_STORING,
   UMN_HARVEST_STORAGE,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
 } from '../resources'
 
 export const otherPreservation: PreservationGuide[] = [
@@ -34,6 +36,7 @@ export const otherPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('sweetcorn', 'Sweetcorn'),
       bbcGoodFoodCollection('sweetcorn-recipes', 'Sweetcorn recipes'),
+      bbcGoodFoodRecipe('sweetcorn-fritters', 'Sweetcorn fritters'),
     ],
   },
   {
@@ -115,6 +118,7 @@ export const otherPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('rhubarb', 'Rhubarb'),
       bbcGoodFoodCollection('rhubarb-recipes', 'Rhubarb recipes'),
+      bbcFoodDish('rhubarb_crumble', 'Rhubarb crumble'),
     ],
   },
   {

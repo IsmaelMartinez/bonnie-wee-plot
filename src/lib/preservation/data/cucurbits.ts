@@ -13,8 +13,11 @@ import {
   GARDEN_ORGANIC_STORING,
   UMN_HARVEST_STORAGE,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
+  bbcFoodRecipe,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
 } from '../resources'
 
 export const cucurbitsPreservation: PreservationGuide[] = [
@@ -49,7 +52,8 @@ export const cucurbitsPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('courgette', 'Courgette'),
-      bbcGoodFoodCollection('courgette-cake-recipes', 'Courgette cake recipes'),
+      bbcFoodDish('ratatouille', 'Ratatouille'),
+      bbcFoodRecipe('stuffed_marrow_43279', 'Stuffed marrow'),
       BBC_GOOD_FOOD.glutCakes,
     ],
   },
@@ -102,6 +106,7 @@ export const cucurbitsPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('pumpkin', 'Pumpkin'),
       bbcGoodFoodCollection('pumpkin-recipes', 'Pumpkin recipes'),
+      bbcGoodFoodRecipe('pumpkin-soup', 'Pumpkin soup'),
     ],
   },
   {
