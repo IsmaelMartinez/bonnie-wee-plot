@@ -53,6 +53,7 @@ const primaryNavLinks = [
 
 // Secondary links shown in "More" dropdown
 export const secondaryLinks = [
+  { href: '/season-review', label: 'Season Review', description: 'What the season’s logs & weather show' },
   { href: '/seeds', label: 'Seeds', description: 'Inventory & varieties' },
   { href: '/preserving', label: 'Preserving', description: 'Store & preserve your harvest' },
   { href: '/settings', label: 'Settings', description: 'Sync & preferences' },
