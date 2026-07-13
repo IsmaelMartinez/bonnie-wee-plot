@@ -46,25 +46,23 @@ interface EventConfig {
   needsSeverity?: boolean
   /** Show quantity + unit inputs (harvest). */
   isHarvest?: boolean
-  /** Tailwind colour stem from the zen palette. */
-  color: string
 }
 
 // Ordered by how often you reach for them mid-season, most common first.
 const EVENTS: EventConfig[] = [
-  { type: 'harvest', label: 'Harvest', icon: Package, isHarvest: true, color: 'zen-moss' },
-  { type: 'germinated', label: 'Germinated', icon: Sprout, color: 'zen-moss' },
-  { type: 'flowering', label: 'Flowering', icon: Flower2, color: 'zen-sakura' },
-  { type: 'pest', label: 'Pest', icon: Bug, needsSeverity: true, color: 'zen-kitsune' },
-  { type: 'disease', label: 'Disease', icon: ShieldAlert, needsSeverity: true, color: 'zen-kitsune' },
-  { type: 'water', label: 'Watered', icon: Droplets, color: 'zen-water' },
-  { type: 'feed', label: 'Fed', icon: Leaf, color: 'zen-bamboo' },
-  { type: 'thinned', label: 'Thinned', icon: Scissors, color: 'zen-stone' },
-  { type: 'bolted', label: 'Bolted', icon: AlertTriangle, color: 'zen-kitsune' },
-  { type: 'damage', label: 'Damage', icon: AlertTriangle, needsSeverity: true, color: 'zen-kitsune' },
+  { type: 'harvest', label: 'Harvest', icon: Package, isHarvest: true },
+  { type: 'germinated', label: 'Germinated', icon: Sprout },
+  { type: 'flowering', label: 'Flowering', icon: Flower2 },
+  { type: 'pest', label: 'Pest', icon: Bug, needsSeverity: true },
+  { type: 'disease', label: 'Disease', icon: ShieldAlert, needsSeverity: true },
+  { type: 'water', label: 'Watered', icon: Droplets },
+  { type: 'feed', label: 'Fed', icon: Leaf },
+  { type: 'thinned', label: 'Thinned', icon: Scissors },
+  { type: 'bolted', label: 'Bolted', icon: AlertTriangle },
+  { type: 'damage', label: 'Damage', icon: AlertTriangle, needsSeverity: true },
   // Free-form note maps to the existing 'observation' care-log type — we don't
   // keep a separate near-identical 'note' type (simplicity-first).
-  { type: 'observation', label: 'Note', icon: StickyNote, color: 'zen-ink' },
+  { type: 'observation', label: 'Note', icon: StickyNote },
 ]
 
 const SEVERITY_LABELS: Record<ObservationSeverity, string> = {
