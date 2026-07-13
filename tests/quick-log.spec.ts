@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { clearYjsIdbOnFirstLoad } from './utils/storage'
+import { CURRENT_SCHEMA_VERSION, STORAGE_KEY } from '@/types/unified-allotment'
 
 // Clear any stale Yjs IndexedDB before the app first boots so the seeded
 // localStorage below hydrates the Yjs doc instead of being shadowed by IDB
@@ -11,16 +12,17 @@ test.beforeEach(async ({ page }) => {
 // Seed onboarding-complete data with one loggable bed and a current season,
 // so the /log bed picker and save path have something to work with.
 async function seedBed(page: import('@playwright/test').Page) {
-  await page.addInitScript(() => {
+  // Pass the schema version + storage key from the codebase into the in-browser
+  // init script so the seed can't drift on a schema bump. Seeding the current
+  // version also keeps the smoke test from running migrations (the v23 additions
+  // are optional anyway).
+  await page.addInitScript(({ version, storageKey }) => {
     const now = new Date().toISOString()
     const currentYear = new Date().getFullYear()
     localStorage.setItem(
-      'allotment-unified-data',
+      storageKey,
       JSON.stringify({
-        // Seed the current schema version so this /log smoke test doesn't run
-        // migrations (the v23 additions are optional). Keep in step with
-        // CURRENT_SCHEMA_VERSION in src/types/unified-allotment.ts.
-        version: 23,
+        version,
         meta: { name: 'My Allotment', setupCompleted: true, createdAt: now, updatedAt: now },
         layout: {
           areas: [
@@ -42,7 +44,7 @@ async function seedBed(page: import('@playwright/test').Page) {
       'bonnie-wee-plot-tours',
       JSON.stringify({ completed: [], dismissed: [] })
     )
-  })
+  }, { version: CURRENT_SCHEMA_VERSION, storageKey: STORAGE_KEY })
 }
 
 test.describe('Quick Log capture', () => {
