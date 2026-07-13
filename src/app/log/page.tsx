@@ -116,6 +116,12 @@ export default function QuickLogPage() {
   // season elsewhere — say so, so entries aren't filed into the wrong season
   // unnoticed. Derive the calendar year from the same value the dates use.
   const calendarYear = Number(todayStr.slice(0, 4))
+  // Logging into a past season is valid (backfilling last year's log). Logging
+  // into a *future* season isn't — the events haven't happened, and there's no
+  // valid in-season, non-future date to store, so block it rather than clamp a
+  // date into a season it doesn't belong to.
+  const isFutureSeason = selectedYear > calendarYear
+  const isPastSeason = selectedYear < calendarYear
 
   // Clear a pending flash timeout on unmount so it never fires on an
   // unmounted component.
@@ -159,7 +165,7 @@ export default function QuickLogPage() {
   }
 
   const handleSave = () => {
-    if (!bedId || !event || !currentSeason) return
+    if (!bedId || !event || !currentSeason || isFutureSeason) return
 
     const normalizedDate = normalizeLogDate(date, seasonMax, seasonMin)
     // Keep the picker in sync with what actually gets stored, so a clamped or
@@ -214,7 +220,7 @@ export default function QuickLogPage() {
           <p className="text-zen-stone-500">
             Tap a bed, tap what happened. {selectedYear} season.
           </p>
-          {calendarYear !== selectedYear && (
+          {isPastSeason && (
             <div
               role="note"
               className="mt-2 flex items-start gap-2 rounded-zen bg-zen-kitsune-50 border border-zen-kitsune-200 px-3 py-2 text-xs text-zen-kitsune-800"
@@ -238,7 +244,20 @@ export default function QuickLogPage() {
           </div>
         )}
 
-        {beds.length === 0 ? (
+        {isFutureSeason ? (
+          <div className="zen-card p-6 text-center">
+            <AlertTriangle className="w-8 h-8 text-zen-kitsune-400 mx-auto mb-3" />
+            <p className="text-zen-stone-600 mb-4">
+              The active season is <strong>{selectedYear}</strong>, which is in the future. You can
+              only log events that have already happened. Switch the active year to {calendarYear} on
+              the Allotment page to log now.
+            </p>
+            <Link href="/allotment" className="zen-btn-primary">
+              <MapPin className="w-4 h-4" />
+              Go to Allotment
+            </Link>
+          </div>
+        ) : beds.length === 0 ? (
           <div className="zen-card p-6 text-center">
             <MapPin className="w-8 h-8 text-zen-water-400 mx-auto mb-3" />
             <p className="text-zen-stone-600 mb-4">
