@@ -103,11 +103,20 @@ right reasons.
 
 ## Deferred roadmap (with the reframing decisions)
 
-### Weather backfill (Phase 2a)
-Add an **Archive API** client (`archive-api.open-meteo.com`) for one-call
-full-season backfill incl. soil moisture + ET0, plus a **10-year daily
-baseline**, cached in localStorage/IndexedDB (not SQLite/parquet — that would be
-the forbidden second stack). Reuse `frost-dates.ts` for the frost metric.
+### Weather backfill (Phase 2a) — **shipped**
+Archive API client (`src/lib/weather/open-meteo-archive.ts`): one call fetches
+a whole season of daily weather (temps, rain, radiation, ET0, sunshine,
+daylight, weather code) plus hourly soil temp/moisture aggregated to daily
+(`soil-daily.ts`), cached in localStorage keyed by rounded coords + year —
+completed seasons forever, the current season with a 24h TTL. 10-year monthly
+normals in `weather-baseline.ts` (`getBaseline`), pure `computeBaseline` over
+fetched seasons. Everything comes from the Archive API (ERA5): the Historical
+Forecast API was rejected for the current season because its soil layers
+(0/6/18cm, 0-1cm moisture) don't match ERA5's 0-7/7-28cm, which would break
+comparability with the baseline; the ~5-day lag doesn't matter for a
+retrospective report. Coordinates stay in local cache keys only (rounded
+~1 km), never logged, absent from exported types. Reuse `frost-dates.ts` for
+the frost metric.
 
 ### Derived metrics + rules engine (Phase 2b)
 Deterministic code over logs + weather: GDD accumulation, soil temp at sowing,
