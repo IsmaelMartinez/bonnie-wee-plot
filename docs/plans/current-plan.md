@@ -1,6 +1,34 @@
 # Current Plan
 
-Last updated: 2026-07-07 (ADR 027 Step 4 shipped — cloud sync moved to Yjs binary CRDT state; LWW machinery and the conflict dialog retired)
+Last updated: 2026-07-13 (Season Observer camera-roll EXIF importer shipped)
+
+## Season Observer — camera-roll photo import (shipped)
+
+Closes the last open Phase-1 acceptance criterion (retroactive season
+reconstruction from phone photos). `/log/import` reads EXIF
+(`DateTimeOriginal` + GPS) client-side with a small pure parser
+(`src/lib/photo-import/exif.ts` — no new dependency), keeps photos within
+~100m of `meta.coordinates` (haversine geofence, gracefully skipped when the
+plot has no coordinates), groups them by calendar date, and presents draft
+observations the user assigns to a bed and confirms — never auto-committed.
+Confirmed photos land as blobs in a separate plain IndexedDB store
+(`src/services/photo-store.ts`, `bwp-photos`) with the care-log observation
+referencing them via the existing `CareLogEntry.photoId` (v23). Photo
+bytes/EXIF/GPS never enter AllotmentData, so cloud sync, JSON export, share,
+and GDPR export stay free of photo location data. Vision captioning is
+deliberately deferred; `DraftObservation.suggestedCaption` + `DraftAnnotator`
+in `src/lib/photo-import/pipeline.ts` are the seam.
+
+## Season Observer — Phase 1 (shipped)
+
+Closing the plan → observe → learn loop. Phase 1 is log capture (the only
+irreplaceable input; weather is backfillable later). Schema **v23**: agronomic
+observation care-log types + `severity`/`photoId`/`plantingId`, `Planting.endedOn`.
+New `src/lib/agronomy.ts` (deterministic crop reference: GDD base, soil temps,
+frost tolerance, heat stress). New `/log` quick-capture screen (<15s path).
+Full findings, reuse map, and the deferred Phase 2 roadmap (weather backfill,
+rules engine, LLM narration decision, photos/EXIF import) are in
+`docs/plans/season-observer.md`.
 
 ## ADR 027 Step 4 — Yjs binary cloud transport (shipped)
 
