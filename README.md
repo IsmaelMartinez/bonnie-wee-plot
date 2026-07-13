@@ -177,6 +177,14 @@ Sign in or create an account to enable cloud sync for your garden data across mu
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
+## 🌦️ Weather Data Attribution
+
+Forecasts, frost dates, and historical season weather are provided by
+[Open-Meteo.com](https://open-meteo.com/), licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). No API key is
+required and coordinates are only ever sent to Open-Meteo to fetch weather
+for your plot.
+
 ## 📜 License & Usage Policy
 
 This project is **open source and free for personal, educational, and community use**.
