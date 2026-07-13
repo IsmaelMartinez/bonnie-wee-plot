@@ -111,6 +111,13 @@ export default function QuickLogPage() {
     return t < yearEnd ? t : yearEnd
   }, [selectedYear])
 
+  // selectedYear is the app-wide active season (shared with the rest of the app,
+  // persisted as currentYear). /log follows it for consistency, but if it's not
+  // the current calendar year — because the user left the active year on a past
+  // season elsewhere — say so, so entries aren't filed into the wrong season
+  // unnoticed. Derive the calendar year from the same helper the dates use.
+  const calendarYear = Number(today().slice(0, 4))
+
   // Clear a pending flash timeout on unmount so it never fires on an
   // unmounted component.
   useEffect(() => () => {
@@ -208,6 +215,18 @@ export default function QuickLogPage() {
           <p className="text-zen-stone-500">
             Tap a bed, tap what happened. {selectedYear} season.
           </p>
+          {calendarYear !== selectedYear && (
+            <div
+              role="note"
+              className="mt-2 flex items-start gap-2 rounded-zen bg-zen-kitsune-50 border border-zen-kitsune-200 px-3 py-2 text-xs text-zen-kitsune-800"
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                You&apos;re logging into the <strong>{selectedYear}</strong> season, not the current
+                year ({calendarYear}). Change the active year on the Allotment page to log for {calendarYear}.
+              </span>
+            </div>
+          )}
         </header>
 
         {savedFlash && (

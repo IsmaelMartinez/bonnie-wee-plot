@@ -55,23 +55,26 @@ test.describe('Quick Log capture', () => {
 
     const bed = page.getByRole('button', { name: /Bed A/ })
     const noteButton = page.getByRole('button', { name: 'Note', exact: true })
+    const saveButton = page.getByRole('button', { name: 'Save', exact: true })
+    const flash = page.getByRole('status')
 
-    // Step 1 — pick the seeded bed. Retry the tap until the event grid appears:
-    // the bed button is server-rendered, so a tap can land before React
-    // hydration wires up its handler (dev cold-start) and be lost.
+    // Drive bed → event → save inside a single retry. The bed/event buttons are
+    // server-rendered, so during the initial data-load window a tap can land
+    // before React hydration wires up the handler (or the element re-renders and
+    // detaches). Retrying the whole sequence tolerates that churn; re-runs just
+    // re-tap the same bed/event (idempotent) and add another identical log until
+    // the confirmation appears.
     await expect(async () => {
       await bed.click()
       await expect(noteButton).toBeVisible({ timeout: 1000 })
-    }).toPass({ timeout: 15000 })
-
-    // Step 2 — pick an event (the free-form Note maps to an observation).
-    await noteButton.click()
-
-    // Step 3 — save. Everything past bed + event is optional.
-    await page.getByRole('button', { name: 'Save', exact: true }).click()
+      await noteButton.click()
+      await expect(saveButton).toBeVisible({ timeout: 1000 })
+      await saveButton.click()
+      await expect(flash).toBeVisible({ timeout: 1000 })
+    }).toPass({ timeout: 20000 })
 
     // Confirmation flash names the event and the bed.
-    await expect(page.getByRole('status')).toContainText(/logged in Bed A/i)
+    await expect(flash).toContainText(/logged in Bed A/i)
   })
 
   test('shows the setup prompt when there are no beds', async ({ page }) => {
