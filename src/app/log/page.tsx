@@ -100,11 +100,28 @@ export default function QuickLogPage() {
   const [savedFlash, setSavedFlash] = useState<string | null>(null)
   const flashTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // A logged entry is filed into selectedYear's season (via addCareLog), so the
+  // date must fall in that year — otherwise a backdated entry misfiles into a
+  // season it doesn't belong to. Bound the picker (and the stored value) to
+  // [Jan 1, min(today, Dec 31)] of the selected year.
+  const seasonMin = `${selectedYear}-01-01`
+  const seasonMax = useMemo(() => {
+    const t = today()
+    const yearEnd = `${selectedYear}-12-31`
+    return t < yearEnd ? t : yearEnd
+  }, [selectedYear])
+
   // Clear a pending flash timeout on unmount so it never fires on an
   // unmounted component.
   useEffect(() => () => {
     if (flashTimeout.current) clearTimeout(flashTimeout.current)
   }, [])
+
+  // Keep the picked date inside the selected season's bounds (e.g. after the
+  // selected year changes) so the field never shows an out-of-season value.
+  useEffect(() => {
+    setDate(d => normalizeLogDate(d, seasonMax, seasonMin))
+  }, [seasonMin, seasonMax])
 
   // Beds that can hold plantings, with the active ones (something planted this
   // season) surfaced first so the muddy-thumb path lands on the right bed fast.
@@ -138,7 +155,7 @@ export default function QuickLogPage() {
   const handleSave = () => {
     if (!bedId || !event || !currentSeason) return
 
-    const normalizedDate = normalizeLogDate(date)
+    const normalizedDate = normalizeLogDate(date, seasonMax, seasonMin)
     // Keep the picker in sync with what actually gets stored, so a clamped or
     // corrected date isn't silently different from what the field shows.
     if (normalizedDate !== date) setDate(normalizedDate)
@@ -400,7 +417,8 @@ export default function QuickLogPage() {
                     id="log-date"
                     type="date"
                     value={date}
-                    max={today()}
+                    min={seasonMin}
+                    max={seasonMax}
                     onChange={e => setDate(e.target.value)}
                     className="min-h-[48px] px-3 border border-zen-stone-200 rounded-zen"
                   />

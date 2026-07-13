@@ -47,5 +47,36 @@ describe('log-date helpers', () => {
       expect(normalizeLogDate('2024-02-29', today)).toBe('2024-02-29') // 2024 is a leap year
       expect(normalizeLogDate('2026-02-29', today)).toBe(today)        // 2026 is not
     })
+
+    describe('with season [min, max] bounds', () => {
+      // Simulate the /log page: entries filed into the 2026 season, so the date
+      // must fall in 2026. max = today (mid-season), min = Jan 1.
+      const seasonMin = '2026-01-01'
+      const seasonMax = '2026-07-12'
+
+      it('passes through an in-season date', () => {
+        expect(normalizeLogDate('2026-05-01', seasonMax, seasonMin)).toBe('2026-05-01')
+      })
+
+      it('clamps a date from an earlier year up to the season start', () => {
+        expect(normalizeLogDate('2024-08-15', seasonMax, seasonMin)).toBe(seasonMin)
+        expect(normalizeLogDate('2025-12-31', seasonMax, seasonMin)).toBe(seasonMin)
+      })
+
+      it('clamps a date past the max down to the max', () => {
+        expect(normalizeLogDate('2026-11-30', seasonMax, seasonMin)).toBe(seasonMax)
+        expect(normalizeLogDate('2027-01-01', seasonMax, seasonMin)).toBe(seasonMax)
+      })
+
+      it('falls back to max for empty/invalid even with a min bound', () => {
+        expect(normalizeLogDate('', seasonMax, seasonMin)).toBe(seasonMax)
+        expect(normalizeLogDate('2026-02-31', seasonMax, seasonMin)).toBe(seasonMax)
+      })
+
+      it('never yields a future date when min > max (degenerate future season)', () => {
+        // A future season: min is after max(today). The max clamp wins last.
+        expect(normalizeLogDate('2030-06-01', '2026-07-12', '2027-01-01')).toBe('2026-07-12')
+      })
+    })
   })
 })
