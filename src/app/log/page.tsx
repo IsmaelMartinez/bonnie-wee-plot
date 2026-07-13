@@ -103,20 +103,19 @@ export default function QuickLogPage() {
   // A logged entry is filed into selectedYear's season (via addCareLog), so the
   // date must fall in that year — otherwise a backdated entry misfiles into a
   // season it doesn't belong to. Bound the picker (and the stored value) to
-  // [Jan 1, min(today, Dec 31)] of the selected year.
+  // [Jan 1, min(today, Dec 31)] of the selected year. Computed per render (not
+  // memoized) so today() stays current if the page is left open past midnight.
+  const todayStr = today()
   const seasonMin = `${selectedYear}-01-01`
-  const seasonMax = useMemo(() => {
-    const t = today()
-    const yearEnd = `${selectedYear}-12-31`
-    return t < yearEnd ? t : yearEnd
-  }, [selectedYear])
+  const yearEnd = `${selectedYear}-12-31`
+  const seasonMax = todayStr < yearEnd ? todayStr : yearEnd
 
   // selectedYear is the app-wide active season (shared with the rest of the app,
   // persisted as currentYear). /log follows it for consistency, but if it's not
   // the current calendar year — because the user left the active year on a past
   // season elsewhere — say so, so entries aren't filed into the wrong season
-  // unnoticed. Derive the calendar year from the same helper the dates use.
-  const calendarYear = Number(today().slice(0, 4))
+  // unnoticed. Derive the calendar year from the same value the dates use.
+  const calendarYear = Number(todayStr.slice(0, 4))
 
   // Clear a pending flash timeout on unmount so it never fires on an
   // unmounted component.

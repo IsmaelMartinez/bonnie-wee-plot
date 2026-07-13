@@ -1,10 +1,12 @@
 /**
- * Date helpers for the Quick Log capture screen.
+ * Date helpers for the Quick Log (/log) capture screen.
  *
- * Pure and deterministic so they can be unit-tested and so every stored
- * care-log entry is guaranteed a valid, non-future YYYY-MM-DD date — otherwise
- * downstream renderers (e.g. CareLogSection.formatDate) can hit an invalid Date
- * and future dates could leak into a season report.
+ * Pure and deterministic so they can be unit-tested and so every care-log entry
+ * captured via Quick Log is guaranteed a valid, in-season, non-future
+ * YYYY-MM-DD date — otherwise downstream renderers (e.g. CareLogSection.formatDate)
+ * can hit an invalid Date and out-of-season/future dates could skew a season
+ * report. Other care-log entry points (e.g. CareLogSection's manual form) don't
+ * route through here.
  */
 
 /**
