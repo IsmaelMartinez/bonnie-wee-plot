@@ -105,11 +105,7 @@ export function bbcFoodIngredient(slug: string, label: string): PreservationReso
  * mint_sauce, horseradish_sauce. Spot-check any new slug returns 200.
  */
 export function bbcFoodDish(slug: string, label: string): PreservationResource {
-  return {
-    title: `${label} recipes`,
-    url: `https://www.bbc.co.uk/food/${slug}`,
-    source: 'BBC Food',
-  }
+  return bbcFoodIngredient(slug, label)
 }
 
 /**
