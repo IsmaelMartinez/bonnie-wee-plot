@@ -9,8 +9,10 @@ import {
   GARDEN_ORGANIC_STORING,
   UMN_HARVEST_STORAGE,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
 } from '../resources'
 
 export const solanaceaePreservation: PreservationGuide[] = [
@@ -39,7 +41,8 @@ export const solanaceaePreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('potato', 'Potato'),
-      bbcGoodFoodCollection('potato-recipes', 'Potato recipes'),
+      bbcGoodFoodRecipe('scottish-stovies', 'Stovies'),
+      bbcFoodDish('champ', 'Champ'),
     ],
   },
   {
@@ -123,6 +126,7 @@ export const solanaceaePreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('potato', 'Potato'),
       bbcGoodFoodCollection('potato-recipes', 'Potato recipes'),
+      bbcGoodFoodRecipe('scottish-stovies', 'Stovies'),
     ],
   },
   {
@@ -156,6 +160,7 @@ export const solanaceaePreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('cherry_tomatoes', 'Cherry tomatoes'),
       bbcGoodFoodCollection('cherry-tomato-recipes', 'Cherry tomato recipes'),
+      bbcGoodFoodRecipe('gazpacho', 'Gazpacho'),
     ],
   },
   {
@@ -190,6 +195,7 @@ export const solanaceaePreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('tomato', 'Tomato'),
       bbcGoodFoodCollection('tomato-recipes', 'Tomato recipes'),
+      bbcFoodDish('tomato_soup', 'Tomato soup'),
     ],
   },
   {

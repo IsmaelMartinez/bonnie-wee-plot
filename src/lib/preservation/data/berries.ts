@@ -4,7 +4,14 @@
  */
 
 import { PreservationGuide } from '@/types/preservation'
-import { NCHFP, BBC_GOOD_FOOD, bbcFoodIngredient, bbcGoodFoodCollection } from '../resources'
+import {
+  NCHFP,
+  BBC_GOOD_FOOD,
+  bbcFoodDish,
+  bbcFoodIngredient,
+  bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
+} from '../resources'
 
 export const berriesPreservation: PreservationGuide[] = [
   {
@@ -33,6 +40,7 @@ export const berriesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('strawberry', 'Strawberry'),
       bbcGoodFoodCollection('strawberries-recipes', 'Strawberry recipes'),
+      bbcFoodDish('eton_mess', 'Eton mess'),
     ],
   },
   {
@@ -61,6 +69,7 @@ export const berriesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('raspberry', 'Raspberry'),
       bbcGoodFoodCollection('raspberry-recipes', 'Raspberry recipes'),
+      bbcFoodDish('cranachan', 'Cranachan'),
     ],
   },
   {
@@ -115,7 +124,10 @@ export const berriesPreservation: PreservationGuide[] = [
         storageLife: '4–7 days in the fridge',
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('redcurrant', 'Redcurrant')],
+    recipeIdeas: [
+      bbcFoodIngredient('redcurrant', 'Redcurrant'),
+      bbcFoodDish('summer_pudding', 'Summer pudding'),
+    ],
   },
   {
     plantId: 'gooseberry',
@@ -143,6 +155,7 @@ export const berriesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('gooseberry', 'Gooseberry'),
       bbcGoodFoodCollection('gooseberry-recipes', 'Gooseberry recipes'),
+      bbcGoodFoodRecipe('gooseberry-fool', 'Gooseberry fool'),
     ],
   },
   {
@@ -198,7 +211,7 @@ export const berriesPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('blackberry', 'Blackberry'),
-      bbcGoodFoodCollection('blackberry-recipes', 'Blackberry recipes'),
+      bbcGoodFoodRecipe('apple-blackberry-crumble', 'Apple & blackberry crumble'),
       bbcGoodFoodCollection('flavoured-gin-recipes', 'Flavoured gin recipes'),
     ],
   },

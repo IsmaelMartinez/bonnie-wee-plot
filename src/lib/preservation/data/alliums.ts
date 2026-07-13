@@ -12,6 +12,8 @@ import {
   BBC_GOOD_FOOD,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
+  greatBritishChefsRecipe,
 } from '../resources'
 
 export const alliumsPreservation: PreservationGuide[] = [
@@ -47,6 +49,7 @@ export const alliumsPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('onion', 'Onion'),
       bbcGoodFoodCollection('onion-recipes', 'Onion recipes'),
+      bbcGoodFoodRecipe('french-onion-soup', 'French onion soup'),
     ],
   },
   {
@@ -102,7 +105,8 @@ export const alliumsPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('leek', 'Leek'),
-      bbcGoodFoodCollection('leek-recipes', 'Leek recipes'),
+      greatBritishChefsRecipe('cock-a-leekie-soup-recipe', 'Cock-a-leekie soup'),
+      bbcGoodFoodRecipe('leek-potato-soup', 'Leek & potato soup'),
     ],
   },
   {

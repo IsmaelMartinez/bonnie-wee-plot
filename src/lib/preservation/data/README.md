@@ -24,9 +24,16 @@ For each crop, add one `PreservationGuide`:
    - `resources`: 0–2 links per method, **preferring the shared constants** in
      `../resources` (NCHFP per-method pages, Garden Organic storing, UMN
      harvest/storage, RHS fruit storing, PSU Let's Preserve).
-4. **`recipeIdeas`** — 1–3 links for eating the glut (cakes, bakes, soups,
-   cordials): BBC Food ingredient hubs first, then BBC Good Food collections,
-   River Cottage for preserves-heavy crops.
+4. **`recipeIdeas`** — 1–4 links for eating the glut. Lead with the BBC Food
+   ingredient hub or a BBC Good Food collection, then add one or two *classic
+   dishes* — everyday or heritage — that people actually make from a harvest
+   (lettuce soup, colcannon, borscht, cranachan, gooseberry fool, stovies,
+   stuffed marrow, rhubarb crumble…). Helpers in `../resources`:
+   `bbcFoodDish` (per-dish hub pages like `cranachan`), `bbcFoodRecipe`
+   (single BBC Food recipes, slug includes numeric id), `bbcGoodFoodRecipe`
+   (single non-premium BBC Good Food recipes), `greatBritishChefsRecipe`
+   (free, ad-supported — used where the BBC has no page for a classic, e.g.
+   clapshot, cock-a-leekie). A few strong classics beat a padded list.
 
 ## Link rules (important)
 
@@ -104,8 +111,11 @@ All in `src/lib/preservation/resources.ts`. For reference:
 | UMN preserving | https://extension.umn.edu/food-safety/preserving-and-preparing | All methods landing page |
 | UMN harvest/storage | https://extension.umn.edu/planting-and-growing-guides/harvesting-and-storing-home-garden-vegetables | 30+ crops, storage conditions |
 | UMN sauerkraut | https://extension.umn.edu/preserving-and-preparing/how-make-your-own-sauerkraut | Best free fermentation primer |
-| BBC Food hubs | https://www.bbc.co.uk/food/<ingredient> | Per-ingredient recipes, no ads |
+| BBC Food hubs | https://www.bbc.co.uk/food/<ingredient-or-dish> | Per-ingredient and per-dish recipe pages, no ads |
+| BBC Food recipes | https://www.bbc.co.uk/food/recipes/<slug_id> | Single recipes; slug includes numeric id, never guess |
 | BBC Good Food | https://www.bbcgoodfood.com/recipes/collection/<slug> | Verified slugs only; recipes checked non-premium |
+| BBC Good Food recipes | https://www.bbcgoodfood.com/recipes/<slug> | Single recipes; verify 200 and "isPremium":false |
+| Great British Chefs | https://www.greatbritishchefs.com/recipes/<slug> | Free, ad-supported; for classics the BBC lacks |
 | River Cottage | https://www.rivercottage.net/recipes | Free, strong preserves coverage |
 | Wikibooks Cookbook | https://en.wikibooks.org/wiki/Cookbook:Table_of_Contents | CC technique reference |
 

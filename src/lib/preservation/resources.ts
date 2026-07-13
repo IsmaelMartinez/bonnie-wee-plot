@@ -98,6 +98,56 @@ export function bbcFoodIngredient(slug: string, label: string): PreservationReso
 }
 
 /**
+ * BBC Food dish hub, e.g. bbcFoodDish('cranachan', 'Cranachan') — a per-dish
+ * collection page in the same /food/<slug> namespace as ingredient hubs.
+ * Verified working: cranachan, rhubarb_crumble, eton_mess, summer_pudding,
+ * cauliflower_cheese, coleslaw, piccalilli, ratatouille, tomato_soup, champ,
+ * mint_sauce, horseradish_sauce. Spot-check any new slug returns 200.
+ */
+export function bbcFoodDish(slug: string, label: string): PreservationResource {
+  return bbcFoodIngredient(slug, label)
+}
+
+/**
+ * BBC Food single recipe page, e.g.
+ * bbcFoodRecipe('stuffed_marrow_43279', 'Stuffed marrow'). The slug includes
+ * the numeric id, so only use URLs verified to return 200 — never guess.
+ */
+export function bbcFoodRecipe(slug: string, title: string): PreservationResource {
+  return {
+    title,
+    url: `https://www.bbc.co.uk/food/recipes/${slug}`,
+    source: 'BBC Food',
+  }
+}
+
+/**
+ * BBC Good Food single recipe page, e.g.
+ * bbcGoodFoodRecipe('colcannon', 'Colcannon'). Only use slugs verified to
+ * return 200 AND checked non-premium ("isPremium":false in the page data).
+ */
+export function bbcGoodFoodRecipe(slug: string, title: string): PreservationResource {
+  return {
+    title,
+    url: `https://www.bbcgoodfood.com/recipes/${slug}`,
+    source: 'BBC Good Food',
+  }
+}
+
+/**
+ * Great British Chefs recipe page (free to read, ad-supported, no sign-up
+ * wall), e.g. greatBritishChefsRecipe('clapshot-recipe', 'Clapshot').
+ * Verify the slug returns 200 before adding.
+ */
+export function greatBritishChefsRecipe(slug: string, title: string): PreservationResource {
+  return {
+    title,
+    url: `https://www.greatbritishchefs.com/recipes/${slug}`,
+    source: 'Great British Chefs',
+  }
+}
+
+/**
  * BBC Good Food collection, e.g. bbcGoodFoodCollection('jam-recipes', 'Jam recipes').
  * Only use slugs verified to return 200 — there is no generic 'chutney-recipes'
  * or 'glut-recipes' collection.

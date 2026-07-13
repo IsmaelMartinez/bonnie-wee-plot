@@ -11,6 +11,7 @@ import {
   BBC_GOOD_FOOD,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
 } from '../resources'
 
 export const legumesPreservation: PreservationGuide[] = [
@@ -34,6 +35,7 @@ export const legumesPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('pea', 'Pea'),
       bbcGoodFoodCollection('pea-recipes', 'Pea recipes'),
+      bbcGoodFoodRecipe('pea-ham-soup', 'Pea & ham soup'),
     ],
   },
   {

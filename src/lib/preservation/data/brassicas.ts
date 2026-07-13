@@ -10,8 +10,10 @@ import {
   UMN_HARVEST_STORAGE,
   UMN_SAUERKRAUT,
   BBC_GOOD_FOOD,
+  bbcFoodDish,
   bbcFoodIngredient,
   bbcGoodFoodCollection,
+  bbcGoodFoodRecipe,
 } from '../resources'
 
 export const brassicasPreservation: PreservationGuide[] = [
@@ -35,6 +37,7 @@ export const brassicasPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('broccoli', 'Broccoli'),
       bbcGoodFoodCollection('broccoli-recipes', 'Broccoli recipes'),
+      bbcGoodFoodRecipe('broccoli-stilton-soup', 'Broccoli & stilton soup'),
     ],
   },
   {
@@ -62,7 +65,8 @@ export const brassicasPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('cabbage', 'Cabbage'),
-      bbcGoodFoodCollection('cabbage-recipes', 'Cabbage recipes'),
+      bbcGoodFoodRecipe('bubble-squeak', 'Bubble & squeak'),
+      bbcFoodDish('coleslaw', 'Coleslaw'),
     ],
   },
   {
@@ -90,7 +94,8 @@ export const brassicasPreservation: PreservationGuide[] = [
     ],
     recipeIdeas: [
       bbcFoodIngredient('cauliflower', 'Cauliflower'),
-      bbcGoodFoodCollection('cauliflower-recipes', 'Cauliflower recipes'),
+      bbcFoodDish('cauliflower_cheese', 'Cauliflower cheese'),
+      bbcFoodDish('piccalilli', 'Piccalilli'),
     ],
   },
   {
@@ -116,7 +121,10 @@ export const brassicasPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('brussels_sprouts', 'Brussels sprouts')],
+    recipeIdeas: [
+      bbcFoodIngredient('brussels_sprouts', 'Brussels sprouts'),
+      bbcGoodFoodRecipe('bubble-squeak', 'Bubble & squeak'),
+    ],
   },
   {
     plantId: 'kohlrabi',
@@ -144,6 +152,7 @@ export const brassicasPreservation: PreservationGuide[] = [
     recipeIdeas: [
       bbcFoodIngredient('kohlrabi', 'Kohlrabi'),
       bbcGoodFoodCollection('kohlrabi-recipes', 'Kohlrabi recipes'),
+      bbcFoodDish('coleslaw', 'Coleslaw'),
     ],
   },
   {
@@ -170,7 +179,10 @@ export const brassicasPreservation: PreservationGuide[] = [
         resources: [NCHFP.freezing],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('savoy_cabbage', 'Savoy cabbage')],
+    recipeIdeas: [
+      bbcFoodIngredient('savoy_cabbage', 'Savoy cabbage'),
+      bbcGoodFoodRecipe('rumbledethumps', 'Rumbledethumps'),
+    ],
   },
   {
     plantId: 'red-cabbage',
@@ -201,7 +213,10 @@ export const brassicasPreservation: PreservationGuide[] = [
         resources: [UMN_SAUERKRAUT],
       },
     ],
-    recipeIdeas: [bbcFoodIngredient('red_cabbage', 'Red cabbage')],
+    recipeIdeas: [
+      bbcFoodIngredient('red_cabbage', 'Red cabbage'),
+      bbcGoodFoodRecipe('braised-red-cabbage', 'Braised red cabbage'),
+    ],
   },
   {
     plantId: 'chinese-broccoli',
