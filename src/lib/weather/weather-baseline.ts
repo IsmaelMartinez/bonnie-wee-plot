@@ -13,13 +13,22 @@
 import { logger } from '@/lib/logger'
 import {
   fetchSeasonWeather,
+  isValidPlotCoordinates,
   type PlotCoordinates,
   type SeasonWeather,
 } from './open-meteo-archive'
 
-const CACHE_PREFIX = 'bwp-weather-baseline-'
+// The "v1" segment versions the cached payload shape — bump it if
+// WeatherBaseline ever changes so an old cached shape can't be served.
+const CACHE_PREFIX = 'bwp-weather-baseline-v1-'
 /** How many completed years the baseline window spans. */
 export const BASELINE_WINDOW_YEARS = 10
+/**
+ * How long a baseline computed from an incomplete window (some years failed
+ * to fetch) stays valid. Recomputing after a day picks up the missing years
+ * opportunistically; a full-window baseline is immutable for its endYear.
+ */
+const INCOMPLETE_BASELINE_TTL_MS = 24 * 60 * 60 * 1000
 /**
  * Minimum years of usable data before a baseline is published. A "10-year
  * average" built on fewer than half the window would mislead more than help.
@@ -152,36 +161,62 @@ export function computeBaseline(seasons: SeasonWeather[]): WeatherBaseline | nul
   }
 }
 
-const memoryCache = new Map<string, WeatherBaseline>()
+interface CachedBaseline {
+  baseline: WeatherBaseline
+  /** Epoch ms after which the entry is stale, or null for full-window baselines. */
+  expiresAt: number | null
+}
 
-function cacheKey(coords: PlotCoordinates, endYear: number): string {
+const memoryCache = new Map<string, CachedBaseline>()
+
+function cacheKey(coords: PlotCoordinates, startYear: number, endYear: number): string {
   // Rounded to ~1 km like the season cache; the exact plot location stays
-  // out of storage keys and is never part of the baseline payload.
+  // out of storage keys and is never part of the baseline payload. Both
+  // window years are in the key so a future BASELINE_WINDOW_YEARS change
+  // can't serve a baseline computed over a different window.
   const lat = coords.latitude.toFixed(2)
   const lng = coords.longitude.toFixed(2)
-  return `${CACHE_PREFIX}${lat}_${lng}_${endYear}`
+  return `${CACHE_PREFIX}${lat}_${lng}_${startYear}-${endYear}`
 }
 
 function readCache(key: string): WeatherBaseline | null {
-  const inMemory = memoryCache.get(key)
-  if (inMemory) return inMemory
-  if (typeof localStorage === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as WeatherBaseline
-    memoryCache.set(key, parsed)
-    return parsed
-  } catch {
+  let entry = memoryCache.get(key) ?? null
+  if (!entry && typeof localStorage !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(key)
+      if (!raw) return null
+      entry = JSON.parse(raw) as CachedBaseline
+      memoryCache.set(key, entry)
+    } catch {
+      return null
+    }
+  }
+  if (!entry) return null
+  if (entry.expiresAt !== null && entry.expiresAt < Date.now()) {
+    memoryCache.delete(key)
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      // Removal is best-effort; a stale entry is overwritten on recompute.
+    }
     return null
   }
+  // ?? null guards a corrupt entry (e.g. hand-edited storage) parsing fine.
+  return entry.baseline ?? null
 }
 
 function writeCache(key: string, baseline: WeatherBaseline): void {
-  memoryCache.set(key, baseline)
+  // A baseline missing some window years (failed fetches) expires after a
+  // day so the missing years are retried; a full window is immutable.
+  const isComplete = baseline.yearsUsed.length >= BASELINE_WINDOW_YEARS
+  const entry: CachedBaseline = {
+    baseline,
+    expiresAt: isComplete ? null : Date.now() + INCOMPLETE_BASELINE_TTL_MS,
+  }
+  memoryCache.set(key, entry)
   if (typeof localStorage === 'undefined') return
   try {
-    localStorage.setItem(key, JSON.stringify(baseline))
+    localStorage.setItem(key, JSON.stringify(entry))
   } catch {
     // Quota errors are non-fatal — the memory cache still serves this session.
   }
@@ -197,25 +232,29 @@ export function _resetBaselineCacheForTests(): void {
  * seasons on first call. Missing years are fetched through the season cache,
  * so a fully-cached plot computes offline. Years that fail to fetch are
  * skipped; the baseline is published when at least MIN_BASELINE_YEARS
- * contributed, otherwise null — callers should degrade gracefully.
+ * contributed, otherwise null — callers should degrade gracefully. A
+ * baseline built from an incomplete window is cached for a day and then
+ * recomputed so the missing years get retried.
  *
  * The window is the BASELINE_WINDOW_YEARS completed years before the current
  * one, so the cached baseline rolls forward automatically at new year.
  */
 export async function getBaseline(coords: PlotCoordinates): Promise<WeatherBaseline | null> {
+  if (!isValidPlotCoordinates(coords)) return null
   const endYear = new Date().getFullYear() - 1
   const startYear = endYear - BASELINE_WINDOW_YEARS + 1
 
-  const key = cacheKey(coords, endYear)
+  const key = cacheKey(coords, startYear, endYear)
   const cached = readCache(key)
   if (cached) return cached
 
-  const seasons: SeasonWeather[] = []
-  for (let year = startYear; year <= endYear; year++) {
-    // fetchSeasonWeather is cache-first, so already-archived years cost nothing.
-    const season = await fetchSeasonWeather(coords, year)
-    if (season) seasons.push(season)
-  }
+  // Fetch the window years concurrently — this is a one-time backfill of
+  // BASELINE_WINDOW_YEARS calls (cache-first, so already-archived years cost
+  // nothing), well within Open-Meteo's free-tier rate limits, and the slow
+  // archive endpoint makes sequential fetching needlessly take ~10x longer.
+  const years = Array.from({ length: BASELINE_WINDOW_YEARS }, (_, i) => startYear + i)
+  const fetched = await Promise.all(years.map((year) => fetchSeasonWeather(coords, year)))
+  const seasons = fetched.filter((s): s is SeasonWeather => s !== null)
 
   if (seasons.length < MIN_BASELINE_YEARS) {
     logger.warn('weather-baseline: not enough archived years to compute a baseline', {

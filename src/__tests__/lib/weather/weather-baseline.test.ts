@@ -7,6 +7,7 @@ import {
 } from '@/lib/weather/weather-baseline'
 import {
   _resetSeasonCacheForTests,
+  type PlotCoordinates,
   type SeasonDailyRecord,
   type SeasonWeather,
 } from '@/lib/weather/open-meteo-archive'
@@ -256,5 +257,67 @@ describe('getBaseline', () => {
     })
 
     expect(await getBaseline(COORDS)).toBeNull()
+  })
+
+  it('returns null for missing or invalid coordinates without fetching', async () => {
+    expect(await getBaseline({ latitude: NaN, longitude: -3.18 })).toBeNull()
+    expect(await getBaseline({ latitude: 55.95, longitude: 181 })).toBeNull()
+    expect(await getBaseline(undefined as unknown as PlotCoordinates)).toBeNull()
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+
+  it('caches under a versioned key that encodes the window years', async () => {
+    vi.mocked(globalThis.fetch).mockImplementation((input) =>
+      Promise.resolve(fullYearResponse(String(input)))
+    )
+
+    await getBaseline(COORDS)
+    const endYear = new Date().getFullYear() - 1
+    const startYear = endYear - BASELINE_WINDOW_YEARS + 1
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      `bwp-weather-baseline-v1-55.95_-3.18_${startYear}-${endYear}`,
+      expect.any(String)
+    )
+  })
+
+  it('retries the missing years after an incomplete baseline expires', async () => {
+    vi.useFakeTimers()
+    try {
+      const endYear = new Date().getFullYear() - 1
+      const startYear = endYear - BASELINE_WINDOW_YEARS + 1
+      let outage = true
+      vi.mocked(globalThis.fetch).mockImplementation((input) => {
+        const url = String(input)
+        const year = Number(new URL(url).searchParams.get('start_date')!.slice(0, 4))
+        // The four oldest years are down during the first pass.
+        if (outage && year < startYear + 4) return Promise.reject(new Error('archive outage'))
+        return Promise.resolve(fullYearResponse(url))
+      })
+
+      const first = await getBaseline(COORDS)
+      expect(first!.yearsUsed).toHaveLength(BASELINE_WINDOW_YEARS - 4)
+      expect(globalThis.fetch).toHaveBeenCalledTimes(BASELINE_WINDOW_YEARS)
+
+      // Within the TTL the incomplete baseline is served from cache.
+      vi.mocked(globalThis.fetch).mockClear()
+      await getBaseline(COORDS)
+      expect(globalThis.fetch).not.toHaveBeenCalled()
+
+      // After the TTL it recomputes: only the 4 missing years are refetched
+      // (the 6 archived seasons are immutable) and the window completes.
+      outage = false
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000)
+      const third = await getBaseline(COORDS)
+      expect(globalThis.fetch).toHaveBeenCalledTimes(4)
+      expect(third!.yearsUsed).toHaveLength(BASELINE_WINDOW_YEARS)
+
+      // A full-window baseline is immutable — no refetch after another day.
+      vi.mocked(globalThis.fetch).mockClear()
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000)
+      expect(await getBaseline(COORDS)).not.toBeNull()
+      expect(globalThis.fetch).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

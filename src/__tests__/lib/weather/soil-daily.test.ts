@@ -87,4 +87,20 @@ describe('aggregateSoilDaily', () => {
   it('returns an empty map for an empty series', () => {
     expect(aggregateSoilDaily({ time: [] }).size).toBe(0)
   })
+
+  it('skips malformed non-string timestamp entries', () => {
+    const time = hourlyTimes('2025-06-01', 24)
+    // Corrupt two entries — the runtime payload could contain anything.
+    ;(time as unknown[])[3] = null
+    ;(time as unknown[])[7] = 42
+    const series: HourlySoilSeries = {
+      time,
+      soil_temperature_0_to_7cm: Array(24).fill(10),
+    }
+
+    const result = aggregateSoilDaily(series)
+    expect(result.size).toBe(1)
+    // 22 valid stamps remain — still enough for a mean.
+    expect(result.get('2025-06-01')!.soilTempMean0to7C).toBe(10)
+  })
 })

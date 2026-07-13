@@ -35,10 +35,14 @@
  */
 
 import { logger } from '@/lib/logger'
+import { todayLocalISO } from '@/lib/log-date'
 import { aggregateSoilDaily } from './soil-daily'
 
 const ENDPOINT = 'https://archive-api.open-meteo.com/v1/archive'
-const CACHE_PREFIX = 'bwp-season-weather-'
+// The "v1" segment versions the cached payload shape — bump it if
+// SeasonDailyRecord ever changes, so forever-cached immutable seasons
+// can't be served in an incompatible shape.
+const CACHE_PREFIX = 'bwp-season-weather-v1-'
 // Archive queries scan a year of ERA5 data and are slower than the forecast
 // API; allow the same headroom as the climate endpoint in frost-dates.ts.
 const FETCH_TIMEOUT_MS = 15000
@@ -68,6 +72,26 @@ const HOURLY_VARIABLES = [
 export interface PlotCoordinates {
   latitude: number
   longitude: number
+}
+
+/**
+ * Runtime guard for plot coordinates. AllotmentMeta.coordinates is user data
+ * (geolocation or manual entry, possibly from an imported/migrated document),
+ * so despite the strict types every entry point re-checks the values before
+ * building cache keys or request URLs.
+ */
+export function isValidPlotCoordinates(
+  coords: PlotCoordinates | null | undefined
+): coords is PlotCoordinates {
+  return (
+    coords != null &&
+    typeof coords.latitude === 'number' &&
+    typeof coords.longitude === 'number' &&
+    Number.isFinite(coords.latitude) &&
+    Number.isFinite(coords.longitude) &&
+    Math.abs(coords.latitude) <= 90 &&
+    Math.abs(coords.longitude) <= 180
+  )
 }
 
 /** One day of historical weather. Null means the archive had no value. */
@@ -172,7 +196,8 @@ function readCache(key: string): SeasonWeather | null {
     }
     return null
   }
-  return entry.season
+  // ?? null guards a corrupt entry (e.g. hand-edited storage) parsing fine.
+  return entry.season ?? null
 }
 
 function writeCache(key: string, season: SeasonWeather): void {
@@ -208,11 +233,6 @@ function numberOrNull(
   const v = series?.[index]
   if (typeof v !== 'number' || Number.isNaN(v)) return null
   return round(v * scale, decimals)
-}
-
-/** Local ISO date (YYYY-MM-DD) — matches Open-Meteo's timezone=auto days. */
-function todayIsoLocal(): string {
-  return new Date().toLocaleDateString('en-CA')
 }
 
 function buildDays(data: ArchiveResponse): SeasonDailyRecord[] | null {
@@ -262,21 +282,24 @@ function buildDays(data: ArchiveResponse): SeasonDailyRecord[] | null {
  * or stale. Never touches the network.
  */
 export function getCachedSeason(coords: PlotCoordinates, year: number): SeasonWeather | null {
+  if (!isValidPlotCoordinates(coords)) return null
   return readCache(cacheKey(coords, year))
 }
 
 /**
  * Fetch a whole season (calendar year) of daily weather for the plot.
  * Cache-first: a completed past season is fetched at most once, ever; the
- * current in-progress season is refetched after 24h. Returns null when the
- * year is in the future, when offline, or when the API fails and nothing is
- * cached — callers should degrade gracefully.
+ * current in-progress season is refetched after 24h. Returns null when
+ * coordinates are missing/invalid, when the year is in the future, when
+ * offline, or when the API fails and nothing is cached — callers should
+ * degrade gracefully.
  */
 export async function fetchSeasonWeather(
   coords: PlotCoordinates,
   year: number
 ): Promise<SeasonWeather | null> {
-  const today = todayIsoLocal()
+  if (!isValidPlotCoordinates(coords)) return null
+  const today = todayLocalISO()
   const currentYear = Number(today.slice(0, 4))
   if (year > currentYear) return null
 

@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   fetchSeasonWeather,
   getCachedSeason,
+  isValidPlotCoordinates,
   _resetSeasonCacheForTests,
+  type PlotCoordinates,
 } from '@/lib/weather/open-meteo-archive'
 
 const localStorageMock = (() => {
@@ -55,6 +57,25 @@ function archiveResponse(dates: string[], withHourly = false) {
   }
   return new Response(JSON.stringify(body), { status: 200 })
 }
+
+describe('isValidPlotCoordinates', () => {
+  it('accepts real-world coordinates', () => {
+    expect(isValidPlotCoordinates({ latitude: 55.95, longitude: -3.18 })).toBe(true)
+    expect(isValidPlotCoordinates({ latitude: -90, longitude: 180 })).toBe(true)
+  })
+
+  it('rejects missing, non-numeric, non-finite, or out-of-range values', () => {
+    expect(isValidPlotCoordinates(null)).toBe(false)
+    expect(isValidPlotCoordinates(undefined)).toBe(false)
+    expect(isValidPlotCoordinates({ latitude: NaN, longitude: 0 })).toBe(false)
+    expect(isValidPlotCoordinates({ latitude: 0, longitude: -Infinity })).toBe(false)
+    expect(isValidPlotCoordinates({ latitude: 90.1, longitude: 0 })).toBe(false)
+    expect(isValidPlotCoordinates({ latitude: 0, longitude: 180.1 })).toBe(false)
+    expect(
+      isValidPlotCoordinates({ latitude: '55.95', longitude: -3.18 } as unknown as PlotCoordinates)
+    ).toBe(false)
+  })
+})
 
 describe('fetchSeasonWeather', () => {
   beforeEach(() => {
@@ -120,6 +141,50 @@ describe('fetchSeasonWeather', () => {
     const season = await fetchSeasonWeather(COORDS, CURRENT_YEAR + 1)
     expect(season).toBeNull()
     expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+
+  it('returns null for missing or invalid coordinates without touching the network', async () => {
+    const invalid = [
+      undefined,
+      { latitude: NaN, longitude: -3.18 },
+      { latitude: 55.95, longitude: Infinity },
+      { latitude: 91, longitude: -3.18 },
+      { latitude: 55.95, longitude: -181 },
+      { latitude: '55.95', longitude: -3.18 },
+    ]
+    for (const coords of invalid) {
+      expect(await fetchSeasonWeather(coords as unknown as PlotCoordinates, PAST_YEAR)).toBeNull()
+    }
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+
+  it('stores the season under a versioned, coordinate-rounded key', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(archiveResponse([`${PAST_YEAR}-06-01`]))
+
+    await fetchSeasonWeather({ latitude: 55.9533, longitude: -3.1883 }, PAST_YEAR)
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      `bwp-season-weather-v1-55.95_-3.19_${PAST_YEAR}`,
+      expect.any(String)
+    )
+  })
+
+  it('refetches the current in-progress season once its 24h TTL expires', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.mocked(globalThis.fetch).mockImplementation(() =>
+        Promise.resolve(archiveResponse([`${CURRENT_YEAR}-01-01`]))
+      )
+
+      await fetchSeasonWeather(COORDS, CURRENT_YEAR)
+      await fetchSeasonWeather(COORDS, CURRENT_YEAR)
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1) // within TTL: cached
+
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000)
+      await fetchSeasonWeather(COORDS, CURRENT_YEAR)
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2) // stale: refetched
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('serves a cached season without a second fetch', async () => {
@@ -210,6 +275,12 @@ describe('getCachedSeason', () => {
 
   it('returns null when nothing is cached', () => {
     expect(getCachedSeason(COORDS, PAST_YEAR)).toBeNull()
+  })
+
+  it('returns null for invalid coordinates', () => {
+    expect(
+      getCachedSeason({ latitude: NaN, longitude: -3.18 }, PAST_YEAR)
+    ).toBeNull()
   })
 
   it('survives a memory-cache reset via localStorage', async () => {

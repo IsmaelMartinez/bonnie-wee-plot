@@ -69,7 +69,10 @@ function meanAt(
 export function aggregateSoilDaily(hourly: HourlySoilSeries): Map<string, DailySoilAggregates> {
   const indexesByDate = new Map<string, number[]>()
   for (let i = 0; i < hourly.time.length; i++) {
-    const date = hourly.time[i].slice(0, 10)
+    const stamp = hourly.time[i]
+    // The series comes from an untyped API payload — skip malformed entries.
+    if (typeof stamp !== 'string') continue
+    const date = stamp.slice(0, 10)
     if (date.length !== 10) continue
     const indexes = indexesByDate.get(date)
     if (indexes) {
