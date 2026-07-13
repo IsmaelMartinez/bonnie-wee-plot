@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Scissors, Droplets, Sprout, Layers, Bug, Eye, Package, X, Check } from 'lucide-react'
+import { Plus, Scissors, Droplets, Sprout, Layers, Bug, Eye, Package, X, Check, Flower2, ShieldAlert, AlertTriangle } from 'lucide-react'
 import { CareLogEntry, NewCareLogEntry, CareLogType } from '@/types/unified-allotment'
 
 interface CareLogSectionProps {
@@ -11,6 +11,8 @@ interface CareLogSectionProps {
   onRemoveCareLog: (entryId: string) => void
 }
 
+// Exhaustive over CareLogType so any entry (incl. Season Observer observations
+// created via /log) always renders with an icon/label instead of crashing.
 const CARE_TYPE_CONFIG: Record<CareLogType, { icon: typeof Scissors; label: string; color: string }> = {
   'prune': { icon: Scissors, label: 'Pruned', color: 'zen-sakura' },
   'feed': { icon: Sprout, label: 'Fed', color: 'zen-bamboo' },
@@ -20,7 +22,20 @@ const CARE_TYPE_CONFIG: Record<CareLogType, { icon: typeof Scissors; label: stri
   'harvest': { icon: Package, label: 'Harvested', color: 'zen-moss' },
   'observation': { icon: Eye, label: 'Observation', color: 'zen-ink' },
   'other': { icon: Plus, label: 'Other', color: 'zen-stone' },
+  // Season Observer observation types (usually captured via /log).
+  'germinated': { icon: Sprout, label: 'Germinated', color: 'zen-moss' },
+  'thinned': { icon: Scissors, label: 'Thinned', color: 'zen-stone' },
+  'flowering': { icon: Flower2, label: 'Flowering', color: 'zen-sakura' },
+  'pest': { icon: Bug, label: 'Pest', color: 'zen-kitsune' },
+  'disease': { icon: ShieldAlert, label: 'Disease', color: 'zen-kitsune' },
+  'bolted': { icon: AlertTriangle, label: 'Bolted', color: 'zen-kitsune' },
+  'damage': { icon: AlertTriangle, label: 'Damage', color: 'zen-kitsune' },
 }
+
+// Care activities offered in the permanent-area manual entry dropdown. The
+// Season Observer observation types are captured on /log, not here, so this
+// keeps the perennial care panel focused.
+const MANUAL_CARE_TYPES: CareLogType[] = ['prune', 'feed', 'water', 'mulch', 'spray', 'observation', 'other']
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -75,8 +90,8 @@ export default function CareLogSection({ selectedYear, careLogs, onAddCareLog, o
               onChange={e => setNewEntry({ ...newEntry, type: e.target.value as CareLogType })}
               className="flex-1 text-xs px-2 py-1 border border-zen-stone-200 rounded-zen"
             >
-              {Object.entries(CARE_TYPE_CONFIG).filter(([key]) => key !== 'harvest').map(([key, { label }]) => (
-                <option key={key} value={key}>{label}</option>
+              {MANUAL_CARE_TYPES.map(key => (
+                <option key={key} value={key}>{CARE_TYPE_CONFIG[key].label}</option>
               ))}
             </select>
             <input

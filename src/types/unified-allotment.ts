@@ -332,6 +332,14 @@ export interface Planting {
   // Lifecycle status (v15)
   /** Current status of this planting. Defaults to 'planned' if no dates, 'active' if sowDate set */
   status?: PlantingStatus
+
+  /**
+   * ISO date this planting ended (cleared, pulled, died back). Distinct from
+   * harvest dates: a planting can keep cropping after its first harvest, and
+   * `endedOn` marks when it left the bed. Used by the Season Observer to bound
+   * a planting's weather window. Optional — undefined means still in the ground.
+   */
+  endedOn?: string
 }
 
 /**
@@ -391,9 +399,39 @@ export type NewMaintenanceTask = Omit<MaintenanceTask, 'id'>
 // ============ CARE LOGGING TYPES ============
 
 /**
- * Type of care log entry
+ * Type of care log entry.
+ *
+ * The first group are care activities (things you do to the plot). The second
+ * group (v23, Season Observer) are agronomic observations — things you notice —
+ * that the end-of-season report reasons over. `water`/`feed` double as the
+ * brief's `watered`/`fed` observations, so they are not duplicated here.
  */
-export type CareLogType = 'prune' | 'feed' | 'water' | 'mulch' | 'spray' | 'harvest' | 'observation' | 'other'
+export type CareLogType =
+  // Care activities
+  | 'prune'
+  | 'feed'
+  | 'water'
+  | 'mulch'
+  | 'spray'
+  | 'harvest'
+  | 'other'
+  // Observations (Season Observer). 'observation' is the free-form note type
+  // (a distinct 'note' would be a near-identical synonym — kept as one).
+  | 'observation'   // generic note tied to a bed/planting
+  | 'germinated'
+  | 'thinned'
+  | 'flowering'
+  | 'pest'
+  | 'disease'
+  | 'bolted'
+  | 'damage'
+
+/**
+ * Severity of a negative observation (pest, disease, damage), 1 (minor) to
+ * 3 (severe). Deterministic rules use it to rank findings; the LLM never
+ * invents it. Optional — undefined for neutral observations.
+ */
+export type ObservationSeverity = 1 | 2 | 3
 
 /**
  * Care log entry for an area in a specific year
@@ -405,6 +443,12 @@ export interface CareLogEntry {
   description?: string
   quantity?: number             // For harvest: yield amount
   unit?: string                 // For harvest: kg, lbs, count
+  /** Severity for pest/disease/damage observations (1-3). Undefined otherwise. */
+  severity?: ObservationSeverity
+  /** Optional reference to a stored photo. Photo storage lands in a later phase. */
+  photoId?: string
+  /** Optional link to the specific planting this observation is about. */
+  plantingId?: string
 }
 
 /**
@@ -493,7 +537,7 @@ export type VarietyUpdate = Partial<Omit<StoredVariety, 'id'>>
 // ============ STORAGE CONSTANTS ============
 
 export { STORAGE_KEY_ALLOTMENT as STORAGE_KEY } from '@/lib/storage-keys'
-export const CURRENT_SCHEMA_VERSION = 22 // Add meta.aiAdvisorEnabled / aiAdvisorPromptDismissedAt for Aitor opt-in
+export const CURRENT_SCHEMA_VERSION = 23 // Season Observer: agronomic observation care-log types, CareLogEntry.severity/photoId/plantingId, Planting.endedOn
 
 // ============ HELPER TYPES ============
 

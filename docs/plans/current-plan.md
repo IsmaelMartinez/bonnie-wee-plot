@@ -1,6 +1,17 @@
 # Current Plan
 
-Last updated: 2026-07-07 (ADR 027 Step 4 shipped — cloud sync moved to Yjs binary CRDT state; LWW machinery and the conflict dialog retired)
+Last updated: 2026-07-12 (Season Observer Phase 1 shipped — log capture + agronomy reference)
+
+## Season Observer — Phase 1 (shipped)
+
+Closing the plan → observe → learn loop. Phase 1 is log capture (the only
+irreplaceable input; weather is backfillable later). Schema **v23**: agronomic
+observation care-log types + `severity`/`photoId`/`plantingId`, `Planting.endedOn`.
+New `src/lib/agronomy.ts` (deterministic crop reference: GDD base, soil temps,
+frost tolerance, heat stress). New `/log` quick-capture screen (<15s path).
+Full findings, reuse map, and the deferred Phase 2 roadmap (weather backfill,
+rules engine, LLM narration decision, photos/EXIF import) are in
+`docs/plans/season-observer.md`.
 
 ## ADR 027 Step 4 — Yjs binary cloud transport (shipped)
 

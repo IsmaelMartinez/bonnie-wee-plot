@@ -48,6 +48,7 @@ const primaryNavLinks = [
   { href: '/plants', label: 'Plant Guide' },
   { href: '/compost', label: 'Compost' },
   { href: '/allotment', label: 'Allotment' },
+  { href: '/log', label: 'Log' },
 ]
 
 // Secondary links shown in "More" dropdown
