@@ -65,16 +65,43 @@ precedent).
 **Phase 1 acceptance status**
 - [x] Logging an observation/harvest is a 2-tap path (bed + event), rest optional.
 - [x] Works with no signal; syncs later (inherent to Yjs/IndexedDB).
-- [ ] Camera-roll importer (≥30 draft observations) — **deferred** (needs photo store).
+- [x] Camera-roll importer (≥30 draft observations) — **shipped** (see below).
 - [x] No new external service dependencies.
 
-## Deferred roadmap (with the reframing decisions)
+## Camera-roll EXIF importer (shipped)
 
-### Photos + camera-roll EXIF import
-No photo storage exists. Local-first in a PWA means IndexedDB blobs
-(`photo` records referenced by `CareLogEntry.photoId`, already wired). The EXIF
-importer (filter by ~100m of plot coords, group by date, human-confirm) is a
-self-contained follow-up. Optional local vision captioning stays human-confirmed.
+Reconstructs a season retroactively from the phone photo library. All
+client-side and local-only:
+
+- `src/lib/photo-import/exif.ts` — small pure JPEG/EXIF parser
+  (DateTimeOriginal + GPS DMS→decimal), no new dependency; tested against
+  synthesised EXIF byte fixtures, both endians. HEIC is out of scope
+  (surfaced to the user as "no readable date").
+- `src/lib/photo-import/geofence.ts` — haversine distance + ~100m plot
+  geofence over `meta.coordinates`; skipped with clear messaging when the
+  plot has no coordinates.
+- `src/lib/photo-import/pipeline.ts` — pure parse → geofence → group-by-date
+  → draft pipeline. Drafts are never auto-committed; unconfirmed drafts are
+  discarded. `DraftObservation.suggestedCaption` + the `DraftAnnotator`
+  interface are the deliberate seam for future local vision captioning
+  (unused in v1).
+- `src/services/photo-store.ts` — separate plain-IndexedDB blob store
+  (`bwp-photos`). Blobs stay out of the Yjs doc; only `CareLogEntry.photoId`
+  (already in v23) lives in the CRDT, so export/share/GDPR/cloud-sync
+  payloads never carry photo EXIF or GPS.
+- `/log/import` (`src/app/log/import/page.tsx`) — review UI linked from
+  Quick Log: pick photos → per-date draft groups with thumbnails →
+  include/exclude per photo, optional note, assign a bed → confirm writes
+  the blob then the observation care-log entry through the existing
+  `addCareLog` write path. Groups outside the active season are blocked
+  from import (same misfiling guard as /log).
+
+Acceptance test: `src/__tests__/lib/photo-import/pipeline.test.ts` runs 38
+synthesised photos end-to-end (real EXIF byte parsing) and asserts 30 drafts
+in 10 correctly-ordered date groups with camera-roll noise excluded for the
+right reasons.
+
+## Deferred roadmap (with the reframing decisions)
 
 ### Weather backfill (Phase 2a) — **shipped**
 Archive API client (`src/lib/weather/open-meteo-archive.ts`): one call fetches

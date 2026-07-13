@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   StickyNote,
   Flower2,
+  Camera,
   Check,
   ChevronLeft,
   ClipboardList,
@@ -472,6 +473,17 @@ export default function QuickLogPage() {
             )}
           </>
         )}
+
+        {/* Retroactive capture: rebuild the season from camera-roll photos */}
+        <div className="mt-6">
+          <Link
+            href="/log/import"
+            className="inline-flex items-center gap-2 text-sm text-zen-moss-700 hover:text-zen-moss-800 font-medium"
+          >
+            <Camera className="w-4 h-4" />
+            Import observations from photos
+          </Link>
+        </div>
 
         <div className="mt-8 flex items-center justify-between text-sm">
           <Link href="/allotment" className="inline-flex items-center gap-1 text-zen-stone-500 hover:text-zen-moss-700">
