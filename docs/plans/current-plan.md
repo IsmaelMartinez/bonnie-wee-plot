@@ -1,6 +1,22 @@
 # Current Plan
 
-Last updated: 2026-07-13 (Season Observer camera-roll EXIF importer shipped)
+Last updated: 2026-07-13 (Season Observer Phase 2b rules engine shipped)
+
+## Season Observer — Phase 2b: derived metrics + rules engine (shipped)
+
+The learn half of the plan → observe → learn loop, fully deterministic (no
+LLM). `src/lib/season-review/metrics.ts` derives tested metrics from a
+season's plantings/care-logs + archived weather + the 10-year baseline (GDD,
+soil temp at sowing, dry spells, monthly water balance, heat-stress days,
+actual-vs-typical germination, monthly anomalies). `rules.ts` runs 10
+conservative rules over them and emits a structured `findings[]` array —
+every number traceable to a tested metric, and every rule silent on
+missing/thin data (false positives are the failure mode). The new
+`/season-review` page (More menu + linked from `/log`) renders the findings,
+a monthly weather-vs-baseline table, and per-planting metrics, degrading
+gracefully with no coordinates / no cached weather / sparse logs. Findings
+are computed on demand, never persisted. Phase 2c (report narration) remains
+an open decision — see `docs/plans/season-observer.md`.
 
 ## Season Observer — camera-roll photo import (shipped)
 

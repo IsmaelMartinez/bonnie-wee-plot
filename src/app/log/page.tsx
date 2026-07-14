@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   StickyNote,
   Flower2,
+  BookOpenCheck,
   Camera,
   Check,
   ChevronLeft,
@@ -475,13 +476,21 @@ export default function QuickLogPage() {
         )}
 
         {/* Retroactive capture: rebuild the season from camera-roll photos */}
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-2">
           <Link
             href="/log/import"
             className="inline-flex items-center gap-2 text-sm text-zen-moss-700 hover:text-zen-moss-800 font-medium"
           >
             <Camera className="w-4 h-4" />
             Import observations from photos
+          </Link>
+          {/* The learn half of the loop: what those logs add up to. */}
+          <Link
+            href="/season-review"
+            className="inline-flex items-center gap-2 text-sm text-zen-moss-700 hover:text-zen-moss-800 font-medium"
+          >
+            <BookOpenCheck className="w-4 h-4" />
+            See what this season&apos;s logs show
           </Link>
         </div>
 

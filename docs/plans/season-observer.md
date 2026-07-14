@@ -118,12 +118,34 @@ retrospective report. Coordinates stay in local cache keys only (rounded
 ~1 km), never logged, absent from exported types. Reuse `frost-dates.ts` for
 the frost metric.
 
-### Derived metrics + rules engine (Phase 2b)
-Deterministic code over logs + weather: GDD accumulation, soil temp at sowing,
-dry spells, water balance, heat-stress days, days-to-germinate vs typical,
-anomaly vs baseline. Emit a structured `findings[]` array (8–12 well-tested
-rules; false positives are the failure mode). `src/lib/agronomy.ts` is the
-reference input.
+### Derived metrics + rules engine (Phase 2b) — **shipped**
+Deterministic code over logs + weather, all in `src/lib/season-review/`:
+
+- `metrics.ts` — pure derived metrics over `SeasonWeather`/`WeatherBaseline` +
+  plantings/care-logs: GDD accumulation (coverage-gated), soil temp at sowing,
+  sustained soil-threshold detection, dry spells, monthly water balance
+  (rain − ET₀), heat-stress day counts, frost-in-window, actual
+  days-to-germinate (sow → `germinated` care log), monthly actuals + anomalies
+  vs the 10-year baseline (same coverage rules as `computeBaseline`, so the
+  comparison is like-for-like).
+- `rules.ts` — `evaluateSeason()` runs 10 rules and emits a structured
+  `findings[]` array (`findings.ts`: id, ruleId, severity info/notice/warning,
+  plain-English summary, the metric values behind it, and the bed/planting
+  entities). Rules: cold-soil sowing, slow germination, frost after tender
+  planting-out, heat-stress days (escalates when bolting was logged), monthly
+  temp/rain/sunshine anomalies vs baseline, dry spells (cross-referenced with
+  watering logs — only when the user logs watering at all), monthly water
+  deficit, and pest/disease clusters (log-only, works without weather).
+  Every rule stays silent on missing/thin data — metrics return null under
+  coverage floors and the engine emits nothing rather than guess; the sparse
+  fixture asserts exactly that. `computePlantingMetrics()` powers the page's
+  per-planting table.
+- `/season-review` page — deterministic rendering only (no narration): year
+  picker, findings list, monthly weather vs baseline table, per-planting
+  metrics, with graceful no-coordinates / no-cached-weather / sparse-log
+  states. Linked from the More menu and from `/log`. Findings are computed on
+  demand — nothing new is persisted in the Yjs doc, and coordinates never
+  appear in findings.
 
 ### Report narration (Phase 2c) — **open decision**
 The brief mandates local Ollama only (privacy-first). The repo's only LLM path
