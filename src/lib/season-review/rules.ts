@@ -191,7 +191,7 @@ function windowEnd(planting: Planting, weather: SeasonWeather): string | null {
 
 /**
  * R1 cold-soil-sowing (warning): a crop was direct-sown outdoors while the
- * 0–7cm soil was more than COLD_SOIL_MARGIN_C below its minimum germination
+ * 0–7cm soil was at least COLD_SOIL_MARGIN_C below its minimum germination
  * temperature. Reports when the soil actually reached the threshold and, if
  * germination was logged, actual vs typical days.
  */
@@ -702,9 +702,9 @@ export interface PlantingSeasonMetrics {
 }
 
 /**
- * Derived metrics for each planting with any date logged this year — the
- * deterministic numbers the review page shows alongside the findings. Pure
- * presentation data; emits nothing that isn't computable.
+ * Derived metrics for each planting sown or transplanted in the reviewed
+ * year — the deterministic numbers the review page shows alongside the
+ * findings. Pure presentation data; emits nothing that isn't computable.
  */
 export function computePlantingMetrics(input: SeasonReviewInput): PlantingSeasonMetrics[] {
   const results: PlantingSeasonMetrics[] = []
