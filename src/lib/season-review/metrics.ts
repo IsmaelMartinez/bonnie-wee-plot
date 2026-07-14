@@ -36,8 +36,9 @@ function round(value: number, decimals: number): number {
 
 /** Inclusive day count between two ISO dates (same date = 1). */
 export function daySpan(startDate: string, endDate: string): number {
-  const start = Date.parse(`${startDate}T00:00:00Z`)
-  const end = Date.parse(`${endDate}T00:00:00Z`)
+  // Tolerate a full ISO datetime by keeping only the date part.
+  const start = Date.parse(`${startDate.slice(0, 10)}T00:00:00Z`)
+  const end = Date.parse(`${endDate.slice(0, 10)}T00:00:00Z`)
   if (Number.isNaN(start) || Number.isNaN(end)) return 0
   return Math.floor((end - start) / 86_400_000) + 1
 }

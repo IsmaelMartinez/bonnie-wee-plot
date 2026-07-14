@@ -114,7 +114,9 @@ function collectPlantings(input: SeasonReviewInput): PlantingContext[] {
   for (const areaSeason of input.seasonRecord.areas) {
     const area = input.areas.find((a) => a.id === areaSeason.areaId)
     const careLogs = areaSeason.careLogs ?? []
-    for (const planting of areaSeason.plantings) {
+    // plantings is required by the type, but season records travel through
+    // migration/CRDT merges — guard like careLogs rather than crash.
+    for (const planting of areaSeason.plantings ?? []) {
       contexts.push({
         planting,
         area,
@@ -487,9 +489,11 @@ function ruleDrySpell(input: SeasonReviewInput): Finding[] {
   )
   if (spells.length === 0) return []
 
+  // Only this year's watering logs count — an out-of-year entry (backdated
+  // mistake, copied log) must not make "no watering was logged" fire falsely.
   const waterLogs = (input.seasonRecord?.areas ?? [])
     .flatMap((areaSeason) => areaSeason.careLogs ?? [])
-    .filter((log) => log.type === 'water')
+    .filter((log) => log.type === 'water' && isInYear(log.date, input.year))
 
   return spells.map((spell) => {
     const waterings = waterLogs.filter((log) => log.date >= spell.start && log.date <= spell.end)
@@ -570,12 +574,13 @@ function rulePestDiseaseCluster(input: SeasonReviewInput): Finding[] {
         .sort((a, b) => a.date.localeCompare(b.date))
       if (logs.length < CLUSTER_MIN_LOGS) continue
 
-      // Find the largest run of logs that fits a CLUSTER_WINDOW_DAYS window.
+      // Find the largest run of logs that fits a CLUSTER_WINDOW_DAYS window —
+      // a sliding window over the date-sorted logs.
       let best: CareLogEntry[] = []
-      for (let i = 0; i < logs.length; i++) {
-        const windowLimit = addDaysISO(logs[i].date, CLUSTER_WINDOW_DAYS - 1)
-        const run = logs.filter((log) => log.date >= logs[i].date && log.date <= windowLimit)
-        if (run.length > best.length) best = run
+      let lo = 0
+      for (let hi = 0; hi < logs.length; hi++) {
+        while (daySpan(logs[lo].date, logs[hi].date) > CLUSTER_WINDOW_DAYS) lo++
+        if (hi - lo + 1 > best.length) best = logs.slice(lo, hi + 1)
       }
       if (best.length < CLUSTER_MIN_LOGS) continue
 

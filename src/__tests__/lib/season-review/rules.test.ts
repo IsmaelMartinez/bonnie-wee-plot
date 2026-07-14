@@ -413,6 +413,18 @@ describe('rule: dry-spell', () => {
     expect(finding.metrics.wateringsLogged).toBeUndefined()
   })
 
+  it('ignores watering logs from other years when judging the spell', () => {
+    // A stray watering entry dated last year must not trigger the false
+    // warning that this year's spell went unwatered.
+    const strayLog = water('w0', `${YEAR - 1}-07-05`)
+    const findings = evaluateSeason(
+      makeInput({ weather: drySummer(), seasonRecord: makeSeasonRecord([], [strayLog]) })
+    )
+    const [finding] = byRule(findings, 'dry-spell')
+    expect(finding.severity).toBe('notice')
+    expect(finding.summary).not.toContain('watering')
+  })
+
   it('ignores dry spells outside the growing season', () => {
     const winterDry = buildWeather(
       overrideRange(`${YEAR}-01-05`, `${YEAR}-01-25`, { precipitationMm: 0 })
@@ -483,6 +495,24 @@ describe('rule: pest-disease-cluster', () => {
     ]
     const findings = evaluateSeason(makeInput({ seasonRecord: makeSeasonRecord([], logs) }))
     expect(byRule(findings, 'pest-disease-cluster')[0]?.severity).toBe('warning')
+  })
+
+  it('picks the largest 30-day run when logs straggle beyond the window', () => {
+    // 5 logs over 6 weeks: the densest 30-day window holds the middle four.
+    const logs = [
+      pest('p1', `${YEAR}-06-01`),
+      pest('p2', `${YEAR}-06-20`),
+      pest('p3', `${YEAR}-06-25`),
+      pest('p4', `${YEAR}-07-01`),
+      pest('p5', `${YEAR}-07-15`),
+    ]
+    const findings = evaluateSeason(makeInput({ seasonRecord: makeSeasonRecord([], logs) }))
+    const [finding] = byRule(findings, 'pest-disease-cluster')
+    expect(finding.metrics).toMatchObject({
+      observationCount: 4,
+      firstDate: `${YEAR}-06-20`,
+      lastDate: `${YEAR}-07-15`,
+    })
   })
 
   it('does not mix types or count logs spread beyond the window', () => {

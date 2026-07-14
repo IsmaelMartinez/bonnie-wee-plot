@@ -153,7 +153,9 @@ export default function SeasonReviewPage() {
     [getYears, currentCalendarYear]
   )
   const [year, setYear] = useState<number | null>(null)
-  const selectedReviewYear = year ?? years[0] ?? null
+  // Clamp to the available list so a stale pick (e.g. after the season was
+  // deleted or the data was replaced) falls back to the newest year.
+  const selectedReviewYear = year !== null && years.includes(year) ? year : years[0] ?? null
 
   const coordinates: PlotCoordinates | null = useMemo(() => {
     const coords = data?.meta.coordinates
@@ -178,12 +180,21 @@ export default function SeasonReviewPage() {
     Promise.all([
       fetchSeasonWeather(coordinates, selectedReviewYear),
       getBaseline(coordinates),
-    ]).then(([season, base]) => {
-      if (cancelled) return
-      setWeather(season)
-      setBaseline(base)
-      setWeatherStatus(season ? 'ready' : 'unavailable')
-    })
+    ])
+      .then(([season, base]) => {
+        if (cancelled) return
+        setWeather(season)
+        setBaseline(base)
+        setWeatherStatus(season ? 'ready' : 'unavailable')
+      })
+      // Both services resolve null on failure, but never let a surprise
+      // rejection escape the effect — degrade to the log-only view instead.
+      .catch(() => {
+        if (cancelled) return
+        setWeather(null)
+        setBaseline(null)
+        setWeatherStatus('unavailable')
+      })
     return () => {
       cancelled = true
     }
