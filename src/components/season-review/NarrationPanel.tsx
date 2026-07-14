@@ -43,8 +43,10 @@ type PanelStatus =
 
 function friendlyRequestError(error: unknown, baseUrl: string): string {
   const message = error instanceof Error ? error.message : String(error)
-  // The client aborts a hung request after its timeout.
-  if (error instanceof Error && error.name === 'AbortError') {
+  // The client aborts a hung request after its timeout. Duck-type on name —
+  // abort rejections are DOMExceptions, which older engines didn't parent
+  // under Error.
+  if ((error as { name?: unknown } | null)?.name === 'AbortError') {
     return (
       `The request to ${baseUrl} timed out. A local model may just be slow to ` +
       `load or generate on your machine — try again.`
