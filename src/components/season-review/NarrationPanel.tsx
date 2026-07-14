@@ -95,10 +95,13 @@ export default function NarrationPanel({
 
   const handleGenerate = async () => {
     const generation = ++requestGeneration.current
+    // Pasted keys often carry stray whitespace, which would corrupt the
+    // Authorization header into a confusing auth failure.
+    const trimmedKey = apiKey.trim()
     const settings: NarrationSettings = {
       baseUrl: baseUrl.trim() || OLLAMA_PRESET.baseUrl,
       model: model.trim() || OLLAMA_PRESET.model,
-      ...(apiKey ? { apiKey } : {}),
+      ...(trimmedKey ? { apiKey: trimmedKey } : {}),
     }
     setStorageItem<StoredNarrationConfig>(NARRATION_CONFIG_KEY, {
       baseUrl: settings.baseUrl,

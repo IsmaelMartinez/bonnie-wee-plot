@@ -60,8 +60,10 @@ export function extractNumericTokens(text: string): string[] {
 /**
  * Every number the findings can vouch for: numeric tokens in each summary,
  * each metrics value (numbers and numeric fragments of strings), each date
- * (ISO parts, so "2025-06-14" vouches for 2025, 6 and 14), plus the derived
- * allowance (year, year + 1, total and per-severity finding counts).
+ * (ISO parts, so "2025-06-14" vouches for 2025, 6 and 14), each entity
+ * display name (a draft naming "Raised Bed 1" isn't inventing the 1), plus
+ * the derived allowance (year, year + 1, total and per-severity finding
+ * counts).
  */
 export function collectAllowedNumbers(
   findings: Finding[],
@@ -80,6 +82,11 @@ export function collectAllowedNumbers(
     }
     addFromText(finding.dates?.start)
     addFromText(finding.dates?.end)
+    for (const entity of finding.entities) {
+      addFromText(entity.areaName)
+      addFromText(entity.plantName)
+      addFromText(entity.varietyName)
+    }
   }
 
   allowed.add(canonicalize(String(meta.year)))

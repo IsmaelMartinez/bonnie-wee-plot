@@ -104,6 +104,21 @@ describe('collectAllowedNumbers', () => {
     expect(allowed.has('0')).toBe(true) // notice count — zero is still a count
   })
 
+  it('vouches for numbers inside entity display names', () => {
+    const allowed = collectAllowedNumbers(
+      [
+        finding({
+          entities: [
+            { areaName: 'Raised Bed 1', plantName: 'Sweetcorn F1', varietyName: 'Earlibird 2' },
+          ],
+        }),
+      ],
+      META
+    )
+    expect(allowed.has('1')).toBe(true)
+    expect(allowed.has('2')).toBe(true)
+  })
+
   it('vouches zero counts for severities with no findings at all', () => {
     const allowed = collectAllowedNumbers([finding({ severity: 'notice' })], META)
     expect(allowed.has('0')).toBe(true) // no warnings, no info
@@ -189,6 +204,17 @@ describe('verifyNarration', () => {
     const result = verifyNarration('Rainfall ran at .4 of normal.', findings, META)
     expect(result.ok).toBe(false)
     expect(result.unverifiedNumbers).toEqual(['0.4'])
+  })
+
+  it('accepts a draft naming a numbered bed', () => {
+    const numberedBed = [
+      finding({
+        summary: 'Slugs clustered in one bed.',
+        entities: [{ areaName: 'Raised Bed 3' }],
+      }),
+    ]
+    const result = verifyNarration('Raised Bed 3 had a slug problem.', numberedBed, META)
+    expect(result.ok).toBe(true)
   })
 
   it('allows counting the findings and mentioning the season and next year', () => {
