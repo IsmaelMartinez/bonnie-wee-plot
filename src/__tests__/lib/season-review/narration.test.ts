@@ -3,7 +3,7 @@
  * request shape, the prompt contract, error handling, and the verified /
  * rejected orchestration in narrateSeason.
  */
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Finding } from '@/lib/season-review/findings'
 import {
   buildNarrationMessages,
@@ -131,6 +131,41 @@ describe('requestNarration', () => {
     await expect(requestNarration(FINDINGS, META, SETTINGS, fetchMock)).rejects.toThrow(
       'Failed to fetch'
     )
+  })
+
+  describe('timeout', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('passes an abort signal to fetch', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(okResponse('ok'))
+      await requestNarration(FINDINGS, META, SETTINGS, fetchMock)
+      expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal)
+      expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false)
+    })
+
+    it('aborts a hung request after the timeout instead of loading forever', async () => {
+      vi.useFakeTimers()
+      // A fetch that never resolves — it only rejects when its signal aborts.
+      const fetchMock = vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () =>
+              reject(new DOMException('The operation was aborted.', 'AbortError'))
+            )
+          })
+      )
+      const pending = requestNarration(
+        FINDINGS,
+        META,
+        SETTINGS,
+        fetchMock as unknown as typeof fetch
+      )
+      const assertion = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+      await vi.advanceTimersByTimeAsync(60_000)
+      await assertion
+    })
   })
 })
 

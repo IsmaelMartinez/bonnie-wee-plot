@@ -39,17 +39,21 @@ function stripThousandsSeparators(text: string): string {
 
 /**
  * Canonical form of a numeric token so formatting differences never matter:
- * "21.50" and "21.5" compare equal, "07" reads as "7". Sign is not captured —
- * verification compares magnitudes ("-60mm" and "a 60mm deficit" are the same
- * fact wearing different grammar).
+ * "21.50" and "21.5" compare equal, "07" reads as "7", ".5" reads as "0.5".
+ * Sign is not captured — verification compares magnitudes ("-60mm" and "a
+ * 60mm deficit" are the same fact wearing different grammar).
  */
 function canonicalize(token: string): string {
   return String(Number.parseFloat(token))
 }
 
-/** Extract every numeric token from free text, canonicalized. */
+/**
+ * Extract every numeric token from free text, canonicalized. Bare-dot
+ * decimals (".5") are matched whole — splitting one into "5" would let a
+ * draft's ".5" ride on an unrelated vouched-for 5.
+ */
 export function extractNumericTokens(text: string): string[] {
-  const matches = stripThousandsSeparators(text).match(/\d+(?:\.\d+)?/g) ?? []
+  const matches = stripThousandsSeparators(text).match(/\d+(?:\.\d+)?|\.\d+/g) ?? []
   return matches.map(canonicalize)
 }
 
@@ -81,11 +85,11 @@ export function collectAllowedNumbers(
   allowed.add(canonicalize(String(meta.year)))
   allowed.add(canonicalize(String(meta.year + 1)))
   allowed.add(canonicalize(String(findings.length)))
-  const severityCounts = new Map<string, number>()
-  for (const finding of findings) {
-    severityCounts.set(finding.severity, (severityCounts.get(finding.severity) ?? 0) + 1)
-  }
-  for (const count of severityCounts.values()) {
+  // Count every severity, present or not, so "you had 2 notices and 0
+  // warnings" isn't rejected over the 0.
+  const severities: Finding['severity'][] = ['warning', 'notice', 'info']
+  for (const severity of severities) {
+    const count = findings.filter((f) => f.severity === severity).length
     allowed.add(canonicalize(String(count)))
   }
 

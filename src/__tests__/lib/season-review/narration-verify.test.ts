@@ -52,6 +52,11 @@ describe('extractNumericTokens', () => {
     expect(extractNumericTokens('the 14th, at 40%')).toEqual(['14', '40'])
   })
 
+  it('reads bare-dot decimals whole rather than as their fraction digits', () => {
+    expect(extractNumericTokens('about .5mm')).toEqual(['0.5'])
+    expect(extractNumericTokens('.50 of normal')).toEqual(['0.5'])
+  })
+
   it('returns empty for prose without numbers', () => {
     expect(extractNumericTokens('A kind season with gentle rain.')).toEqual([])
   })
@@ -96,6 +101,12 @@ describe('collectAllowedNumbers', () => {
     expect(allowed.has('3')).toBe(true) // total findings
     expect(allowed.has('1')).toBe(true) // warning count
     expect(allowed.has('2')).toBe(true) // info count
+    expect(allowed.has('0')).toBe(true) // notice count — zero is still a count
+  })
+
+  it('vouches zero counts for severities with no findings at all', () => {
+    const allowed = collectAllowedNumbers([finding({ severity: 'notice' })], META)
+    expect(allowed.has('0')).toBe(true) // no warnings, no info
   })
 })
 
@@ -161,6 +172,23 @@ describe('verifyNarration', () => {
     ]
     const result = verifyNarration('July came up 60mm short on water.', deficit, META)
     expect(result.ok).toBe(true)
+  })
+
+  it('accepts "0 warnings"-style phrasing when a severity has no findings', () => {
+    const noticesOnly = [finding({ severity: 'notice' }), finding({ severity: 'notice' })]
+    const result = verifyNarration(
+      'Two notices and 0 warnings this season.',
+      noticesOnly,
+      META
+    )
+    expect(result.ok).toBe(true)
+  })
+
+  it('rejects a bare-dot decimal even when its fraction digits are vouched', () => {
+    // findings vouch for 4 (rainMm) — ".4" must not ride on it.
+    const result = verifyNarration('Rainfall ran at .4 of normal.', findings, META)
+    expect(result.ok).toBe(false)
+    expect(result.unverifiedNumbers).toEqual(['0.4'])
   })
 
   it('allows counting the findings and mentioning the season and next year', () => {

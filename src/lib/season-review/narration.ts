@@ -45,6 +45,8 @@ export type NarrationResult =
 /** Low temperature: the job is faithful restatement, not creativity. */
 const NARRATION_TEMPERATURE = 0.2
 const NARRATION_MAX_TOKENS = 700
+/** Generous — a cold local model may need to load first — but never infinite. */
+const NARRATION_TIMEOUT_MS = 60_000
 
 const SYSTEM_PROMPT = `You write a short season summary for an allotment gardener's journal.
 
@@ -113,40 +115,50 @@ export async function requestNarration(
     headers['Authorization'] = `Bearer ${settings.apiKey}`
   }
 
-  const response = await fetchImpl(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: settings.model,
-      messages: buildNarrationMessages(findings, meta),
-      temperature: NARRATION_TEMPERATURE,
-      max_tokens: NARRATION_MAX_TOKENS,
-      stream: false,
-    }),
-  })
+  // A hung endpoint must fail predictably rather than pin the UI on
+  // "Writing…" forever.
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), NARRATION_TIMEOUT_MS)
 
-  if (!response.ok) {
-    let detail = ''
-    try {
-      const body = (await response.json()) as { error?: { message?: string } | string }
-      detail =
-        typeof body.error === 'string' ? body.error : body.error?.message ?? ''
-    } catch {
-      // Non-JSON error body — the status alone will have to do.
+  try {
+    const response = await fetchImpl(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: settings.model,
+        messages: buildNarrationMessages(findings, meta),
+        temperature: NARRATION_TEMPERATURE,
+        max_tokens: NARRATION_MAX_TOKENS,
+        stream: false,
+      }),
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      let detail = ''
+      try {
+        const body = (await response.json()) as { error?: { message?: string } | string }
+        detail =
+          typeof body.error === 'string' ? body.error : body.error?.message ?? ''
+      } catch {
+        // Non-JSON error body — the status alone will have to do.
+      }
+      throw new Error(
+        `Narration endpoint returned ${response.status}${detail ? `: ${detail}` : ''}`
+      )
     }
-    throw new Error(
-      `Narration endpoint returned ${response.status}${detail ? `: ${detail}` : ''}`
-    )
-  }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string | null } }>
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string | null } }>
+    }
+    const content = data.choices?.[0]?.message?.content
+    if (!content || !content.trim()) {
+      throw new Error('Narration endpoint returned an empty completion')
+    }
+    return content.trim()
+  } finally {
+    clearTimeout(timeoutId)
   }
-  const content = data.choices?.[0]?.message?.content
-  if (!content || !content.trim()) {
-    throw new Error('Narration endpoint returned an empty completion')
-  }
-  return content.trim()
 }
 
 /**

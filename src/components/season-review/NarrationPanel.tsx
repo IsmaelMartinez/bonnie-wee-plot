@@ -22,7 +22,7 @@ import {
   OLLAMA_PRESET,
   type NarrationSettings,
 } from '@/lib/season-review/narration'
-import { getStorageItem, setStorageItem } from '@/services/allotment-storage'
+import { getStorageItem, setStorageItem } from '@/services/generic-storage'
 import { useSessionStorage } from '@/hooks/useSessionStorage'
 
 /** Endpoint + model persist across sessions; the optional key is session-only. */
@@ -43,6 +43,13 @@ type PanelStatus =
 
 function friendlyRequestError(error: unknown, baseUrl: string): string {
   const message = error instanceof Error ? error.message : String(error)
+  // The client aborts a hung request after its timeout.
+  if (error instanceof Error && error.name === 'AbortError') {
+    return (
+      `The request to ${baseUrl} timed out. A local model may just be slow to ` +
+      `load or generate on your machine — try again.`
+    )
+  }
   // fetch() network failures surface as TypeError with an opaque message —
   // translate to the causes a gardener can actually act on.
   if (error instanceof TypeError) {
