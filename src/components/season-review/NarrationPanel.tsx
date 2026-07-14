@@ -85,16 +85,24 @@ export default function NarrationPanel({
 
   // A new year (or freshly recomputed findings) makes old prose stale —
   // narration is ephemeral by design, so simply drop it. Bumping the request
-  // generation also orphans any in-flight request so its late resolution
-  // can't repopulate the panel with prose about the previous inputs.
+  // generation orphans any in-flight request so its late resolution can't
+  // repopulate the panel with prose about the previous inputs, and the abort
+  // actively cancels it — no point letting a local model keep generating a
+  // draft nobody will see.
   const requestGeneration = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
   useEffect(() => {
     requestGeneration.current += 1
     setStatus({ kind: 'idle' })
+    // Cleanup covers both a year/findings change and unmount.
+    return () => abortRef.current?.abort()
   }, [year, findings])
 
   const handleGenerate = async () => {
     const generation = ++requestGeneration.current
+    abortRef.current?.abort()
+    const abortController = new AbortController()
+    abortRef.current = abortController
     // Pasted keys often carry stray whitespace, which would corrupt the
     // Authorization header into a confusing auth failure.
     const trimmedKey = apiKey.trim()
@@ -109,7 +117,13 @@ export default function NarrationPanel({
     })
     setStatus({ kind: 'loading' })
     try {
-      const result = await narrateSeason(findings, { year, allotmentName }, settings)
+      const result = await narrateSeason(
+        findings,
+        { year, allotmentName },
+        settings,
+        undefined,
+        { signal: abortController.signal }
+      )
       if (generation !== requestGeneration.current) return
       if (result.status === 'ok') {
         setStatus({ kind: 'ok', text: result.text })

@@ -101,6 +101,11 @@ export function buildNarrationMessages(
   ]
 }
 
+export interface NarrationRequestOptions {
+  /** External cancellation (e.g. the inputs changed and the draft is moot). */
+  signal?: AbortSignal
+}
+
 /**
  * Call the configured chat-completions endpoint and return the raw draft.
  * Throws on network failure, non-OK status, or an empty completion.
@@ -109,19 +114,36 @@ export async function requestNarration(
   findings: Finding[],
   meta: NarrationMeta,
   settings: NarrationSettings,
-  fetchImpl: typeof fetch = fetch
+  fetchImpl: typeof fetch = fetch,
+  options: NarrationRequestOptions = {}
 ): Promise<string> {
-  // Trim defensively — the UI trims too, but this function is exported and a
-  // stray trailing space would otherwise fail as a cryptic invalid URL. An
-  // empty base URL is refused outright: it would resolve to a *relative*
-  // "/chat/completions" and silently post the findings to this app's own
-  // origin, breaking the no-app-server-in-the-path contract.
+  // Trim and validate defensively — the UI does too, but this function is
+  // exported. A missing or non-absolute base URL is refused outright: it
+  // would resolve to a *relative* "/chat/completions" and silently post the
+  // findings to this app's own origin, breaking the no-app-server-in-the-path
+  // contract.
   const baseUrl = settings.baseUrl.trim().replace(/\/+$/, '')
   if (!baseUrl) {
     throw new Error('Narration endpoint base URL is required')
   }
+  let parsedBase: URL
+  try {
+    parsedBase = new URL(baseUrl)
+  } catch {
+    throw new Error(
+      `Narration endpoint base URL must be absolute (e.g. "${OLLAMA_PRESET.baseUrl}"), got "${baseUrl}"`
+    )
+  }
+  if (parsedBase.protocol !== 'http:' && parsedBase.protocol !== 'https:') {
+    throw new Error(
+      `Narration endpoint base URL must use http or https, got "${parsedBase.protocol}"`
+    )
+  }
   const url = `${baseUrl}/chat/completions`
   const model = settings.model.trim()
+  if (!model) {
+    throw new Error('Narration model is required')
+  }
   const apiKey = settings.apiKey?.trim()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (apiKey) {
@@ -129,9 +151,16 @@ export async function requestNarration(
   }
 
   // A hung endpoint must fail predictably rather than pin the UI on
-  // "Writing…" forever.
+  // "Writing…" forever. The caller's signal chains into the same controller
+  // so a superseded request is actively cancelled, not just ignored.
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), NARRATION_TIMEOUT_MS)
+  const abortFromCaller = () => controller.abort()
+  if (options.signal?.aborted) {
+    clearTimeout(timeoutId)
+    throw new DOMException('The operation was aborted.', 'AbortError')
+  }
+  options.signal?.addEventListener('abort', abortFromCaller)
 
   try {
     const response = await fetchImpl(url, {
@@ -171,6 +200,7 @@ export async function requestNarration(
     return content.trim()
   } finally {
     clearTimeout(timeoutId)
+    options.signal?.removeEventListener('abort', abortFromCaller)
   }
 }
 
@@ -184,9 +214,10 @@ export async function narrateSeason(
   findings: Finding[],
   meta: NarrationMeta,
   settings: NarrationSettings,
-  fetchImpl: typeof fetch = fetch
+  fetchImpl: typeof fetch = fetch,
+  options: NarrationRequestOptions = {}
 ): Promise<NarrationResult> {
-  const text = await requestNarration(findings, meta, settings, fetchImpl)
+  const text = await requestNarration(findings, meta, settings, fetchImpl, options)
   const verification = verifyNarration(text, findings, {
     year: meta.year,
     allotmentName: meta.allotmentName,

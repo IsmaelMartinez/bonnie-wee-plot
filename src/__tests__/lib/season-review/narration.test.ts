@@ -103,6 +103,30 @@ describe('requestNarration', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('refuses a scheme-less base URL — it would resolve relative to this origin', async () => {
+    const fetchMock = vi.fn()
+    await expect(
+      requestNarration(FINDINGS, META, { ...SETTINGS, baseUrl: 'api.example.com/v1' }, fetchMock)
+    ).rejects.toThrow('must be absolute')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses non-http(s) schemes', async () => {
+    const fetchMock = vi.fn()
+    await expect(
+      requestNarration(FINDINGS, META, { ...SETTINGS, baseUrl: 'ftp://llm.example/v1' }, fetchMock)
+    ).rejects.toThrow('must use http or https')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses an empty model up front', async () => {
+    const fetchMock = vi.fn()
+    await expect(
+      requestNarration(FINDINGS, META, { ...SETTINGS, model: '  ' }, fetchMock)
+    ).rejects.toThrow('model is required')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('trims the model name in the request body', async () => {
     const fetchMock = vi.fn().mockResolvedValue(okResponse('ok'))
     await requestNarration(FINDINGS, META, { ...SETTINGS, model: ' llama3.2 ' }, fetchMock)
@@ -179,6 +203,38 @@ describe('requestNarration', () => {
       const assertion = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
       await vi.advanceTimersByTimeAsync(60_000)
       await assertion
+    })
+
+    it('cancels the in-flight fetch when the caller aborts', async () => {
+      const fetchMock = vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () =>
+              reject(new DOMException('The operation was aborted.', 'AbortError'))
+            )
+          })
+      )
+      const controller = new AbortController()
+      const pending = requestNarration(
+        FINDINGS,
+        META,
+        SETTINGS,
+        fetchMock as unknown as typeof fetch,
+        { signal: controller.signal }
+      )
+      const assertion = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+      controller.abort()
+      await assertion
+    })
+
+    it('rejects immediately when called with an already-aborted signal', async () => {
+      const fetchMock = vi.fn()
+      const controller = new AbortController()
+      controller.abort()
+      await expect(
+        requestNarration(FINDINGS, META, SETTINGS, fetchMock, { signal: controller.signal })
+      ).rejects.toMatchObject({ name: 'AbortError' })
+      expect(fetchMock).not.toHaveBeenCalled()
     })
   })
 })
