@@ -176,7 +176,10 @@ export async function narrateSeason(
   fetchImpl: typeof fetch = fetch
 ): Promise<NarrationResult> {
   const text = await requestNarration(findings, meta, settings, fetchImpl)
-  const verification = verifyNarration(text, findings, { year: meta.year })
+  const verification = verifyNarration(text, findings, {
+    year: meta.year,
+    allotmentName: meta.allotmentName,
+  })
   if (!verification.ok) {
     return { status: 'rejected', text, unverifiedNumbers: verification.unverifiedNumbers }
   }

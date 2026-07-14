@@ -181,6 +181,17 @@ describe('narrateSeason', () => {
     }
   })
 
+  it('lets a draft repeat digits from the allotment name', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse('A fine year on Plot 9.'))
+    const result = await narrateSeason(
+      FINDINGS,
+      { year: 2025, allotmentName: 'Plot 9' },
+      SETTINGS,
+      fetchMock
+    )
+    expect(result.status).toBe('ok')
+  })
+
   it('rejects a draft with an invented number — the fallback path', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       okResponse('Soil hit 6.5°C, and you lost around 40% of the crop.')

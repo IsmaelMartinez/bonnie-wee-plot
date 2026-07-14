@@ -119,6 +119,11 @@ describe('collectAllowedNumbers', () => {
     expect(allowed.has('2')).toBe(true)
   })
 
+  it('vouches for digits in the allotment name', () => {
+    const allowed = collectAllowedNumbers([], { year: 2025, allotmentName: 'Plot 2' })
+    expect(allowed.has('2')).toBe(true)
+  })
+
   it('vouches zero counts for severities with no findings at all', () => {
     const allowed = collectAllowedNumbers([finding({ severity: 'notice' })], META)
     expect(allowed.has('0')).toBe(true) // no warnings, no info
@@ -204,6 +209,15 @@ describe('verifyNarration', () => {
     const result = verifyNarration('Rainfall ran at .4 of normal.', findings, META)
     expect(result.ok).toBe(false)
     expect(result.unverifiedNumbers).toEqual(['0.4'])
+  })
+
+  it('accepts a draft repeating a numeric allotment name', () => {
+    const result = verifyNarration(
+      'Plot 7 had a season to remember.',
+      findings,
+      { year: 2025, allotmentName: 'Plot 7' }
+    )
+    expect(result.ok).toBe(true)
   })
 
   it('accepts a draft naming a numbered bed', () => {

@@ -26,6 +26,8 @@ export interface NarrationVerification {
 export interface VerificationMeta {
   /** The season year under review (also allows year + 1 for "next year"). */
   year: number
+  /** Allotment display name — it's sent to the model, so its digits are too. */
+  allotmentName?: string
 }
 
 /**
@@ -89,6 +91,7 @@ export function collectAllowedNumbers(
     }
   }
 
+  addFromText(meta.allotmentName)
   allowed.add(canonicalize(String(meta.year)))
   allowed.add(canonicalize(String(meta.year + 1)))
   allowed.add(canonicalize(String(findings.length)))
