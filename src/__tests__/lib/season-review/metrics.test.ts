@@ -284,6 +284,12 @@ describe('daysToGermination', () => {
     expect(daysToGermination({ id: 'p2', plantId: 'peas' }, [log({ plantingId: 'p2' })])).toBeNull()
     expect(daysToGermination(planting, [log({ type: 'observation' })])).toBeNull()
   })
+
+  it('treats an unparseable sow date as missing data, not a negative interval', () => {
+    // Sorts before the log date so the entry still matches, but doesn't parse.
+    const mangled: Planting = { id: 'p1', plantId: 'peas', sowDate: '2025-04-99' }
+    expect(daysToGermination(mangled, [log({ date: '2025-05-01' })])).toBeNull()
+  })
 })
 
 describe('computeMonthlyActuals', () => {

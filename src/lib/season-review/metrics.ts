@@ -300,11 +300,14 @@ export function daysToGermination(
     )
     .sort((a, b) => a.date.localeCompare(b.date))[0]
   if (!germinated) return null
+  // daySpan is inclusive; sow→germination is the elapsed interval. A span of
+  // 0 means one of the dates was unparseable — missing data, not "-1 days".
+  const span = daySpan(planting.sowDate, germinated.date)
+  if (span <= 0) return null
   return {
     sowDate: planting.sowDate,
     germinatedDate: germinated.date,
-    // daySpan is inclusive; sow→germination is the elapsed interval.
-    days: daySpan(planting.sowDate, germinated.date) - 1,
+    days: span - 1,
   }
 }
 
