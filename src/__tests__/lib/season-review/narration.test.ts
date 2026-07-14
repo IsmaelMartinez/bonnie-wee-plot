@@ -44,7 +44,7 @@ describe('buildNarrationMessages', () => {
     expect(user.content).toContain('Allotment: Bonnie Wee Plot')
     expect(user.content).toContain('Season: 2025')
     expect(user.content).toContain('Peas sown 2025-03-12')
-    expect(user.content).toContain('"soilTempC": 6.5')
+    expect(user.content).toContain('"soilTempC":6.5')
     expect(user.content).toContain('Bed A')
     // Internal ids are payload noise the model has no use for.
     expect(user.content).not.toContain('cold-soil:2025:p1')
@@ -89,10 +89,24 @@ describe('requestNarration', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('https://llm.example/v1/chat/completions')
   })
 
-  it('sends a bearer token only when an API key is configured', async () => {
+  it('sends a bearer token only when an API key is configured, trimmed', async () => {
     const fetchMock = vi.fn().mockResolvedValue(okResponse('ok'))
-    await requestNarration(FINDINGS, META, { ...SETTINGS, apiKey: 'sk-test' }, fetchMock)
+    await requestNarration(FINDINGS, META, { ...SETTINGS, apiKey: ' sk-test\n' }, fetchMock)
     expect(fetchMock.mock.calls[0][1].headers['Authorization']).toBe('Bearer sk-test')
+  })
+
+  it('refuses an empty base URL instead of posting to a same-origin relative path', async () => {
+    const fetchMock = vi.fn()
+    await expect(
+      requestNarration(FINDINGS, META, { ...SETTINGS, baseUrl: '  ' }, fetchMock)
+    ).rejects.toThrow('base URL is required')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('trims the model name in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse('ok'))
+    await requestNarration(FINDINGS, META, { ...SETTINGS, model: ' llama3.2 ' }, fetchMock)
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).model).toBe('llama3.2')
   })
 
   it('throws with status and detail on a non-OK response', async () => {

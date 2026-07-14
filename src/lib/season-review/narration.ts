@@ -91,7 +91,9 @@ export function buildNarrationMessages(
     meta.allotmentName ? `Allotment: ${meta.allotmentName}` : null,
     `Season: ${meta.year}`,
     'Findings (JSON):',
-    JSON.stringify(findingsPayload(findings), null, 2),
+    // Compact — pretty-printing only spends context window, which is scarce
+    // on small local models.
+    JSON.stringify(findingsPayload(findings)),
   ].filter((line): line is string => line !== null)
   return [
     { role: 'system', content: SYSTEM_PROMPT },
@@ -110,11 +112,20 @@ export async function requestNarration(
   fetchImpl: typeof fetch = fetch
 ): Promise<string> {
   // Trim defensively — the UI trims too, but this function is exported and a
-  // stray trailing space would otherwise fail as a cryptic invalid URL.
-  const url = `${settings.baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
+  // stray trailing space would otherwise fail as a cryptic invalid URL. An
+  // empty base URL is refused outright: it would resolve to a *relative*
+  // "/chat/completions" and silently post the findings to this app's own
+  // origin, breaking the no-app-server-in-the-path contract.
+  const baseUrl = settings.baseUrl.trim().replace(/\/+$/, '')
+  if (!baseUrl) {
+    throw new Error('Narration endpoint base URL is required')
+  }
+  const url = `${baseUrl}/chat/completions`
+  const model = settings.model.trim()
+  const apiKey = settings.apiKey?.trim()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (settings.apiKey) {
-    headers['Authorization'] = `Bearer ${settings.apiKey}`
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`
   }
 
   // A hung endpoint must fail predictably rather than pin the UI on
@@ -127,7 +138,7 @@ export async function requestNarration(
       method: 'POST',
       headers,
       body: JSON.stringify({
-        model: settings.model,
+        model,
         messages: buildNarrationMessages(findings, meta),
         temperature: NARRATION_TEMPERATURE,
         max_tokens: NARRATION_MAX_TOKENS,

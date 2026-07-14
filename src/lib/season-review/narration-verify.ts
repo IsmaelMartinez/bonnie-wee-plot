@@ -51,11 +51,15 @@ function canonicalize(token: string): string {
 
 /**
  * Extract every numeric token from free text, canonicalized. Bare-dot
- * decimals (".5") are matched whole — splitting one into "5" would let a
- * draft's ".5" ride on an unrelated vouched-for 5.
+ * decimals (".5") and scientific notation ("1e6") are matched whole —
+ * splitting either into its digits would let a draft's invented value ride
+ * on unrelated vouched-for numbers.
  */
 export function extractNumericTokens(text: string): string[] {
-  const matches = stripThousandsSeparators(text).match(/\d+(?:\.\d+)?|\.\d+/g) ?? []
+  const matches =
+    stripThousandsSeparators(text).match(
+      /(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?/g
+    ) ?? []
   return matches.map(canonicalize)
 }
 

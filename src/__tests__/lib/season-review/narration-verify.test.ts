@@ -57,6 +57,11 @@ describe('extractNumericTokens', () => {
     expect(extractNumericTokens('.50 of normal')).toEqual(['0.5'])
   })
 
+  it('reads scientific notation whole rather than as its digits', () => {
+    expect(extractNumericTokens('roughly 1e6 slugs')).toEqual(['1000000'])
+    expect(extractNumericTokens('2.5e-2 of normal')).toEqual(['0.025'])
+  })
+
   it('returns empty for prose without numbers', () => {
     expect(extractNumericTokens('A kind season with gentle rain.')).toEqual([])
   })
@@ -202,6 +207,13 @@ describe('verifyNarration', () => {
       META
     )
     expect(result.ok).toBe(true)
+  })
+
+  it('rejects scientific notation even when its digits are individually vouched', () => {
+    // findings vouch 7 (minSoilTempC) and 4 (rainMm) — "7e4" must not ride on them.
+    const result = verifyNarration('That is 7e4 raindrops.', findings, META)
+    expect(result.ok).toBe(false)
+    expect(result.unverifiedNumbers).toEqual(['70000'])
   })
 
   it('rejects a bare-dot decimal even when its fraction digits are vouched', () => {
