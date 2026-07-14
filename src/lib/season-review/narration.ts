@@ -109,7 +109,9 @@ export async function requestNarration(
   settings: NarrationSettings,
   fetchImpl: typeof fetch = fetch
 ): Promise<string> {
-  const url = `${settings.baseUrl.replace(/\/+$/, '')}/chat/completions`
+  // Trim defensively — the UI trims too, but this function is exported and a
+  // stray trailing space would otherwise fail as a cryptic invalid URL.
+  const url = `${settings.baseUrl.trim().replace(/\/+$/, '')}/chat/completions`
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (settings.apiKey) {
     headers['Authorization'] = `Bearer ${settings.apiKey}`

@@ -83,9 +83,9 @@ describe('requestNarration', () => {
     expect(body.messages).toHaveLength(2)
   })
 
-  it('tolerates trailing slashes on the base URL', async () => {
+  it('tolerates trailing slashes and whitespace on the base URL', async () => {
     const fetchMock = vi.fn().mockResolvedValue(okResponse('ok'))
-    await requestNarration(FINDINGS, META, { ...SETTINGS, baseUrl: 'https://llm.example/v1/' }, fetchMock)
+    await requestNarration(FINDINGS, META, { ...SETTINGS, baseUrl: ' https://llm.example/v1/ ' }, fetchMock)
     expect(fetchMock.mock.calls[0][0]).toBe('https://llm.example/v1/chat/completions')
   })
 

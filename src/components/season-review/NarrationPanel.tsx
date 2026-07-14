@@ -14,7 +14,7 @@
  * vouch for is discarded and the panel says so.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Sparkles } from 'lucide-react'
 import type { Finding } from '@/lib/season-review/findings'
 import {
@@ -84,12 +84,17 @@ export default function NarrationPanel({
   }, [])
 
   // A new year (or freshly recomputed findings) makes old prose stale —
-  // narration is ephemeral by design, so simply drop it.
+  // narration is ephemeral by design, so simply drop it. Bumping the request
+  // generation also orphans any in-flight request so its late resolution
+  // can't repopulate the panel with prose about the previous inputs.
+  const requestGeneration = useRef(0)
   useEffect(() => {
+    requestGeneration.current += 1
     setStatus({ kind: 'idle' })
   }, [year, findings])
 
   const handleGenerate = async () => {
+    const generation = ++requestGeneration.current
     const settings: NarrationSettings = {
       baseUrl: baseUrl.trim() || OLLAMA_PRESET.baseUrl,
       model: model.trim() || OLLAMA_PRESET.model,
@@ -102,12 +107,14 @@ export default function NarrationPanel({
     setStatus({ kind: 'loading' })
     try {
       const result = await narrateSeason(findings, { year, allotmentName }, settings)
+      if (generation !== requestGeneration.current) return
       if (result.status === 'ok') {
         setStatus({ kind: 'ok', text: result.text })
       } else {
         setStatus({ kind: 'rejected', unverifiedNumbers: result.unverifiedNumbers })
       }
     } catch (error) {
+      if (generation !== requestGeneration.current) return
       setStatus({ kind: 'error', message: friendlyRequestError(error, settings.baseUrl) })
     }
   }
