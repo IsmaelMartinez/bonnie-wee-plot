@@ -147,14 +147,46 @@ Deterministic code over logs + weather, all in `src/lib/season-review/`:
   demand — nothing new is persisted in the Yjs doc, and coordinates never
   appear in findings.
 
-### Report narration (Phase 2c) — **open decision**
-The brief mandates local Ollama only (privacy-first). The repo's only LLM path
-is a cloud OpenAI proxy (`/api/ai-advisor`, hidden behind `SHOW_AI_ADVISOR`).
-A deployed web app cannot reach a user's `localhost:11434`, so Ollama-only means
-"self-hosted / local machine," not the public deploy. **Recommendation:** a
-provider-agnostic narration client (configurable base URL, Ollama default),
-with the deterministic `findings` JSON + a "no number absent from findings"
-automated check as the real guarantee. Confirm before building.
+### Report narration (Phase 2c) — **shipped**
+
+**Decision (resolving the open question):** a provider-agnostic narration
+client — configurable base URL + model, OpenAI-compatible chat-completions
+API, local Ollama (`http://localhost:11434/v1`) as the default preset. No new
+required cloud service; narration is strictly opt-in and OFF by default, and
+the deterministic `/season-review` page stays fully useful without it. The
+brief's Ollama-only mandate is honoured as the default (nothing leaves the
+machine), while the configurable endpoint covers the deployed-web-app reality
+that a server can never reach a user's `localhost`.
+
+- `src/lib/season-review/narration.ts` — the client. Browser → configured
+  endpoint directly (no app server in the path), `temperature: 0.2`, optional
+  bearer key for hosted endpoints (sessionStorage, mirroring the AI-advisor
+  BYO-key pattern; endpoint + model persist in localStorage). The findings[]
+  from `rules.ts` are the ONLY season data sent, plus allotment name + year —
+  never coordinates, never internal ids. The system prompt forbids numbers
+  not present in the findings.
+- `src/lib/season-review/narration-verify.ts` — the real guarantee,
+  deterministic code: every numeric token in the draft must be vouched for by
+  the findings (summaries, metric values, ISO date parts) or a small derived
+  allowance (season year, year+1, finding counts). Tokens are canonicalized
+  (`21.50` ≡ `21.5`, thousands separators joined, sign treated as grammar);
+  model-side rounding/conversions/arithmetic all fail. A failing draft is
+  discarded and the UI says so — the findings list is the fallback report.
+- `src/components/season-review/NarrationPanel.tsx` — collapsed
+  `<details>` on `/season-review`, inert until the user presses Generate.
+  Narration is ephemeral: rendered on demand, never persisted (not in the
+  Yjs doc, not anywhere), dropped when the year or findings change. Friendly
+  guidance on unreachable endpoints (Ollama not running / `OLLAMA_ORIGINS`).
+- CSP: `connect-src` gained `http://localhost:11434` + `http://127.0.0.1:11434`
+  (browsers exempt localhost from mixed-content blocking, but CSP still needs
+  the origin). Custom remote endpoints need their origin added to
+  `src/middleware.ts`.
+- No release-visibility flag: the collapsed opt-in panel that does nothing
+  until configured-and-clicked *is* the gate, and a flag would be sprawl.
+- Tests: `narration-verify.test.ts` (the checker, tested hard — rounding,
+  conversions, thousands separators, dedupe, zero-findings) and
+  `narration.test.ts` (mocked fetch: request shape, auth header only with a
+  key, prompt contract, error paths, verified/rejected orchestration).
 
 ### Not building (per brief non-goals)
 Bed-layout designer, sensors/hardware, cloud accounts/telemetry for this
