@@ -151,9 +151,11 @@ function formatDay(isoDate: string): string {
   return `${day} ${MONTH_NAMES[month - 1]?.slice(0, 3) ?? '?'}`
 }
 
-function addDaysISO(isoDate: string, days: number): string {
-  const ms = Date.parse(`${isoDate}T00:00:00Z`) + days * 86_400_000
-  return new Date(ms).toISOString().slice(0, 10)
+/** Null on an unparseable date — callers skip, per the stay-silent policy. */
+function addDaysISO(isoDate: string, days: number): string | null {
+  const parsed = Date.parse(`${isoDate.slice(0, 10)}T00:00:00Z`)
+  if (Number.isNaN(parsed)) return null
+  return new Date(parsed + days * 86_400_000).toISOString().slice(0, 10)
 }
 
 function isInYear(date: string | undefined, year: number): date is string {
@@ -310,6 +312,7 @@ function ruleFrostAfterTenderPlanting(
     const end = windowEnd(planting, input.weather)
     if (!end || end < exposure) continue
     const frostWindowEnd = addDaysISO(exposure, TENDER_FROST_WINDOW_DAYS)
+    if (!frostWindowEnd) continue
     const frost = frostDaysInWindow(
       input.weather.days,
       exposure,

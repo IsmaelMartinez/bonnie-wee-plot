@@ -83,8 +83,9 @@ function FindingCard({ finding }: { finding: Finding }) {
         <span className={`text-[11px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-full ${style.badge}`}>
           {style.label}
         </span>
-        {entityLabels.map((label) => (
-          <span key={label} className="text-xs text-zen-stone-500 truncate">
+        {entityLabels.map((label, i) => (
+          // Labels can repeat (same crop in two beds) — key by position.
+          <span key={`${finding.id}-entity-${i}`} className="text-xs text-zen-stone-500 truncate">
             {label}
           </span>
         ))}
@@ -176,6 +177,10 @@ export default function SeasonReviewPage() {
     }
     let cancelled = false
     setWeatherStatus('loading')
+    // Drop the previous year's data immediately so findings/anomalies never
+    // render the new season record against stale weather while fetching.
+    setWeather(null)
+    setBaseline(null)
     // Both are cache-first: a previously-reviewed season costs no network.
     Promise.all([
       fetchSeasonWeather(coordinates, selectedReviewYear),
@@ -423,7 +428,7 @@ export default function SeasonReviewPage() {
             <a
               href="https://open-meteo.com/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="underline hover:text-zen-stone-500"
             >
               by Open-Meteo

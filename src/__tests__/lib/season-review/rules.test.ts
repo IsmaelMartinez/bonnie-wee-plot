@@ -543,6 +543,17 @@ describe('evaluateSeason', () => {
     expect(evaluateSeason(makeInput())).toEqual([])
   })
 
+  it('stays silent instead of throwing on a malformed planting date', () => {
+    // Passes the year-prefix check and sorts inside the season, but is not a
+    // parseable date; the frost rule's date arithmetic must skip it, not
+    // crash the whole review.
+    const mangled: Planting = { id: 'm1', plantId: 'courgette', transplantDate: `${YEAR}-05-99` }
+    const findings = evaluateSeason(
+      makeInput({ weather: buildWeather(), seasonRecord: makeSeasonRecord([mangled]) })
+    )
+    expect(findings).toEqual([])
+  })
+
   it('orders findings most severe first', () => {
     const findings: Finding[] = [
       { id: 'a', ruleId: 'r', severity: 'info', summary: '', metrics: {}, entities: [] },
