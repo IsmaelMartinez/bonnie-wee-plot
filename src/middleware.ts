@@ -18,6 +18,12 @@ function buildCspHeader(): string {
     'style-src': ["'self'", "'unsafe-inline'"],
     'connect-src': [
       "'self'",
+      // Season-review narration default preset: the user's own local Ollama.
+      // Browsers exempt localhost from mixed-content blocking, but CSP still
+      // needs the origin. Custom remote narration endpoints require adding
+      // their origin here.
+      'http://localhost:11434',
+      'http://127.0.0.1:11434',
       'https://api.openai.com',
       'https://api.bigdatacloud.net',
       'https://api-bdc.io',

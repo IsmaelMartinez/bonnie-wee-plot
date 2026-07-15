@@ -3,12 +3,14 @@
 /**
  * Season Review — the Season Observer's Phase 2b report page.
  *
- * Deterministic rendering only: pick a year, see the season's monthly weather
+ * Deterministic rendering first: pick a year, see the season's monthly weather
  * against the plot's 10-year baseline, the rules-engine findings, and the
  * per-planting derived metrics. Everything on screen comes from tested pure
- * functions (src/lib/season-review/) over logs + cached archive weather — no
- * narration, no LLM (that's the still-open Phase 2c decision), and nothing is
- * persisted: the review is recomputed on demand.
+ * functions (src/lib/season-review/) over logs + cached archive weather, and
+ * nothing is persisted: the review is recomputed on demand. The only LLM
+ * surface is the strictly opt-in NarrationPanel (Phase 2c) — collapsed, off
+ * until clicked, number-verified against the findings, and ephemeral. The
+ * page is fully useful without ever touching it.
  *
  * Degrades gracefully: no coordinates → log-only findings plus a pointer to
  * set a location; no cached weather and offline → same; sparse logs → an
@@ -45,6 +47,7 @@ import {
   type SeasonReviewInput,
 } from '@/lib/season-review/rules'
 import type { Finding, FindingSeverity } from '@/lib/season-review/findings'
+import NarrationPanel from '@/components/season-review/NarrationPanel'
 import { todayLocalISO } from '@/lib/log-date'
 
 const MONTH_NAMES = [
@@ -346,6 +349,17 @@ export default function SeasonReviewPage() {
                 </ul>
               )}
             </section>
+
+            {/* Opt-in AI narration — only once the findings it narrates are final */}
+            {findings.length > 0 && weatherStatus !== 'loading' && selectedReviewYear !== null && (
+              <section className="mb-8" aria-label="Season narration">
+                <NarrationPanel
+                  findings={findings}
+                  year={selectedReviewYear}
+                  allotmentName={data?.meta.name}
+                />
+              </section>
+            )}
 
             {/* Monthly weather vs baseline */}
             {weather && anomalies.length > 0 && (

@@ -1,6 +1,23 @@
 # Current Plan
 
-Last updated: 2026-07-13 (Season Observer Phase 2b rules engine shipped)
+Last updated: 2026-07-14 (Season Observer Phase 2c report narration shipped)
+
+## Season Observer — Phase 2c: report narration (shipped)
+
+The open Phase 2c decision is resolved and built: a **provider-agnostic
+narration client** (`src/lib/season-review/narration.ts`) — configurable
+OpenAI-compatible endpoint + model, local Ollama
+(`http://localhost:11434/v1`) as the default preset, optional bearer key for
+hosted endpoints. Strictly opt-in and OFF by default: a collapsed panel on
+`/season-review` (`NarrationPanel.tsx`) that does nothing until the user
+presses Generate, calling the endpoint directly from the browser. The
+findings[] from the Phase 2b rules engine are the only season data sent
+(plus allotment name + year — never coordinates). The real guarantee is
+deterministic: `narration-verify.ts` rejects any draft containing a number
+the findings don't vouch for, falling back to the plain findings list.
+Narration is ephemeral — never persisted, dropped when the year or findings
+change. CSP `connect-src` now allows the two localhost Ollama origins. Full
+detail in `docs/plans/season-observer.md`.
 
 ## Season Observer — Phase 2b: derived metrics + rules engine (shipped)
 
@@ -15,8 +32,8 @@ missing/thin data (false positives are the failure mode). The new
 `/season-review` page (More menu + linked from `/log`) renders the findings,
 a monthly weather-vs-baseline table, and per-planting metrics, degrading
 gracefully with no coordinates / no cached weather / sparse logs. Findings
-are computed on demand, never persisted. Phase 2c (report narration) remains
-an open decision — see `docs/plans/season-observer.md`.
+are computed on demand, never persisted. Phase 2c (report narration) shipped
+next — see above and `docs/plans/season-observer.md`.
 
 ## Season Observer — camera-roll photo import (shipped)
 
