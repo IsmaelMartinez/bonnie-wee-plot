@@ -24,6 +24,7 @@ import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
 import Dialog, { ConfirmDialog } from '@/components/ui/Dialog'
 import SeasonStatusWidget from '@/components/allotment/SeasonStatusWidget'
+import LastSeasonPanel from '@/components/allotment/LastSeasonPanel'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import AddAreaForm from '@/components/allotment/AddAreaForm'
 import EditAreaForm from '@/components/allotment/EditAreaForm'
@@ -416,6 +417,19 @@ function AllotmentPageContent() {
           varietiesCount={getVarietiesForYear(selectedYear - 1).length}
         />
       </div>
+
+      {/* Last-season plan feedback (Season Observer Phase 3) — only when
+          planning the current/next year with a previous season on record.
+          The panel renders nothing when there are no actionable suggestions. */}
+      {selectedYear >= currentYear && (
+        <LastSeasonPanel
+          planYear={selectedYear}
+          areas={getAllAreas()}
+          seasonRecord={data?.seasons.find(s => s.year === selectedYear - 1) ?? null}
+          coordinates={data?.meta.coordinates}
+          frostDates={data?.meta.frostDates}
+        />
+      )}
 
       <div className="max-w-6xl mx-auto px-4 py-2">
         <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">

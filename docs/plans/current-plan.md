@@ -1,6 +1,24 @@
 # Current Plan
 
-Last updated: 2026-07-14 (Season Observer Phase 2c report narration shipped)
+Last updated: 2026-07-15 (Season Observer Phase 3 plan feedback shipped)
+
+## Season Observer — Phase 3: plan feedback (shipped)
+
+The loop is closed: last season's findings now feed next season's planning,
+fully deterministic (no LLM in this phase). A new pure module
+(`src/lib/season-review/plan-adjustments.ts`) maps the Phase 2b findings[]
+1:1 by rule id into typed suggestions — an observed fact plus a concrete
+action ("Peas went into 6.5°C soil — this year wait until the soil holds 7°C,
+or start indoors"), with the same silence-on-thin-data discipline as the
+rules engine (missing metrics → nothing; context-only rules like monthly
+anomalies never become suggestions). The frost rule compares the planting
+date against `meta.frostDates.lastSpring` when known. A single "Learning
+from <year>" panel (`LastSeasonPanel.tsx`) surfaces them on `/allotment`
+when planning the current/next year with a previous season on record —
+weather cache-first like `/season-review`, degrading to log-only findings.
+Suggestions are computed on demand, never persisted; dismissal is per
+plan-year in localStorage, not the CRDT. Full detail in
+`docs/plans/season-observer.md`.
 
 ## Season Observer — Phase 2c: report narration (shipped)
 

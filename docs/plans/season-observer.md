@@ -188,6 +188,43 @@ that a server can never reach a user's `localhost`.
   `narration.test.ts` (mocked fetch: request shape, auth header only with a
   key, prompt contract, error paths, verified/rejected orchestration).
 
+### Plan feedback (Phase 3) — **shipped**
+
+Closes the loop: last season's findings feed next season's planning, all
+deterministic (no LLM anywhere in this phase).
+
+- `src/lib/season-review/plan-adjustments.ts` — pure mapper: the findings[]
+  from `evaluateSeason()` in, typed `PlanAdjustment[]` out (observed fact +
+  concrete action, entities carried through). Each suggestion maps 1:1 to a
+  rule id and restates only numbers already in the finding's `metrics`, with
+  the rules engine's silence-on-thin-data discipline: missing metrics → no
+  suggestion, and rules with no concrete plan action (temp/rain anomalies,
+  water deficit, dull months — season context) never become suggestions.
+  Actionable mappings: cold-soil sowing → wait for the crop's soil threshold
+  (with last year's actual threshold date when known) or start indoors; slow
+  germination → sow later / pre-warm the bed; frost after tender planting-out
+  → hold back past `meta.frostDates.lastSpring` (compares the planting date
+  against the average last frost, with a fleece fallback when the frost came
+  after it, and a generic wait when no frost dates are known); heat stress →
+  bolt-resistant variety / earlier sowing, or shade + watering when nothing
+  bolted; dry spell → mulch + a watering routine for the spell's months;
+  pest/disease cluster → early netting/collars or spacing/family rotation for
+  that specific bed.
+- `src/components/allotment/LastSeasonPanel.tsx` — one focused "Learning
+  from <year>" panel on `/allotment`, rendered under the season status widget
+  only when planning the current/next year (selected year ≥ calendar year)
+  with a previous season on record. Weather loads cache-first via
+  `fetchSeasonWeather` + `getBaseline` (same pattern as `/season-review`) and
+  degrades to log-only findings; suggestions are computed on demand and never
+  persisted to the Yjs doc. Dismissal is per plan-year in localStorage
+  (`bwp-plan-feedback-dismissed:<year>`), not the CRDT. No adjustments → the
+  panel renders nothing at all. Links to `/season-review` for the full report.
+- Tests: `plan-adjustments.test.ts` (every rule → suggestion mapping, the
+  frost-date branches, and the missing-metric / unknown-rule / context-rule
+  silence cases) and `LastSeasonPanel.test.tsx` (renders from a log-only
+  season, silence without a record or without actionable findings, dismissal
+  persistence keyed by plan year).
+
 ### Not building (per brief non-goals)
 Bed-layout designer, sensors/hardware, cloud accounts/telemetry for this
 feature, real-time alerts, one-shot photo plant-ID as a headline, any
