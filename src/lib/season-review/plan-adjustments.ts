@@ -63,8 +63,8 @@ function monthNameOf(isoDate: string): string | null {
 
 /** "2026-05-12" → "05-12" for year-free calendar comparison. Null when malformed. */
 function monthDayOf(isoDate: string): string | null {
-  const md = isoDate.slice(5, 10)
-  return /^\d{2}-\d{2}$/.test(md) ? md : null
+  // Same month/day range validation as formatDay — "2026-99-99" is rejected.
+  return formatDay(isoDate) === null ? null : isoDate.slice(5, 10)
 }
 
 function metricNumber(finding: Finding, key: string): number | null {
@@ -170,7 +170,7 @@ function mapFrostAfterTenderPlanting(
       lastSpringMd > plantedMd
         ? `Your average last frost is around ${lastSpringDay} — later than you planted. ` +
           `This year hold ${plant} back until after that date, and keep fleece handy.`
-        : `You planted after your average last frost (~${lastSpringDay}) and still got caught — ` +
+        : `You planted on or after your average last frost (~${lastSpringDay}) and still got caught — ` +
           `this year keep fleece over ${plant} for its first weeks outside.`
     return adjustment(finding, observed, action)
   }

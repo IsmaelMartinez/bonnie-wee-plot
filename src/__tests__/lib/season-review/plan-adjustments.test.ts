@@ -172,9 +172,20 @@ describe('derivePlanAdjustments', () => {
     it('suggests fleece when the planting was already after the average last frost', () => {
       const adj = single([frost], { frostDates: { ...FROST_DATES, lastSpring: '2026-04-20' } })
       expect(adj.action).toBe(
-        'You planted after your average last frost (~20 Apr) and still got caught — ' +
+        'You planted on or after your average last frost (~20 Apr) and still got caught — ' +
           'this year keep fleece over Courgette for its first weeks outside.'
       )
+    })
+
+    it('treats planting exactly on the average last frost date as on-or-after, not later-than', () => {
+      const adj = single([frost], { frostDates: { ...FROST_DATES, lastSpring: '2026-05-01' } })
+      expect(adj.action).toContain('You planted on or after your average last frost (~1 May)')
+      expect(adj.action).not.toContain('later than you planted')
+    })
+
+    it('falls back to the generic action when the average last frost date is malformed', () => {
+      const adj = single([frost], { frostDates: { ...FROST_DATES, lastSpring: '2026-99-99' } })
+      expect(adj.action).toContain('wait until frost risk has clearly passed')
     })
 
     it('gives a generic wait-for-frost-risk action when no frost dates are known', () => {

@@ -145,6 +145,10 @@ function AllotmentPageContent() {
 
   const selectedPlantings = selectedBedId ? getPlantings(selectedBedId) : []
 
+  // Stable reference so LastSeasonPanel's memoized evaluation only re-runs
+  // when the underlying data changes (same pattern as useTodayData).
+  const allAreas = useMemo(() => getAllAreas(), [getAllAreas])
+
   // Quick stats for empty state
   const quickStats = useMemo(() => ({
     rotationBeds: getRotationBeds().length,
@@ -420,11 +424,14 @@ function AllotmentPageContent() {
 
       {/* Last-season plan feedback (Season Observer Phase 3) — only when
           planning the current/next year with a previous season on record.
-          The panel renders nothing when there are no actionable suggestions. */}
+          The panel renders nothing when there are no actionable suggestions.
+          Keyed by year so switching years remounts it with fresh weather and
+          dismissal state instead of briefly showing the old year's. */}
       {selectedYear >= currentYear && (
         <LastSeasonPanel
+          key={selectedYear}
           planYear={selectedYear}
-          areas={getAllAreas()}
+          areas={allAreas}
           seasonRecord={data?.seasons.find(s => s.year === selectedYear - 1) ?? null}
           coordinates={data?.meta.coordinates}
           frostDates={data?.meta.frostDates}

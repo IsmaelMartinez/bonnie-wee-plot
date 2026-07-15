@@ -57,7 +57,11 @@ const SEVERITY_DOT: Record<FindingSeverity, string> = {
 }
 
 interface LastSeasonPanelProps {
-  /** The year being planned (the selected year on /allotment). */
+  /**
+   * The year being planned (the selected year on /allotment). Mount the
+   * panel with `key={planYear}` so a year switch remounts it — dismissal
+   * and weather state initialize per instance rather than tracking changes.
+   */
   planYear: number
   /** All areas, for resolving bed names in findings. */
   areas: Area[]
@@ -83,11 +87,6 @@ export default function LastSeasonPanel({
   const [weatherSettled, setWeatherSettled] = useState(false)
   const [weather, setWeather] = useState<SeasonWeather | null>(null)
   const [baseline, setBaseline] = useState<WeatherBaseline | null>(null)
-
-  // Re-read the dismissal when the plan year changes.
-  useEffect(() => {
-    setDismissed(isDismissed(planYear))
-  }, [planYear])
 
   useEffect(() => {
     if (!seasonRecord) return
