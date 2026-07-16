@@ -10,6 +10,16 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
 import { StoredVariety, NewPlanting } from '@/types/unified-allotment'
+import type { PlanAdjustment } from '@/lib/season-review/plan-adjustments'
+
+// Mock the shared last-season adjustments hook (Season Observer Phase 4) so
+// these tests control the adjustments directly — no weather or season setup.
+const { mockUseLastSeasonAdjustments } = vi.hoisted(() => ({
+  mockUseLastSeasonAdjustments: vi.fn(),
+}))
+vi.mock('@/hooks/useLastSeasonAdjustments', () => ({
+  useLastSeasonAdjustments: mockUseLastSeasonAdjustments,
+}))
 
 // Mock the vegetable database
 vi.mock('@/lib/vegetable-database', () => ({
@@ -106,6 +116,9 @@ describe('AddPlantingForm Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default to a settled, adjustment-free previous season; the nudge
+    // tests override this per test.
+    mockUseLastSeasonAdjustments.mockReturnValue({ settled: true, adjustments: [] })
   })
 
   describe('Initial state', () => {
@@ -466,6 +479,83 @@ describe('AddPlantingForm Component', () => {
       await userEvent.selectOptions(screen.getByTestId('plant-select'), 'tomato')
 
       expect(screen.getByText(/add varieties to seed library/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('Last-season nudges (Season Observer Phase 4)', () => {
+    const tomatoAdjustment: PlanAdjustment = {
+      id: 'plan:cold-soil-sowing:2025:p1',
+      findingId: 'cold-soil-sowing:2025:p1',
+      ruleId: 'cold-soil-sowing',
+      severity: 'warning',
+      observed: 'Tomato went into 6.5°C soil on 20 Mar — below the ~7°C it needs to germinate.',
+      action: 'This year wait until the soil holds 7°C before sowing Tomato outdoors, or start it indoors.',
+      entities: [{ plantingId: 'p1', plantId: 'tomato', plantName: 'Tomato' }],
+    }
+    const plotWideAdjustment: PlanAdjustment = {
+      id: 'plan:dry-spell:2025:2025-06-10',
+      findingId: 'dry-spell:2025:2025-06-10',
+      ruleId: 'dry-spell',
+      severity: 'notice',
+      observed: 'A 23-day dry spell ran 10 Jun–2 Jul with only 3.4mm of rain.',
+      action: 'This year mulch beds in spring to hold moisture, and plan a watering routine for June–July.',
+      entities: [],
+    }
+
+    it("shows last year's lesson for the picked crop, excluding plot-wide adjustments", async () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [tomatoAdjustment, plotWideAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+        />
+      )
+
+      await userEvent.selectOptions(screen.getByTestId('plant-select'), 'tomato')
+
+      expect(screen.getByText(/last year:/i)).toBeInTheDocument()
+      expect(screen.getByText(/went into 6\.5°C soil on 20 Mar/)).toBeInTheDocument()
+      expect(screen.getByText(/wait until the soil holds 7°C/)).toBeInTheDocument()
+      // Plot-wide dry-spell advice stays on the /allotment panel, never here.
+      expect(screen.queryByText(/dry spell/)).not.toBeInTheDocument()
+    })
+
+    it('stays silent for a picked crop without a matching adjustment', async () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [tomatoAdjustment, plotWideAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+        />
+      )
+
+      await userEvent.selectOptions(screen.getByTestId('plant-select'), 'lettuce')
+
+      expect(screen.queryByText(/last year:/i)).not.toBeInTheDocument()
+    })
+
+    it('stays silent when the previous season produced no adjustments', async () => {
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+        />
+      )
+
+      await userEvent.selectOptions(screen.getByTestId('plant-select'), 'tomato')
+
+      expect(screen.queryByText(/last year:/i)).not.toBeInTheDocument()
     })
   })
 })

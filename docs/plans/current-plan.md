@@ -1,6 +1,24 @@
 # Current Plan
 
-Last updated: 2026-07-15 (Season Observer Phase 3 plan feedback shipped)
+Last updated: 2026-07-16 (Season Observer Phase 4 point-of-decision nudges shipped)
+
+## Season Observer — Phase 4: point-of-decision nudges (shipped)
+
+Last season's crop-specific lessons now appear where the decision is made:
+picking a plant in the Add Planting form for a year whose previous season
+produced a finding about that crop shows one compact "Last year: …" note per
+matching adjustment, verbatim from `derivePlanAdjustments` (no new rule
+text). Matching is a small pure selector, `adjustmentsForPlant(plantId,
+adjustments)` in `plan-adjustments.ts`, keyed on each adjustment's
+`entities[].plantId` — plot-wide adjustments (dry-spell) carry no plant
+entity and stay on the `/allotment` panel. The cache-first weather →
+`evaluateSeason` → derive pipeline that `LastSeasonPanel` owned moved into a
+shared `useLastSeasonAdjustments` hook (`src/hooks/useLastSeasonAdjustments.ts`)
+so the panel and the form compute from one place; the panel's rendering and
+dismissal behaviour are unchanged. Same guardrails as Phase 3: deterministic,
+computed on demand, nothing persisted to the Yjs doc, silence when nothing
+matches, evaluation memoized per season/weather (never per keystroke). Full
+detail in `docs/plans/season-observer.md`.
 
 ## Season Observer — Phase 3: plan feedback (shipped)
 

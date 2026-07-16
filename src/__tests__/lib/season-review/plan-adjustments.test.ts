@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Finding } from '@/lib/season-review/findings'
 import {
+  adjustmentsForPlant,
   derivePlanAdjustments,
   type PlanAdjustment,
 } from '@/lib/season-review/plan-adjustments'
@@ -326,5 +327,49 @@ describe('derivePlanAdjustments', () => {
       delete f.metrics.observationCount
       expect(derivePlanAdjustments([f])).toEqual([])
     })
+  })
+})
+
+describe('adjustmentsForPlant', () => {
+  /** Real adjustments from the mapper: peas (crop), lettuce (crop), dry spell (plot-wide). */
+  function mixedAdjustments(): PlanAdjustment[] {
+    const heat = finding({
+      id: 'heat-stress:2025:p5',
+      ruleId: 'heat-stress',
+      entities: [{ plantingId: 'p5', plantId: 'lettuce', plantName: 'Lettuce' }],
+      metrics: { heatStressDays: 6, heatStressTempC: 25 },
+    })
+    const drySpell = finding({
+      id: 'dry-spell:2025:2025-06-10',
+      ruleId: 'dry-spell',
+      metrics: { startDate: '2025-06-10', endDate: '2025-07-02', lengthDays: 23, totalRainMm: 3.4 },
+    })
+    const adjustments = derivePlanAdjustments([coldSoilFinding(), heat, drySpell])
+    expect(adjustments).toHaveLength(3)
+    return adjustments
+  }
+
+  it('returns only the adjustments whose entities name the picked plant', () => {
+    const matched = adjustmentsForPlant('peas', mixedAdjustments())
+    expect(matched).toHaveLength(1)
+    expect(matched[0].ruleId).toBe('cold-soil-sowing')
+    expect(matched[0].entities[0].plantId).toBe('peas')
+  })
+
+  it('never returns plot-wide adjustments, which carry no plant entity', () => {
+    const all = mixedAdjustments()
+    for (const plantId of ['peas', 'lettuce']) {
+      const matched = adjustmentsForPlant(plantId, all)
+      expect(matched.every((adj) => adj.ruleId !== 'dry-spell')).toBe(true)
+    }
+  })
+
+  it('returns an empty array for a plant with no matching adjustment', () => {
+    expect(adjustmentsForPlant('carrot', mixedAdjustments())).toEqual([])
+  })
+
+  it('returns an empty array for an empty plant id or no adjustments', () => {
+    expect(adjustmentsForPlant('', mixedAdjustments())).toEqual([])
+    expect(adjustmentsForPlant('peas', [])).toEqual([])
   })
 })

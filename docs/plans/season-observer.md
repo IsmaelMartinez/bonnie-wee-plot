@@ -225,6 +225,43 @@ deterministic (no LLM anywhere in this phase).
   season, silence without a record or without actionable findings, dismissal
   persistence keyed by plan year).
 
+### Point-of-decision nudges (Phase 4) — **shipped**
+
+Surfaces last season's crop-specific adjustment inside the Add Planting flow,
+at the moment the crop is picked. Same guardrails as Phase 3: deterministic,
+computed on demand, nothing persisted to the Yjs doc, and silence when
+nothing matches.
+
+- `adjustmentsForPlant(plantId, adjustments)` — small pure selector added to
+  `plan-adjustments.ts`, matching via each adjustment's `entities[].plantId`
+  (the vegetable-database id the form's combobox picks). Plot-wide
+  adjustments (dry-spell) carry no plant entity, so they never match — they
+  stay on the `/allotment` panel and never appear in the form. No new rule
+  text anywhere: the nudge renders the adjustment's `observed` + `action`
+  verbatim.
+- `src/hooks/useLastSeasonAdjustments.ts` — the cache-first weather
+  (`fetchSeasonWeather` + `getBaseline`) → `evaluateSeason` →
+  `derivePlanAdjustments` pipeline that `LastSeasonPanel` owned, extracted so
+  the panel and the form compute from one place. Takes the same inputs the
+  panel took as props (`planYear`, `areas`, `seasonRecord`, `coordinates`,
+  `frostDates`) and returns `{ settled, adjustments }`; evaluation is
+  memoized per (season, weather) — never per keystroke — and the hook adds
+  no fetches beyond the existing cache-first calls. The panel's rendering
+  and per-plan-year dismissal behaviour are unchanged.
+- `AddPlantingForm` — already reads `useAllotment()` (for frost dates), so it
+  derives the previous season record itself and shows one compact
+  "Last year: <observed> <action>" note per matching adjustment directly
+  under the plant picker (alongside the companion hints, complementing the
+  SowDateValidator output further down). The dialog only mounts the form
+  when opened, and `LastSeasonPanel` on the same page has already warmed the
+  season-weather cache, so opening the form costs no network.
+- Tests: selector cases in `plan-adjustments.test.ts` (crop matching,
+  plot-wide exclusion, empty inputs) and form integration in
+  `AddPlantingForm.test.tsx` (right nudge for the picked plant with
+  plot-wide advice excluded, silence for a crop without a matching
+  adjustment, silence when the previous season produced nothing) with the
+  shared hook mocked; existing form and panel tests unchanged.
+
 ### Not building (per brief non-goals)
 Bed-layout designer, sensors/hardware, cloud accounts/telemetry for this
 feature, real-time alerts, one-shot photo plant-ID as a headline, any

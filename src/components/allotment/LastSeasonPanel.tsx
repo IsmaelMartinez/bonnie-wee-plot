@@ -2,35 +2,25 @@
 
 /**
  * Last-season panel (Season Observer Phase 3) — shown on /allotment when the
- * user is planning a year that has a previous season on record. Feeds the
- * season review's findings (rules.ts) through the pure plan-adjustments
- * mapper and surfaces the concrete, rule-derived suggestions where planting
- * decisions are made.
+ * user is planning a year that has a previous season on record. Surfaces the
+ * concrete, rule-derived suggestions from `useLastSeasonAdjustments` (the
+ * shared cache-first weather → findings → adjustments hook, also feeding the
+ * Add Planting flow's per-crop nudges) where planting decisions are made.
  *
- * Everything is computed on demand: weather comes cache-first from the
- * archive client (like /season-review) and degrades to log-only findings
- * when unavailable; nothing here is persisted to the Yjs doc. Dismissal is
- * per plan-year in localStorage. Renders nothing at all when the previous
- * season yields no actionable adjustments — silence over noise.
+ * Everything is computed on demand; nothing here is persisted to the Yjs
+ * doc. Dismissal is per plan-year in localStorage. Renders nothing at all
+ * when the previous season yields no actionable adjustments — silence over
+ * noise.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, BookOpenCheck, X } from 'lucide-react'
 import type { Area, SeasonRecord } from '@/types/unified-allotment'
-import {
-  fetchSeasonWeather,
-  isValidPlotCoordinates,
-  type PlotCoordinates,
-  type SeasonWeather,
-} from '@/lib/weather/open-meteo-archive'
-import { getBaseline, type WeatherBaseline } from '@/lib/weather/weather-baseline'
-import { evaluateSeason } from '@/lib/season-review/rules'
+import type { PlotCoordinates } from '@/lib/weather/open-meteo-archive'
 import type { FindingSeverity } from '@/lib/season-review/findings'
-import {
-  derivePlanAdjustments,
-  type PlanAdjustmentContext,
-} from '@/lib/season-review/plan-adjustments'
+import type { PlanAdjustmentContext } from '@/lib/season-review/plan-adjustments'
+import { useLastSeasonAdjustments } from '@/hooks/useLastSeasonAdjustments'
 
 const DISMISS_KEY_PREFIX = 'bwp-plan-feedback-dismissed:'
 
@@ -82,57 +72,15 @@ export default function LastSeasonPanel({
 }: LastSeasonPanelProps) {
   const reviewYear = planYear - 1
   const [dismissed, setDismissed] = useState(() => isDismissed(planYear))
-  // Weather settles to null (no coords / offline / no cache) or data; the
-  // panel stays hidden until then so suggestions never pop in piecemeal.
-  const [weatherSettled, setWeatherSettled] = useState(false)
-  const [weather, setWeather] = useState<SeasonWeather | null>(null)
-  const [baseline, setBaseline] = useState<WeatherBaseline | null>(null)
+  const { settled, adjustments } = useLastSeasonAdjustments({
+    planYear,
+    areas,
+    seasonRecord,
+    coordinates,
+    frostDates,
+  })
 
-  useEffect(() => {
-    if (!seasonRecord) return
-    if (!isValidPlotCoordinates(coordinates)) {
-      setWeather(null)
-      setBaseline(null)
-      setWeatherSettled(true)
-      return
-    }
-    let cancelled = false
-    setWeatherSettled(false)
-    setWeather(null)
-    setBaseline(null)
-    // Cache-first, same as /season-review — a previously reviewed season
-    // costs no network here.
-    Promise.all([fetchSeasonWeather(coordinates, reviewYear), getBaseline(coordinates)])
-      .then(([season, base]) => {
-        if (cancelled) return
-        setWeather(season)
-        setBaseline(base)
-        setWeatherSettled(true)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setWeather(null)
-        setBaseline(null)
-        setWeatherSettled(true)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [seasonRecord, coordinates, reviewYear])
-
-  const adjustments = useMemo(() => {
-    if (!seasonRecord || !weatherSettled) return []
-    const findings = evaluateSeason({
-      year: reviewYear,
-      areas,
-      seasonRecord,
-      weather,
-      baseline,
-    })
-    return derivePlanAdjustments(findings, { frostDates })
-  }, [seasonRecord, weatherSettled, reviewYear, areas, weather, baseline, frostDates])
-
-  if (!seasonRecord || dismissed || !weatherSettled || adjustments.length === 0) {
+  if (!seasonRecord || dismissed || !settled || adjustments.length === 0) {
     return null
   }
 
