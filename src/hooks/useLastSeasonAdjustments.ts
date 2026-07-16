@@ -72,9 +72,20 @@ export function useLastSeasonAdjustments({
   const [weather, setWeather] = useState<SeasonWeather | null>(null)
   const [baseline, setBaseline] = useState<WeatherBaseline | null>(null)
 
+  // The fetch needs only "is there a season to review" plus the coordinate
+  // values — depending on primitives rather than object identity keeps
+  // unrelated data mutations (which regenerate the snapshot and every
+  // object in it) from resetting `settled` and re-running the effect.
+  const hasSeasonRecord = seasonRecord !== null
+  const latitude = coordinates?.latitude
+  const longitude = coordinates?.longitude
+
   useEffect(() => {
-    if (!seasonRecord) return
-    if (!isValidPlotCoordinates(coordinates)) {
+    const coords =
+      latitude !== undefined && longitude !== undefined ? { latitude, longitude } : null
+    if (!hasSeasonRecord || !isValidPlotCoordinates(coords)) {
+      // No season means nothing will ever load; no valid coordinates means
+      // weather is log-only. Either way the outcome is known: settle now.
       setWeather(null)
       setBaseline(null)
       setWeatherSettled(true)
@@ -86,7 +97,7 @@ export function useLastSeasonAdjustments({
     setBaseline(null)
     // Cache-first, same as /season-review — a previously reviewed season
     // costs no network here.
-    Promise.all([fetchSeasonWeather(coordinates, reviewYear), getBaseline(coordinates)])
+    Promise.all([fetchSeasonWeather(coords, reviewYear), getBaseline(coords)])
       .then(([season, base]) => {
         if (cancelled) return
         setWeather(season)
@@ -102,7 +113,7 @@ export function useLastSeasonAdjustments({
     return () => {
       cancelled = true
     }
-  }, [seasonRecord, coordinates, reviewYear])
+  }, [hasSeasonRecord, latitude, longitude, reviewYear])
 
   const adjustments = useMemo(() => {
     if (!seasonRecord || !weatherSettled) return []
