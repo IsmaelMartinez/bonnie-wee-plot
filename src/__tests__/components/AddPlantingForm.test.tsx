@@ -558,4 +558,126 @@ describe('AddPlantingForm Component', () => {
       expect(screen.queryByText(/last year:/i)).not.toBeInTheDocument()
     })
   })
+
+  describe('Bed-scoped nudges (Season Observer Phase 5)', () => {
+    const bedAdjustment: PlanAdjustment = {
+      id: 'plan:pest-disease-cluster:2025:bed-b:pest',
+      findingId: 'pest-disease-cluster:2025:bed-b:pest',
+      ruleId: 'pest-disease-cluster',
+      severity: 'notice',
+      observed: '4 pest observations were logged in Bed B, starting 5 Jun.',
+      action:
+        'This year protect Bed B from the start — netting or collars in place before June — and check young plants weekly.',
+      entities: [{ areaId: 'bed-b', areaName: 'Bed B' }],
+    }
+    const tomatoAdjustment: PlanAdjustment = {
+      id: 'plan:cold-soil-sowing:2025:p1',
+      findingId: 'cold-soil-sowing:2025:p1',
+      ruleId: 'cold-soil-sowing',
+      severity: 'warning',
+      observed: 'Tomato went into 6.5°C soil on 20 Mar — below the ~7°C it needs to germinate.',
+      action: 'This year wait until the soil holds 7°C before sowing Tomato outdoors, or start it indoors.',
+      entities: [{ plantingId: 'p1', plantId: 'tomato', plantName: 'Tomato', areaId: 'bed-b', areaName: 'Bed B' }],
+    }
+
+    it("shows the bed's lesson before any plant is picked", () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [bedAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+          areaId="bed-b"
+        />
+      )
+
+      expect(screen.getByText(/last year in this bed:/i)).toBeInTheDocument()
+      expect(screen.getByText(/4 pest observations were logged in Bed B/)).toBeInTheDocument()
+    })
+
+    it("keeps showing the bed's lesson whichever plant is picked", async () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [bedAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+          areaId="bed-b"
+        />
+      )
+
+      await userEvent.selectOptions(screen.getByTestId('plant-select'), 'lettuce')
+
+      expect(screen.getByText(/last year in this bed:/i)).toBeInTheDocument()
+    })
+
+    it('renders a crop-and-bed adjustment once, as a crop nudge only', async () => {
+      // The tomato adjustment carries both plantId and areaId; the bed
+      // cluster carries only the bed. Picking tomato must show each note
+      // exactly once — the crop lesson never duplicates as a bed nudge.
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [bedAdjustment, tomatoAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+          areaId="bed-b"
+        />
+      )
+
+      await userEvent.selectOptions(screen.getByTestId('plant-select'), 'tomato')
+
+      expect(screen.getAllByText(/4 pest observations were logged in Bed B/)).toHaveLength(1)
+      expect(screen.getAllByText(/went into 6\.5°C soil on 20 Mar/)).toHaveLength(1)
+      expect(screen.getByText(/last year in this bed:/i)).toBeInTheDocument()
+      expect(screen.getByText(/^last year:$/i)).toBeInTheDocument()
+    })
+
+    it('stays silent for a bed without a matching adjustment', () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [bedAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+          areaId="bed-a"
+        />
+      )
+
+      expect(screen.queryByText(/last year in this bed:/i)).not.toBeInTheDocument()
+    })
+
+    it('stays silent when no area id is provided', () => {
+      mockUseLastSeasonAdjustments.mockReturnValue({
+        settled: true,
+        adjustments: [bedAdjustment],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={2026}
+        />
+      )
+
+      expect(screen.queryByText(/last year in this bed:/i)).not.toBeInTheDocument()
+    })
+  })
 })

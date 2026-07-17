@@ -6,7 +6,7 @@ import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
 import { populateExpectedHarvest } from '@/lib/date-calculator'
-import { adjustmentsForPlant } from '@/lib/season-review/plan-adjustments'
+import { adjustmentsForArea, adjustmentsForPlant } from '@/lib/season-review/plan-adjustments'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import { useAllotment } from '@/hooks/useAllotment'
@@ -23,6 +23,8 @@ interface AddPlantingFormProps {
   initialCategoryFilter?: VegetableCategory | 'all'
   /** Optional plant ID to pre-select (e.g. from a "Boost this bed" suggestion). */
   initialPlantId?: string
+  /** The area being planted into — enables last season's bed-scoped nudges. */
+  areaId?: string
 }
 
 // Helper to check if variety has seeds for year
@@ -38,6 +40,7 @@ export default function AddPlantingForm({
   varieties = [],
   initialCategoryFilter = 'all',
   initialPlantId,
+  areaId,
 }: AddPlantingFormProps) {
   const [plantId, setVegetableId] = useState(initialPlantId ?? '')
   const [varietyName, setVarietyName] = useState('')
@@ -74,6 +77,14 @@ export default function AddPlantingForm({
   const cropNudges = useMemo(
     () => adjustmentsForPlant(plantId, lastSeasonAdjustments),
     [plantId, lastSeasonAdjustments]
+  )
+  // Bed-scoped lessons for the area being planted into (Season Observer
+  // Phase 5) — shown regardless of which plant is picked. Adjustments that
+  // name a plant are excluded by the selector, so a crop nudge never also
+  // appears as a bed nudge.
+  const bedNudges = useMemo(
+    () => (areaId ? adjustmentsForArea(areaId, lastSeasonAdjustments) : []),
+    [areaId, lastSeasonAdjustments]
   )
 
   // Get current month for sow method recommendation
@@ -232,6 +243,26 @@ export default function AddPlantingForm({
                 <span>Neutral with current plantings</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Last season's lesson for this bed (Season Observer Phase 5) —
+            one compact note per bed-scoped adjustment, verbatim from
+            derivePlanAdjustments, shown whichever plant is picked. Renders
+            nothing when the previous season flagged nothing for this bed. */}
+        {bedNudges.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {bedNudges.map(adj => (
+              <div
+                key={adj.id}
+                className="flex items-start gap-1.5 text-xs text-zen-ink-700 bg-zen-stone-50 px-2 py-1.5 rounded-zen"
+              >
+                <History className="w-3 h-3 mt-0.5 flex-shrink-0 text-zen-stone-500" aria-hidden="true" />
+                <span>
+                  <span className="font-medium">Last year in this bed:</span> {adj.observed} {adj.action}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

@@ -297,3 +297,24 @@ export function adjustmentsForPlant(
     adj.entities.some((entity) => entity.plantId === plantId)
   )
 }
+
+/**
+ * The adjustments that are about one specific bed and not about a crop,
+ * matched via each adjustment's `entities[].areaId` (Phase 5 bed-scoped
+ * nudges — pest-disease-cluster is the only rule that emits these today).
+ * Adjustments that name a plant are excluded even when they also carry the
+ * bed: those stay crop-matched via `adjustmentsForPlant`, so a finding with
+ * both never renders twice. Plot-wide adjustments (dry-spell) carry no
+ * entities and never match.
+ */
+export function adjustmentsForArea(
+  areaId: string,
+  adjustments: PlanAdjustment[]
+): PlanAdjustment[] {
+  if (!areaId) return []
+  return adjustments.filter(
+    (adj) =>
+      adj.entities.some((entity) => entity.areaId === areaId) &&
+      !adj.entities.some((entity) => entity.plantId)
+  )
+}
