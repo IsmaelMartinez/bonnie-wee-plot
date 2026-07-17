@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Finding } from '@/lib/season-review/findings'
 import {
+  adjustmentsForArea,
   adjustmentsForPlant,
   derivePlanAdjustments,
   type PlanAdjustment,
@@ -371,5 +372,85 @@ describe('adjustmentsForPlant', () => {
   it('returns an empty array for an empty plant id or no adjustments', () => {
     expect(adjustmentsForPlant('', mixedAdjustments())).toEqual([])
     expect(adjustmentsForPlant('peas', [])).toEqual([])
+  })
+})
+
+describe('adjustmentsForArea', () => {
+  /**
+   * Real adjustments from the mapper: a pest cluster in bed-b (area-only),
+   * peas cold-soil in bed-a (carries BOTH the bed and the plant), and a
+   * dry spell (plot-wide, no entities).
+   */
+  function mixedAdjustments(): PlanAdjustment[] {
+    const cluster = finding({
+      id: 'pest-disease-cluster:2025:bed-b:pest',
+      ruleId: 'pest-disease-cluster',
+      entities: [{ areaId: 'bed-b', areaName: 'Bed B' }],
+      metrics: {
+        observationCount: 4,
+        type: 'pest',
+        firstDate: '2025-06-05',
+        lastDate: '2025-06-28',
+      },
+    })
+    const drySpell = finding({
+      id: 'dry-spell:2025:2025-06-10',
+      ruleId: 'dry-spell',
+      metrics: { startDate: '2025-06-10', endDate: '2025-07-02', lengthDays: 23, totalRainMm: 3.4 },
+    })
+    const adjustments = derivePlanAdjustments([cluster, coldSoilFinding(), drySpell])
+    expect(adjustments).toHaveLength(3)
+    return adjustments
+  }
+
+  it('returns only the adjustments whose entities name the bed', () => {
+    const matched = adjustmentsForArea('bed-b', mixedAdjustments())
+    expect(matched).toHaveLength(1)
+    expect(matched[0].ruleId).toBe('pest-disease-cluster')
+    expect(matched[0].entities[0].areaId).toBe('bed-b')
+  })
+
+  it('excludes adjustments that name a plant, even when they also carry the bed', () => {
+    // The peas cold-soil adjustment happened in bed-a — it stays crop-matched
+    // via adjustmentsForPlant, so it must not render again as a bed nudge.
+    expect(adjustmentsForArea('bed-a', mixedAdjustments())).toEqual([])
+  })
+
+  it('never returns plot-wide adjustments, which carry no entities', () => {
+    for (const areaId of ['bed-a', 'bed-b']) {
+      const matched = adjustmentsForArea(areaId, mixedAdjustments())
+      expect(matched.every((adj) => adj.ruleId !== 'dry-spell')).toBe(true)
+    }
+  })
+
+  it('returns an empty array for a bed with no matching adjustment', () => {
+    expect(adjustmentsForArea('bed-c', mixedAdjustments())).toEqual([])
+  })
+
+  it('returns an empty array for an empty area id or no adjustments', () => {
+    expect(adjustmentsForArea('', mixedAdjustments())).toEqual([])
+    expect(adjustmentsForArea(undefined, mixedAdjustments())).toEqual([])
+    expect(adjustmentsForArea('bed-b', [])).toEqual([])
+  })
+
+  it('excludes an adjustment with a separate plant entity alongside an area-only entity', () => {
+    // Pins the whole-adjustment dedup rule: any plant entity keeps the
+    // adjustment crop-matched, even when another entity is area-only. A
+    // future rule emitting this mixed shape should surface via
+    // adjustmentsForPlant, not render twice — revisit here if that changes.
+    const mixed: PlanAdjustment = {
+      id: 'plan:pest-disease-cluster:2025:bed-b:pest',
+      findingId: 'pest-disease-cluster:2025:bed-b:pest',
+      ruleId: 'pest-disease-cluster',
+      severity: 'notice',
+      observed: '4 pest observations were logged in Bed B, starting 5 Jun.',
+      action: 'This year protect Bed B from the start.',
+      entities: [
+        { areaId: 'bed-b', areaName: 'Bed B' },
+        { plantingId: 'p9', plantId: 'kale', plantName: 'Kale' },
+      ],
+    }
+    expect(adjustmentsForArea('bed-b', [mixed])).toEqual([])
+    expect(adjustmentsForPlant('kale', [mixed])).toHaveLength(1)
   })
 })

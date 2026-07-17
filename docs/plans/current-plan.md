@@ -1,6 +1,25 @@
 # Current Plan
 
-Last updated: 2026-07-16 (Season Observer Phase 4 point-of-decision nudges shipped)
+Last updated: 2026-07-17 (Season Observer Phase 5 bed-scoped nudges shipped)
+
+## Season Observer — Phase 5: bed-scoped nudges (shipped)
+
+Last season's bed-specific lessons now appear in the Add Planting form for
+the bed being planted into, regardless of which plant is picked: one compact
+"Last year in this bed: …" note per matching adjustment, above the Phase 4
+crop nudges, verbatim from `derivePlanAdjustments` (no new rule text).
+Matching is a small pure selector, `adjustmentsForArea(areaId, adjustments)`
+in `plan-adjustments.ts`, keyed on each adjustment's `entities[].areaId` and
+excluding adjustments that name a plant — those stay crop-matched via
+`adjustmentsForPlant`, so a finding carrying both a bed and a plant never
+renders twice. Today only `pest-disease-cluster` emits area-only entities;
+plot-wide adjustments (dry-spell) still never appear in the form. The form
+gained an optional `areaId` prop, passed as `selectedBedId` at its single
+mount point (the `/allotment` Add Planting dialog, which both the desktop
+sidebar and the mobile bottom sheet open). `useLastSeasonAdjustments` and
+`LastSeasonPanel` are unchanged. Same guardrails as Phase 4: deterministic,
+computed on demand, nothing persisted to the Yjs doc, no new fetches,
+silence when nothing matches. Full detail in `docs/plans/season-observer.md`.
 
 ## Season Observer — Phase 4: point-of-decision nudges (shipped)
 

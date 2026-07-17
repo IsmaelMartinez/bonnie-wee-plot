@@ -517,6 +517,7 @@ function AllotmentPageContent() {
               varieties={data?.varieties || []}
               initialCategoryFilter={selectedArea?.kind === 'berry' ? 'berries' : 'all'}
               initialPlantId={addDialogPrefilledPlantId}
+              areaId={selectedBedId ?? undefined}
             />
           </Dialog>
         )

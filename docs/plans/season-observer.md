@@ -262,6 +262,38 @@ nothing matches.
   adjustment, silence when the previous season produced nothing) with the
   shared hook mocked; existing form and panel tests unchanged.
 
+### Bed-scoped nudges (Phase 5) — **shipped**
+
+Surfaces last season's bed-specific adjustment inside the Add Planting flow,
+for the bed being planted into, regardless of which plant is picked. Same
+guardrails as Phase 4: deterministic, computed on demand, nothing persisted
+to the Yjs doc, no new fetches, and silence when nothing matches.
+
+- `adjustmentsForArea(areaId, adjustments)` — small pure selector added to
+  `plan-adjustments.ts`, matching via each adjustment's `entities[].areaId`.
+  Adjustments that name a plant are excluded even when they also carry the
+  bed (the four planting-level rules emit both via `plantingEntity`): those
+  stay crop-matched via `adjustmentsForPlant`, so a finding carrying both
+  never renders twice. Plot-wide adjustments (dry-spell) carry no entities
+  and never match. Today only `pest-disease-cluster` emits area-only
+  entities, so that is the one rule that surfaces here. No new rule text:
+  the nudge renders the adjustment's `observed` + `action` verbatim.
+- `AddPlantingForm` — gained an optional `areaId` prop and shows one compact
+  "Last year in this bed: <observed> <action>" note per matching adjustment,
+  above the Phase 4 crop nudges and independent of the plant selection.
+  Reuses `useLastSeasonAdjustments` unchanged, so evaluation stays memoized
+  per (season, weather), never per keystroke.
+- Mount point: the form is mounted once, in the `/allotment` page's Add
+  Planting dialog, which both the desktop sidebar and `MobileAreaBottomSheet`
+  open via `openAddDialog` — so passing `areaId={selectedBedId}` at that one
+  mount covers every entry path. `LastSeasonPanel` and the hook are untouched.
+- Tests: selector cases in `plan-adjustments.test.ts` (area matching,
+  plant-entity exclusion even with a matching bed, plot-wide exclusion,
+  empty inputs) and form integration in `AddPlantingForm.test.tsx` (bed
+  nudge shows before and after any plant choice, a crop-and-bed adjustment
+  renders exactly once as a crop nudge, silence for a non-matching bed or a
+  missing `areaId`); existing form tests unchanged.
+
 ### Not building (per brief non-goals)
 Bed-layout designer, sensors/hardware, cloud accounts/telemetry for this
 feature, real-time alerts, one-shot photo plant-ID as a headline, any
