@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { AlertTriangle, Check, Users, Calendar, ChevronDown, Lightbulb } from 'lucide-react'
+import { AlertTriangle, Check, Users, Calendar, ChevronDown, History, Lightbulb } from 'lucide-react'
 import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
 import { populateExpectedHarvest } from '@/lib/date-calculator'
+import { adjustmentsForPlant } from '@/lib/season-review/plan-adjustments'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import { useAllotment } from '@/hooks/useAllotment'
+import { useLastSeasonAdjustments } from '@/hooks/useLastSeasonAdjustments'
 import PlantCombobox from './PlantCombobox'
 import SowDateValidator from './SowDateValidator'
 
@@ -48,8 +50,31 @@ export default function AddPlantingForm({
   const [showDateDetails, setShowDateDetails] = useState(false)
   const [lastAdded, setLastAdded] = useState<string | null>(null)
 
-  const { data } = useAllotment()
+  const { data, getAllAreas } = useAllotment()
   const frostDates = data?.meta.frostDates
+
+  // Last season's crop-specific lessons (Season Observer Phase 4). The hook
+  // shares LastSeasonPanel's cache-first weather → findings → adjustments
+  // path and memoizes per season/weather — picking plants or typing never
+  // re-evaluates, and with no previous season it settles to silence.
+  const allAreas = useMemo(() => getAllAreas(), [getAllAreas])
+  const previousSeasonRecord = useMemo(
+    () => data?.seasons.find(s => s.year === selectedYear - 1) ?? null,
+    [data, selectedYear]
+  )
+  const { adjustments: lastSeasonAdjustments } = useLastSeasonAdjustments({
+    planYear: selectedYear,
+    areas: allAreas,
+    seasonRecord: previousSeasonRecord,
+    coordinates: data?.meta.coordinates,
+    frostDates,
+  })
+  // Only adjustments about the picked crop appear here; plot-wide ones
+  // (dry-spell) stay on the /allotment panel. No match → nothing rendered.
+  const cropNudges = useMemo(
+    () => adjustmentsForPlant(plantId, lastSeasonAdjustments),
+    [plantId, lastSeasonAdjustments]
+  )
 
   // Get current month for sow method recommendation
   const currentMonth = new Date().getMonth() + 1 // 1-12
@@ -207,6 +232,25 @@ export default function AddPlantingForm({
                 <span>Neutral with current plantings</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Last season's lesson for this crop (Season Observer Phase 4) —
+            one compact note per rule-derived adjustment, verbatim from
+            derivePlanAdjustments. Renders nothing when nothing matched. */}
+        {cropNudges.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {cropNudges.map(adj => (
+              <div
+                key={adj.id}
+                className="flex items-start gap-1.5 text-xs text-zen-ink-700 bg-zen-stone-50 px-2 py-1.5 rounded-zen"
+              >
+                <History className="w-3 h-3 mt-0.5 flex-shrink-0 text-zen-stone-500" aria-hidden="true" />
+                <span>
+                  <span className="font-medium">Last year:</span> {adj.observed} {adj.action}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>

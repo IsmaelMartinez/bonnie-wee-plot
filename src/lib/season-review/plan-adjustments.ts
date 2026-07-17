@@ -281,3 +281,19 @@ export function derivePlanAdjustments(
   }
   return adjustments
 }
+
+/**
+ * The adjustments that are about one specific crop, matched via each
+ * adjustment's `entities[].plantId` (Phase 4 point-of-decision nudges).
+ * Plot-wide adjustments (dry-spell) carry no plant entity and never match —
+ * they belong on the plan-level panel, not next to a single crop picker.
+ */
+export function adjustmentsForPlant(
+  plantId: string,
+  adjustments: PlanAdjustment[]
+): PlanAdjustment[] {
+  if (!plantId) return []
+  return adjustments.filter((adj) =>
+    adj.entities.some((entity) => entity.plantId === plantId)
+  )
+}
