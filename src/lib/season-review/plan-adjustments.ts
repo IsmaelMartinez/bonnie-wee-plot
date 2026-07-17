@@ -305,10 +305,11 @@ export function adjustmentsForPlant(
  * Adjustments that name a plant are excluded even when they also carry the
  * bed: those stay crop-matched via `adjustmentsForPlant`, so a finding with
  * both never renders twice. Plot-wide adjustments (dry-spell) carry no
- * entities and never match.
+ * entities and never match. Accepts undefined (the form's area is an
+ * optional prop) — no area means no matches.
  */
 export function adjustmentsForArea(
-  areaId: string,
+  areaId: string | undefined,
   adjustments: PlanAdjustment[]
 ): PlanAdjustment[] {
   if (!areaId) return []

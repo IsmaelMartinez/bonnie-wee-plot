@@ -429,6 +429,28 @@ describe('adjustmentsForArea', () => {
 
   it('returns an empty array for an empty area id or no adjustments', () => {
     expect(adjustmentsForArea('', mixedAdjustments())).toEqual([])
+    expect(adjustmentsForArea(undefined, mixedAdjustments())).toEqual([])
     expect(adjustmentsForArea('bed-b', [])).toEqual([])
+  })
+
+  it('excludes an adjustment with a separate plant entity alongside an area-only entity', () => {
+    // Pins the whole-adjustment dedup rule: any plant entity keeps the
+    // adjustment crop-matched, even when another entity is area-only. A
+    // future rule emitting this mixed shape should surface via
+    // adjustmentsForPlant, not render twice — revisit here if that changes.
+    const mixed: PlanAdjustment = {
+      id: 'plan:pest-disease-cluster:2025:bed-b:pest',
+      findingId: 'pest-disease-cluster:2025:bed-b:pest',
+      ruleId: 'pest-disease-cluster',
+      severity: 'notice',
+      observed: '4 pest observations were logged in Bed B, starting 5 Jun.',
+      action: 'This year protect Bed B from the start.',
+      entities: [
+        { areaId: 'bed-b', areaName: 'Bed B' },
+        { plantingId: 'p9', plantId: 'kale', plantName: 'Kale' },
+      ],
+    }
+    expect(adjustmentsForArea('bed-b', [mixed])).toEqual([])
+    expect(adjustmentsForPlant('kale', [mixed])).toHaveLength(1)
   })
 })

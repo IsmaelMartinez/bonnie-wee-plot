@@ -6,7 +6,7 @@ import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForVegetable } from '@/lib/companion-utils'
 import { getRecommendedSowMethod, SowMethodRecommendation } from '@/lib/planting-utils'
 import { populateExpectedHarvest } from '@/lib/date-calculator'
-import { adjustmentsForArea, adjustmentsForPlant } from '@/lib/season-review/plan-adjustments'
+import { adjustmentsForArea, adjustmentsForPlant, PlanAdjustment } from '@/lib/season-review/plan-adjustments'
 import { NewPlanting, Planting, StoredVariety, SowMethod, PlantingStatus } from '@/types/unified-allotment'
 import { VegetableCategory } from '@/types/garden-planner'
 import { useAllotment } from '@/hooks/useAllotment'
@@ -30,6 +30,20 @@ interface AddPlantingFormProps {
 // Helper to check if variety has seeds for year
 function hasSeedsForYear(variety: StoredVariety, year: number): boolean {
   return variety.seedsByYear?.[year] === 'have'
+}
+
+/** One compact last-season note (Season Observer Phases 4–5), rendered
+    verbatim from derivePlanAdjustments. Shared by the bed-scoped and
+    crop-scoped nudge lists so the presentation can't drift apart. */
+function NudgeNote({ label, adjustment }: { label: string; adjustment: PlanAdjustment }) {
+  return (
+    <div className="flex items-start gap-1.5 text-xs text-zen-ink-700 bg-zen-stone-50 px-2 py-1.5 rounded-zen">
+      <History className="w-3 h-3 mt-0.5 flex-shrink-0 text-zen-stone-500" aria-hidden="true" />
+      <span>
+        <span className="font-medium">{label}</span> {adjustment.observed} {adjustment.action}
+      </span>
+    </div>
+  )
 }
 
 export default function AddPlantingForm({
@@ -83,7 +97,7 @@ export default function AddPlantingForm({
   // name a plant are excluded by the selector, so a crop nudge never also
   // appears as a bed nudge.
   const bedNudges = useMemo(
-    () => (areaId ? adjustmentsForArea(areaId, lastSeasonAdjustments) : []),
+    () => adjustmentsForArea(areaId, lastSeasonAdjustments),
     [areaId, lastSeasonAdjustments]
   )
 
@@ -247,40 +261,24 @@ export default function AddPlantingForm({
         )}
 
         {/* Last season's lesson for this bed (Season Observer Phase 5) —
-            one compact note per bed-scoped adjustment, verbatim from
-            derivePlanAdjustments, shown whichever plant is picked. Renders
-            nothing when the previous season flagged nothing for this bed. */}
+            one compact note per bed-scoped adjustment, shown whichever plant
+            is picked. Renders nothing when the previous season flagged
+            nothing for this bed. */}
         {bedNudges.length > 0 && (
           <div className="mt-2 space-y-1">
             {bedNudges.map(adj => (
-              <div
-                key={adj.id}
-                className="flex items-start gap-1.5 text-xs text-zen-ink-700 bg-zen-stone-50 px-2 py-1.5 rounded-zen"
-              >
-                <History className="w-3 h-3 mt-0.5 flex-shrink-0 text-zen-stone-500" aria-hidden="true" />
-                <span>
-                  <span className="font-medium">Last year in this bed:</span> {adj.observed} {adj.action}
-                </span>
-              </div>
+              <NudgeNote key={adj.id} label="Last year in this bed:" adjustment={adj} />
             ))}
           </div>
         )}
 
         {/* Last season's lesson for this crop (Season Observer Phase 4) —
-            one compact note per rule-derived adjustment, verbatim from
-            derivePlanAdjustments. Renders nothing when nothing matched. */}
+            one compact note per rule-derived adjustment. Renders nothing
+            when nothing matched. */}
         {cropNudges.length > 0 && (
           <div className="mt-2 space-y-1">
             {cropNudges.map(adj => (
-              <div
-                key={adj.id}
-                className="flex items-start gap-1.5 text-xs text-zen-ink-700 bg-zen-stone-50 px-2 py-1.5 rounded-zen"
-              >
-                <History className="w-3 h-3 mt-0.5 flex-shrink-0 text-zen-stone-500" aria-hidden="true" />
-                <span>
-                  <span className="font-medium">Last year:</span> {adj.observed} {adj.action}
-                </span>
-              </div>
+              <NudgeNote key={adj.id} label="Last year:" adjustment={adj} />
             ))}
           </div>
         )}
