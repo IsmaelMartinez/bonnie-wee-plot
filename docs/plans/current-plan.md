@@ -1,6 +1,37 @@
 # Current Plan
 
-Last updated: 2026-07-17 (Season Observer Phase 5 bed-scoped nudges shipped)
+Last updated: 2026-07-18 (Season Observer Phase 5.1 nudge reachability + year gating shipped)
+
+## Season Observer — Phase 5.1: nudges reachable and year-aware (shipped)
+
+Two gaps found during the Phase 5 review, both closed:
+
+**Deep-link selection now sets `selectedBedId`.** The `/allotment?bed=<id>`
+deep link (used by `/this-month` planting cards) selects via a
+`{ type: 'area', id }` ref — the only producer of `'area'` refs (confirmed
+by tracing every `selectItem` call site) — but `selectItem` only set the
+legacy `selectedBedId` for `'bed'` refs, so on that path the Add Planting
+dialog got no `areaId` (no bed nudges), no `existingPlantings` (no companion
+checks), and submit was a silent no-op. `selectItem`
+(`useAllotmentAreas.ts`) now resolves `'area'` refs by the area's kind, the
+same routing `AllotmentGrid` and `ItemDetailSwitcher` already use:
+`rotation-bed`/`perennial-bed`/`other` are bed-like and set `selectedBedId`;
+`tree`/`berry`/`herb`/`infrastructure` keep it null, so bed-only UI stays
+hidden for them exactly as with grid clicks. Data is read through a ref so
+`selectItem` stays referentially stable — the deep-link effect depends on
+it, and a data-keyed identity would re-select the query bed on every
+mutation.
+
+**Nudges respect the year being planned.** `LastSeasonPanel` only renders
+when `selectedYear >= currentYear`, but the Add Planting nudges (Phase 4
+crop + Phase 5 bed) had no such gate — back-filling a historical year showed
+imperative advice about an even older season and could fetch its weather.
+`AddPlantingForm` now applies the same planning-year gate by passing
+`seasonRecord: null` into `useLastSeasonAdjustments` for historical years,
+which settles silently with no fetch (already the hook's tested contract).
+Guardrails unchanged: deterministic, on-demand, nothing persisted to the
+Yjs doc, silence when nothing matches, no changes to rule text or
+`derivePlanAdjustments`.
 
 ## Season Observer — Phase 5: bed-scoped nudges (shipped)
 

@@ -75,9 +75,17 @@ export default function AddPlantingForm({
   // path and memoizes per season/weather — picking plants or typing never
   // re-evaluates, and with no previous season it settles to silence.
   const allAreas = useMemo(() => getAllAreas(), [getAllAreas])
+  // Nudges only apply when planning the current or a future season — the
+  // same gate LastSeasonPanel uses. Back-filling a historical year passes
+  // no season record, so the hook settles silently without a weather fetch
+  // instead of surfacing imperative advice about an even older season.
+  const isPlanningYear = selectedYear >= new Date().getFullYear()
   const previousSeasonRecord = useMemo(
-    () => data?.seasons.find(s => s.year === selectedYear - 1) ?? null,
-    [data, selectedYear]
+    () =>
+      isPlanningYear
+        ? data?.seasons.find(s => s.year === selectedYear - 1) ?? null
+        : null,
+    [data, selectedYear, isPlanningYear]
   )
   const { adjustments: lastSeasonAdjustments } = useLastSeasonAdjustments({
     planYear: selectedYear,
