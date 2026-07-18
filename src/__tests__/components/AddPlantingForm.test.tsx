@@ -9,16 +9,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddPlantingForm from '@/components/allotment/AddPlantingForm'
-import { StoredVariety, NewPlanting } from '@/types/unified-allotment'
+import { AllotmentData, SeasonRecord, StoredVariety, NewPlanting } from '@/types/unified-allotment'
 import type { PlanAdjustment } from '@/lib/season-review/plan-adjustments'
 
 // Mock the shared last-season adjustments hook (Season Observer Phase 4) so
 // these tests control the adjustments directly — no weather or season setup.
-const { mockUseLastSeasonAdjustments } = vi.hoisted(() => ({
+const { mockUseLastSeasonAdjustments, mockUseAllotment } = vi.hoisted(() => ({
   mockUseLastSeasonAdjustments: vi.fn(),
+  mockUseAllotment: vi.fn(),
 }))
 vi.mock('@/hooks/useLastSeasonAdjustments', () => ({
   useLastSeasonAdjustments: mockUseLastSeasonAdjustments,
+}))
+// Mock useAllotment so the planning-year gate tests can supply seasons
+// without standing up the Yjs storage engine. The form only reads `data`
+// and `getAllAreas` from it.
+vi.mock('@/hooks/useAllotment', () => ({
+  useAllotment: mockUseAllotment,
 }))
 
 // Mock the vegetable database
@@ -119,6 +126,7 @@ describe('AddPlantingForm Component', () => {
     // Default to a settled, adjustment-free previous season; the nudge
     // tests override this per test.
     mockUseLastSeasonAdjustments.mockReturnValue({ settled: true, adjustments: [] })
+    mockUseAllotment.mockReturnValue({ data: null, getAllAreas: () => [] })
   })
 
   describe('Initial state', () => {
@@ -677,6 +685,133 @@ describe('AddPlantingForm Component', () => {
         />
       )
 
+      expect(screen.queryByText(/last year in this bed:/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Planning-year gate (Season Observer Phase 5.1)', () => {
+    // The gate compares against the real current year, same as the
+    // LastSeasonPanel gate on /allotment, so years here are relative.
+    const CURRENT_YEAR = new Date().getFullYear()
+
+    function season(year: number): SeasonRecord {
+      return {
+        year,
+        status: 'historical',
+        areas: [],
+        createdAt: `${year}-01-01T00:00:00.000Z`,
+        updatedAt: `${year}-12-01T00:00:00.000Z`,
+      }
+    }
+
+    function dataWithSeasons(years: number[]): AllotmentData {
+      return {
+        version: 19,
+        meta: {
+          name: 'Test Allotment',
+          createdAt: '2020-01-01T00:00:00.000Z',
+          updatedAt: '2020-01-01T00:00:00.000Z',
+        },
+        layout: { areas: [] },
+        seasons: years.map(season),
+        currentYear: CURRENT_YEAR,
+        varieties: [],
+      } as unknown as AllotmentData
+    }
+
+    const bedAdjustment: PlanAdjustment = {
+      id: 'plan:pest-disease-cluster:prev:bed-b:pest',
+      findingId: 'pest-disease-cluster:prev:bed-b:pest',
+      ruleId: 'pest-disease-cluster',
+      severity: 'notice',
+      observed: '4 pest observations were logged in Bed B, starting 5 Jun.',
+      action: 'This year protect Bed B from the start.',
+      entities: [{ areaId: 'bed-b', areaName: 'Bed B' }],
+    }
+
+    beforeEach(() => {
+      // Behave like the real hook: a null season record settles to silence,
+      // so the gate's effect shows through to the rendered nudges.
+      mockUseLastSeasonAdjustments.mockImplementation(
+        ({ seasonRecord }: { seasonRecord: SeasonRecord | null }) => ({
+          settled: true,
+          adjustments: seasonRecord ? [bedAdjustment] : [],
+        })
+      )
+    })
+
+    it('passes the previous season record when planning the current year', () => {
+      mockUseAllotment.mockReturnValue({
+        data: dataWithSeasons([CURRENT_YEAR - 1, CURRENT_YEAR]),
+        getAllAreas: () => [],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={CURRENT_YEAR}
+          areaId="bed-b"
+        />
+      )
+
+      expect(mockUseLastSeasonAdjustments).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          planYear: CURRENT_YEAR,
+          seasonRecord: expect.objectContaining({ year: CURRENT_YEAR - 1 }),
+        })
+      )
+      expect(screen.getByText(/last year in this bed:/i)).toBeInTheDocument()
+    })
+
+    it('passes the previous season record when planning next year', () => {
+      mockUseAllotment.mockReturnValue({
+        data: dataWithSeasons([CURRENT_YEAR, CURRENT_YEAR + 1]),
+        getAllAreas: () => [],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={CURRENT_YEAR + 1}
+          areaId="bed-b"
+        />
+      )
+
+      expect(mockUseLastSeasonAdjustments).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          planYear: CURRENT_YEAR + 1,
+          seasonRecord: expect.objectContaining({ year: CURRENT_YEAR }),
+        })
+      )
+      expect(screen.getByText(/last year in this bed:/i)).toBeInTheDocument()
+    })
+
+    it('passes no season record when back-filling a historical year, even though that season exists', () => {
+      // Planning CURRENT_YEAR - 2 with CURRENT_YEAR - 3 on record: without
+      // the gate this would surface imperative advice about the older
+      // season and could fetch its weather.
+      mockUseAllotment.mockReturnValue({
+        data: dataWithSeasons([CURRENT_YEAR - 3, CURRENT_YEAR - 2]),
+        getAllAreas: () => [],
+      })
+
+      render(
+        <AddPlantingForm
+          onSubmit={mockOnSubmit}
+          onCancel={mockOnCancel}
+          selectedYear={CURRENT_YEAR - 2}
+          areaId="bed-b"
+        />
+      )
+
+      expect(mockUseLastSeasonAdjustments).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          planYear: CURRENT_YEAR - 2,
+          seasonRecord: null,
+        })
+      )
       expect(screen.queryByText(/last year in this bed:/i)).not.toBeInTheDocument()
     })
   })
