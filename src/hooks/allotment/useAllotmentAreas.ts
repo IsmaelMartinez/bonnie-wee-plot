@@ -99,12 +99,17 @@ export function useAllotmentAreas({
     if (ref && ref.type === 'bed') {
       setSelectedBedId(ref.id as PhysicalBedId)
     } else if (ref && ref.type === 'area') {
-      const kind = dataRef.current
-        ? getAreaById(dataRef.current, ref.id)?.kind
+      const area = dataRef.current
+        ? getAreaById(dataRef.current, ref.id)
         : undefined
       const isBedLike =
-        kind === 'rotation-bed' || kind === 'perennial-bed' || kind === 'other'
-      setSelectedBedId(isBedLike ? (ref.id as PhysicalBedId) : null)
+        area?.kind === 'rotation-bed' ||
+        area?.kind === 'perennial-bed' ||
+        area?.kind === 'other'
+      // getAreaById also resolves shortIds and names, so store the
+      // canonical area.id — downstream consumers exact-match it against
+      // AreaSeason.areaId, and a raw shortId would silently miss.
+      setSelectedBedId(isBedLike ? (area.id as PhysicalBedId) : null)
     } else {
       setSelectedBedId(null)
     }

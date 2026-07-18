@@ -79,14 +79,10 @@ export default function AddPlantingForm({
   // same gate LastSeasonPanel uses. Back-filling a historical year passes
   // no season record, so the hook settles silently without a weather fetch
   // instead of surfacing imperative advice about an even older season.
-  const isPlanningYear = selectedYear >= new Date().getFullYear()
-  const previousSeasonRecord = useMemo(
-    () =>
-      isPlanningYear
-        ? data?.seasons.find(s => s.year === selectedYear - 1) ?? null
-        : null,
-    [data, selectedYear, isPlanningYear]
-  )
+  const previousSeasonRecord = useMemo(() => {
+    if (selectedYear < new Date().getFullYear()) return null
+    return data?.seasons.find(s => s.year === selectedYear - 1) ?? null
+  }, [data, selectedYear])
   const { adjustments: lastSeasonAdjustments } = useLastSeasonAdjustments({
     planYear: selectedYear,
     areas: allAreas,

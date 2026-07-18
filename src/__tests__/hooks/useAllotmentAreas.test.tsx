@@ -87,6 +87,20 @@ describe('useAllotmentAreas selection', () => {
       expect(result.current.selectedBedId).toBeNull()
     })
 
+    it('stores the canonical area id when the ref uses a shortId', () => {
+      // getAreaById resolves shortIds/names too; downstream consumers
+      // exact-match selectedBedId against AreaSeason.areaId, so the raw
+      // ref id would silently miss (empty plantings, orphaned submit).
+      const withShortId = dataWithAreas([
+        { ...area('bed-a', 'rotation-bed'), shortId: 'A' },
+      ])
+      const { result } = renderAreasHook(withShortId)
+
+      act(() => result.current.selectItem({ type: 'area', id: 'A' }))
+
+      expect(result.current.selectedBedId).toBe('bed-a')
+    })
+
     it('keeps selectedBedId null for an unknown area id', () => {
       const { result } = renderAreasHook()
 
