@@ -62,8 +62,11 @@ export default function BedDetailPanel({
   const selectedPlanting = selectedPlantingId
     ? plantings.find(p => p.id === selectedPlantingId) || null
     : null
-  // Determine if this is a rotation bed (vs perennial bed)
+  // This panel renders every bed-like kind (see isBedLikeKind): rotation
+  // beds get the rotation UI, perennial beds the perennial label, and
+  // 'other' areas a plain bed with neither.
   const isRotationBed = area.kind === 'rotation-bed'
+  const isPerennialBed = area.kind === 'perennial-bed'
 
   // Compute auto-rotate info
   const autoRotateInfo = useMemo(() => {
@@ -115,10 +118,14 @@ export default function BedDetailPanel({
           <div className="flex-1">
             <h3 className="font-display text-zen-ink-800">{area.name}</h3>
             <div className={`text-xs flex items-center gap-1 ${
-              !isRotationBed ? 'text-zen-sakura-600' : 'text-zen-moss-600'
+              isRotationBed ? 'text-zen-moss-600'
+                : isPerennialBed ? 'text-zen-sakura-600'
+                : 'text-zen-stone-500'
             }`}>
-              {!isRotationBed && <Leaf className="w-3 h-3" />}
-              {!isRotationBed ? 'Perennial' : areaSeason?.rotationGroup || 'Rotation'}
+              {isPerennialBed && <Leaf className="w-3 h-3" />}
+              {isRotationBed
+                ? areaSeason?.rotationGroup || 'Rotation'
+                : isPerennialBed ? 'Perennial' : 'Area'}
             </div>
           </div>
           <button

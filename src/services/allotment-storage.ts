@@ -80,6 +80,7 @@ export {
   getPermanentAreas,
   getInfrastructureAreas,
   isRotationBed,
+  isBedLikeKind,
   canHavePlantings,
   getBedsFromAreas,
   getPermanentPlantingsFromAreas,

@@ -33,6 +33,7 @@ import {
   getAreaById,
   getAreasByKind as storageGetAreasByKind,
   getAllAreas as storageGetAllAreas,
+  isBedLikeKind,
 } from '@/services/allotment-storage'
 import { wasAreaActiveInYear } from '@/services/area-mutations'
 import { generateSlugId } from '@/lib/utils'
@@ -93,23 +94,19 @@ export function useAllotmentAreas({
   const selectItem = useCallback((ref: AllotmentItemRef | null) => {
     setSelectedItemRef(ref)
     // Also update legacy selectedBedId for backwards compatibility.
-    // 'area' refs (deep links) carry no kind, so resolve it here the same
-    // way AllotmentGrid routes clicks: rotation/perennial beds and 'other'
-    // are bed-like; trees, berries, herbs, and infrastructure are not.
+    // 'area' refs (deep links) carry no kind, so resolve it here with the
+    // same isBedLikeKind predicate AllotmentGrid uses to route clicks:
+    // trees, berries, herbs, and infrastructure are not bed-like.
     if (ref && ref.type === 'bed') {
       setSelectedBedId(ref.id as PhysicalBedId)
     } else if (ref && ref.type === 'area') {
       const area = dataRef.current
         ? getAreaById(dataRef.current, ref.id)
         : undefined
-      const isBedLike =
-        area?.kind === 'rotation-bed' ||
-        area?.kind === 'perennial-bed' ||
-        area?.kind === 'other'
       // getAreaById also resolves shortIds and names, so store the
       // canonical area.id — downstream consumers exact-match it against
       // AreaSeason.areaId, and a raw shortId would silently miss.
-      setSelectedBedId(isBedLike ? (area.id as PhysicalBedId) : null)
+      setSelectedBedId(area && isBedLikeKind(area.kind) ? (area.id as PhysicalBedId) : null)
     } else {
       setSelectedBedId(null)
     }

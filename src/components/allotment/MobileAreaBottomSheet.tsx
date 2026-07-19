@@ -8,6 +8,7 @@ import { BED_COLORS } from '@/data/allotment-layout'
 import { getVegetableName } from '@/lib/vegetable-loader'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
+import { isBedLikeKind } from '@/services/allotment-storage'
 import PlantingCard from './PlantingCard'
 import PlantingDetailDialog from './PlantingDetailDialog'
 import PlantSummaryDialog from '@/components/plants/PlantSummaryDialog'
@@ -126,8 +127,11 @@ export default function MobileAreaBottomSheet({
 
   if (!area) return null
 
-  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
-  const canAddPlantings = isRotationOrPerennialBed || area.kind === 'berry'
+  // Bed-like kinds (incl. 'other', see isBedLikeKind) get notes and the
+  // plantings section — the FAB already offers Add Planting for them, so
+  // the sheet must expose the same flow.
+  const isBedLike = isBedLikeKind(area.kind)
+  const canAddPlantings = isBedLike || area.kind === 'berry'
 
   return (
     <>
@@ -255,7 +259,7 @@ export default function MobileAreaBottomSheet({
             )}
 
             {/* Notes section for beds */}
-            {isRotationOrPerennialBed && (
+            {isBedLike && (
               <BedNotes
                 notes={notes}
                 onAdd={onAddNote}

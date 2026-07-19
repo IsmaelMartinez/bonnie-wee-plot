@@ -95,6 +95,28 @@ export function isRotationBed(area: Area): boolean {
 }
 
 /**
+ * Area kinds that route to the bed-like selection path: selecting one sets
+ * the legacy selectedBedId, the detail UI renders BedDetailPanel, and the
+ * Add Planting flow is available. 'other' is deliberately bed-like — custom
+ * areas behave as plain beds without rotation tracking.
+ *
+ * This is the single routing predicate; grid clicks, deep-link selection,
+ * and the detail switchers must all agree with it. Note getAllBeds /
+ * getBedAreaById intentionally stay rotation+perennial only: their callers
+ * are the deprecated PhysicalBed wrappers, whose 'rotation'|'perennial'
+ * status has no representation for 'other'.
+ */
+const BED_LIKE_KINDS: ReadonlySet<AreaKind> = new Set<AreaKind>([
+  'rotation-bed',
+  'perennial-bed',
+  'other',
+])
+
+export function isBedLikeKind(kind: AreaKind | undefined): boolean {
+  return kind !== undefined && BED_LIKE_KINDS.has(kind)
+}
+
+/**
  * Check if an area can have plantings
  */
 export function canHavePlantings(area: Area): boolean {
