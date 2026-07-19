@@ -93,6 +93,21 @@ describe('Season narration API', () => {
     expect(callGeminiMock).not.toHaveBeenCalled()
   })
 
+  it('rejects a malformed JSON body with 400, not 500', async () => {
+    const request = new NextRequest('http://localhost:3000/api/season-narration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'not json{',
+    })
+
+    const response = await POST(request)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.error).toMatch(/invalid json/i)
+    expect(callGeminiMock).not.toHaveBeenCalled()
+  })
+
   it('rejects an invalid body with 400', async () => {
     const response = await POST(createRequest({ findings: [] }))
     const data = await response.json()

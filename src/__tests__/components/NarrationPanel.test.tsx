@@ -200,5 +200,33 @@ describe('NarrationPanel', () => {
       render(<NarrationPanel findings={FINDINGS} year={2024} />)
       expect(screen.getByRole('radio', { name: /your own endpoint/i })).toBeChecked()
     })
+
+    it('keeps an edited endpoint when switching provider — no silent revert across mounts', async () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      const { unmount } = render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      await userEvent.click(screen.getByRole('radio', { name: /your own endpoint/i }))
+      const endpointInput = screen.getByLabelText(/openai-compatible/i)
+      await userEvent.clear(endpointInput)
+      await userEvent.type(endpointInput, 'http://my-llm.local:8080/v1')
+      // Switching provider persists the config as the UI showed it.
+      await userEvent.click(screen.getByRole('radio', { name: /built-in/i }))
+      unmount()
+
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+      await userEvent.click(screen.getByRole('radio', { name: /your own endpoint/i }))
+      expect(screen.getByLabelText(/openai-compatible/i)).toHaveValue('http://my-llm.local:8080/v1')
+    })
+
+    it('does not stamp a provider choice the user never made when generating signed out', async () => {
+      narrateSeasonMock.mockResolvedValue({ status: 'ok', text: 'Prose.' })
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      await userEvent.click(screen.getByRole('button', { name: /generate narration/i }))
+      await screen.findByText('Prose.')
+
+      const stored = JSON.parse(localStorage.getItem('bwp-narration-config') ?? '{}')
+      expect(stored.provider).toBeUndefined()
+    })
   })
 })

@@ -39,6 +39,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Fail fast when the deployment has no free tier at all — before spending
+    // a Redis round-trip or parsing the body.
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Built-in narration is not available on this deployment. Use your own endpoint instead.' },
+        { status: 500 }
+      )
+    }
+
     // Short-window per-user rate limit on top of the monthly quota, bounding
     // burst abuse. Fails open if Redis is down.
     const rateLimit = await checkRateLimit(userId, {
@@ -56,7 +65,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      // A client-side mistake, not a server fault.
+      return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
     const validationResult = seasonNarrationRequestSchema.safeParse(body)
     if (!validationResult.success) {
       const errors = validationResult.error.issues.map((e) => e.message).join(', ')
@@ -66,13 +81,6 @@ export async function POST(request: NextRequest) {
       )
     }
     const { findings, year, allotmentName } = validationResult.data
-
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Built-in narration is not available on this deployment. Use your own endpoint instead.' },
-        { status: 500 }
-      )
-    }
 
     const supabaseToken = await getToken({ template: 'supabase' })
     if (!supabaseToken) {

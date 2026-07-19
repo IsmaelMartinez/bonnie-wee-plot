@@ -122,10 +122,12 @@ export default function NarrationPanel({
   const chooseProvider = (next: NarrationProvider) => {
     setProvider(next)
     setStatus({ kind: 'idle' })
-    const stored = getStorageItem<StoredNarrationConfig>(NARRATION_CONFIG_KEY)
+    // Persist the current in-memory endpoint/model (state was seeded from
+    // storage on mount, so it is at least as fresh) — writing the stored
+    // values back would silently revert edits made since.
     setStorageItem<StoredNarrationConfig>(NARRATION_CONFIG_KEY, {
-      baseUrl: stored?.baseUrl ?? baseUrl,
-      model: stored?.model ?? model,
+      baseUrl: baseUrl.trim() || OLLAMA_PRESET.baseUrl,
+      model: model.trim() || OLLAMA_PRESET.model,
       provider: next,
     })
   }
@@ -158,10 +160,15 @@ export default function NarrationPanel({
       model: model.trim() || OLLAMA_PRESET.model,
       ...(trimmedKey ? { apiKey: trimmedKey } : {}),
     }
+    // Signed-out users never chose a provider (the toggle isn't rendered),
+    // so persist only a choice they actually made — stamping the signed-in
+    // default here would override their real preference for a later session.
+    const storedProvider = getStorageItem<StoredNarrationConfig>(NARRATION_CONFIG_KEY)?.provider
+    const providerToStore = isSignedIn ? provider : storedProvider
     setStorageItem<StoredNarrationConfig>(NARRATION_CONFIG_KEY, {
       baseUrl: settings.baseUrl,
       model: settings.model,
-      provider,
+      ...(providerToStore ? { provider: providerToStore } : {}),
     })
     setStatus({ kind: 'loading' })
     try {
