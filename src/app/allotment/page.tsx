@@ -19,6 +19,7 @@ import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationG
 import { RotationGroup } from '@/types/garden-planner'
 import { NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
 import { useAllotment } from '@/hooks/useAllotment'
+import { useBedDeepLink } from '@/hooks/allotment/useBedDeepLink'
 import { ArrowRight } from 'lucide-react'
 import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import AllotmentGrid from '@/components/allotment/AllotmentGrid'
@@ -122,17 +123,16 @@ function AllotmentPageContent() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Handle query parameters for deep linking from other pages
-  useEffect(() => {
-    if (bedIdFromQuery && !isLoading) {
-      // Select the area from the query parameter
-      selectItem({ type: 'area', id: bedIdFromQuery })
-      // On mobile, also open the sheet
-      if (isMobile) {
-        setShowMobileSheet(true)
-      }
-    }
-  }, [bedIdFromQuery, isLoading, selectItem, isMobile])
+  // Handle query parameters for deep linking from other pages — fires once
+  // per query value so later resizes/mutations don't clobber the selection.
+  const openMobileSheet = useCallback(() => setShowMobileSheet(true), [])
+  useBedDeepLink({
+    bedIdFromQuery,
+    isLoading,
+    isMobile,
+    selectItem,
+    onMobileArrival: openMobileSheet,
+  })
 
   // Get available years and add next/previous year options
   // Sort years in ascending order (oldest to newest) for left-to-right timeline

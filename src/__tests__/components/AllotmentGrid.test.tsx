@@ -24,14 +24,19 @@ vi.mock('react-grid-layout', () => ({
   ),
 }))
 
-// Mock allotment-storage
-vi.mock('@/services/allotment-storage', () => ({
-  wasAreaActiveInYear: vi.fn((area: Area, year: number) => {
-    if (area.createdYear && year < area.createdYear) return false
-    if (area.retiredYear && year >= area.retiredYear) return false
-    return true
-  }),
-}))
+// Mock allotment-storage (keeping the real isBedLikeKind — it's the
+// routing predicate under test when clicking areas)
+vi.mock('@/services/allotment-storage', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/allotment-storage')>()
+  return {
+    isBedLikeKind: actual.isBedLikeKind,
+    wasAreaActiveInYear: vi.fn((area: Area, year: number) => {
+      if (area.createdYear && year < area.createdYear) return false
+      if (area.retiredYear && year >= area.retiredYear) return false
+      return true
+    }),
+  }
+})
 
 // Mock BedItem component
 vi.mock('@/components/allotment/BedItem', () => ({

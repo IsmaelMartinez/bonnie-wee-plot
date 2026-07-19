@@ -3,6 +3,7 @@
 import { Map } from 'lucide-react'
 import { AllotmentItemRef, RotationGroup } from '@/types/garden-planner'
 import { Planting, PlantingUpdate, Area, AreaSeason, AreaNote, NewAreaNote, AreaNoteUpdate, NewPlanting, CareLogEntry, NewCareLogEntry, StoredVariety } from '@/types/unified-allotment'
+import { isBedLikeKind } from '@/services/allotment-storage'
 import BedDetailPanel from './BedDetailPanel'
 import PermanentDetailPanel from './PermanentDetailPanel'
 import InfrastructureDetailPanel from './InfrastructureDetailPanel'
@@ -113,15 +114,17 @@ export default function ItemDetailSwitcher({
   const area = getArea(selectedItemRef.id)
   if (!area) return <EmptyState stats={quickStats} />
 
-  // Route based on area.kind
-  const isRotationOrPerennialBed = area.kind === 'rotation-bed' || area.kind === 'perennial-bed'
+  // Route based on area.kind. Bed-like kinds (incl. 'other') get the bed
+  // panel — the grid and selectItem already route 'other' to the bed
+  // selection path, so the sidebar must not silently show the empty state.
+  const isBedLike = isBedLikeKind(area.kind)
   const isPermanentPlanting = area.kind === 'tree' || area.kind === 'berry' || area.kind === 'herb'
   const isInfrastructure = area.kind === 'infrastructure'
 
   // Determine which detail panel to render
   let detailPanel: React.ReactNode = null
 
-  if (isRotationOrPerennialBed) {
+  if (isBedLike) {
     detailPanel = (
       <BedDetailPanel
         key={`${area.id}-${area.kind}`}

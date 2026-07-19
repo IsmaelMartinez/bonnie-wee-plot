@@ -9,7 +9,7 @@ import {
 } from '@/data/allotment-layout'
 import { AllotmentItemRef } from '@/types/garden-planner'
 import { Area, Planting, AreaSeason, GridPosition } from '@/types/unified-allotment'
-import { wasAreaActiveInYear } from '@/services/allotment-storage'
+import { isBedLikeKind, wasAreaActiveInYear } from '@/services/allotment-storage'
 import BedItem from './BedItem'
 
 import 'react-grid-layout/css/styles.css'
@@ -228,16 +228,14 @@ export default function AllotmentGrid({ onItemSelect, selectedItemRef, getPlanti
     if (visibleAreas) {
       const area = visibleAreas.find(a => a.id === item.i)
       if (area) {
-        // Use 'bed' type for rotation/perennial beds, 'permanent' for trees/berries/herbs, 'infrastructure' for infra
-        if (area.kind === 'rotation-bed' || area.kind === 'perennial-bed') {
+        // Bed-like kinds (incl. 'other', per isBedLikeKind) use the 'bed'
+        // ref; trees/berries/herbs are 'permanent'; infra is 'infrastructure'.
+        if (isBedLikeKind(area.kind)) {
           onItemSelect({ type: 'bed', id: area.id })
         } else if (area.kind === 'tree' || area.kind === 'berry' || area.kind === 'herb') {
           onItemSelect({ type: 'permanent', id: area.id })
         } else if (area.kind === 'infrastructure') {
           onItemSelect({ type: 'infrastructure', id: area.id })
-        } else {
-          // 'other' kind - treat as bed for now
-          onItemSelect({ type: 'bed', id: area.id })
         }
       }
       return

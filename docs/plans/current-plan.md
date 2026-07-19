@@ -1,6 +1,39 @@
 # Current Plan
 
-Last updated: 2026-07-18 (Season Observer Phase 5.1 nudge reachability + year gating shipped)
+Last updated: 2026-07-19 (selection routing consolidation shipped)
+
+## Selection routing consolidation (shipped)
+
+Follow-up to the #482 review: the area-kind → selection-category routing
+existed in three inline copies that disagreed on `'other'`, plus a
+deep-link re-fire quirk. Both closed:
+
+**One predicate, one behavior for `'other'` areas.** `isBedLikeKind(kind)`
+(exported from `area-queries.ts` via the `allotment-storage` barrel) is now
+the single routing predicate: `rotation-bed`/`perennial-bed`/`other` are
+bed-like. `AllotmentGrid.handleItemClick`, `useAllotmentAreas.selectItem`,
+`ItemDetailSwitcher`, and `MobileAreaBottomSheet` all route through it. The
+observable bug this fixes: clicking or deep-linking an `'other'` area set
+`selectedBedId` (so the mobile FAB offered Add Planting and submits wrote
+real plantings) while the desktop sidebar said "Select an item" and the
+mobile sheet hid the plantings/notes sections. `ItemDetailSwitcher` now
+renders `BedDetailPanel` for `'other'` — the panel already kept its
+rotation UI conditional on `kind === 'rotation-bed'`, and its header
+subtitle was fixed to degrade to "Area" instead of mislabelling `'other'`
+as "Perennial". Deliberately unchanged: `getAllBeds`/`getBedAreaById` stay
+rotation+perennial only, because their only callers are the deprecated
+`PhysicalBed` wrappers whose `'rotation' | 'perennial'` status has no
+representation for `'other'` (asserted by tests). Season Observer rules,
+nudges, and `derivePlanAdjustments` untouched.
+
+**Deep link fires once per query value.** The `/allotment?bed=` effect
+listed `isMobile` in its deps, so resizing across the 768px breakpoint
+re-ran `selectItem` and clobbered whatever the user had selected since.
+The effect moved into `useBedDeepLink` (`src/hooks/allotment/`) with a
+handled-value ref: selection fires once per query value (again for a new
+value), still gated on `!isLoading`, and still opens the mobile sheet when
+the arrival itself happens on mobile. Covered by hook tests including a
+simulated resize.
 
 ## Season Observer — Phase 5.1: nudges reachable and year-aware (shipped)
 
