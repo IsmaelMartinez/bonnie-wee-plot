@@ -92,6 +92,21 @@ describe('useBedDeepLink', () => {
     expect(selectItem).toHaveBeenLastCalledWith({ type: 'area', id: 'bed-b' })
   })
 
+  it('re-fires when the query is cleared and later returns with the same value', () => {
+    // e.g. client-side nav to /allotment (no query) and back to the same
+    // deep link — the handled ref must reset so the second arrival works.
+    const { selectItem, rerender } = setup({
+      bedIdFromQuery: 'bed-a',
+      isLoading: false,
+      isMobile: false,
+    })
+
+    rerender({ bedIdFromQuery: null, isLoading: false, isMobile: false })
+    rerender({ bedIdFromQuery: 'bed-a', isLoading: false, isMobile: false })
+
+    expect(selectItem).toHaveBeenCalledTimes(2)
+  })
+
   it('does nothing without a query value', () => {
     const { selectItem, rerender } = setup({
       bedIdFromQuery: null,

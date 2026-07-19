@@ -13,7 +13,12 @@ import {
   getAllBeds,
   getBedAreaById,
 } from '@/services/allotment-storage'
-import type { AllotmentData, Area, AreaKind } from '@/types/unified-allotment'
+import {
+  CURRENT_SCHEMA_VERSION,
+  type AllotmentData,
+  type Area,
+  type AreaKind,
+} from '@/types/unified-allotment'
 
 function area(id: string, kind: AreaKind, isArchived = false): Area {
   return {
@@ -28,7 +33,7 @@ function area(id: string, kind: AreaKind, isArchived = false): Area {
 
 function dataWithAreas(areas: Area[]): AllotmentData {
   return {
-    version: 18,
+    version: CURRENT_SCHEMA_VERSION,
     meta: {
       name: 'Test Allotment',
       createdAt: '2025-01-01T00:00:00.000Z',

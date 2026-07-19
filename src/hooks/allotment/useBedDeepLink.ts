@@ -32,7 +32,13 @@ export function useBedDeepLink({
   const handledBedIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!bedIdFromQuery || isLoading) return
+    if (isLoading) return
+    if (!bedIdFromQuery) {
+      // Query cleared: reset so navigating back to the same deep link
+      // fires again.
+      handledBedIdRef.current = null
+      return
+    }
     if (handledBedIdRef.current === bedIdFromQuery) return
     handledBedIdRef.current = bedIdFromQuery
 
