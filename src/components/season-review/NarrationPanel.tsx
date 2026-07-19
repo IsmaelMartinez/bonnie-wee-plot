@@ -121,6 +121,11 @@ export default function NarrationPanel({
 
   const chooseProvider = (next: NarrationProvider) => {
     setProvider(next)
+    // A provider switch makes any in-flight draft moot (the radios stay
+    // enabled while Writing…) — orphan and cancel it so a late response
+    // can't populate the panel with prose from the previous provider.
+    requestGeneration.current += 1
+    abortRef.current?.abort()
     setStatus({ kind: 'idle' })
     // Persist the current in-memory endpoint/model (state was seeded from
     // storage on mount, so it is at least as fresh) — writing the stored

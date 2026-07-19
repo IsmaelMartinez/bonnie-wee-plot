@@ -201,6 +201,27 @@ describe('NarrationPanel', () => {
       expect(screen.getByRole('radio', { name: /your own endpoint/i })).toBeChecked()
     })
 
+    it('discards an in-flight result when the provider is switched mid-request', async () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      const pending = deferred<NarrationResult>()
+      narrateSeasonHostedMock.mockReturnValue(pending.promise)
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      await userEvent.click(screen.getByRole('button', { name: /generate narration/i }))
+      expect(screen.getByRole('button', { name: /writing/i })).toBeInTheDocument()
+
+      // The user switches provider while the model is still writing.
+      await userEvent.click(screen.getByRole('radio', { name: /your own endpoint/i }))
+
+      pending.resolve({ status: 'ok', text: 'Late prose from the previous provider.' })
+      // The orphaned resolution must not repopulate the panel.
+      await waitFor(() => {
+        expect(narrateSeasonHostedMock).toHaveBeenCalledTimes(1)
+      })
+      expect(screen.queryByText('Late prose from the previous provider.')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /generate narration/i })).toBeInTheDocument()
+    })
+
     it('keeps an edited endpoint when switching provider — no silent revert across mounts', async () => {
       useOptionalAuthMock.mockReturnValue(authState(true))
       const { unmount } = render(<NarrationPanel findings={FINDINGS} year={2024} />)
