@@ -7,8 +7,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Finding } from '@/lib/season-review/findings'
 import {
   buildNarrationMessages,
+  HOSTED_NARRATION_PATH,
+  HostedNarrationError,
   narrateSeason,
+  narrateSeasonHosted,
   OLLAMA_PRESET,
+  requestHostedNarration,
   requestNarration,
   type NarrationSettings,
 } from '@/lib/season-review/narration'
@@ -277,6 +281,132 @@ describe('narrateSeason', () => {
   it('lets endpoint errors escape as exceptions rather than fake rejections', async () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
     await expect(narrateSeason(FINDINGS, META, SETTINGS, fetchMock)).rejects.toThrow()
+  })
+})
+
+function hostedOkResponse(text: string | null) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ text }),
+  } as Response
+}
+
+describe('requestHostedNarration', () => {
+  it('POSTs the stripped findings payload to the app narration route', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(hostedOkResponse('A fine season.'))
+    const text = await requestHostedNarration(FINDINGS, META, fetchMock)
+
+    expect(text).toBe('A fine season.')
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(HOSTED_NARRATION_PATH)
+    expect(init.method).toBe('POST')
+    expect(init.headers['Content-Type']).toBe('application/json')
+
+    const body = JSON.parse(init.body)
+    expect(body.year).toBe(2025)
+    expect(body.allotmentName).toBe('Bonnie Wee Plot')
+    expect(body.findings).toHaveLength(1)
+    expect(body.findings[0].summary).toContain('Peas sown 2025-03-12')
+    // Internal ids are stripped before the request leaves the browser.
+    expect(init.body).not.toContain('cold-soil:2025:p1')
+    expect(init.body).not.toContain('"areaId"')
+    expect(init.body).not.toContain('"plantId"')
+  })
+
+  it('omits the allotment name field when none is set', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(hostedOkResponse('ok'))
+    await requestHostedNarration(FINDINGS, { year: 2025 }, fetchMock)
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty('allotmentName')
+  })
+
+  it('throws HostedNarrationError with quotaExceeded on the quota 429', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: "You've used your 30 free AI requests for this month.",
+        quotaExceeded: true,
+      }),
+    } as Response)
+
+    const pending = requestHostedNarration(FINDINGS, META, fetchMock)
+    await expect(pending).rejects.toBeInstanceOf(HostedNarrationError)
+    await expect(pending).rejects.toMatchObject({
+      status: 429,
+      quotaExceeded: true,
+      message: "You've used your 30 free AI requests for this month.",
+    })
+  })
+
+  it('throws a plain HostedNarrationError on other non-OK responses', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: 'Sign in to use the built-in narration.' }),
+    } as Response)
+
+    await expect(requestHostedNarration(FINDINGS, META, fetchMock)).rejects.toMatchObject({
+      status: 401,
+      quotaExceeded: false,
+    })
+  })
+
+  it('falls back to the status message when the error body is not JSON', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => {
+        throw new Error('not json')
+      },
+    } as unknown as Response)
+
+    await expect(requestHostedNarration(FINDINGS, META, fetchMock)).rejects.toThrow(
+      'Hosted narration returned 502'
+    )
+  })
+
+  it('throws on an empty response', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(hostedOkResponse('  '))
+    await expect(requestHostedNarration(FINDINGS, META, fetchMock)).rejects.toThrow(
+      'empty response'
+    )
+  })
+
+  it('rejects immediately when called with an already-aborted signal', async () => {
+    const fetchMock = vi.fn()
+    const controller = new AbortController()
+    controller.abort()
+    await expect(
+      requestHostedNarration(FINDINGS, META, fetchMock, { signal: controller.signal })
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('narrateSeasonHosted', () => {
+  it('returns ok for a draft whose numbers the findings vouch for', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      hostedOkResponse('Your peas went into 6.5°C soil on 12 March — under the 7°C they prefer.')
+    )
+    const result = await narrateSeasonHosted(FINDINGS, META, fetchMock)
+    expect(result.status).toBe('ok')
+  })
+
+  it('rejects a draft with an invented number — the verify gate is unchanged', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      hostedOkResponse('Soil hit 6.5°C, and you lost around 40% of the crop.')
+    )
+    const result = await narrateSeasonHosted(FINDINGS, META, fetchMock)
+    expect(result.status).toBe('rejected')
+    if (result.status === 'rejected') {
+      expect(result.unverifiedNumbers).toEqual(['40'])
+    }
+  })
+
+  it('lets route errors escape as exceptions rather than fake rejections', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(narrateSeasonHosted(FINDINGS, META, fetchMock)).rejects.toThrow()
   })
 })
 

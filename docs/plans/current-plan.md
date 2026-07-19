@@ -1,6 +1,26 @@
 # Current Plan
 
-Last updated: 2026-07-19 (selection routing consolidation shipped)
+Last updated: 2026-07-19 (hosted season narration shipped)
+
+## Season Observer — hosted narration via the free tier (shipped)
+
+The `/season-review` AI summary now works in the deployed app without
+Ollama. Signed-in users get a "Built-in" provider in `NarrationPanel`
+(default when signed in) that routes through a new `POST
+/api/season-narration` route reusing Aitor's Gemini free-tier plumbing:
+the `gemini.ts` adapter and the shared `ai_usage` monthly quota (one
+30-requests counter across Aitor and narration, checked before the call,
+incremented only on success, plus a short-window per-user rate limit).
+Guardrails held: the zod schema strips everything outside the narration
+payload contract, so findings[] + allotment name + year remain the only
+season data sent — never coordinates or internal ids; the draft still
+passes through the identical `verifyNarration` gate client-side
+(`narrateSeasonHosted`), and a failing draft is discarded exactly as
+before; a quota-exhausted 429 renders the same friendly two-options
+message as Aitor (switch to your own endpoint / wait for the monthly
+reset). The Ollama/BYO-endpoint path is unchanged for everyone and stays
+the only option when signed out. Full detail in
+`docs/plans/season-observer.md`.
 
 ## Selection routing consolidation (shipped)
 

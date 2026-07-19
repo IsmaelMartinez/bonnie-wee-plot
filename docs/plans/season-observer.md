@@ -188,6 +188,41 @@ that a server can never reach a user's `localhost`.
   `narration.test.ts` (mocked fetch: request shape, auth header only with a
   key, prompt contract, error paths, verified/rejected orchestration).
 
+**Hosted free-tier provider (follow-up).** The browser→endpoint client can
+never work for a deployed user without their own Ollama/endpoint, so
+signed-in users now get a second provider that routes through the app
+server and reuses the Gemini free-tier plumbing Aitor built (PR #345):
+
+- `POST /api/season-narration` (`src/app/api/season-narration/route.ts`) —
+  Clerk-gated, per-user short-window rate limit, then the same `ai_usage`
+  monthly quota check/increment as Aitor (one shared 30-requests counter),
+  then `callGemini` (gemini.ts adapter) with the narration system prompt at
+  `NARRATION_TEMPERATURE`. The zod schema
+  (`src/lib/validations/season-narration.ts`) is the server-side enforcement
+  of the payload contract: it accepts only severity, summary, metrics,
+  entity display names and dates, stripping unknown keys — so internal ids
+  never reach the prompt and coordinates can't (no accepted field holds
+  them). The prompt itself comes from the shared `buildNarrationMessages`,
+  identical to the direct path.
+- `narrateSeasonHosted` in `narration.ts` posts the stripped
+  `toNarrationPayload` shape (ids removed before the request leaves the
+  browser) and then runs the draft through the exact same `verifyNarration`
+  gate — a failing draft is discarded identically on both paths.
+  Quota-exhausted 429s surface as a typed `HostedNarrationError` with
+  `quotaExceeded`.
+- `NarrationPanel` offers an "AI provider" toggle only when signed in:
+  Built-in (default for signed-in users — zero setup, works deployed) vs
+  Your own endpoint (the existing Ollama/BYO path, unchanged and still the
+  only path for anonymous users). Quota exhaustion renders the same
+  friendly two-options message as Aitor (switch provider / wait for the
+  monthly reset), not an error. Provider choice persists in the existing
+  `bwp-narration-config` localStorage entry.
+- Tests: route handler (auth gate, rate limit, quota 429 with
+  `quotaExceeded`, prompt contract incl. id-stripping, increment-only-on-
+  success), hosted client (payload shape, quota error, unchanged verify
+  gate), and panel provider selection (hidden signed-out, hosted default,
+  two-options quota message, custom path untouched).
+
 ### Plan feedback (Phase 3) — **shipped**
 
 Closes the loop: last season's findings feed next season's planning, all
