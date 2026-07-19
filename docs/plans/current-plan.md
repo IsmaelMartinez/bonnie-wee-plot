@@ -1,6 +1,23 @@
 # Current Plan
 
-Last updated: 2026-07-19 (hosted season narration shipped)
+Last updated: 2026-07-19 (shared AI quota made visible)
+
+## Quota visibility for the shared AI free tier (shipped)
+
+Follow-up to hosted narration below: season narration and Aitor now spend
+one `ai_usage` counter, so the remaining quota is surfaced where it's
+spent. The client-side lookup that `AiQuotaSection` did inline was
+extracted into a shared `useAiQuota` hook (`src/hooks/useAiQuota.ts` —
+signed-in + Supabase-configured gate, Clerk `supabase` JWT, `getCurrentUsage`,
+plus a `refresh()` re-read); no new endpoints, no schema changes.
+`NarrationPanel` shows "X of 30 free requests left this month (shared with
+Aitor)" while the Built-in provider is selected, degrades silently (no
+count, no error) when signed out or the lookup fails, and re-reads the
+counter after each hosted generation so the number stays honest.
+Settings → `AiQuotaSection` reuses the hook and its copy now says the
+quota is shared between Aitor and season narration. Covered by
+`useAiQuota` hook tests, NarrationPanel quota-visibility tests, and
+AiQuotaSection copy/reuse tests.
 
 ## Season Observer — hosted narration via the free tier (shipped)
 

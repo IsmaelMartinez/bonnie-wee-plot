@@ -15,6 +15,7 @@ import {
   type NarrationResult,
 } from '@/lib/season-review/narration'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { useAiQuota } from '@/hooks/useAiQuota'
 
 vi.mock('@/lib/season-review/narration', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/season-review/narration')>()),
@@ -26,9 +27,24 @@ vi.mock('@/hooks/useOptionalAuth', () => ({
   useOptionalAuth: vi.fn(),
 }))
 
+vi.mock('@/hooks/useAiQuota', () => ({
+  useAiQuota: vi.fn(),
+}))
+
 const narrateSeasonMock = vi.mocked(narrateSeason)
 const narrateSeasonHostedMock = vi.mocked(narrateSeasonHosted)
 const useOptionalAuthMock = vi.mocked(useOptionalAuth)
+const useAiQuotaMock = vi.mocked(useAiQuota)
+
+function quotaState(overrides: Partial<ReturnType<typeof useAiQuota>> = {}) {
+  return {
+    usage: null,
+    error: null,
+    isLoading: false,
+    refresh: vi.fn(),
+    ...overrides,
+  }
+}
 
 function authState(isSignedIn: boolean) {
   return {
@@ -64,6 +80,8 @@ describe('NarrationPanel', () => {
     narrateSeasonMock.mockReset()
     narrateSeasonHostedMock.mockReset()
     useOptionalAuthMock.mockReturnValue(authState(false))
+    useAiQuotaMock.mockReset()
+    useAiQuotaMock.mockReturnValue(quotaState())
     localStorage.clear()
     sessionStorage.clear()
   })
@@ -248,6 +266,63 @@ describe('NarrationPanel', () => {
 
       const stored = JSON.parse(localStorage.getItem('bwp-narration-config') ?? '{}')
       expect(stored.provider).toBeUndefined()
+    })
+  })
+
+  describe('shared quota visibility', () => {
+    const USAGE = { yearMonth: '2026-07', requestCount: 3, remaining: 27 }
+
+    it('shows the remaining shared quota when the built-in provider is selected', () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      useAiQuotaMock.mockReturnValue(quotaState({ usage: USAGE }))
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      expect(screen.getByText(/27 of 30 free requests left this month/i)).toBeInTheDocument()
+    })
+
+    it('degrades silently when the quota lookup fails', () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      useAiQuotaMock.mockReturnValue(quotaState({ error: 'supabase down' }))
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      expect(screen.queryByText(/free requests left this month/i)).not.toBeInTheDocument()
+      expect(screen.queryByText('supabase down')).not.toBeInTheDocument()
+    })
+
+    it('never enables the lookup for signed-out users', () => {
+      useAiQuotaMock.mockReturnValue(quotaState({ usage: USAGE }))
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      // Signed out means the custom provider — the lookup is disabled and no
+      // count renders even if a stale usage value were returned.
+      expect(useAiQuotaMock).toHaveBeenCalledWith(false)
+      expect(screen.queryByText(/free requests left this month/i)).not.toBeInTheDocument()
+    })
+
+    it('hides the count when the user switches to their own endpoint', async () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      useAiQuotaMock.mockReturnValue(quotaState({ usage: USAGE }))
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      expect(screen.getByText(/27 of 30 free requests left this month/i)).toBeInTheDocument()
+
+      await userEvent.click(screen.getByRole('radio', { name: /your own endpoint/i }))
+
+      expect(useAiQuotaMock).toHaveBeenLastCalledWith(false)
+      expect(screen.queryByText(/free requests left this month/i)).not.toBeInTheDocument()
+    })
+
+    it('re-reads the counter after a hosted generation', async () => {
+      useOptionalAuthMock.mockReturnValue(authState(true))
+      const refresh = vi.fn()
+      useAiQuotaMock.mockReturnValue(quotaState({ usage: USAGE, refresh }))
+      narrateSeasonHostedMock.mockResolvedValue({ status: 'ok', text: 'A grand year.' })
+      render(<NarrationPanel findings={FINDINGS} year={2024} />)
+
+      await userEvent.click(screen.getByRole('button', { name: /generate narration/i }))
+      await screen.findByText('A grand year.')
+
+      expect(refresh).toHaveBeenCalled()
     })
   })
 })

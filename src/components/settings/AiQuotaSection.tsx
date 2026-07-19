@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
-import { isSupabaseConfigured } from '@/lib/supabase/client'
-import { FREE_TIER_MONTHLY_QUOTA, getCurrentUsage, type AiUsage } from '@/lib/supabase/ai-usage'
+import { useAiQuota } from '@/hooks/useAiQuota'
+import { FREE_TIER_MONTHLY_QUOTA } from '@/lib/supabase/ai-usage'
 
 interface AiQuotaSectionProps {
   /** Whether the user has a BYO OpenAI token configured. When true, the
@@ -13,48 +12,14 @@ interface AiQuotaSectionProps {
 }
 
 /**
- * Surfaces the user's free-tier monthly Aitor quota when the server-side
- * Gemini fallback is in play. Stays silent when the user has their own
- * OpenAI token (no quota applies) or when Supabase isn't configured.
+ * Surfaces the user's free-tier monthly AI quota (shared between Aitor and
+ * season narration) when the server-side Gemini fallback is in play. Stays
+ * silent when the user has their own OpenAI token (no quota applies) or when
+ * Supabase isn't configured.
  */
 export default function AiQuotaSection({ hasOwnToken }: AiQuotaSectionProps) {
-  const { isSignedIn, userId, getToken } = useOptionalAuth()
-  const [usage, setUsage] = useState<AiUsage | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    if (!isSignedIn || !userId || !isSupabaseConfigured() || hasOwnToken) {
-      setIsLoading(false)
-      return
-    }
-
-    let cancelled = false
-    async function load() {
-      try {
-        const token = await getToken({ template: 'supabase' })
-        if (!token) {
-          if (!cancelled) {
-            setError('Could not check quota — JWT template not configured.')
-            setIsLoading(false)
-          }
-          return
-        }
-        const u = await getCurrentUsage(token, userId!)
-        if (!cancelled) {
-          setUsage(u)
-          setIsLoading(false)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load quota')
-          setIsLoading(false)
-        }
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [isSignedIn, userId, hasOwnToken, getToken])
+  const { isSignedIn } = useOptionalAuth()
+  const { usage, error, isLoading } = useAiQuota(!hasOwnToken)
 
   if (!isSignedIn || hasOwnToken) return null
   if (isLoading) return null
@@ -77,7 +42,7 @@ export default function AiQuotaSection({ hasOwnToken }: AiQuotaSectionProps) {
           : 'bg-zen-moss-50 border-zen-moss-100'
       }`}
       role="status"
-      aria-label="Free Aitor quota"
+      aria-label="Free AI quota"
     >
       <Sparkles
         className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
@@ -87,12 +52,12 @@ export default function AiQuotaSection({ hasOwnToken }: AiQuotaSectionProps) {
       />
       <div className="text-sm text-zen-ink-700">
         <p className="font-medium">
-          {used} / {FREE_TIER_MONTHLY_QUOTA} free Aitor requests used this month
+          {used} / {FREE_TIER_MONTHLY_QUOTA} free AI requests used this month
         </p>
         <p className="text-xs text-zen-stone-600 mt-1">
           {exhausted
-            ? 'Free quota exhausted. Add your own OpenAI key below for unlimited use, or check back next month.'
-            : 'Add your own OpenAI key below for unlimited use.'}
+            ? 'Free quota exhausted — it is shared between Aitor and season narration. Add your own OpenAI key below for unlimited Aitor use, or check back next month.'
+            : 'This quota is shared between Aitor and season narration. Add your own OpenAI key below for unlimited Aitor use.'}
         </p>
       </div>
     </div>

@@ -33,6 +33,8 @@ import {
 import { getStorageItem, setStorageItem } from '@/services/generic-storage'
 import { useSessionStorage } from '@/hooks/useSessionStorage'
 import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { useAiQuota } from '@/hooks/useAiQuota'
+import { FREE_TIER_MONTHLY_QUOTA } from '@/lib/supabase/ai-usage'
 
 /** Endpoint + model + provider persist across sessions; the optional key is session-only. */
 const NARRATION_CONFIG_KEY = 'bwp-narration-config'
@@ -118,6 +120,14 @@ export default function NarrationPanel({
 
   const effectiveProvider: NarrationProvider =
     isSignedIn && provider === 'hosted' ? 'hosted' : 'custom'
+
+  // The Built-in tier spends the same ai_usage counter as Aitor — surface how
+  // much is left where it's about to be spent. The lookup only runs while the
+  // hosted provider is in play, and the panel degrades silently (no count) when
+  // the user is signed out or the lookup fails.
+  const { usage: quotaUsage, refresh: refreshQuota } = useAiQuota(
+    effectiveProvider === 'hosted'
+  )
 
   const chooseProvider = (next: NarrationProvider) => {
     setProvider(next)
@@ -207,6 +217,11 @@ export default function NarrationPanel({
       } else {
         setStatus({ kind: 'error', message: friendlyRequestError(error, settings.baseUrl) })
       }
+    } finally {
+      // A hosted attempt may have spent a unit of the shared quota (even one
+      // whose result was orphaned) — re-read the counter so the count stays
+      // honest. A refresh is a pure re-read, so firing on failure is harmless.
+      if (effectiveProvider === 'hosted') refreshQuota()
     }
   }
 
@@ -254,6 +269,13 @@ export default function NarrationPanel({
               </label>
             </div>
           </fieldset>
+        )}
+
+        {effectiveProvider === 'hosted' && quotaUsage && (
+          <p className="text-xs text-zen-stone-500" role="status" aria-label="Free AI quota">
+            {quotaUsage.remaining} of {FREE_TIER_MONTHLY_QUOTA} free requests left this month
+            <span className="text-zen-stone-400"> (shared with Aitor)</span>
+          </p>
         )}
 
         {effectiveProvider === 'custom' && (
