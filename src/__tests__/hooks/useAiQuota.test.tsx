@@ -121,4 +121,32 @@ describe('useAiQuota', () => {
     )
     expect(getCurrentUsageMock).toHaveBeenCalledTimes(2)
   })
+
+  it('clears a previously shown usage when a refresh fails', async () => {
+    getCurrentUsageMock.mockResolvedValueOnce(USAGE)
+    getCurrentUsageMock.mockRejectedValueOnce(new Error('supabase down'))
+
+    const { result } = renderHook(() => useAiQuota())
+    await waitFor(() => expect(result.current.usage).toEqual(USAGE))
+
+    act(() => result.current.refresh())
+
+    // The failed re-read must not leave the stale count on show.
+    await waitFor(() => expect(result.current.error).toBe('supabase down'))
+    expect(result.current.usage).toBeNull()
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('clears a previous error when a later fetch succeeds', async () => {
+    getCurrentUsageMock.mockRejectedValueOnce(new Error('supabase down'))
+    getCurrentUsageMock.mockResolvedValueOnce(USAGE)
+
+    const { result } = renderHook(() => useAiQuota())
+    await waitFor(() => expect(result.current.error).toBe('supabase down'))
+
+    act(() => result.current.refresh())
+
+    await waitFor(() => expect(result.current.usage).toEqual(USAGE))
+    expect(result.current.error).toBeNull()
+  })
 })

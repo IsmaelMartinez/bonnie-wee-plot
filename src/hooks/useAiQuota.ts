@@ -25,7 +25,11 @@ export function useAiQuota(enabled: boolean = true): AiQuotaState {
   const { isSignedIn, userId, getToken } = useOptionalAuth()
   const [usage, setUsage] = useState<AiUsage | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Start in the loading state only when a fetch will actually happen, so a
+  // disabled/signed-out mount doesn't render a loading frame it never needed.
+  const [isLoading, setIsLoading] = useState(
+    () => enabled && isSignedIn && !!userId && isSupabaseConfigured()
+  )
   const [fetchCount, setFetchCount] = useState(0)
 
   useEffect(() => {
@@ -36,12 +40,19 @@ export function useAiQuota(enabled: boolean = true): AiQuotaState {
       return
     }
 
+    // Every fetch (including enabled-toggles and refresh()) starts a fresh
+    // loading cycle with the previous outcome cleared. A failed lookup below
+    // also clears `usage`, so consumers never show a count the latest read
+    // couldn't vouch for.
+    setIsLoading(true)
+    setError(null)
     let cancelled = false
     async function load() {
       try {
         const token = await getToken({ template: 'supabase' })
         if (!token) {
           if (!cancelled) {
+            setUsage(null)
             setError('Could not check quota — JWT template not configured.')
             setIsLoading(false)
           }
@@ -50,11 +61,11 @@ export function useAiQuota(enabled: boolean = true): AiQuotaState {
         const u = await getCurrentUsage(token, userId!)
         if (!cancelled) {
           setUsage(u)
-          setError(null)
           setIsLoading(false)
         }
       } catch (err) {
         if (!cancelled) {
+          setUsage(null)
           setError(err instanceof Error ? err.message : 'Failed to load quota')
           setIsLoading(false)
         }
