@@ -1,0 +1,83 @@
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
+import { useOptionalAuth } from '@/hooks/useOptionalAuth'
+import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { getCurrentUsage, type AiUsage } from '@/lib/supabase/ai-usage'
+
+export interface AiQuotaState {
+  /** Current month's usage, or null while loading / on error / when the lookup doesn't apply. */
+  usage: AiUsage | null
+  error: string | null
+  isLoading: boolean
+  /** Re-fetch the counter (e.g. after a request that spent quota). */
+  refresh: () => void
+}
+
+/**
+ * Client-side lookup of the shared free-tier AI quota (`ai_usage` counter,
+ * spent by both Aitor and season narration). Requires a signed-in user and
+ * configured Supabase; otherwise resolves to no usage without fetching.
+ * Pass `enabled: false` to skip the lookup entirely (e.g. BYO key users,
+ * or a provider selection the quota doesn't apply to).
+ */
+export function useAiQuota(enabled: boolean = true): AiQuotaState {
+  const { isSignedIn, userId, getToken } = useOptionalAuth()
+  const [usage, setUsage] = useState<AiUsage | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  // Start in the loading state only when a fetch will actually happen, so a
+  // disabled/signed-out mount doesn't render a loading frame it never needed.
+  const [isLoading, setIsLoading] = useState(
+    () => enabled && isSignedIn && !!userId && isSupabaseConfigured()
+  )
+  const [fetchCount, setFetchCount] = useState(0)
+
+  useEffect(() => {
+    if (!enabled || !isSignedIn || !userId || !isSupabaseConfigured()) {
+      setUsage(null)
+      setError(null)
+      setIsLoading(false)
+      return
+    }
+
+    // Every fetch (including enabled-toggles and refresh()) starts a fresh
+    // loading cycle with the previous outcome cleared. A failed lookup below
+    // also clears `usage`, so consumers never show a count the latest read
+    // couldn't vouch for.
+    setIsLoading(true)
+    setError(null)
+    let cancelled = false
+    async function load() {
+      try {
+        const token = await getToken({ template: 'supabase' })
+        if (!token) {
+          if (!cancelled) {
+            setUsage(null)
+            setError('Could not check quota — JWT template not configured.')
+            setIsLoading(false)
+          }
+          return
+        }
+        const u = await getCurrentUsage(token, userId!)
+        if (!cancelled) {
+          setUsage(u)
+          setIsLoading(false)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setUsage(null)
+          setError(err instanceof Error ? err.message : 'Failed to load quota')
+          setIsLoading(false)
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, isSignedIn, userId, getToken, fetchCount])
+
+  const refresh = useCallback(() => setFetchCount((c) => c + 1), [])
+
+  return { usage, error, isLoading, refresh }
+}
