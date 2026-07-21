@@ -39,11 +39,12 @@ The flagged code path was the auto-save effect's `if (data && !isLoading)`
 truthy check in `src/hooks/usePersistedStorage.ts`. That entire file — and
 the auto-save write path with it — was deleted on main by ADR 027 Step 5
 (PR #462), which retired the legacy storage chain in favour of the Yjs
-engine. The surviving storage hooks don't carry the pattern:
-`usePersistedState`'s auto-save effect writes unconditionally after
-hydration and guards loads with `stored !== null`, and `useSessionStorage`'s
-consumers are all string tokens whose `''` initial value round-trips
-through its intentional clear-on-empty behaviour.
+engine. The other storage hooks didn't carry the pattern either:
+`usePersistedState`'s auto-save effect wrote unconditionally after
+hydration and guarded loads with `stored !== null` (that hook was itself
+later deleted as dead code on 2026-07-21 — see the top of this file), and
+`useSessionStorage`'s consumers are all string tokens whose `''` initial
+value round-trips through its intentional clear-on-empty behaviour.
 
 **2. Tour element-existence filter now handles tab-switch targets.**
 The start-time filter in `useTour` can only inspect the active tab (the
