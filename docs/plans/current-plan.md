@@ -1,6 +1,34 @@
 # Current Plan
 
-Last updated: 2026-07-20 (Aitor/Settings sprint follow-ups closed)
+Last updated: 2026-07-21 (post-#492 cleanups: dead hook + useTour timer race)
+
+## Post-#492 cleanups (2026-07-21)
+
+Two small cleanups surfaced while closing the Aitor/Settings follow-ups
+(PR #492), plus a dependency re-check:
+
+**1. Deleted dead `usePersistedState` module.** `src/hooks/usePersistedState.ts`
+(and its `usePersistedBoolean`/`usePersistedNumber`/`usePersistedArray`
+wrappers) had no consumers anywhere in the codebase — no imports, dynamic
+imports, or tests referenced it. Per the Simplicity First convention the
+module was removed. The surviving persisted-state hooks (`useTour`'s
+`useSyncExternalStore` singleton, `useSessionStorage`) are untouched.
+
+**2. Fixed the initial-delay timer race in `useTour`.** `startTour` deferred
+driver.js creation behind a 500/600ms `setTimeout` whose id was never
+retained, so navigating away inside that window created a tour instance
+after unmount — the unmount cleanup only destroyed `driverRef.current`,
+still null while the timeout was pending. The id is now held in
+`startTimeoutRef` and cleared both in the unmount cleanup and at the top of
+each `startTour` call (so a repeated start replaces rather than stacks).
+Regression tests added alongside the existing `useTour` tests: no driver
+instance is built when unmounted mid-delay, and a second `startTour` in the
+window fires only one tour.
+
+**3. ESLint 9 → 10 re-checked, still blocked (see deferral below).**
+`eslint-plugin-react@7.37.5` (latest) still calls
+`contextOrFilename.getFilename()` in `lib/util/version.js`, and its `eslint`
+peer range tops out at `^9.7` — no ESLint 10 support. The deferral stands.
 
 ## Aitor/Settings sprint follow-ups closed (2026-07-20)
 
