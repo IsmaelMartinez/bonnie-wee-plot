@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
-import { driver, type Driver, type Config } from 'driver.js'
+import { driver, type Driver, type Config, type DriveStep } from 'driver.js'
 import { TourId, getTourDefinition, type SettingsTabStep } from '@/lib/tours/tour-definitions'
 
 const TOUR_STORAGE_KEY = 'bonnie-wee-plot-tours'
@@ -179,16 +179,41 @@ export function useTour(): UseTourReturn {
       return
     }
 
-    // Move to a step with tab switching and delay
-    const moveToStep = (targetIndex: number, onComplete?: () => void) => {
+    // The start-time filter can only inspect the active tab — inactive tab
+    // content is unmounted, so steps behind a tab switch pass through
+    // unchecked. This re-check runs once the step's tab has rendered.
+    const stepElementExists = (step: DriveStep): boolean => {
+      if (typeof step.element !== 'string') return true
+      return document.querySelector(step.element) !== null
+    }
+
+    // Move to a step with tab switching and delay. If the step's target is
+    // still missing after its tab renders (e.g. a section conditionally
+    // hidden inside that tab), keep walking in `direction` until a step
+    // with a live target is found. Calls back with the resolved index, or
+    // null when no step in that direction has a target in the DOM.
+    const moveToStep = (
+      targetIndex: number,
+      direction: 1 | -1,
+      onResolved: (resolvedIndex: number | null) => void
+    ) => {
+      if (targetIndex < 0 || targetIndex >= availableSteps.length) {
+        onResolved(null)
+        return
+      }
       const switched = switchToTab(targetIndex)
+      const verify = () => {
+        if (stepElementExists(availableSteps[targetIndex])) {
+          onResolved(targetIndex)
+        } else {
+          moveToStep(targetIndex + direction, direction, onResolved)
+        }
+      }
       if (switched) {
         // Delay to let React render the new tab content
-        setTimeout(() => {
-          onComplete?.()
-        }, 100)
+        setTimeout(verify, 100)
       } else {
-        onComplete?.()
+        verify()
       }
     }
 
@@ -223,8 +248,17 @@ export function useTour(): UseTourReturn {
           markCompleted(tourId)
           driverRef.current.destroy()
         } else if (hasTabSteps) {
-          moveToStep(currentIndex + 1, () => {
-            driverRef.current?.moveNext()
+          moveToStep(currentIndex + 1, 1, (resolvedIndex) => {
+            if (!driverRef.current) return
+            if (resolvedIndex === null) {
+              // Every remaining step's target is missing — the tour is done.
+              markCompleted(tourId)
+              driverRef.current.destroy()
+            } else if (resolvedIndex === currentIndex + 1) {
+              driverRef.current.moveNext()
+            } else {
+              driverRef.current.moveTo(resolvedIndex)
+            }
           })
         } else {
           driverRef.current.moveNext()
@@ -235,8 +269,17 @@ export function useTour(): UseTourReturn {
         if (hasTabSteps) {
           const currentIndex = driverRef.current.getActiveIndex() ?? 0
           if (currentIndex > 0) {
-            moveToStep(currentIndex - 1, () => {
-              driverRef.current?.movePrevious()
+            moveToStep(currentIndex - 1, -1, (resolvedIndex) => {
+              if (!driverRef.current) return
+              if (resolvedIndex === null) {
+                // Nothing behind has a live target; probing may have
+                // switched tabs, so restore the current step's tab and stay.
+                switchToTab(currentIndex)
+              } else if (resolvedIndex === currentIndex - 1) {
+                driverRef.current.movePrevious()
+              } else {
+                driverRef.current.moveTo(resolvedIndex)
+              }
             })
           }
         } else {
@@ -248,11 +291,27 @@ export function useTour(): UseTourReturn {
     // Small delay to ensure DOM is ready (longer if we switched tabs)
     const initialDelay = hasTabSteps ? 600 : 500
     setTimeout(() => {
-      const driverInstance = driver(config)
-      driverRef.current = driverInstance
+      const beginTour = (startIndex: number) => {
+        const driverInstance = driver(config)
+        driverRef.current = driverInstance
 
-      setIsActive(true)
-      driverInstance.drive()
+        setIsActive(true)
+        driverInstance.drive(startIndex)
+      }
+
+      // The first step's tab was switched in before the delay; if its
+      // target still didn't render, start from the next live step instead.
+      if (hasTabSteps && !stepElementExists(availableSteps[0])) {
+        moveToStep(1, 1, (resolvedIndex) => {
+          if (resolvedIndex === null) {
+            console.warn(`No elements found for tour "${tourId}"`)
+            return
+          }
+          beginTour(resolvedIndex)
+        })
+      } else {
+        beginTour(0)
+      }
     }, initialDelay)
   }, [markCompleted, markDismissed])
 

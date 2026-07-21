@@ -1,6 +1,34 @@
 # Current Plan
 
-Last updated: 2026-07-19 (shared AI quota made visible)
+Last updated: 2026-07-20 (Aitor/Settings sprint follow-ups closed)
+
+## Aitor/Settings sprint follow-ups closed (2026-07-20)
+
+The two non-blocking leftovers from the #366–#371 sprint are resolved:
+
+**1. `usePersistedStorage` auto-save falsy-check — obsolete, no fix needed.**
+The flagged code path was the auto-save effect's `if (data && !isLoading)`
+truthy check in `src/hooks/usePersistedStorage.ts`. That entire file — and
+the auto-save write path with it — was deleted on main by ADR 027 Step 5
+(PR #462), which retired the legacy storage chain in favour of the Yjs
+engine. The surviving storage hooks don't carry the pattern:
+`usePersistedState`'s auto-save effect writes unconditionally after
+hydration and guards loads with `stored !== null`, and `useSessionStorage`'s
+consumers are all string tokens whose `''` initial value round-trips
+through its intentional clear-on-empty behaviour.
+
+**2. Tour element-existence filter now handles tab-switch targets.**
+The start-time filter in `useTour` can only inspect the active tab (the
+Tabs component unmounts inactive panels), so steps behind a tab switch
+passed through unchecked — e.g. a signed-in user with a BYO key starting
+the tour from the Data tab would land driver.js on the never-rendered
+`ai-quota` section as a detached popover. `moveToStep` now re-checks the
+target after the tab switch renders and walks past missing steps in the
+direction of travel (forward, backward, and at tour start); if nothing
+ahead has a live target the tour completes cleanly. The signed-out
+Data → Help fallback is unchanged. Covered by new `useTour` tests
+(fallback, start-time filter, forward skip, backward skip,
+complete-on-exhausted).
 
 ## Quota visibility for the shared AI free tier (shipped)
 
@@ -600,7 +628,7 @@ First cost-line measurement: on a small fixture (one bed with 2 plantings, one t
 
 ### AI/Settings UX sprint — Shipped (PRs #366–#371, 2026-05-17 → 2026-05-18)
 
-A six-PR sprint focused on the AI advisor and Settings surface. PR #366 (squash `e9c560c`) removed the Reset button from the allotment grid toolbar, dropped the OpenAI token privacy notice, merged the floating Diagnose + Ask Aitor launchers into one, made Settings land on the AI & Location tab for signed-in users via a `key` remount that survives Clerk's async auth resolve, lazy-mounted `AitorChatModal` via `next/dynamic` so its hooks no longer run on every parent re-render (the "extremely slow" report), added a minimize affordance with conversation state preserved via mount-while-minimized, and tightened the Aitor system prompt to favour short chat-style replies. The follow-up PRs landed on top of `main`: #367 (`1428638`) collapsed the BYOK OpenAI key input behind a default-closed disclosure; #369 (`9ada468`) fixed the bug where toggling Aitor off in Settings didn't propagate to the floating launcher in the same tab — `usePersistedStorage` now emits a same-tab `bonnie:storage-update` CustomEvent with a per-instance id and monotonic sequence so sibling hook instances stay in sync; #368 (`57d6ece`) made a planting's name itself clickable to open the species `PlantSummaryDialog`, removing the small `(i)` icon as redundant; #370 (`a085db5`) polished `usePersistedStorage` (unmount-flush symmetry, validate-rejection test, stringify hoist); and #371 (`e0cd829`) extended the Settings tour with the AI & Location section, with a runtime element-existence filter so signed-out users still get the Data → Help fallback. Each PR went through one round of Gemini bot review with a follow-up commit addressing the findings. Two non-blocking notes remain: the auto-save effect in `usePersistedStorage` still has a falsy-T truthy-check (same pattern as the two fixed in PR #370 but a separate code path), and the tour's element-existence filter only catches missing targets when the relevant tab is already active at tour start — both filed as follow-up candidates.
+A six-PR sprint focused on the AI advisor and Settings surface. PR #366 (squash `e9c560c`) removed the Reset button from the allotment grid toolbar, dropped the OpenAI token privacy notice, merged the floating Diagnose + Ask Aitor launchers into one, made Settings land on the AI & Location tab for signed-in users via a `key` remount that survives Clerk's async auth resolve, lazy-mounted `AitorChatModal` via `next/dynamic` so its hooks no longer run on every parent re-render (the "extremely slow" report), added a minimize affordance with conversation state preserved via mount-while-minimized, and tightened the Aitor system prompt to favour short chat-style replies. The follow-up PRs landed on top of `main`: #367 (`1428638`) collapsed the BYOK OpenAI key input behind a default-closed disclosure; #369 (`9ada468`) fixed the bug where toggling Aitor off in Settings didn't propagate to the floating launcher in the same tab — `usePersistedStorage` now emits a same-tab `bonnie:storage-update` CustomEvent with a per-instance id and monotonic sequence so sibling hook instances stay in sync; #368 (`57d6ece`) made a planting's name itself clickable to open the species `PlantSummaryDialog`, removing the small `(i)` icon as redundant; #370 (`a085db5`) polished `usePersistedStorage` (unmount-flush symmetry, validate-rejection test, stringify hoist); and #371 (`e0cd829`) extended the Settings tour with the AI & Location section, with a runtime element-existence filter so signed-out users still get the Data → Help fallback. Each PR went through one round of Gemini bot review with a follow-up commit addressing the findings. The two non-blocking follow-up notes this sprint left behind are now closed — see "Aitor/Settings sprint follow-ups closed" at the top of this plan.
 
 ### ADR 027 Yjs Step 3 — Foundation shipped (PRs #382, #383, 2026-05-18)
 
