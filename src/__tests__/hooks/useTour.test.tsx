@@ -25,10 +25,12 @@ interface MockDriverInstance {
 
 let lastConfig: Config | null = null
 let lastInstance: MockDriverInstance | null = null
+let driverCreateCount = 0
 
 vi.mock('driver.js', () => ({
   driver: (config: Config) => {
     lastConfig = config
+    driverCreateCount += 1
     let activeIndex: number | undefined
     const instance: MockDriverInstance = {
       drive: vi.fn((index = 0) => {
@@ -154,6 +156,7 @@ describe('useTour - settings tour tab handling', () => {
     localStorage.clear()
     lastConfig = null
     lastInstance = null
+    driverCreateCount = 0
   })
 
   afterEach(() => {
@@ -278,6 +281,70 @@ describe('useTour - settings tour tab handling', () => {
     clickPrev()
     expect(lastInstance!.movePrevious).not.toHaveBeenCalled()
     expect(lastInstance!.moveTo).toHaveBeenCalledWith(2)
+  })
+
+  it('does not create a driver instance when unmounted during the initial delay', () => {
+    // Navigating away in the 600ms window between startTour and the deferred
+    // driver.js creation must cancel the pending timeout — otherwise a tour
+    // spins up after unmount, unreachable by the unmount cleanup (driverRef
+    // is still null while the timeout is pending).
+    setupSettingsDom({
+      tabs: ['data', 'help'],
+      activeTab: 'data',
+      content: {
+        data: ['data-management'],
+        help: ['tour-management'],
+      },
+    })
+
+    const { result, unmount } = renderHook(() => useTour())
+    act(() => {
+      result.current.startTour('settings')
+    })
+
+    // Unmount before the initial delay fires.
+    unmount()
+    act(() => {
+      vi.advanceTimersByTime(600)
+    })
+
+    // No driver.js instance should have been constructed.
+    expect(driverCreateCount).toBe(0)
+    expect(lastConfig).toBeNull()
+    expect(lastInstance).toBeNull()
+  })
+
+  it('cancels a pending start timeout when startTour is called again', () => {
+    // A second startTour during the initial delay must replace, not stack:
+    // only one driver.js instance should be created when the timer fires.
+    setupSettingsDom({
+      tabs: ['data', 'help'],
+      activeTab: 'data',
+      content: {
+        data: ['data-management'],
+        help: ['tour-management'],
+      },
+    })
+
+    const { result } = renderHook(() => useTour())
+    act(() => {
+      result.current.startTour('settings')
+    })
+    act(() => {
+      result.current.startTour('settings')
+    })
+
+    // Both start timeouts share the 600ms delay; advancing once should fire
+    // only the surviving one and drive a single tour.
+    act(() => {
+      vi.advanceTimersByTime(600)
+    })
+
+    // Exactly one driver.js instance is built — the earlier pending timeout
+    // was cancelled rather than firing a second, orphaned tour.
+    expect(driverCreateCount).toBe(1)
+    expect(lastInstance).not.toBeNull()
+    expect(lastInstance!.drive).toHaveBeenCalledTimes(1)
   })
 
   it('completes the tour when every remaining target is missing', () => {

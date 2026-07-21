@@ -98,6 +98,18 @@ export function useTour(): UseTourReturn {
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
   const [isActive, setIsActive] = useState(false)
   const driverRef = useRef<Driver | null>(null)
+  // Tracks whether the owning component is still mounted. Guards the
+  // deferred tour construction so an unmount during any of the start-time
+  // delays (the initial 500/600ms timeout, or the 100ms tab-switch waits
+  // in moveToStep, which the timeout ref below doesn't cover) can't build a
+  // driver.js instance or setState after teardown.
+  const isMountedRef = useRef(true)
+  // Pending id for the initial start-delay timeout. Held so it can be
+  // cancelled if the component unmounts (or startTour is called again)
+  // before it fires — otherwise it would spin up a driver.js instance
+  // after unmount, which the unmount cleanup can't reach (driverRef is
+  // still null at that point).
+  const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const markCompleted = useCallback((tourId: TourId) => {
     setTourState(prev => ({
@@ -124,7 +136,12 @@ export function useTour(): UseTourReturn {
       return
     }
 
-    // Clean up any existing tour
+    // Clean up any existing tour, including a start-delay timeout from a
+    // previous startTour call that hasn't fired yet.
+    if (startTimeoutRef.current) {
+      clearTimeout(startTimeoutRef.current)
+      startTimeoutRef.current = null
+    }
     if (driverRef.current) {
       driverRef.current.destroy()
     }
@@ -290,8 +307,11 @@ export function useTour(): UseTourReturn {
 
     // Small delay to ensure DOM is ready (longer if we switched tabs)
     const initialDelay = hasTabSteps ? 600 : 500
-    setTimeout(() => {
+    startTimeoutRef.current = setTimeout(() => {
+      startTimeoutRef.current = null
       const beginTour = (startIndex: number) => {
+        // Bail if the component unmounted during any start-time delay.
+        if (!isMountedRef.current) return
         const driverInstance = driver(config)
         driverRef.current = driverInstance
 
@@ -341,7 +361,15 @@ export function useTour(): UseTourReturn {
 
   // Cleanup on unmount
   useEffect(() => {
+    // Re-assert on (re)mount so a StrictMode remount doesn't leave the ref
+    // stuck false from the previous cleanup.
+    isMountedRef.current = true
     return () => {
+      isMountedRef.current = false
+      if (startTimeoutRef.current) {
+        clearTimeout(startTimeoutRef.current)
+        startTimeoutRef.current = null
+      }
       if (driverRef.current) {
         driverRef.current.destroy()
       }
