@@ -37,6 +37,24 @@ describe('buildCspHeader', () => {
     expect(connectSrc).toContain('https://climate-api.open-meteo.com')
   })
 
+  it('allows the auth/sync/telemetry SDK hosts and the local narration preset', () => {
+    // These connect from the browser too, so they belong in the guardrail —
+    // dropping any of them must fail this test, not silently break a feature.
+    const connectSrc = csp['connect-src'] ?? []
+    expect(connectSrc).toContain('https://*.clerk.accounts.dev') // auth
+    expect(connectSrc).toContain('https://*.supabase.co') // cloud sync
+    expect(connectSrc).toContain('https://*.ingest.sentry.io') // telemetry
+    expect(connectSrc).toContain('http://localhost:11434') // Ollama narration
+    expect(connectSrc).toContain('http://127.0.0.1:11434')
+  })
+
+  it('derives connect-src from BROWSER_FETCH_ORIGINS (self + every listed origin)', () => {
+    // Guards the single-source-of-truth wiring: the policy is exactly 'self'
+    // plus the map, so the two cannot drift apart.
+    const connectSrc = csp['connect-src'] ?? []
+    expect(connectSrc).toEqual(["'self'", ...Object.values(BROWSER_FETCH_ORIGINS)])
+  })
+
   it('keeps the security-critical directives locked down', () => {
     expect(csp['default-src']).toEqual(["'self'"])
     expect(csp['frame-ancestors']).toEqual(["'none'"])
