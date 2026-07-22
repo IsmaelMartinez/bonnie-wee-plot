@@ -1,6 +1,44 @@
 # Current Plan
 
-Last updated: 2026-07-21 (post-#492 cleanups: dead hook + useTour timer race)
+Last updated: 2026-07-22 (Season Review "no data" fix: CSP blocked Open-Meteo Archive)
+
+## Season Review showed no data — CSP `connect-src` omission (2026-07-22)
+
+**Symptom.** A user with several past-year seasons and plantings saw the
+`/season-review` page render nothing useful for 2025: the grey "Weather for
+2025 isn't available right now (offline, or not fetched yet)" note plus an
+empty findings list — persistently, even on good wifi after a reload.
+
+**Diagnosis (three empty states, ruled out one by one).** Not empty-state #1
+(`years.length === 0`) — several reviewable years existed. Not the rules being
+too strict — the engine's silence-on-thin-data discipline is intact. It was
+empty-state #3: `fetchSeasonWeather(coords, year)` returned `null`, so
+`weatherStatus` became `'unavailable'`, which makes **8 of the 10 rules
+early-return `[]`** (every rule guarded by `if (!input.weather) return []`),
+and the two log-only rules stayed silent on sparse logs → zero findings.
+
+**Root cause.** The CSP `connect-src` allowlist in `src/middleware.ts` listed
+`https://api.open-meteo.com` (the forecast host) but **not
+`https://archive-api.open-meteo.com`** — the distinct host the Season Review
+archive service (`src/lib/weather/open-meteo-archive.ts`) calls, nor
+`https://climate-api.open-meteo.com` used by frost-dates
+(`src/lib/weather/frost-dates.ts`, Today page). The browser blocked every
+archive/climate request before it left the page (works from `curl` because
+curl isn't subject to the page CSP; the endpoint itself is healthy — verified
+HTTP 200, CORS `*`, 365 days for 2025). Weather backfill logic was **not** the
+gap: `fetchSeasonWeather` and `getBaseline` already backfill any past year
+on demand and cache correctly — they just never got the chance to run.
+
+**Fix.** Extracted the CSP builder into `src/lib/security/csp.ts` (so it's
+unit-testable without the Clerk middleware wrapper) and added both missing
+Open-Meteo hosts to `connect-src`. A `BROWSER_FETCH_ORIGINS` map plus
+`src/__tests__/lib/security/csp.test.ts` now assert every browser-fetched
+origin is present — the guardrail that would have caught this omission when
+the archive service was added. Rules engine, thresholds, and Yjs persistence
+untouched; nothing new is written to the doc. After the fix, 2025 populates:
+archive + 10-year baseline fetch, the 5 plot-wide weather rules (temp/rain
+anomaly, dry-spell, water-deficit, dull-month) fire from weather alone, and
+the weather table + per-planting soil/GDD figures render.
 
 ## Post-#492 cleanups (2026-07-21)
 
