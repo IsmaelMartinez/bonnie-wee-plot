@@ -1,6 +1,33 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
+
+/*
+ * Base classes referenced via @apply from other component classes below.
+ * Tailwind v4 only resolves @apply against registered utilities, so these
+ * must be declared with @utility rather than as plain selectors inside
+ * @layer components (which worked under Tailwind v3).
+ */
+@utility zen-btn {
+  @apply inline-flex items-center justify-center px-4 py-2
+         text-sm font-medium rounded-zen
+         transition-all duration-200 ease-out
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-moss-400 focus-visible:ring-offset-2;
+}
+
+@utility zen-input {
+  @apply w-full px-3 py-2
+         bg-white border border-zen-stone-300 rounded-zen
+         text-zen-ink-800 placeholder-zen-stone-400
+         transition-colors duration-200
+         hover:border-zen-stone-400
+         focus:border-zen-moss-500 focus:ring-1 focus:ring-zen-moss-500 focus:outline-none;
+}
+
+@utility zen-badge {
+  @apply inline-flex items-center px-2 py-0.5
+         text-xs font-medium rounded-full
+         bg-zen-stone-100 text-zen-ink-600;
+}
 
 /*
  * Zen Garden Design System
@@ -70,13 +97,6 @@
   }
 
   /* Zen button variants */
-  .zen-btn {
-    @apply inline-flex items-center justify-center px-4 py-2
-           text-sm font-medium rounded-zen
-           transition-all duration-200 ease-out
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-moss-400 focus-visible:ring-offset-2;
-  }
-
   .zen-btn-primary {
     @apply zen-btn bg-zen-moss-600 text-white
            hover:bg-zen-moss-700 active:bg-zen-moss-800;
@@ -93,15 +113,6 @@
   }
 
   /* Zen input styles */
-  .zen-input {
-    @apply w-full px-3 py-2
-           bg-white border border-zen-stone-300 rounded-zen
-           text-zen-ink-800 placeholder-zen-stone-400
-           transition-colors duration-200
-           hover:border-zen-stone-400
-           focus:border-zen-moss-500 focus:ring-1 focus:ring-zen-moss-500 focus:outline-none;
-  }
-
   .zen-select {
     @apply zen-input appearance-none cursor-pointer
            bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%2378716c%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')]
@@ -154,12 +165,6 @@
   }
 
   /* Badge/tag styles */
-  .zen-badge {
-    @apply inline-flex items-center px-2 py-0.5
-           text-xs font-medium rounded-full
-           bg-zen-stone-100 text-zen-ink-600;
-  }
-
   .zen-badge-moss {
     @apply zen-badge bg-zen-moss-100 text-zen-moss-700;
   }
