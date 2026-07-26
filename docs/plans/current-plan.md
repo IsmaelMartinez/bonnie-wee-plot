@@ -1,6 +1,101 @@
 # Current Plan
 
-Last updated: 2026-07-19 (shared AI quota made visible)
+Last updated: 2026-07-22 (Season Review "no data" fix: CSP blocked Open-Meteo Archive)
+
+## Season Review showed no data — CSP `connect-src` omission (2026-07-22)
+
+**Symptom.** A user with several past-year seasons and plantings saw the
+`/season-review` page render nothing useful for 2025: the grey "Weather for
+2025 isn't available right now (offline, or not fetched yet)" note plus an
+empty findings list — persistently, even on good wifi after a reload.
+
+**Diagnosis (three empty states, ruled out one by one).** Not empty-state #1
+(`years.length === 0`) — several reviewable years existed. Not the rules being
+too strict — the engine's silence-on-thin-data discipline is intact. It was
+empty-state #3: `fetchSeasonWeather(coords, year)` returned `null`, so
+`weatherStatus` became `'unavailable'`, which makes **8 of the 10 rules
+early-return `[]`** (every rule guarded by `if (!input.weather) return []`),
+and the two log-only rules stayed silent on sparse logs → zero findings.
+
+**Root cause.** The CSP `connect-src` allowlist in `src/middleware.ts` listed
+`https://api.open-meteo.com` (the forecast host) but **not
+`https://archive-api.open-meteo.com`** — the distinct host the Season Review
+archive service (`src/lib/weather/open-meteo-archive.ts`) calls, nor
+`https://climate-api.open-meteo.com` used by frost-dates
+(`src/lib/weather/frost-dates.ts`, Today page). The browser blocked every
+archive/climate request before it left the page (works from `curl` because
+curl isn't subject to the page CSP; the endpoint itself is healthy — verified
+HTTP 200, CORS `*`, 365 days for 2025). Weather backfill logic was **not** the
+gap: `fetchSeasonWeather` and `getBaseline` already backfill any past year
+on demand and cache correctly — they just never got the chance to run.
+
+**Fix.** Extracted the CSP builder into `src/lib/security/csp.ts` (so it's
+unit-testable without the Clerk middleware wrapper) and added both missing
+Open-Meteo hosts to `connect-src`. A `BROWSER_FETCH_ORIGINS` map plus
+`src/__tests__/lib/security/csp.test.ts` now assert every browser-fetched
+origin is present — the guardrail that would have caught this omission when
+the archive service was added. Rules engine, thresholds, and Yjs persistence
+untouched; nothing new is written to the doc. After the fix, 2025 populates:
+archive + 10-year baseline fetch, the 5 plot-wide weather rules (temp/rain
+anomaly, dry-spell, water-deficit, dull-month) fire from weather alone, and
+the weather table + per-planting soil/GDD figures render.
+
+## Post-#492 cleanups (2026-07-21)
+
+Two small cleanups surfaced while closing the Aitor/Settings follow-ups
+(PR #492), plus a dependency re-check:
+
+**1. Deleted dead `usePersistedState` module.** `src/hooks/usePersistedState.ts`
+(and its `usePersistedBoolean`/`usePersistedNumber`/`usePersistedArray`
+wrappers) had no consumers anywhere in the codebase — no imports, dynamic
+imports, or tests referenced it. Per the Simplicity First convention the
+module was removed. The surviving persisted-state hooks (`useTour`'s
+`useSyncExternalStore` singleton, `useSessionStorage`) are untouched.
+
+**2. Fixed the initial-delay timer race in `useTour`.** `startTour` deferred
+driver.js creation behind a 500/600ms `setTimeout` whose id was never
+retained, so navigating away inside that window created a tour instance
+after unmount — the unmount cleanup only destroyed `driverRef.current`,
+still null while the timeout was pending. The id is now held in
+`startTimeoutRef` and cleared both in the unmount cleanup and at the top of
+each `startTour` call (so a repeated start replaces rather than stacks).
+Regression tests added alongside the existing `useTour` tests: no driver
+instance is built when unmounted mid-delay, and a second `startTour` in the
+window fires only one tour.
+
+**3. ESLint 9 → 10 re-checked, still blocked (see deferral below).**
+`eslint-plugin-react@7.37.5` (latest) still calls
+`contextOrFilename.getFilename()` in `lib/util/version.js`, and its `eslint`
+peer range tops out at `^9.7` — no ESLint 10 support. The deferral stands.
+
+## Aitor/Settings sprint follow-ups closed (2026-07-20)
+
+The two non-blocking leftovers from the #366–#371 sprint are resolved:
+
+**1. `usePersistedStorage` auto-save falsy-check — obsolete, no fix needed.**
+The flagged code path was the auto-save effect's `if (data && !isLoading)`
+truthy check in `src/hooks/usePersistedStorage.ts`. That entire file — and
+the auto-save write path with it — was deleted on main by ADR 027 Step 5
+(PR #462), which retired the legacy storage chain in favour of the Yjs
+engine. The other storage hooks didn't carry the pattern either:
+`usePersistedState`'s auto-save effect wrote unconditionally after
+hydration and guarded loads with `stored !== null` (that hook was itself
+later deleted as dead code on 2026-07-21 — see the top of this file), and
+`useSessionStorage`'s consumers are all string tokens whose `''` initial
+value round-trips through its intentional clear-on-empty behaviour.
+
+**2. Tour element-existence filter now handles tab-switch targets.**
+The start-time filter in `useTour` can only inspect the active tab (the
+Tabs component unmounts inactive panels), so steps behind a tab switch
+passed through unchecked — e.g. a signed-in user with a BYO key starting
+the tour from the Data tab would land driver.js on the never-rendered
+`ai-quota` section as a detached popover. `moveToStep` now re-checks the
+target after the tab switch renders and walks past missing steps in the
+direction of travel (forward, backward, and at tour start); if nothing
+ahead has a live target the tour completes cleanly. The signed-out
+Data → Help fallback is unchanged. Covered by new `useTour` tests
+(fallback, start-time filter, forward skip, backward skip,
+complete-on-exhausted).
 
 ## Quota visibility for the shared AI free tier (shipped)
 
@@ -600,7 +695,7 @@ First cost-line measurement: on a small fixture (one bed with 2 plantings, one t
 
 ### AI/Settings UX sprint — Shipped (PRs #366–#371, 2026-05-17 → 2026-05-18)
 
-A six-PR sprint focused on the AI advisor and Settings surface. PR #366 (squash `e9c560c`) removed the Reset button from the allotment grid toolbar, dropped the OpenAI token privacy notice, merged the floating Diagnose + Ask Aitor launchers into one, made Settings land on the AI & Location tab for signed-in users via a `key` remount that survives Clerk's async auth resolve, lazy-mounted `AitorChatModal` via `next/dynamic` so its hooks no longer run on every parent re-render (the "extremely slow" report), added a minimize affordance with conversation state preserved via mount-while-minimized, and tightened the Aitor system prompt to favour short chat-style replies. The follow-up PRs landed on top of `main`: #367 (`1428638`) collapsed the BYOK OpenAI key input behind a default-closed disclosure; #369 (`9ada468`) fixed the bug where toggling Aitor off in Settings didn't propagate to the floating launcher in the same tab — `usePersistedStorage` now emits a same-tab `bonnie:storage-update` CustomEvent with a per-instance id and monotonic sequence so sibling hook instances stay in sync; #368 (`57d6ece`) made a planting's name itself clickable to open the species `PlantSummaryDialog`, removing the small `(i)` icon as redundant; #370 (`a085db5`) polished `usePersistedStorage` (unmount-flush symmetry, validate-rejection test, stringify hoist); and #371 (`e0cd829`) extended the Settings tour with the AI & Location section, with a runtime element-existence filter so signed-out users still get the Data → Help fallback. Each PR went through one round of Gemini bot review with a follow-up commit addressing the findings. Two non-blocking notes remain: the auto-save effect in `usePersistedStorage` still has a falsy-T truthy-check (same pattern as the two fixed in PR #370 but a separate code path), and the tour's element-existence filter only catches missing targets when the relevant tab is already active at tour start — both filed as follow-up candidates.
+A six-PR sprint focused on the AI advisor and Settings surface. PR #366 (squash `e9c560c`) removed the Reset button from the allotment grid toolbar, dropped the OpenAI token privacy notice, merged the floating Diagnose + Ask Aitor launchers into one, made Settings land on the AI & Location tab for signed-in users via a `key` remount that survives Clerk's async auth resolve, lazy-mounted `AitorChatModal` via `next/dynamic` so its hooks no longer run on every parent re-render (the "extremely slow" report), added a minimize affordance with conversation state preserved via mount-while-minimized, and tightened the Aitor system prompt to favour short chat-style replies. The follow-up PRs landed on top of `main`: #367 (`1428638`) collapsed the BYOK OpenAI key input behind a default-closed disclosure; #369 (`9ada468`) fixed the bug where toggling Aitor off in Settings didn't propagate to the floating launcher in the same tab — `usePersistedStorage` now emits a same-tab `bonnie:storage-update` CustomEvent with a per-instance id and monotonic sequence so sibling hook instances stay in sync; #368 (`57d6ece`) made a planting's name itself clickable to open the species `PlantSummaryDialog`, removing the small `(i)` icon as redundant; #370 (`a085db5`) polished `usePersistedStorage` (unmount-flush symmetry, validate-rejection test, stringify hoist); and #371 (`e0cd829`) extended the Settings tour with the AI & Location section, with a runtime element-existence filter so signed-out users still get the Data → Help fallback. Each PR went through one round of Gemini bot review with a follow-up commit addressing the findings. The two non-blocking follow-up notes this sprint left behind are now closed — see "Aitor/Settings sprint follow-ups closed" at the top of this plan.
 
 ### ADR 027 Yjs Step 3 — Foundation shipped (PRs #382, #383, 2026-05-18)
 

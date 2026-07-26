@@ -1,50 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { clerkMiddleware } from '@clerk/nextjs/server'
+import { buildCspHeader } from '@/lib/security/csp'
 
 // Clerk is available via explicit keys or keyless mode (dev only)
 const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 const isKeylessMode = !hasClerkKeys && process.env.NODE_ENV === 'development'
 const clerkAvailable = hasClerkKeys || isKeylessMode
-
-function buildCspHeader(): string {
-  const directives: Record<string, string[]> = {
-    'default-src': ["'self'"],
-    'script-src': [
-      "'self'", "'unsafe-eval'", "'unsafe-inline'",
-      'https://*.clerk.accounts.dev',
-      'https://challenges.cloudflare.com',
-    ],
-    'style-src': ["'self'", "'unsafe-inline'"],
-    'connect-src': [
-      "'self'",
-      // Season-review narration default preset: the user's own local Ollama.
-      // Browsers exempt localhost from mixed-content blocking, but CSP still
-      // needs the origin. Custom remote narration endpoints require adding
-      // their origin here.
-      'http://localhost:11434',
-      'http://127.0.0.1:11434',
-      'https://api.openai.com',
-      'https://api.bigdatacloud.net',
-      'https://api-bdc.io',
-      'https://api.open-meteo.com',
-      'https://*.clerk.accounts.dev',
-      'https://*.supabase.co',
-      'https://*.ingest.sentry.io',
-    ],
-    'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://img.clerk.com'],
-    'font-src': ["'self'"],
-    'worker-src': ["'self'", 'blob:'], // blob: required by Clerk for CAPTCHA web workers
-    'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://challenges.cloudflare.com'],
-    'frame-ancestors': ["'none'"],
-    'base-uri': ["'self'"],
-    'form-action': ["'self'"],
-  }
-
-  return Object.entries(directives)
-    .map(([directive, values]) => `${directive} ${values.join(' ')}`)
-    .join('; ')
-}
 
 function addSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', buildCspHeader())
