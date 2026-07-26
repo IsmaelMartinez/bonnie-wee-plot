@@ -16,6 +16,19 @@ const eslintConfig = defineConfig([
       'react-hooks/refs': 'off',
     },
   },
+  {
+    // eslint-config-next defaults settings.react.version to "detect", which
+    // under ESLint 10 crashes (`contextOrFilename.getFilename is not a
+    // function`) inside eslint-plugin-react's auto-detection code path —
+    // no eslint-plugin-react release yet handles ESLint 10's removal of
+    // `context.getFilename()`. Pinning the version explicitly skips that
+    // detection code path entirely.
+    settings: {
+      react: {
+        version: '19.2.7',
+      },
+    },
+  },
   globalIgnores([
     '.next/**',
     'out/**',
