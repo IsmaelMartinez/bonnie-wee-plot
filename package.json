@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.1",
-    "@sentry/nextjs": "^10.68.0",
+    "@sentry/nextjs": "^10.69.0",
     "@serwist/next": "^9.5.12",
     "@supabase/supabase-js": "^2.110.8",
     "@syncedstore/core": "^0.6.0",
