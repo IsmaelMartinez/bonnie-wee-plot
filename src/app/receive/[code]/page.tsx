@@ -120,7 +120,7 @@ export default function ReceivePage({ params }: PageProps) {
         } catch (err) {
           console.warn('[receive] Failed to clear Yjs IndexedDB before redirect:', err)
         }
-        window.location.href = '/'
+        router.push('/')
       }, 1500)
     } catch (error) {
       setState(prev => ({
