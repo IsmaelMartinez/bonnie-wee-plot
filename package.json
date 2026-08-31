@@ -45,7 +45,7 @@
     "@serwist/next": "^9.5.12",
     "@supabase/supabase-js": "^2.112.3",
     "@syncedstore/core": "^0.6.0",
-    "@upstash/redis": "^1.38.2",
+    "@upstash/redis": "^1.38.3",
     "driver.js": "^1.8.0",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.33.0",
