@@ -83,7 +83,7 @@
     "postcss": "^8.5.18",
     "serwist": "^9.5.7",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.5"
   },
   "overrides": {
