@@ -10,6 +10,12 @@ updates:
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
+    # Hold TypeScript majors: no typescript-eslint release supports TS 7 yet
+    # (typescript-eslint/typescript-eslint#10940). #507 and #569 sat red.
+    ignore:
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
     groups:
       react:
         patterns:
