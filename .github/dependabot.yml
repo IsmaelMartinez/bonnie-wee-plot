@@ -12,7 +12,8 @@ updates:
       - "dependencies"
     # Hold TypeScript majors: typescript-eslint's peer range is
     # typescript >=4.8.4 <6.1.0, so 7.x cannot install (#507 and #569 sat
-    # red). TS 7 support is tracked in typescript-eslint/typescript-eslint#10940.
+    # red). Remove this ignore once that peer range admits 7.x; upstream
+    # context is typescript-eslint/typescript-eslint#10940 (TS 7 is the Go port).
     ignore:
       - dependency-name: "typescript"
         update-types:
