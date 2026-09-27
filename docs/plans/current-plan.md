@@ -2,6 +2,10 @@
 
 Last updated: 2026-07-22 (Season Review "no data" fix: CSP blocked Open-Meteo Archive)
 
+## Up Next — simplification and bug-fix waves (2026-09-27)
+
+A five-slice parallel review found data-loss bugs in sync (duplicate sync engines, lineage adoption dropping edits, import merging instead of replacing, no year rollover on the Yjs path), an RLS hole letting users reset their AI quota, and about 7k lines of dead scaffolding left from the Yjs cutover. Work is split into parallel work packages in `docs/plans/simplification-plan.md`; Wave 0 is ready now and Wave 1 waits on six scope decisions listed there.
+
 ## Season Review showed no data — CSP `connect-src` omission (2026-07-22)
 
 **Symptom.** A user with several past-year seasons and plantings saw the
