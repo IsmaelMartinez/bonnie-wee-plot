@@ -1,6 +1,17 @@
 # Simplification and Bug-Fix Plan (2026-09)
 
-Status: proposed. Baseline commit: `49a23f0` (origin/main, #585). Delete this file when the last wave lands, per the documentation hygiene rule.
+Status: in progress (plan merged in #592). Baseline commit: `49a23f0` (origin/main, #585). Delete this file when the last wave lands, per the documentation hygiene rule.
+
+## Resume here
+
+A session told to "continue with what we were doing" should follow these steps. All state lives upstream (this file plus GitHub), so no local memory is required.
+
+1. Work from a fresh worktree off `origin/main`, never from the local `main` checkout, which may be stale.
+2. Reconstruct progress from GitHub, not from memory. Every work-package PR is titled `WP-NN: <summary>`, so `gh pr list --state all --search "WP- in:title" --json number,title,state,isDraft` shows what is merged, open or missing. The Status table at the bottom is only a convenience copy and may lag behind GitHub.
+3. If any row in the Decisions table below has no answer, ask the user every open decision in a single question batch, with the recommended option first. Record the answers in that table as part of the next PR. Wave 0 does not depend on the decisions, so start Wave 0 while you wait.
+4. A work package is ready when its "After" dependencies are merged and no open PR carries its number. Launch one implementer subagent per ready package, in parallel, each in its own worktree (Agent tool with `isolation: "worktree"`). Pass each one its table row, the matching evidence paragraph from "Verified bugs", and the rules in "The agent loop" below. Stay within the session's subagent-size guideline, and ask before starting more than roughly eight at once.
+5. Each implementer opens a draft PR titled `WP-NN: ...` and runs `/address-pr-comments`. Never merge: report the ready PRs to the user with one `gh pr merge <n> --squash --delete-branch` line each.
+6. Once a wave has fully merged, record the metrics listed in "The agent loop" and update the Status table and `current-plan.md` in a small `docs(plan)` PR.
 
 ## How this was produced
 
@@ -48,14 +59,16 @@ User-visible bugs (domain and UI slices):
 
 ## Decisions needed before Wave 1
 
-These change scope. Each has a recommended default that the plan assumes unless overridden.
+These change scope. Each has a recommended default. A resuming session asks all unanswered ones together and records the user's answer in the last column.
 
-1. Share/receive flow. Recommend deleting `components/share`, `app/receive/**`, `app/api/share/**`, `qrcode.react` and `html5-qrcode`. The sender UI has been unmounted for six months, and Yjs cloud sync now covers moving data between devices. This also makes the share-route hardening findings (storage abuse, code entropy) moot.
-2. AI tool calling. Recommend deleting the executor, schema, `ToolCallConfirmation` and the modal glue (about 1,500 lines) unless `AI_TOOLS_ENABLED=true` in production. Keep the chat and the Gemini free tier.
-3. Flagged-off features (`SHOW_ROTATION_SUGGESTIONS`, `SHOW_UNDERPLANTINGS`, `SHOW_ADVANCED_AREA_FIELDS`), all off since #258 in March. Recommend deleting the gated code and inlining `SHOW_CARE_LOGS=true`, then removing `release-visibility.ts`.
-4. Account deletion scope: should it also delete the Clerk user? Also worth checking: the CSP only allows `*.clerk.accounts.dev`, which suggests production may be on a Clerk dev instance.
-5. `dependabot-auto-merge.yml` auto-merges non-major bumps, which conflicts with the "never merge autonomously" working rule. Keep it or remove it.
-6. The Seeds page default: an explicit "All", or the latest year once data loads.
+| # | Decision | Recommendation | Gates | Answer |
+|---|---|---|---|---|
+| D1 | Share/receive flow | Delete `components/share`, `app/receive/**`, `app/api/share/**`, `qrcode.react` and `html5-qrcode`. The sender UI has been unmounted for six months, and Yjs cloud sync now covers moving data between devices. This also makes the share-route hardening findings moot | WP-06 | |
+| D2 | AI tool calling | Delete the executor, schema, `ToolCallConfirmation` and the modal glue (about 1,500 lines) unless `AI_TOOLS_ENABLED=true` in production. Keep the chat and the Gemini free tier | WP-07 | |
+| D3 | Flagged-off features (`SHOW_ROTATION_SUGGESTIONS`, `SHOW_UNDERPLANTINGS`, `SHOW_ADVANCED_AREA_FIELDS`), off since #258 | Delete the gated code, inline `SHOW_CARE_LOGS=true`, and remove `release-visibility.ts` | WP-08 | |
+| D4 | Should account deletion also delete the Clerk user? Also, the CSP only allows `*.clerk.accounts.dev`, which suggests production may be on a Clerk dev instance | Delete the Clerk user too, and check the production publishable key | WP-13, WP-22 | |
+| D5 | `dependabot-auto-merge.yml` auto-merges non-major bumps, which conflicts with the "never merge autonomously" rule | User's call | WP-05 | |
+| D6 | Seeds page default year | The latest year once data loads | WP-16 | |
 
 ## Work packages
 
