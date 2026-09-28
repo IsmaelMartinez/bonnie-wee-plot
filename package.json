@@ -58,7 +58,7 @@
     "remark-gfm": "^4.0.1",
     "web-vitals": "^6.2.2",
     "y-indexeddb": "^9.0.12",
-    "yjs": "^13.6.32",
+    "yjs": "^13.6.33",
     "zod": "^4.6.5"
   },
   "devDependencies": {
