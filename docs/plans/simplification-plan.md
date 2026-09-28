@@ -63,11 +63,11 @@ Each work package (WP) owns an exclusive file set within its wave, so the WPs in
 
 ### Wave 0 — urgent fixes and a truthful CLAUDE.md
 
-Fix agents read CLAUDE.md, and today it misdirects them. It says schema v18 when the code is at v23, describes `useSyncedStorage`/`usePersistedStorage` which are deleted, says `yjs-spike` is unwired when it is the live engine, and says Aitor is hidden when it is live. So WP-00 goes first and stays small; the full docs pass is WP-21.
+Fix agents read CLAUDE.md, and parts of it misdirect them. Its storage and Yjs sections are current, but it still says schema v18 when the code is at v23, says Aitor is hidden behind a `SHOW_AI_ADVISOR` flag that no longer exists, claims a y-indexeddb cross-tab broadcast that the library does not have, describes the unmounted Share UI, and lists `storage-core` as localStorage-based. So WP-00 goes first and stays small; the full docs pass is WP-21.
 
 | WP | Goal | Files owned | Done when | Size |
 |---|---|---|---|---|
-| 00 | Correct the stale CLAUDE.md sections (storage chain, schema v23, Yjs, AI, release flags, Share) | `CLAUDE.md` | Every claim is checked against the code; no mention of deleted modules | S |
+| 00 | Correct the stale CLAUDE.md sections (schema v23, AI advisor and settings tabs, release flags, cross-tab claim, Share, storage-core, component list) | `CLAUDE.md` | Every claim is checked against the code; no mention of deleted modules or flags | S |
 | 01 | Server-only atomic AI quota | new `sql/005-ai-usage-lockdown.sql`, `lib/supabase/ai-usage.ts`, `lib/server-rate-limiter.ts`, both AI routes' quota calls | INSERT/UPDATE policies dropped; the counter is Upstash `INCR` with a TTL (or a SECURITY DEFINER RPC); the rate limiter uses an atomic `multi` with `expire NX`; route tests cover quota exhaustion. The user applies the SQL in Supabase | S–M |
 | 02 | Year rollover on the Yjs path | `hooks/allotment/useAllotmentData.ts`, `services/season-operations.ts` (read only), new test | A doc with `currentYear=2026` opened with a mocked 2027 clock gets a 2027 season and selects it | S |
 | 03 | Local-date correctness | `lib/date-calculator.ts`, `lib/task-generator.ts` (date lines only), `lib/planting-utils.ts` | `parseDate`/`addDays` exported and used everywhere; tests run with a non-midnight local `today` under `TZ=America/New_York`; wrap-around windows handled; month names in messages; the preserve nudge compares full dates | S |
