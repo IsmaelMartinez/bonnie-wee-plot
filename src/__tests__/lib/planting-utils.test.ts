@@ -10,6 +10,7 @@ import {
   inferStatusFromDates,
   getSowMethodLabel,
   getSowMethodShortLabel,
+  formatDate,
 } from '@/lib/planting-utils'
 import { Planting } from '@/types/unified-allotment'
 import { Vegetable } from '@/types/garden-planner'
@@ -239,6 +240,32 @@ describe('getPlantingPhase', () => {
     expect(result.phase).toBe('removed')
     expect(result.label).toBe('Removed')
     expect(result.color).toBe('red')
+  })
+
+  it('is not ready to harvest the evening before the expected start', () => {
+    const result = getPlantingPhase(
+      { ...basePlanting, status: 'active', sowMethod: 'outdoor', sowDate: '2025-05-01', expectedHarvestStart: '2025-07-01' },
+      new Date(2025, 5, 30, 21, 0)
+    )
+    expect(result.phase).toBe('growing')
+  })
+
+  it('is ready to harvest on the morning of the expected start', () => {
+    const result = getPlantingPhase(
+      { ...basePlanting, status: 'active', sowMethod: 'outdoor', sowDate: '2025-05-01', expectedHarvestStart: '2025-07-01' },
+      new Date(2025, 6, 1, 7, 0)
+    )
+    expect(result.phase).toBe('ready-to-harvest')
+  })
+})
+
+describe('formatDate', () => {
+  it('shows the stored calendar day in any timezone', () => {
+    expect(formatDate('2025-03-01')).toBe('1 Mar 2025')
+  })
+
+  it('returns an empty string for a missing date', () => {
+    expect(formatDate(undefined)).toBe('')
   })
 })
 

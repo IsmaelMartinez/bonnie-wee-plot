@@ -126,10 +126,11 @@ export interface SowDateValidation {
 // ============ HELPER FUNCTIONS ============
 
 /**
- * Parse ISO date string to Date object
- * Uses explicit parsing to avoid timezone issues with date-only strings
+ * Parse a YYYY-MM-DD string as local midnight.
+ * `new Date('YYYY-MM-DD')` parses as UTC midnight, which is the previous day
+ * west of UTC; always use this for stored date-only strings.
  */
-function parseDate(dateString: string): Date {
+export function parseDate(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number)
   return new Date(year, month - 1, day) // month is 0-indexed in JS Date
 }
@@ -138,7 +139,7 @@ function parseDate(dateString: string): Date {
  * Format Date object to ISO date string (YYYY-MM-DD)
  * Uses local time parts to match parseDate behavior
  */
-function formatDate(date: Date): string {
+export function formatDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
@@ -146,9 +147,9 @@ function formatDate(date: Date): string {
 }
 
 /**
- * Add days to a date
+ * Add calendar days to a date (DST-safe, unlike adding 24h multiples)
  */
-function addDays(date: Date, days: number): Date {
+export function addDays(date: Date, days: number): Date {
   const result = new Date(date)
   result.setDate(result.getDate() + days)
   return result
@@ -166,6 +167,34 @@ function subtractDays(date: Date, days: number): Date {
  */
 function getMonth(date: Date): number {
   return date.getMonth() + 1
+}
+
+const MONTH_NAME_FORMAT = new Intl.DateTimeFormat('en-GB', { month: 'long' })
+
+/** Full English name for a month number (1-12). */
+function monthName(month: number): string {
+  return MONTH_NAME_FORMAT.format(new Date(2000, month - 1, 1))
+}
+
+/**
+ * First and last month of a sowing window, reading it cyclically so a window
+ * that wraps the year end ([11, 12, 1, 2, 3]) runs November to March. The
+ * window starts after the longest run of missing months.
+ */
+function windowBounds(months: number[]): { start: number; end: number } {
+  const sorted = [...new Set(months)].sort((a, b) => a - b)
+  let start = sorted[0]
+  let end = sorted[sorted.length - 1]
+  let largestGap = 12 - end + start - 1 // gap across the year end
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = sorted[i] - sorted[i - 1] - 1
+    if (gap > largestGap) {
+      largestGap = gap
+      start = sorted[i]
+      end = sorted[i - 1]
+    }
+  }
+  return { start, end }
 }
 
 /**
@@ -409,7 +438,7 @@ export function validateSowDate(
   if (sowMethod === 'transplant-purchased') {
     if (planting.transplantMonths.length > 0 && !planting.transplantMonths.includes(month as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)) {
       warnings.push(
-        `${vegetable.name} is typically transplanted in months ${planting.transplantMonths.join(', ')}, not ${month}`
+        `${vegetable.name} is typically transplanted in ${planting.transplantMonths.map(monthName).join(', ')}, not ${monthName(month)}`
       )
     }
     return { isValid: true, warnings, errors }
@@ -420,18 +449,16 @@ export function validateSowDate(
     isValid = false
     const methodText = sowMethod === 'indoor' ? 'sowing indoors' : 'direct sowing'
     errors.push(
-      `${vegetable.name} is typically best for ${methodText} in months ${validMonths.join(', ')}, not ${month}`
+      `${vegetable.name} is typically best for ${methodText} in ${validMonths.map(monthName).join(', ')}, not ${monthName(month)}`
     )
 
-    // Calculate suggestions
-    const suggestions: SowDateValidation['suggestions'] = {}
-
-    // Find nearest valid month
-    const sortedMonths = [...validMonths].sort((a, b) => a - b)
-    if (sortedMonths.length > 0) {
-      const year = date.getFullYear()
-      suggestions.earliestRecommended = `${year}-${String(sortedMonths[0]).padStart(2, '0')}-01`
-      suggestions.latestRecommended = `${year}-${String(sortedMonths[sortedMonths.length - 1]).padStart(2, '0')}-15`
+    // Suggest the window; one that wraps the year end finishes the next year.
+    const { start, end } = windowBounds(validMonths)
+    const year = date.getFullYear()
+    const endYear = end < start ? year + 1 : year
+    const suggestions: SowDateValidation['suggestions'] = {
+      earliestRecommended: formatDate(new Date(year, start - 1, 1)),
+      latestRecommended: formatDate(new Date(endYear, end - 1, 15)),
     }
 
     return { isValid, warnings, errors, suggestions }

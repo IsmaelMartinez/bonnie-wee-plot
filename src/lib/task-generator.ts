@@ -11,7 +11,7 @@
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
 import { Vegetable, Month, WaterRequirement, FeedType, StorageMethod } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { getGerminationDays } from '@/lib/date-calculator'
+import { getGerminationDays, parseDate, addDays, formatDate } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
 import type { RainfallSummary } from '@/lib/weather/open-meteo'
 import { shouldSkipWatering } from '@/lib/weather/open-meteo'
@@ -108,11 +108,12 @@ const SUCCESSION_CROPS = ['lettuce', 'radish', 'spinach', 'rocket', 'beetroot', 
 const SUCCESSION_INTERVAL_DAYS = 21
 
 /**
- * Calculate difference in days between two dates
+ * Whole local calendar days from date2 to date1, ignoring time of day.
+ * Rounds because a DST change makes a calendar day 23 or 25 hours long.
  */
 function differenceInDays(date1: Date, date2: Date): number {
   const msPerDay = 24 * 60 * 60 * 1000
-  return Math.floor((date1.getTime() - date2.getTime()) / msPerDay)
+  return Math.round((parseDate(formatDate(date1)).getTime() - parseDate(formatDate(date2)).getTime()) / msPerDay)
 }
 
 /**
@@ -146,7 +147,7 @@ export function generateDateBasedTasks(
 
     // Harvest tasks based on calculated dates
     if (planting.expectedHarvestStart && !planting.actualHarvestStart) {
-      const harvestDate = new Date(planting.expectedHarvestStart)
+      const harvestDate = parseDate(planting.expectedHarvestStart)
       const daysUntil = differenceInDays(harvestDate, today)
 
       // Show harvest tasks up to 7 days before and any overdue
@@ -180,16 +181,16 @@ export function generateDateBasedTasks(
     if (planting.sowMethod === 'indoor' && planting.sowDate && !planting.transplantDate) {
       // Calculate estimated transplant date: sow date + germination time + hardening period
       const germination = getGerminationDays(vegetable.category)
-      const sowDate = new Date(planting.sowDate)
+      const sowDate = parseDate(planting.sowDate)
       const hardeningDays = 7 // Typical hardening period before transplant
       const daysToTransplant = germination.max + hardeningDays
-      const estimatedTransplantDate = new Date(sowDate.getTime() + daysToTransplant * 24 * 60 * 60 * 1000)
+      const estimatedTransplantDate = addDays(sowDate, daysToTransplant)
       const daysUntil = differenceInDays(estimatedTransplantDate, today)
 
       // Show transplant tasks 14 days before and any overdue
       if (daysUntil <= 14) {
         const urgency = getUrgency(daysUntil)
-        const transplantDateStr = estimatedTransplantDate.toISOString().split('T')[0]
+        const transplantDateStr = formatDate(estimatedTransplantDate)
         tasks.push({
           id: `transplant-reminder-${planting.id}-${currentMonth}`,
           type: 'other',
@@ -248,7 +249,7 @@ export function generateSuccessionReminders(
     const lastSowing = sowingsOfCrop[0]
 
     if (lastSowing) {
-      const daysSince = differenceInDays(today, new Date(lastSowing.planting.sowDate!))
+      const daysSince = differenceInDays(today, parseDate(lastSowing.planting.sowDate!))
 
       if (daysSince >= SUCCESSION_INTERVAL_DAYS) {
         tasks.push({
@@ -355,21 +356,17 @@ function generateCareTipTasks(
 export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
 
 /**
- * Whether the current month falls in a planting's harvest window. Prefers the
- * planting's calculated expected window (from sow/transplant dates) so the
- * nudge doesn't fire months early on the crop's coarse `harvestMonths`; returns
- * null when no expected dates are present so the caller can fall back.
+ * Whether today falls in a planting's harvest window. Prefers the planting's
+ * calculated expected window (from sow/transplant dates) so the nudge doesn't
+ * fire months early on the crop's coarse `harvestMonths`; returns null when no
+ * expected dates are present so the caller can fall back. Compares full dates,
+ * so last year's window does not match this year.
  */
-function isInExpectedHarvestWindow(planting: Planting, currentMonth: Month): boolean | null {
+function isInExpectedHarvestWindow(planting: Planting, today: Date): boolean | null {
   if (!planting.expectedHarvestStart) return null
-  const startMonth = (new Date(planting.expectedHarvestStart).getMonth() + 1) as Month
-  const endMonth = planting.expectedHarvestEnd
-    ? (new Date(planting.expectedHarvestEnd).getMonth() + 1) as Month
-    : startMonth
-  // Window can wrap the year end (e.g. Nov–Feb), so handle both orderings.
-  return startMonth <= endMonth
-    ? currentMonth >= startMonth && currentMonth <= endMonth
-    : currentMonth >= startMonth || currentMonth <= endMonth
+  const todayStr = formatDate(today)
+  const end = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
+  return todayStr >= planting.expectedHarvestStart && todayStr <= end
 }
 
 /**
@@ -380,7 +377,8 @@ function isInExpectedHarvestWindow(planting: Planting, currentMonth: Month): boo
  */
 function generatePreserveNudges(
   currentMonth: Month,
-  plantings: PlantingWithContext[]
+  plantings: PlantingWithContext[],
+  today: Date
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
   const seen = new Set<string>()
@@ -393,7 +391,7 @@ function generatePreserveNudges(
     if (seen.has(vegetable.id)) continue
 
     // Prefer the planting's calculated window; fall back to coarse harvestMonths.
-    const expected = isInExpectedHarvestWindow(planting, currentMonth)
+    const expected = isInExpectedHarvestWindow(planting, today)
     const inWindow = expected !== null ? expected : vegetable.planting.harvestMonths.includes(currentMonth)
     if (!inWindow) continue
 
@@ -667,7 +665,7 @@ export function generateTasksForMonth(
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear, soilTempC)
 
   // Get "glut?" preserve nudges for harvest-window crops with preserving options
-  const preserveNudges = generatePreserveNudges(currentMonth, plantings)
+  const preserveNudges = generatePreserveNudges(currentMonth, plantings, today)
 
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]

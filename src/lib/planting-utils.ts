@@ -8,6 +8,7 @@ import { Calendar, Home, Sprout, Leaf } from 'lucide-react'
 import { SowMethod, Planting, PlantingStatus } from '@/types/unified-allotment'
 import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from './vegetable-database'
+import { parseDate } from './date-calculator'
 
 // ============ SOW METHOD RECOMMENDATION ============
 
@@ -278,9 +279,9 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
     }
   }
 
-  const sowDateObj = new Date(sowDate)
-  const transplantDateObj = transplantDate ? new Date(transplantDate) : null
-  const harvestStartObj = expectedHarvestStart ? new Date(expectedHarvestStart) : null
+  const sowDateObj = parseDate(sowDate)
+  const transplantDateObj = transplantDate ? parseDate(transplantDate) : null
+  const harvestStartObj = expectedHarvestStart ? parseDate(expectedHarvestStart) : null
 
   // Check if in harvest window
   if (harvestStartObj && now >= harvestStartObj) {
@@ -443,7 +444,7 @@ export function getPhaseIcon(phase: PlantingPhaseInfo['phase']) {
  */
 export function formatDate(dateStr: string | undefined): string {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-GB', {
+  return parseDate(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

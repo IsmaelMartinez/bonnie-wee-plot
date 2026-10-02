@@ -17,6 +17,9 @@ import {
   getGerminationDays,
   getFallFactorDays,
   populateExpectedHarvest,
+  parseDate,
+  addDays,
+  formatDate,
 } from '@/lib/date-calculator'
 import { Vegetable } from '@/types/garden-planner'
 import { Planting, NewPlanting } from '@/types/unified-allotment'
@@ -300,7 +303,7 @@ describe('validateSowDate', () => {
 
     expect(result.isValid).toBe(false)
     expect(result.errors.length).toBeGreaterThan(0)
-    expect(result.errors[0]).toContain('months')
+    expect(result.errors[0]).toContain('not January')
   })
 
   it('provides suggestions when invalid', () => {
@@ -373,6 +376,51 @@ describe('validateSowDate (frost awareness)', () => {
   it('preserves existing behaviour when no frostDates are provided', () => {
     const result = validateSowDate('2025-04-15', 'outdoor', tenderTomato)
     expect(result.warnings.some(w => w.toLowerCase().includes('frost tender'))).toBe(false)
+  })
+})
+
+describe('validateSowDate (wrap-around windows and month names)', () => {
+  // Autumn-to-spring window that wraps the year end, as for several berry crops.
+  const wrapBerry: Vegetable = {
+    ...testCarrot,
+    id: 'wrap-berry',
+    name: 'Wrap Berry',
+    planting: { ...testCarrot.planting, sowOutdoorsMonths: [11, 12, 1, 2, 3] },
+  }
+
+  it('suggests the wrapped window from November to the following March', () => {
+    const result = validateSowDate('2025-06-15', 'outdoor', wrapBerry)
+
+    expect(result.isValid).toBe(false)
+    expect(result.suggestions?.earliestRecommended).toBe('2025-11-01')
+    expect(result.suggestions?.latestRecommended).toBe('2026-03-15')
+  })
+
+  it('names months in the out-of-window error', () => {
+    const result = validateSowDate('2025-01-15', 'outdoor', testPeas)
+
+    expect(result.errors[0]).toContain('March, April, May, June')
+    expect(result.errors[0]).toContain('not January')
+  })
+
+  it('names months in the purchased-transplant warning', () => {
+    const result = validateSowDate('2025-01-15', 'transplant-purchased', testTomato)
+
+    expect(result.warnings[0]).toContain('May, June')
+    expect(result.warnings[0]).toContain('not January')
+  })
+})
+
+describe('parseDate / addDays / formatDate', () => {
+  it('parses YYYY-MM-DD as local midnight', () => {
+    const d = parseDate('2025-03-09')
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([2025, 2, 9, 0])
+  })
+
+  it('adds calendar days across a DST change and a year boundary', () => {
+    expect(formatDate(addDays(parseDate('2025-03-09'), 1))).toBe('2025-03-10')
+    expect(formatDate(addDays(parseDate('2025-10-26'), 1))).toBe('2025-10-27')
+    expect(formatDate(addDays(parseDate('2025-12-31'), 1))).toBe('2026-01-01')
   })
 })
 
