@@ -42,6 +42,7 @@ updates:
         patterns:
           - "@playwright/test"
           - "@axe-core/playwright"
+          - "axe-core"
       vitest:
         patterns:
           - "vitest"
@@ -59,7 +60,6 @@ updates:
         patterns:
           - "typescript"
           - "postcss"
-          - "autoprefixer"
           - "tailwindcss"
       type-definitions:
         patterns:
