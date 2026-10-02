@@ -125,8 +125,13 @@ export async function POST(request: NextRequest) {
         temperature: NARRATION_TEMPERATURE,
       })
       // Increment after a successful response so failed requests don't burn
-      // the user's quota (same race tolerance as the Aitor route).
-      await incrementUsage(supabaseToken)
+      // the user's quota (same race tolerance as the Aitor route). A failed
+      // increment is logged but must not discard a paid-for narration.
+      try {
+        await incrementUsage(supabaseToken)
+      } catch (incErr) {
+        logger.error('AI usage increment failed', { error: String(incErr) })
+      }
       return NextResponse.json({ text: result.text, usage: result.usage })
     } catch (err) {
       logger.error('Narration Gemini call failed', { error: String(err) })

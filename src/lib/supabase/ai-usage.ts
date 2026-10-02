@@ -50,7 +50,7 @@ export async function getCurrentUsage(
 /**
  * Atomically increment the caller's counter for the current UTC month and
  * return the new count. Goes through the SECURITY DEFINER `increment_ai_usage`
- * RPC (sql/005-ai-usage-lockdown.sql): end users have no INSERT/UPDATE policy
+ * RPC (sql/005, locked down by sql/006): end users have no INSERT/UPDATE policy
  * on `ai_usage`, so they cannot lower the counter, and the RPC takes the user
  * id from the JWT `sub` and increments in a single INSERT ... ON CONFLICT.
  */

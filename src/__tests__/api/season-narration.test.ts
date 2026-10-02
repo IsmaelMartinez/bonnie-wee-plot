@@ -195,6 +195,17 @@ describe('Season narration API', () => {
     expect(incrementUsageMock).toHaveBeenCalledWith('supabase-token')
   })
 
+  it('still returns the narration when the usage increment fails', async () => {
+    incrementUsageMock.mockRejectedValueOnce(new Error('new row violates row-level security policy'))
+
+    const response = await POST(createRequest(REQUEST_BODY))
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.text).toBe('A fine season on the plot.')
+    expect(JSON.stringify(data)).not.toContain('row-level security')
+  })
+
   it('passes through a Gemini failure status without incrementing usage', async () => {
     const err = new Error('Gemini overloaded') as Error & { status?: number }
     err.status = 503

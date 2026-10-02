@@ -222,6 +222,17 @@ describe('AI Advisor API - Validation & Error Handling', () => {
       expect(incrementUsageMock).toHaveBeenCalledWith('supabase-token')
     })
 
+    it('still returns the Gemini answer when the usage increment fails', async () => {
+      incrementUsageMock.mockRejectedValueOnce(new Error('function public.increment_ai_usage() does not exist'))
+
+      const response = await POST(createRequest({ message: 'Hello' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.response).toBe('Mulch the beds.')
+      expect(JSON.stringify(data)).not.toContain('increment_ai_usage')
+    })
+
     it('does not burn quota when Gemini fails', async () => {
       const err = new Error('Gemini overloaded') as Error & { status?: number }
       err.status = 503

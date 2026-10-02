@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { checkRateLimit, getClientIp } from '@/lib/server-rate-limiter'
 
-// Mock @upstash/redis. The limiter must issue INCR, EXPIRE NX and TTL as one
+// Mock @upstash/redis. The limiter must issue SET NX EX, INCR and TTL as one
 // atomic MULTI/EXEC transaction, so the mock records the queued commands and
-// resolves exec() with the configured [count, expireResult, ttl] tuple.
+// resolves exec() with the configured [setResult, count, ttl] tuple.
 const mockExec = vi.fn()
 const queued: Array<[string, ...unknown[]]> = []
 const mockMulti = vi.fn(() => {
   const tx = {
+    set: (...args: unknown[]) => { queued.push(['set', ...args]); return tx },
     incr: (...args: unknown[]) => { queued.push(['incr', ...args]); return tx },
-    expire: (...args: unknown[]) => { queued.push(['expire', ...args]); return tx },
     ttl: (...args: unknown[]) => { queued.push(['ttl', ...args]); return tx },
     exec: mockExec,
   }
@@ -48,7 +48,7 @@ describe('server-rate-limiter', () => {
     }
 
     it('allows requests under the limit', async () => {
-      mockExec.mockResolvedValue([1, 1, 60])
+      mockExec.mockResolvedValue(['OK', 1, 60])
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -56,20 +56,20 @@ describe('server-rate-limiter', () => {
       expect(result.remaining).toBe(2) // 3 max - 1 used
     })
 
-    it('increments and sets the TTL with EXPIRE NX in one atomic transaction', async () => {
-      mockExec.mockResolvedValue([2, 0, 45])
+    it('creates the window with SET NX EX and increments in one atomic transaction', async () => {
+      mockExec.mockResolvedValue([null, 2, 45])
 
       await checkRateLimit('1.2.3.4', config)
 
       const key = 'ratelimit:test:1.2.3.4'
       expect(mockMulti).toHaveBeenCalledTimes(1)
       expect(mockExec).toHaveBeenCalledTimes(1)
-      // EXPIRE NX runs on every request: it only sets a TTL when the key has
-      // none, so a crash between commands can never leave a key without one,
-      // and an existing window is never extended.
+      // SET NX EX creates the key with its TTL only when it is missing (so an
+      // existing window is never extended), and INCR keeps that TTL. Both are
+      // long-supported, unlike EXPIRE NX which needs Redis 7.
       expect(queued).toEqual([
+        ['set', key, 0, { ex: 60, nx: true }],
         ['incr', key],
-        ['expire', key, 60, 'NX'],
         ['ttl', key],
       ])
       // No standalone, non-atomic round-trips.
@@ -78,7 +78,7 @@ describe('server-rate-limiter', () => {
     })
 
     it('blocks requests over the limit', async () => {
-      mockExec.mockResolvedValue([4, 0, 30]) // over the limit of 3
+      mockExec.mockResolvedValue([null, 4, 30]) // over the limit of 3
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -88,7 +88,7 @@ describe('server-rate-limiter', () => {
     })
 
     it('allows exactly at the limit', async () => {
-      mockExec.mockResolvedValue([3, 0, 45]) // exactly at limit
+      mockExec.mockResolvedValue([null, 3, 45]) // exactly at limit
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -125,7 +125,7 @@ describe('server-rate-limiter', () => {
     })
 
     it('uses windowSeconds as fallback when TTL returns non-positive', async () => {
-      mockExec.mockResolvedValue([4, 0, -1]) // key has no TTL
+      mockExec.mockResolvedValue([null, 4, -1]) // key has no TTL
 
       const result = await checkRateLimit('1.2.3.4', config)
 

@@ -79,7 +79,7 @@ describe('incrementUsage', () => {
     vi.clearAllMocks()
   })
 
-  // End users have no INSERT/UPDATE policy on ai_usage (sql/005), so the
+  // End users have no INSERT/UPDATE policy on ai_usage (sql/006), so the
   // increment must go through the SECURITY DEFINER RPC, which does a single
   // atomic INSERT ... ON CONFLICT DO UPDATE SET request_count + 1.
   it('increments atomically through the increment_ai_usage RPC', async () => {
