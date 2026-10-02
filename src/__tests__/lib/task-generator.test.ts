@@ -17,7 +17,8 @@ vi.mock('@/lib/vegetable-database', () => ({
 }))
 
 // Mock date-calculator
-vi.mock('@/lib/date-calculator', () => ({
+vi.mock('@/lib/date-calculator', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/date-calculator')>()),
   getGerminationDays: vi.fn().mockReturnValue({ min: 7, max: 14 })
 }))
 
@@ -31,6 +32,12 @@ const mockCalculatePerennialStatus = calculatePerennialStatus as ReturnType<type
 import { getVegetableById } from '@/lib/vegetable-database'
 
 const mockGetVegetableById = getVegetableById as ReturnType<typeof vi.fn>
+
+/** A local time-of-day `today`, as `new Date()` gives in the app (never UTC midnight). */
+function localNoon(isoDate: string): Date {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(year, month - 1, day, 12, 30)
+}
 
 describe('task-generator', () => {
   beforeEach(() => {
@@ -391,7 +398,7 @@ describe('task-generator', () => {
       // Mock: plant is productive
       mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
 
-      const today = new Date('2026-07-15')
+      const today = localNoon('2026-07-15')
       const tasks = generateTasksForMonth(7 as Month, [], [area], today, [], 2026)
 
       const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
@@ -433,7 +440,7 @@ describe('task-generator', () => {
       // Mock: plant is establishing
       mockCalculatePerennialStatus.mockReturnValue({ status: 'establishing' })
 
-      const today = new Date('2026-07-15')
+      const today = localNoon('2026-07-15')
       const tasks = generateTasksForMonth(7 as Month, [], [area], today, [], 2026)
 
       const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
@@ -859,7 +866,7 @@ describe('task-generator', () => {
 
   describe('generateDateBasedTasks', () => {
     it('should generate harvest task when expectedHarvestStart is within 7 days', () => {
-      const today = new Date('2025-06-10')
+      const today = localNoon('2025-06-10')
       const planting: Planting = {
         id: 'p1',
         plantId: 'lettuce',
@@ -892,7 +899,7 @@ describe('task-generator', () => {
     })
 
     it('should mark task as overdue when past expectedHarvestStart', () => {
-      const today = new Date('2025-06-18')
+      const today = localNoon('2025-06-18')
       const planting: Planting = {
         id: 'p1',
         plantId: 'lettuce',
@@ -924,7 +931,7 @@ describe('task-generator', () => {
     })
 
     it('should not generate harvest task for already harvested plantings', () => {
-      const today = new Date('2025-06-15')
+      const today = localNoon('2025-06-15')
       const planting: Planting = {
         id: 'p1',
         plantId: 'lettuce',
@@ -954,7 +961,7 @@ describe('task-generator', () => {
     })
 
     it('should generate transplant reminder for indoor sowings', () => {
-      const today = new Date('2025-04-20')
+      const today = localNoon('2025-04-20')
       const planting: Planting = {
         id: 'p1',
         plantId: 'tomato',
@@ -987,9 +994,70 @@ describe('task-generator', () => {
     })
   })
 
+  // `today` carries a local time of day, as `new Date()` does in the app.
+  // Run under a non-UTC TZ (e.g. TZ=America/New_York) to exercise local dates.
+  describe('date-based tasks with a local time-of-day today', () => {
+    const lettuce = {
+      id: 'lettuce',
+      name: 'Lettuce',
+      category: 'leafy-greens',
+      planting: {
+        harvestMonths: [6],
+        sowIndoorsMonths: [3, 4],
+        sowOutdoorsMonths: [4, 5, 6, 7],
+        transplantMonths: []
+      }
+    }
+
+    it('says "today" for a harvest due today, late in the evening', () => {
+      mockGetVegetableById.mockReturnValue(lettuce)
+      const today = new Date(2025, 5, 15, 21, 30)
+      const planting: Planting = { id: 'p1', plantId: 'lettuce', expectedHarvestStart: '2025-06-15' }
+
+      const tasks = generateDateBasedTasks([{ planting, areaId: 'bed-a', areaName: 'Bed A' }], today)
+
+      expect(tasks[0].daysRemaining).toBe(0)
+      expect(tasks[0].urgency).toBe('today')
+      expect(tasks[0].notes).toBe('Ready to harvest today in Bed A')
+    })
+
+    it('counts whole calendar days to a harvest after a DST change', () => {
+      mockGetVegetableById.mockReturnValue(lettuce)
+      const today = new Date(2025, 2, 5, 9, 0)
+      const planting: Planting = { id: 'p1', plantId: 'lettuce', expectedHarvestStart: '2025-03-12' }
+
+      const tasks = generateDateBasedTasks([{ planting, areaId: 'bed-a', areaName: 'Bed A' }], today)
+
+      expect(tasks[0].daysRemaining).toBe(7)
+    })
+
+    it('dates the transplant reminder on the local calendar day', () => {
+      mockGetVegetableById.mockReturnValue({ ...lettuce, id: 'tomato', name: 'Tomato', category: 'solanaceae' })
+      const today = new Date(2025, 3, 20, 8, 0)
+      const planting: Planting = { id: 'p1', plantId: 'tomato', sowDate: '2025-04-01', sowMethod: 'indoor' }
+
+      const tasks = generateDateBasedTasks([{ planting, areaId: 'bed-b', areaName: 'Bed B' }], today)
+      const transplant = tasks.find(t => t.generatedType === 'transplant')
+
+      // sow + 14 germination + 7 hardening = 22 April, two days away.
+      expect(transplant?.dueDate).toBe('2025-04-22')
+      expect(transplant?.daysRemaining).toBe(2)
+    })
+
+    it('counts days since the last sowing on local calendar days', () => {
+      mockGetVegetableById.mockReturnValue(lettuce)
+      const today = new Date(2025, 5, 15, 7, 0)
+      const planting: Planting = { id: 'p1', plantId: 'lettuce', sowDate: '2025-05-25' }
+
+      const tasks = generateSuccessionReminders([{ planting, areaId: 'bed-a', areaName: 'Bed A' }], today)
+
+      expect(tasks[0].notes).toContain('21 days ago')
+    })
+  })
+
   describe('generateSuccessionReminders', () => {
     it('should generate succession sowing reminder when last sowing is old enough', () => {
-      const today = new Date('2025-06-15')
+      const today = localNoon('2025-06-15')
       const planting: Planting = {
         id: 'p1',
         plantId: 'lettuce',
@@ -1020,7 +1088,7 @@ describe('task-generator', () => {
     })
 
     it('should not generate succession reminder for non-succession crops', () => {
-      const today = new Date('2025-06-15')
+      const today = localNoon('2025-06-15')
       const planting: Planting = {
         id: 'p1',
         plantId: 'tomato', // Not a succession crop
@@ -1048,7 +1116,7 @@ describe('task-generator', () => {
     })
 
     it('should not generate succession reminder outside sowing season', () => {
-      const today = new Date('2025-11-15') // November - outside sowing season for lettuce
+      const today = localNoon('2025-11-15') // November - outside sowing season for lettuce
       const planting: Planting = {
         id: 'p1',
         plantId: 'lettuce',
@@ -1078,7 +1146,7 @@ describe('task-generator', () => {
 
   describe('date-based vs month-based integration', () => {
     it('should prefer date-based tasks over month-based for same planting', () => {
-      const today = new Date('2025-06-10')
+      const today = localNoon('2025-06-10')
       const planting: Planting = {
         id: 'p1',
         plantId: 'peas',
@@ -1114,7 +1182,7 @@ describe('task-generator', () => {
     })
 
     it('should fall back to month-based for plantings without dates', () => {
-      const today = new Date('2025-06-10')
+      const today = localNoon('2025-06-10')
       const planting: Planting = {
         id: 'p1',
         plantId: 'peas'
@@ -1146,7 +1214,7 @@ describe('task-generator', () => {
     })
 
     it('should include variety-based tasks when varieties are provided', () => {
-      const today = new Date('2025-03-15')
+      const today = localNoon('2025-03-15')
       const variety: StoredVariety = {
         id: 'v1',
         plantId: 'tomato',
@@ -1181,7 +1249,7 @@ describe('task-generator', () => {
     })
 
     it('should keep both planting-derived and variety-derived sow tasks for same crop', () => {
-      const today = new Date('2025-03-15')
+      const today = localNoon('2025-03-15')
 
       // Existing planting of peas (no sow date → generates month-based sow task)
       const planting: Planting = {
@@ -1225,7 +1293,7 @@ describe('task-generator', () => {
     })
 
     it('should deduplicate sow tasks across multiple beds of the same plant', () => {
-      const today = new Date('2025-03-15')
+      const today = localNoon('2025-03-15')
 
       const plantings = [
         { planting: { id: 'p1', plantId: 'peas' } as Planting, areaId: 'bed-a', areaName: 'Bed A' },
@@ -1510,7 +1578,7 @@ describe('task-generator', () => {
       mockCalculatePerennialStatus.mockReturnValue({ status: 'productive' })
 
       // January: expect both prune maintenance task AND care tip
-      const tasks = generateTasksForMonth(1 as Month, [], [area], new Date('2026-01-15'), [], 2026)
+      const tasks = generateTasksForMonth(1 as Month, [], [area], localNoon('2026-01-15'), [], 2026)
 
       const pruneTasks = tasks.filter(t => t.generatedType === 'prune')
       const careTipTasks = tasks.filter(t => t.generatedType === 'care-tip')
@@ -1600,12 +1668,157 @@ describe('task-generator', () => {
       ]
 
       // July is in harvestMonths but before the expected window — no nudge.
-      const julyTasks = generateTasksForMonth(7 as Month, plantings, [])
+      const julyTasks = generateTasksForMonth(7 as Month, plantings, [], new Date(2026, 6, 15, 10))
       expect(julyTasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
 
       // September is inside the expected window — nudge.
-      const septTasks = generateTasksForMonth(9 as Month, plantings, [])
+      const septTasks = generateTasksForMonth(9 as Month, plantings, [], new Date(2026, 8, 15, 10))
       expect(septTasks.some(t => t.id === 'preserve-nudge-courgette-9')).toBe(true)
+    })
+
+    it('does not nudge for an expected window in a different year', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-09-01',
+            expectedHarvestEnd: '2025-09-30',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      // Same month, a year later: last year's window has long passed.
+      const tasks = generateTasksForMonth(9 as Month, plantings, [], new Date(2026, 8, 15, 10))
+      expect(tasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('keeps nudging through the harvest season after the first-harvest window', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      // populateExpectedHarvest gives the first-harvest window, not the season.
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2026-06-18',
+            expectedHarvestEnd: '2026-06-28',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const lateJuly = generateTasksForMonth(7 as Month, plantings, [], new Date(2026, 6, 25, 10))
+      expect(lateJuly.some(t => t.id === 'preserve-nudge-courgette-7')).toBe(true)
+
+      const nextJuly = generateTasksForMonth(7 as Month, plantings, [], new Date(2027, 6, 25, 10))
+      expect(nextJuly.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('extends to the end of a harvest season that wraps the year end', () => {
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [11, 12, 1, 2] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-11-20',
+            expectedHarvestEnd: '2025-12-05',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const feb = generateTasksForMonth(2 as Month, plantings, [], new Date(2026, 1, 20, 10))
+      expect(feb.some(t => t.id === 'preserve-nudge-courgette-2')).toBe(true)
+
+      const march = generateTasksForMonth(3 as Month, plantings, [], new Date(2026, 2, 2, 10))
+      expect(march.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('ends the window at the end of the harvest run, not across a gap', () => {
+      // Spinach harvests May–Aug and Oct–Nov; September is a gap.
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [5, 6, 7, 8, 10, 11] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2026-06-10',
+            expectedHarvestEnd: '2026-06-25',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const lateAugust = generateTasksForMonth(8 as Month, plantings, [], new Date(2026, 7, 28, 10))
+      expect(lateAugust.some(t => t.id === 'preserve-nudge-courgette-8')).toBe(true)
+
+      const september = generateTasksForMonth(9 as Month, plantings, [], new Date(2026, 8, 15, 10))
+      expect(september.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('does not nudge across a long non-harvest gap after the expected end', () => {
+      // Garlic harvests Jul–Aug; an out-of-season first harvest in November.
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [7, 8] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-11-10',
+            expectedHarvestEnd: '2025-12-05',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const april = generateTasksForMonth(4 as Month, plantings, [], new Date(2026, 3, 15, 10))
+      expect(april.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+
+      const july = generateTasksForMonth(7 as Month, plantings, [], new Date(2026, 6, 15, 10))
+      expect(july.some(t => t.id === 'preserve-nudge-courgette-7')).toBe(true)
+    })
+
+    it('nudges inside an expected window that spans the year end', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-11-20',
+            expectedHarvestEnd: '2026-02-10',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const tasks = generateTasksForMonth(1 as Month, plantings, [], new Date(2026, 0, 15, 10))
+      expect(tasks.some(t => t.id === 'preserve-nudge-courgette-1')).toBe(true)
     })
 
     it('does not nudge for a harvested planting', () => {
@@ -1652,7 +1865,7 @@ describe('task-generator', () => {
         6 as Month,
         [],
         [raspberryArea],
-        new Date('2026-06-15'),
+        localNoon('2026-06-15'),
         [],
         2026,
         { 'raspberry-patch': { feed: 30 } }
@@ -1670,7 +1883,7 @@ describe('task-generator', () => {
         6 as Month,
         [],
         [raspberryArea],
-        new Date('2026-06-15'),
+        localNoon('2026-06-15'),
         [],
         2026,
         { 'raspberry-patch': { feed: 7 } }
@@ -1702,7 +1915,7 @@ describe('task-generator', () => {
         7 as Month,
         [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
         [bed],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         {}
@@ -1737,7 +1950,7 @@ describe('task-generator', () => {
         7 as Month,
         [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
         [bed],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         { 'bed-a': { feed: 30 } }
@@ -1761,7 +1974,7 @@ describe('task-generator', () => {
         6 as Month,
         [],
         [raspberryArea],
-        new Date('2026-06-15'),
+        localNoon('2026-06-15'),
         [],
         2026,
         { 'raspberry-patch': { feed: 30 } }
@@ -1800,7 +2013,7 @@ describe('task-generator', () => {
         7 as Month,
         [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
         [bed],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         {}
@@ -1839,7 +2052,7 @@ describe('task-generator', () => {
         7 as Month,
         [{ planting, areaId: 'bed-a', areaName: 'Bed A' }],
         [bed],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         { 'bed-a': { feed: 5 } }
@@ -1856,7 +2069,7 @@ describe('task-generator', () => {
         7 as Month,
         [],
         [raspberryArea],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026
       )
@@ -1873,7 +2086,7 @@ describe('task-generator', () => {
         12 as Month,
         [],
         [raspberryArea],
-        new Date('2026-12-15'),
+        localNoon('2026-12-15'),
         [],
         2026
       )
@@ -1889,7 +2102,7 @@ describe('task-generator', () => {
         7 as Month,
         [],
         [raspberryArea],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         {},
@@ -1907,7 +2120,7 @@ describe('task-generator', () => {
         7 as Month,
         [],
         [raspberryArea],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         { 'raspberry-patch': { water: 1 } } // less than the moderate-default 4d cadence
@@ -1924,7 +2137,7 @@ describe('task-generator', () => {
         7 as Month,
         [],
         [raspberryArea],
-        new Date('2026-07-15'),
+        localNoon('2026-07-15'),
         [],
         2026,
         { 'raspberry-patch': { water: 0 } }
@@ -1946,7 +2159,7 @@ describe('task-generator', () => {
         6 as Month,
         [],
         [raspberryArea],
-        new Date('2026-06-15'),
+        localNoon('2026-06-15'),
         [],
         2026,
         { 'raspberry-patch': { feed: 0 } }
@@ -1984,7 +2197,7 @@ describe('task-generator', () => {
         4 as Month,
         [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [],
         2026,
         {},
@@ -2003,7 +2216,7 @@ describe('task-generator', () => {
         4 as Month,
         [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [],
         2026,
         {},
@@ -2021,7 +2234,7 @@ describe('task-generator', () => {
         4 as Month,
         [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [],
         2026,
         {},
@@ -2039,7 +2252,7 @@ describe('task-generator', () => {
         4 as Month,
         [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [],
         2026,
         {},
@@ -2057,7 +2270,7 @@ describe('task-generator', () => {
         3 as Month,
         [{ planting: peasPlanting, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-03-15'),
+        localNoon('2026-03-15'),
         [],
         2026,
         {},
@@ -2089,7 +2302,7 @@ describe('task-generator', () => {
         4 as Month,
         [{ planting: { id: 'p1', plantId: 'lettuce' }, areaId: 'bed-a', areaName: 'Bed A' }],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [],
         2026,
         {},
@@ -2121,7 +2334,7 @@ describe('task-generator', () => {
         4 as Month,
         [],
         [],
-        new Date('2026-04-15'),
+        localNoon('2026-04-15'),
         [variety],
         2026,
         {},
@@ -2146,7 +2359,7 @@ describe('task-generator', () => {
         3 as Month,
         [],
         [],
-        new Date('2026-03-15'),
+        localNoon('2026-03-15'),
         [variety],
         2026,
         {},

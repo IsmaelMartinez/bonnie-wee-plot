@@ -126,10 +126,11 @@ export interface SowDateValidation {
 // ============ HELPER FUNCTIONS ============
 
 /**
- * Parse ISO date string to Date object
- * Uses explicit parsing to avoid timezone issues with date-only strings
+ * Parse a YYYY-MM-DD string as local midnight.
+ * `new Date('YYYY-MM-DD')` parses as UTC midnight, which is the previous day
+ * west of UTC; always use this for stored date-only strings.
  */
-function parseDate(dateString: string): Date {
+export function parseDate(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number)
   return new Date(year, month - 1, day) // month is 0-indexed in JS Date
 }
@@ -138,7 +139,7 @@ function parseDate(dateString: string): Date {
  * Format Date object to ISO date string (YYYY-MM-DD)
  * Uses local time parts to match parseDate behavior
  */
-function formatDate(date: Date): string {
+export function formatDate(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
@@ -146,9 +147,9 @@ function formatDate(date: Date): string {
 }
 
 /**
- * Add days to a date
+ * Add calendar days to a date (DST-safe, unlike adding 24h multiples)
  */
-function addDays(date: Date, days: number): Date {
+export function addDays(date: Date, days: number): Date {
   const result = new Date(date)
   result.setDate(result.getDate() + days)
   return result
@@ -166,6 +167,74 @@ function subtractDays(date: Date, days: number): Date {
  */
 function getMonth(date: Date): number {
   return date.getMonth() + 1
+}
+
+const MONTH_NAME_FORMAT = new Intl.DateTimeFormat('en-GB', { month: 'long' })
+
+/** Full English name for a month number (1-12). */
+function monthName(month: number): string {
+  return MONTH_NAME_FORMAT.format(new Date(2000, month - 1, 1))
+}
+
+/**
+ * Whole local calendar days from `from` to `to`, ignoring time of day.
+ * Rounds because a DST change makes a calendar day 23 or 25 hours long.
+ */
+export function differenceInDays(to: Date, from: Date): number {
+  const msPerDay = 24 * 60 * 60 * 1000
+  return Math.round((parseDate(formatDate(to)).getTime() - parseDate(formatDate(from)).getTime()) / msPerDay)
+}
+
+/**
+ * First and last month of a month window, reading it cyclically so a window
+ * that wraps the year end ([11, 12, 1, 2, 3]) runs November to March. The
+ * window starts after the longest run of missing months.
+ */
+function windowBounds(months: number[]): { start: number; end: number } {
+  const sorted = [...new Set(months)].sort((a, b) => a - b)
+  let start = sorted[0]
+  let end = sorted[sorted.length - 1]
+  let largestGap = 12 - end + start - 1 // gap across the year end
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = sorted[i] - sorted[i - 1] - 1
+    if (gap > largestGap) {
+      largestGap = gap
+      start = sorted[i]
+      end = sorted[i - 1]
+    }
+  }
+  return { start, end }
+}
+
+/** Months of a window in cyclic order from its start, e.g. Oct, Nov, Feb, Mar. */
+function cyclicOrder(months: number[]): number[] {
+  const { start } = windowBounds(months)
+  return [...new Set(months)].sort((a, b) => ((a - start + 12) % 12) - ((b - start + 12) % 12))
+}
+
+const nextMonth = (m: number) => (m % 12) + 1
+
+/**
+ * The next contiguous run of window months after `month`, read cyclically, so
+ * the suggestion never begins before the entered date. `month` must be outside
+ * the window, which guarantees a run start is reached within twelve steps.
+ */
+export function nextRun(months: number[], month: number): { start: number; end: number } {
+  const set = new Set(months)
+  let start = nextMonth(month)
+  while (!set.has(start)) start = nextMonth(start)
+  return { start, end: runEnd(months, start) }
+}
+
+/**
+ * Last month of the contiguous (cyclic) run of `months` containing `month`,
+ * which must be in `months`. Stops after eleven steps for a full-year window.
+ */
+export function runEnd(months: number[], month: number): number {
+  const set = new Set(months)
+  let end = month
+  for (let i = 0; i < 11 && set.has(nextMonth(end)); i++) end = nextMonth(end)
+  return end
 }
 
 /**
@@ -409,7 +478,7 @@ export function validateSowDate(
   if (sowMethod === 'transplant-purchased') {
     if (planting.transplantMonths.length > 0 && !planting.transplantMonths.includes(month as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)) {
       warnings.push(
-        `${vegetable.name} is typically transplanted in months ${planting.transplantMonths.join(', ')}, not ${month}`
+        `${vegetable.name} is typically transplanted in ${cyclicOrder(planting.transplantMonths).map(monthName).join(', ')}, not ${monthName(month)}`
       )
     }
     return { isValid: true, warnings, errors }
@@ -420,18 +489,16 @@ export function validateSowDate(
     isValid = false
     const methodText = sowMethod === 'indoor' ? 'sowing indoors' : 'direct sowing'
     errors.push(
-      `${vegetable.name} is typically best for ${methodText} in months ${validMonths.join(', ')}, not ${month}`
+      `${vegetable.name} is typically best for ${methodText} in ${cyclicOrder(validMonths).map(monthName).join(', ')}, not ${monthName(month)}`
     )
 
-    // Calculate suggestions
-    const suggestions: SowDateValidation['suggestions'] = {}
-
-    // Find nearest valid month
-    const sortedMonths = [...validMonths].sort((a, b) => a - b)
-    if (sortedMonths.length > 0) {
-      const year = date.getFullYear()
-      suggestions.earliestRecommended = `${year}-${String(sortedMonths[0]).padStart(2, '0')}-01`
-      suggestions.latestRecommended = `${year}-${String(sortedMonths[sortedMonths.length - 1]).padStart(2, '0')}-15`
+    // Suggest the next valid run; one that wraps the year end finishes the next year.
+    const { start, end } = nextRun(validMonths, month)
+    const startYear = start > month ? date.getFullYear() : date.getFullYear() + 1
+    const endYear = end < start ? startYear + 1 : startYear
+    const suggestions: SowDateValidation['suggestions'] = {
+      earliestRecommended: formatDate(new Date(startYear, start - 1, 1)),
+      latestRecommended: formatDate(new Date(endYear, end - 1, 15)),
     }
 
     return { isValid, warnings, errors, suggestions }
