@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       })
       // Increment after a successful response so failed requests don't burn
       // the user's quota (same race tolerance as the Aitor route).
-      await incrementUsage(supabaseToken, userId)
+      await incrementUsage(supabaseToken)
       return NextResponse.json({ text: result.text, usage: result.usage })
     } catch (err) {
       logger.error('Narration Gemini call failed', { error: String(err) })

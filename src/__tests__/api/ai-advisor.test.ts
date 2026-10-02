@@ -9,14 +9,35 @@ import { NextRequest } from 'next/server'
 
 // Mock Clerk's server-side auth() — every test except the "unauthenticated"
 // case runs as a signed-in user. The unauthenticated test overrides this.
-const mockAuth = vi.fn<() => Promise<{ userId: string | null }>>(async () => ({
+const mockGetToken = vi.fn<(opts?: { template?: string }) => Promise<string | null>>(
+  async () => 'supabase-token'
+)
+const mockAuth = vi.fn<
+  () => Promise<{ userId: string | null; getToken?: typeof mockGetToken }>
+>(async () => ({
   userId: 'user_test_123',
+  getToken: mockGetToken,
 }))
 vi.mock('@clerk/nextjs/server', () => ({
   auth: () => mockAuth(),
 }))
 
+vi.mock('@/lib/ai/gemini', () => ({
+  callGemini: vi.fn(),
+}))
+
+vi.mock('@/lib/supabase/ai-usage', () => ({
+  FREE_TIER_MONTHLY_QUOTA: 30,
+  getCurrentUsage: vi.fn(),
+  incrementUsage: vi.fn(),
+}))
+
 const { POST } = await import('@/app/api/ai-advisor/route')
+const { callGemini } = await import('@/lib/ai/gemini')
+const { getCurrentUsage, incrementUsage } = await import('@/lib/supabase/ai-usage')
+const callGeminiMock = vi.mocked(callGemini)
+const getCurrentUsageMock = vi.mocked(getCurrentUsage)
+const incrementUsageMock = vi.mocked(incrementUsage)
 
 // Mock fetch - necessary for API route testing
 const mockFetch = vi.fn()
@@ -25,8 +46,10 @@ global.fetch = mockFetch
 describe('AI Advisor API - Validation & Error Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockAuth.mockResolvedValue({ userId: 'user_test_123' })
+    mockAuth.mockResolvedValue({ userId: 'user_test_123', getToken: mockGetToken })
+    mockGetToken.mockResolvedValue('supabase-token')
     vi.stubEnv('OPENAI_API_KEY', '')
+    vi.stubEnv('GEMINI_API_KEY', '')
   })
 
   describe('Authentication', () => {
@@ -154,6 +177,60 @@ describe('AI Advisor API - Validation & Error Handling', () => {
 
       expect(response.status).toBe(200)
       expect(data.response).toBe('Plant tomatoes in spring.')
+    })
+  })
+
+  describe('Free-tier quota (server-side Gemini)', () => {
+    beforeEach(() => {
+      vi.stubEnv('GEMINI_API_KEY', 'gemini-test-key')
+      getCurrentUsageMock.mockResolvedValue({ yearMonth: '2026-10', requestCount: 3, remaining: 27 })
+      callGeminiMock.mockResolvedValue({ text: 'Mulch the beds.' })
+      incrementUsageMock.mockResolvedValue(4)
+    })
+
+    it('returns the quota-exhausted 429 without calling Gemini or burning quota', async () => {
+      getCurrentUsageMock.mockResolvedValueOnce({ yearMonth: '2026-10', requestCount: 30, remaining: 0 })
+
+      const response = await POST(createRequest({ message: 'Hello' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(429)
+      expect(data.quotaExceeded).toBe(true)
+      expect(data.error).toMatch(/30 free Aitor requests/i)
+      expect(callGeminiMock).not.toHaveBeenCalled()
+      expect(incrementUsageMock).not.toHaveBeenCalled()
+    })
+
+    it('fails safe with 500 when the quota check itself errors', async () => {
+      getCurrentUsageMock.mockRejectedValueOnce(new Error('supabase down'))
+
+      const response = await POST(createRequest({ message: 'Hello' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(data.error).toMatch(/quota/i)
+      expect(callGeminiMock).not.toHaveBeenCalled()
+    })
+
+    it('answers via Gemini, then increments usage through the atomic RPC', async () => {
+      const response = await POST(createRequest({ message: 'Hello' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.response).toBe('Mulch the beds.')
+      expect(incrementUsageMock).toHaveBeenCalledTimes(1)
+      expect(incrementUsageMock).toHaveBeenCalledWith('supabase-token')
+    })
+
+    it('does not burn quota when Gemini fails', async () => {
+      const err = new Error('Gemini overloaded') as Error & { status?: number }
+      err.status = 503
+      callGeminiMock.mockRejectedValueOnce(err)
+
+      const response = await POST(createRequest({ message: 'Hello' }))
+
+      expect(response.status).toBe(503)
+      expect(incrementUsageMock).not.toHaveBeenCalled()
     })
   })
 })

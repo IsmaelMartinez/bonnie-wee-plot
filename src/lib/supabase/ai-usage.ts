@@ -48,46 +48,15 @@ export async function getCurrentUsage(
 }
 
 /**
- * Atomically increment the user's monthly counter by one. Inserts a row with
- * count=1 if none exists, otherwise increments the existing row. Returns the
- * new count.
- *
- * The increment uses a SELECT-then-UPSERT pattern rather than a raw SQL
- * `UPDATE ... SET count = count + 1` because PostgREST doesn't expose the
- * latter directly. The race window is small (<10ms) and the consequence of
- * losing a race (one extra request slipping through) is acceptable for a
- * cost-bounded free tier.
+ * Atomically increment the caller's counter for the current UTC month and
+ * return the new count. Goes through the SECURITY DEFINER `increment_ai_usage`
+ * RPC (sql/005-ai-usage-lockdown.sql): end users have no INSERT/UPDATE policy
+ * on `ai_usage`, so they cannot lower the counter, and the RPC takes the user
+ * id from the JWT `sub` and increments in a single INSERT ... ON CONFLICT.
  */
-export async function incrementUsage(
-  token: string,
-  userId: string,
-  now: Date = new Date(),
-): Promise<number> {
-  const yearMonth = currentYearMonth(now)
+export async function incrementUsage(token: string): Promise<number> {
   const client = createAuthClient(token)
-
-  const { data: existing, error: readError } = await client
-    .from('ai_usage')
-    .select('request_count')
-    .eq('user_id', userId)
-    .eq('year_month', yearMonth)
-    .maybeSingle()
-
-  if (readError) throw new Error(readError.message)
-
-  const newCount = (existing?.request_count ?? 0) + 1
-  const { error: writeError } = await client
-    .from('ai_usage')
-    .upsert(
-      {
-        user_id: userId,
-        year_month: yearMonth,
-        request_count: newCount,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,year_month' },
-    )
-
-  if (writeError) throw new Error(writeError.message)
-  return newCount
+  const { data, error } = await client.rpc('increment_ai_usage')
+  if (error) throw new Error(error.message)
+  return data as number
 }

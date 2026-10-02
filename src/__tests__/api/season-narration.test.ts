@@ -192,7 +192,7 @@ describe('Season narration API', () => {
     expect(call.userMessage).not.toContain('"plantId"')
     expect(call.userMessage).not.toContain('"ruleId"')
 
-    expect(incrementUsageMock).toHaveBeenCalledWith('supabase-token', 'user_test_123')
+    expect(incrementUsageMock).toHaveBeenCalledWith('supabase-token')
   })
 
   it('passes through a Gemini failure status without incrementing usage', async () => {

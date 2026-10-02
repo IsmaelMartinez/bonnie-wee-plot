@@ -53,14 +53,15 @@ export async function checkRateLimit(
   const key = `ratelimit:${prefix}:${ip}`
 
   try {
-    const current = await redis.incr(key)
-
-    // Set TTL on first request in window
-    if (current === 1) {
-      await redis.expire(key, windowSeconds)
-    }
-
-    const ttl = await redis.ttl(key)
+    // One MULTI/EXEC transaction: EXPIRE NX sets the window TTL only when the
+    // key has none, so no key can be left without a TTL and an existing
+    // window is never extended.
+    const [current, , ttl] = await redis
+      .multi()
+      .incr(key)
+      .expire(key, windowSeconds, 'NX')
+      .ttl(key)
+      .exec<[number, 0 | 1, number]>()
 
     if (current > maxRequests) {
       return {

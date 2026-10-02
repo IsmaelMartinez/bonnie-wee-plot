@@ -1,10 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { checkRateLimit, getClientIp } from '@/lib/server-rate-limiter'
 
-// Mock @upstash/redis
+// Mock @upstash/redis. The limiter must issue INCR, EXPIRE NX and TTL as one
+// atomic MULTI/EXEC transaction, so the mock records the queued commands and
+// resolves exec() with the configured [count, expireResult, ttl] tuple.
+const mockExec = vi.fn()
+const queued: Array<[string, ...unknown[]]> = []
+const mockMulti = vi.fn(() => {
+  const tx = {
+    incr: (...args: unknown[]) => { queued.push(['incr', ...args]); return tx },
+    expire: (...args: unknown[]) => { queued.push(['expire', ...args]); return tx },
+    ttl: (...args: unknown[]) => { queued.push(['ttl', ...args]); return tx },
+    exec: mockExec,
+  }
+  return tx
+})
 const mockIncr = vi.fn()
 const mockExpire = vi.fn()
-const mockTtl = vi.fn()
 
 vi.mock('@upstash/redis', () => {
   return {
@@ -12,9 +24,9 @@ vi.mock('@upstash/redis', () => {
       constructor() {
         // no-op
       }
+      multi = mockMulti
       incr = mockIncr
       expire = mockExpire
-      ttl = mockTtl
     },
   }
 })
@@ -22,6 +34,7 @@ vi.mock('@upstash/redis', () => {
 describe('server-rate-limiter', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    queued.length = 0
     // Set env vars so Redis is "configured"
     process.env.UPSTASH_REDIS_REST_URL = 'https://fake.upstash.io'
     process.env.UPSTASH_REDIS_REST_TOKEN = 'fake-token'
@@ -35,39 +48,37 @@ describe('server-rate-limiter', () => {
     }
 
     it('allows requests under the limit', async () => {
-      mockIncr.mockResolvedValue(1)
-      mockExpire.mockResolvedValue(true)
-      mockTtl.mockResolvedValue(60)
+      mockExec.mockResolvedValue([1, 1, 60])
 
       const result = await checkRateLimit('1.2.3.4', config)
 
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(2) // 3 max - 1 used
-      expect(mockIncr).toHaveBeenCalledWith('ratelimit:test:1.2.3.4')
     })
 
-    it('sets TTL on first request in window', async () => {
-      mockIncr.mockResolvedValue(1) // first request
-      mockExpire.mockResolvedValue(true)
-      mockTtl.mockResolvedValue(60)
+    it('increments and sets the TTL with EXPIRE NX in one atomic transaction', async () => {
+      mockExec.mockResolvedValue([2, 0, 45])
 
       await checkRateLimit('1.2.3.4', config)
 
-      expect(mockExpire).toHaveBeenCalledWith('ratelimit:test:1.2.3.4', 60)
-    })
-
-    it('does not reset TTL on subsequent requests', async () => {
-      mockIncr.mockResolvedValue(2) // not first
-      mockTtl.mockResolvedValue(45)
-
-      await checkRateLimit('1.2.3.4', config)
-
+      const key = 'ratelimit:test:1.2.3.4'
+      expect(mockMulti).toHaveBeenCalledTimes(1)
+      expect(mockExec).toHaveBeenCalledTimes(1)
+      // EXPIRE NX runs on every request: it only sets a TTL when the key has
+      // none, so a crash between commands can never leave a key without one,
+      // and an existing window is never extended.
+      expect(queued).toEqual([
+        ['incr', key],
+        ['expire', key, 60, 'NX'],
+        ['ttl', key],
+      ])
+      // No standalone, non-atomic round-trips.
+      expect(mockIncr).not.toHaveBeenCalled()
       expect(mockExpire).not.toHaveBeenCalled()
     })
 
     it('blocks requests over the limit', async () => {
-      mockIncr.mockResolvedValue(4) // over the limit of 3
-      mockTtl.mockResolvedValue(30)
+      mockExec.mockResolvedValue([4, 0, 30]) // over the limit of 3
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -77,8 +88,7 @@ describe('server-rate-limiter', () => {
     })
 
     it('allows exactly at the limit', async () => {
-      mockIncr.mockResolvedValue(3) // exactly at limit
-      mockTtl.mockResolvedValue(45)
+      mockExec.mockResolvedValue([3, 0, 45]) // exactly at limit
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -87,7 +97,7 @@ describe('server-rate-limiter', () => {
     })
 
     it('fails open when Redis errors', async () => {
-      mockIncr.mockRejectedValue(new Error('Connection refused'))
+      mockExec.mockRejectedValue(new Error('Connection refused'))
 
       const result = await checkRateLimit('1.2.3.4', config)
 
@@ -100,7 +110,7 @@ describe('server-rate-limiter', () => {
 
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(3)
-      expect(mockIncr).not.toHaveBeenCalled()
+      expect(mockMulti).not.toHaveBeenCalled()
     })
 
     it('allows all requests when Redis is not configured', async () => {
@@ -111,12 +121,11 @@ describe('server-rate-limiter', () => {
 
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(3)
-      expect(mockIncr).not.toHaveBeenCalled()
+      expect(mockMulti).not.toHaveBeenCalled()
     })
 
     it('uses windowSeconds as fallback when TTL returns non-positive', async () => {
-      mockIncr.mockResolvedValue(4)
-      mockTtl.mockResolvedValue(-1) // key has no TTL
+      mockExec.mockResolvedValue([4, 0, -1]) // key has no TTL
 
       const result = await checkRateLimit('1.2.3.4', config)
 

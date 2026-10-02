@@ -335,7 +335,7 @@ Important rules:
         // Increment after a successful response so failed requests don't
         // burn the user's quota. Race window with the pre-call check is
         // small and the consequence (one extra request) is acceptable.
-        await incrementUsage(supabaseToken, userId)
+        await incrementUsage(supabaseToken)
         return NextResponse.json({
           type: 'text',
           response: result.text,
