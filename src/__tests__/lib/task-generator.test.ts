@@ -1774,6 +1774,33 @@ describe('task-generator', () => {
       expect(september.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
     })
 
+    it('does not nudge across a long non-harvest gap after the expected end', () => {
+      // Garlic harvests Jul–Aug; an out-of-season first harvest in November.
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [7, 8] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-11-10',
+            expectedHarvestEnd: '2025-12-05',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const april = generateTasksForMonth(4 as Month, plantings, [], new Date(2026, 3, 15, 10))
+      expect(april.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+
+      const july = generateTasksForMonth(7 as Month, plantings, [], new Date(2026, 6, 15, 10))
+      expect(july.some(t => t.id === 'preserve-nudge-courgette-7')).toBe(true)
+    })
+
     it('nudges inside an expected window that spans the year end', () => {
       mockGetVegetableById.mockReturnValue(courgetteVeg)
 

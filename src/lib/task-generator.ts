@@ -353,12 +353,14 @@ export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'fe
  * expected dates are present so the caller can fall back. The expected end is
  * only the latest first harvest, so the window runs to the later of it and the
  * end of the contiguous run of `harvestMonths` containing the expected start
- * (not across a gap such as spinach's September). Compares full dates, so last
- * year's window does not match this year.
+ * (not across a gap such as spinach's September), and past the expected end it
+ * only matches in a listed harvest month. Compares full dates, so last year's
+ * window does not match this year.
  */
 function isInExpectedHarvestWindow(planting: Planting, harvestMonths: Month[], today: Date): boolean | null {
   if (!planting.expectedHarvestStart) return null
-  let end = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
+  const expectedEnd = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
+  let end = expectedEnd
   const start = parseDate(planting.expectedHarvestStart)
   const startMonth = start.getMonth() + 1
   if (harvestMonths.length > 0) {
@@ -373,7 +375,10 @@ function isInExpectedHarvestWindow(planting: Planting, harvestMonths: Month[], t
     if (seasonEnd > end) end = seasonEnd
   }
   const todayStr = formatDate(today)
-  return todayStr >= planting.expectedHarvestStart && todayStr <= end
+  if (todayStr < planting.expectedHarvestStart || todayStr > end) return false
+  // Past the expected end, only nudge in a listed harvest month, so an
+  // out-of-season planting does not nudge across a long non-harvest gap.
+  return todayStr <= expectedEnd || harvestMonths.length === 0 || harvestMonths.includes((today.getMonth() + 1) as Month)
 }
 
 /**
