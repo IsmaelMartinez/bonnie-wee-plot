@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an AI gardening assistant powered by OpenAI (BYO API key).
+Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an opt-in AI gardening assistant for signed-in users (server-side Gemini free tier, the user's own OpenAI key, or a server OpenAI key fallback).
 
 ## Commands
 
@@ -27,9 +27,7 @@ npm run test                 # Run Playwright e2e tests (tests/)
 npm run test:ui              # Playwright with the UI runner
 npm run test:debug           # Playwright in debug mode
 npm run test:headed          # Playwright with browser visible
-npm run test:chrome          # Playwright chromium project only
-npm run test:firefox         # Playwright firefox project only
-npm run test:webkit          # Playwright webkit project only
+npm run test:chrome          # Playwright chromium project (the only configured project)
 npm run test:all             # Run both unit and e2e tests
 ```
 
@@ -47,7 +45,7 @@ npx playwright test tests/homepage.spec.ts
 
 ### Data Model
 
-The app uses a unified data model stored in localStorage under `allotment-unified-data`. The core types are defined in `src/types/unified-allotment.ts`:
+The app uses a unified data model held in a Yjs document persisted to IndexedDB (`bwp-allotment-yjs`, see the Yjs Storage Engine section); the legacy localStorage key `allotment-unified-data` is only the first-run seed and the hand-off for flows that write JSON there and then re-hydrate the doc (backup restore, Clear Local Data, cloud-history restore and AI tool execution call `reload()`; file import and receive clear the Yjs IndexedDB and then reload or redirect so the next mount re-seeds). The core types are defined in `src/types/unified-allotment.ts`:
 
 `AllotmentData` is the root structure containing:
 - `meta` - allotment name, location, timestamps
@@ -79,15 +77,15 @@ Query functions in `src/lib/variety-queries.ts`:
 `useAllotment` hook (`src/hooks/useAllotment.ts`) is the single source of truth for allotment state. It composes the domain hooks in `src/hooks/allotment/` over the Yjs storage engine (`useAllotmentData` → `useYjsDoc`, see ADR 027) and provides:
 - CRUD operations for plantings and maintenance tasks (all writes go through `mutate(fn)` against the SyncedStore proxy)
 - Year/bed selection
-- Cross-tab sync via `y-indexeddb`'s IndexedDB broadcast
+- No live cross-tab sync: `y-indexeddb` (9.x) has no BroadcastChannel, so another open tab only sees local edits after it reloads (or via cloud sync when signed in). `isSyncedFromOtherTab` actually fires for any non-local update, i.e. cloud merges
 - Cloud sync + conflict status via `useCloudSync`
 
 ### Storage Service
 
 `src/services/allotment-storage.ts` is a barrel file re-exporting from focused modules:
-- `storage-core.ts` — localStorage read/write, initialization
+- `storage-core.ts` — read/write of the legacy `allotment-unified-data` localStorage blob and `initializeStorage()`, which `useYjsDoc` uses to seed the doc on first run and `reload()` uses to re-hydrate after a restore or AI tool execution writes that key (file import and receive instead clear the Yjs IndexedDB so the next mount re-seeds from it). It is not the live store
 - `storage-validation.ts` — schema validation and data repair
-- `storage-migrations.ts` — schema migrations (current version: 18), backup/restore, legacy migration
+- `storage-migrations.ts` — schema migrations (current version: 23, minimum supported: 16), backup/restore, legacy migration
 - `season-operations.ts` — season CRUD and year management
 - `planting-operations.ts` — planting CRUD, area season helpers, notes, garden events
 - `area-queries.ts` — area lookups, filtering by kind, legacy compatibility wrappers
@@ -96,8 +94,9 @@ Query functions in `src/lib/variety-queries.ts`:
 - `task-operations.ts` — custom tasks and maintenance tasks
 - `compost-operations.ts` — compost pile CRUD, inputs, events, and queries over `AllotmentData.compost`
 - `generic-storage.ts` — raw localStorage utilities
+- `photo-store.ts` — care-log photo blobs in a separate plain IndexedDB database (not in the Yjs doc; not re-exported by the barrel)
 
-All existing imports from `@/services/allotment-storage` continue to work unchanged via the barrel file. Immutable update patterns, Promise-based `flushSave()`, and automatic backup creation before imports are preserved.
+All existing imports from `@/services/allotment-storage` continue to work unchanged via the barrel file. These service functions are pure (they return new data); live writes from hooks go through `mutate(fn)` on the Yjs store, and `flushSave()` awaits IndexedDB persistence.
 
 ### Date Calculator
 
@@ -109,7 +108,7 @@ All existing imports from `@/services/allotment-storage` continue to work unchan
 
 ### Task Generator
 
-`src/lib/task-generator.ts` generates automatic tasks for the Today dashboard based on plantings, areas, seed varieties, and the current month. Task types include harvest, sow-indoors, sow-outdoors, transplant, prune, feed, mulch, succession, and care-tip. Date-based tasks (from actual sow dates) take priority over month-based tasks (from the vegetable database calendar). Care tips (`careTips` on `Vegetable`) provide lifecycle-aware seasonal advice for perennials, filtered by month and the plant's `PerennialStatus` (establishing/productive/declining) via `calculatePerennialStatus()`. See ADR 025.
+`src/lib/task-generator.ts` generates automatic tasks for the Today dashboard based on plantings, areas, seed varieties, and the current month. Task types include harvest, sow-indoors, sow-outdoors, transplant, prune, feed, water, mulch, succession, and care-tip. Date-based tasks (from actual sow dates) take priority over month-based tasks (from the vegetable database calendar). Care tips (`careTips` on `Vegetable`) provide lifecycle-aware seasonal advice for perennials, filtered by month and the plant's `PerennialStatus` (establishing/productive/declining) via `calculatePerennialStatus()`. See ADR 025.
 
 ### Vegetable Database
 
@@ -146,33 +145,16 @@ Authoring spec: `src/lib/preservation/data/README.md`. All categories are fully 
 
 ### Data Sharing
 
-The app supports sharing allotment data between devices via a simple share/receive flow using temporary cloud storage:
+The share/receive flow (temporary Upstash Redis upload, 6-character code, QR) is effectively dormant. The sender UI, `src/components/share/ShareDialog.tsx`, has not been mounted anywhere since #255, so no user can create a share code. What remains reachable only by direct URL:
 
-**Share Flow (Sender):**
-1. Go to Settings > Share My Allotment
-2. Data uploads to Upstash Redis (expires in 5 minutes)
-3. QR code and 6-character code displayed
-4. Share with receiving device
-
-**Receive Flow (Receiver):**
-1. Scan QR or enter code at `/receive`
-2. Preview shared data (name, planting count, etc.)
-3. Confirm import - replaces local data with automatic backup
-
-**API Routes:**
 - `src/app/api/share/route.ts` - POST: Upload data, returns 6-char code
 - `src/app/api/share/[code]/route.ts` - GET: Retrieve data by code
+- `src/app/receive/page.tsx` - Code entry and QR scanner (`html5-qrcode`)
+- `src/app/receive/[code]/page.tsx` - Preview and import confirmation (writes the legacy localStorage key)
 
-**UI Components:**
-- `src/components/share/ShareDialog.tsx` - QR and code display dialog
-- `src/app/receive/page.tsx` - Code entry and QR scanner (uses `html5-qrcode` for cross-browser compatibility)
-- `src/app/receive/[code]/page.tsx` - Preview and import confirmation
+Cross-device sync is now the Supabase cloud sync below. **Environment:** the share routes need `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
-**Settings Page:** `/settings` has two tabs in the first release — Data (transfer, share, danger zone with account deletion) and Help (guided tours). A third "AI & Location" tab (API key, geolocation) is conditionally rendered when `SHOW_AI_ADVISOR` is `true` in `release-visibility.ts`.
-
-**Environment:** Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for the share feature.
-
-See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
+**Settings Page:** `/settings` has up to three tabs. "AI & Location" (Aitor on/off toggle, free-quota display, optional BYO OpenAI key, geolocation) is rendered only when signed in and is the landing tab then. Data (export/import, cloud history when signed in, Danger Zone with "Clear Local Data", plus account deletion when signed in) and Help (guided tours) are always shown.
 
 ### Authentication (Clerk)
 
@@ -202,41 +184,47 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 
 ### GDPR Compliance
 
-`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
+`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. No UI calls the GET export; the Settings Data tab's Transfer section exports a local JSON backup file, and its Danger Zone calls `DELETE /api/account` for account deletion (signed in only).
 
 ### AI Advisor
 
-> **Note:** AI Advisor (Aitor) is currently **hidden for the first release** via `SHOW_AI_ADVISOR = false` in `src/config/release-visibility.ts`. The `/ai-advisor` route, chat modal, floating chat button, AI settings tab, and related onboarding paths are disconnected from navigation. The underlying code is preserved — flip the constant to `true` to re-enable.
+Aitor is opt-in per user. `AitorAuthGate` (`src/components/ai-advisor/AitorAuthGate.tsx`, mounted in `src/app/layout.tsx`) renders the floating chat button and modal only when the user is signed in and `meta.aiAdvisorEnabled === true` (toggled in Settings > AI & Location or the Today dashboard opt-in banner). It is not in the navigation; `/ai-advisor` just opens the chat and redirects to `/`.
 
 `src/app/api/ai-advisor/route.ts` is a Next.js API route that:
+- Requires Clerk auth (401 otherwise) and applies a short-window per-user rate limit
 - Accepts user messages and optional plant images
-- Proxies to OpenAI API (gpt-4o for vision, gpt-4o-mini for text)
-- Uses BYO token via `x-openai-token` header (or server-side `OPENAI_API_KEY` env var)
+- Picks a provider in order: BYO `x-openai-token` header (no quota) → server `GEMINI_API_KEY` (free tier, per-user monthly quota from `src/lib/supabase/ai-usage.ts`) → server `OPENAI_API_KEY`
+- On OpenAI paths uses gpt-4o for vision and gpt-4o-mini for text
 - Includes allotment context in system prompt when provided
-- Supports function calling for data modification (add/update/remove plantings)
+- Supports function calling for data modification only when `AI_TOOLS_ENABLED=true` and on an OpenAI provider
 
 ### AI Tool Execution
 
 `src/services/ai-tool-executor.ts` handles AI-initiated data modifications:
 - Executes tool calls from AI responses (add_planting, update_planting, remove_planting, list_areas)
-- Requires user confirmation via `ToolCallConfirmation` component before execution
+- Requires user confirmation via `ToolCallConfirmation` component before execution (applied in `AitorChatModal` via `saveAllotmentData`, i.e. the legacy localStorage key)
 - Supports area name resolution (e.g., "Bed A" instead of internal IDs)
 - Tool schema defined in `src/lib/ai-tools-schema.ts`
 
 ### Onboarding
 
 `src/components/onboarding/OnboardingWizard.tsx` - 3-screen welcome for new users:
-1. Welcome with three paths (explore/plan/ask)
+1. Welcome with two paths (explore/plan)
 2. Contextual guidance based on chosen path
 3. Success confirmation with next steps
 
 ### Component Organization
 
-- `src/components/garden-planner/` - garden grid (GardenGrid, GridSizeControls, PlantSelectionDialog), bed editor, calendar
-- `src/components/allotment/` - allotment grid, bed items
-- `src/components/ai-advisor/` - chat interface components
-- `src/components/share/` - Data sharing UI (ShareDialog)
-- `src/components/ui/` - shared UI components (Dialog, SaveIndicator)
+- `src/components/allotment/` - allotment grid, bed items, area/planting forms, `details/` panels (bed, permanent, infrastructure, care log, harvest)
+- `src/components/dashboard/` - Today dashboard (task list, weather, frost and Aitor opt-in banners)
+- `src/components/garden-planner/` - `UnifiedCalendar` only
+- `src/components/ai-advisor/` - Aitor chat (auth gate, modal, tool-call confirmation)
+- `src/components/settings/` - Settings Data tab, cloud history, AI quota
+- `src/components/onboarding/` - wizard and guided tours
+- `src/components/auth/`, `plants/`, `seeds/`, `season-review/` - feature-specific pieces
+- `src/components/testing/` - `E2ETestBridge` for Playwright
+- `src/components/share/` - unmounted `ShareDialog` (see Data Sharing)
+- `src/components/ui/` - shared UI components (Dialog, Tabs, Toast, OfflineIndicator, StorageWarningBanner)
 
 ### Path Aliases
 
@@ -244,24 +232,28 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 
 ### Release Visibility Config
 
-`src/config/release-visibility.ts` exports boolean constants that gate advanced features hidden for the first release. All constants are `false` for the first release; flip to `true` to re-enable:
+`src/config/release-visibility.ts` exports boolean constants that gate advanced features (most are off for the first release). Current values:
 
-- `SHOW_ROTATION_SUGGESTIONS` — auto-rotate button/dialog and "X/Y to rotate" in season widget
-- `SHOW_ADVANCED_AREA_FIELDS` — Short ID and Built-in-year fields in Add Area form
-- `SHOW_CARE_LOGS` — care log section in permanent area detail panels
-- `SHOW_UNDERPLANTINGS` — underplantings list in permanent area detail panels
-- `SHOW_AI_ADVISOR` — AI Advisor (Aitor) chat modal, floating button, `/ai-advisor` route, and AI/Location settings tab
+- `SHOW_ROTATION_SUGGESTIONS = false` — auto-rotate button/dialog and "X/Y to rotate" in season widget
+- `SHOW_ADVANCED_AREA_FIELDS = false` — Short ID and Built-in-year fields in Add Area form
+- `SHOW_CARE_LOGS = true` — care log section in permanent area detail panels
+- `SHOW_UNDERPLANTINGS = false` — underplantings list in permanent area detail panels
 
 Import the relevant constant and wrap advanced JSX in `{SHOW_X && (...)}`. Props, imports, state, and logic stay untouched — only rendering is gated.
 
 ## Migration and Backward Compatibility
 
-The app supports automatic schema migration for users on older data versions. Current schema is v18. Users on older schemas (v1-v17) automatically migrate on next app load with automatic backup creation.
+The app supports automatic schema migration for users on older data versions (`migrateSchema` in `src/services/storage-migrations.ts`). Current schema is v23 (`CURRENT_SCHEMA_VERSION` in `src/types/unified-allotment.ts`). Data on v16-v22 migrates automatically with a backup created first; data older than v16 (`MINIMUM_SUPPORTED_VERSION`) is rejected and needs a fresh start. Migration runs when the legacy JSON is seeded or imported, not on the live Yjs doc.
 
 ### Key Schema Milestones
 
+- **v23**: Season Observer — observation care-log types (germinated, thinned, flowering, pest, disease, bolted, damage), `CareLogEntry.severity`/`photoId`/`plantingId`, `Planting.endedOn` (no data transform)
+- **v22**: `meta.aiAdvisorEnabled` and `meta.aiAdvisorPromptDismissedAt` for Aitor opt-in (no data transform)
+- **v21**: `meta.frostDates` for frost-aware planning (no data transform)
+- **v20**: Repaired planting status drift (stale `planned` promoted to `active`/`harvested` from dates)
+- **v19**: `water` care-log type and coordinates for weather-aware watering (no data transform)
 - **v18** (2026-03-04): Integrated compost data into AllotmentData (migrates from separate localStorage key)
-- **v17**: Added compost field to AllotmentData schema
+- **v17**: Added `customTasks` array
 - **v16** (2026-01-28): Removed `plannedYears` from `StoredVariety`, simplified to use `seedsByYear` as single source of truth for year tracking
 - **v15**: Added `PlantingStatus` for lifecycle tracking
 - **v14** (2026-01-23): Moved grid positions to `AreaSeason.gridPosition` for per-year layouts
