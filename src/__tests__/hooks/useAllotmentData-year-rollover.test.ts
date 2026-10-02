@@ -140,6 +140,64 @@ describe('useAllotmentData year rollover', () => {
     expect(result.current.a.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
   })
 
+  it('rolls forward again when the first cloud sync adopts a stale 2026 lineage', async () => {
+    vi.setSystemTime(new Date('2027-01-02T09:00:00'))
+    vi.resetModules()
+
+    // Build the cloud doc from the fresh module registry with a distinct
+    // clientID, so it never collides with the app's local doc.
+    const yjsMod = await import('@/lib/yjs/allotment-yjs')
+    const { store: cloudStore, doc: cloudDoc } = yjsMod.createAllotmentDoc()
+    cloudDoc.clientID = 4242424242
+    yjsMod.hydrateFromJson(cloudStore, makeFixture())
+    const remoteUpdate = yjsMod.encodeDocState(cloudDoc)
+
+    vi.doMock('@/hooks/useOptionalAuth', () => ({
+      clerkAvailable: true,
+      useOptionalAuth: () => ({
+        getToken: async () => 'token',
+        userId: 'user-rollover',
+        isSignedIn: true,
+      }),
+    }))
+    vi.doMock('@/lib/supabase/client', () => ({
+      isSupabaseConfigured: () => true,
+      createAnonClient: () => null,
+      createAuthClient: () => null,
+    }))
+    vi.doMock('@/lib/supabase/sync-binary', () => ({
+      fetchRemoteBinary: async () => ({
+        exists: true,
+        update: remoteUpdate,
+        yjsUpdatedAt: '2026-12-01T00:00:00.000Z',
+        jsonb: makeFixture(),
+      }),
+      pushBinary: async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
+    }))
+
+    try {
+      // Brand-new device: no lineage flag, so the first sync adopts the cloud doc.
+      const mod = await import('@/hooks/allotment/useAllotmentData')
+      const { result } = renderHook(() => mod.useAllotmentData())
+
+      await waitFor(() => {
+        expect(result.current.data?.meta.name).toBe('Rollover Allotment')
+      }, { timeout: 5000 })
+      await waitFor(() => {
+        expect(result.current.data?.seasons.map(s => s.year)).toContain(2027)
+      })
+      expect(result.current.data?.currentYear).toBe(2027)
+      expect(result.current.selectedYear).toBe(2027)
+      expect(result.current.currentSeason?.year).toBe(2027)
+      expect(result.current.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
+    } finally {
+      vi.doUnmock('@/hooks/useOptionalAuth')
+      vi.doUnmock('@/lib/supabase/client')
+      vi.doUnmock('@/lib/supabase/sync-binary')
+      vi.resetModules()
+    }
+  }, 30_000)
+
   it('leaves a current-year doc alone', async () => {
     await persist2026DocToIndexedDB()
 

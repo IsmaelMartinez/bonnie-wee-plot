@@ -103,17 +103,13 @@ export function useAllotmentData(): UseAllotmentDataReturn {
   // that syncs. The in-transaction year check keeps several consumers
   // sharing the doc to one season; seasons are keyed by year, so a
   // concurrent rollover on another device collapses in `dedupeStore`.
-  const initializedRef = useRef(false)
-  const { mutate: mutateDoc } = yjs
-  useEffect(() => {
-    if (!yjs.data || initializedRef.current) return
-    initializedRef.current = true
+  // Returns the year it rolled forward to, or null when nothing was stale.
+  const { mutate: mutateDoc, getSnapshot } = yjs
+  const rollForwardToThisYear = useCallback((): number | null => {
+    const snapshot = getSnapshot()
     const thisYear = new Date().getFullYear()
-    if (yjs.data.currentYear >= thisYear) {
-      setSelectedYear(yjs.data.currentYear)
-      return
-    }
-    const rolled = ensureCurrentYearSeason(yjs.data, thisYear)
+    if (!snapshot || snapshot.currentYear >= thisYear) return null
+    const rolled = ensureCurrentYearSeason(snapshot, thisYear)
     const season = rolled.seasons.find(s => s.year === thisYear)!
     mutateDoc(store => {
       if (!store.seasons.some(s => s.year === thisYear)) {
@@ -124,8 +120,28 @@ export function useAllotmentData(): UseAllotmentDataReturn {
       }
       if (store.state.currentYear < thisYear) store.state.currentYear = thisYear
     })
-    setSelectedYear(thisYear)
-  }, [yjs.data, mutateDoc])
+    return thisYear
+  }, [getSnapshot, mutateDoc])
+
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (!yjs.data || initializedRef.current) return
+    initializedRef.current = true
+    // Read the live doc: another consumer may already have rolled it forward.
+    rollForwardToThisYear()
+    setSelectedYear(getSnapshot()?.currentYear ?? yjs.data.currentYear)
+  }, [yjs.data, getSnapshot, rollForwardToThisYear])
+
+  // A device's first cloud sync adopts the cloud lineage, replacing the doc
+  // the rollover above wrote to. Check once more after that first sync. This
+  // is not repeated on later syncs, so a user who picks an older year keeps it.
+  const rolledAfterSyncRef = useRef(false)
+  useEffect(() => {
+    if (cloud.syncStatus !== 'synced' || rolledAfterSyncRef.current) return
+    rolledAfterSyncRef.current = true
+    const year = rollForwardToThisYear()
+    if (year !== null) setSelectedYear(year)
+  }, [cloud.syncStatus, rollForwardToThisYear])
 
   // Local-save indicator. `y-indexeddb` persists each doc update
   // near-immediately, so a mutation is effectively saved the moment the
