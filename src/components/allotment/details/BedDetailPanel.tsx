@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Sprout, Plus, ArrowRight, Leaf, Pencil, Trash2 } from 'lucide-react'
 import { BED_COLORS } from '@/data/allotment-layout'
-import { getVegetableName } from '@/lib/vegetable-loader'
+import { getVegetableName } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { SHOW_ROTATION_SUGGESTIONS } from '@/config/release-visibility'
 import { RotationGroup } from '@/types/garden-planner'

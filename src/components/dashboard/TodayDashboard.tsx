@@ -4,7 +4,7 @@ import { useTodayData } from '@/hooks/useTodayData'
 import { useAllotment } from '@/hooks/useAllotment'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import { isFrostTender } from '@/lib/hardiness'
-import { getVegetableByIdCached } from '@/lib/vegetable-loader'
+import { getVegetableById } from '@/lib/vegetable-database'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
@@ -89,7 +89,7 @@ export default function TodayDashboard() {
       const tenderNames: string[] = []
       for (const planting of areaSeason.plantings || []) {
         if (planting.status === 'removed' || planting.status === 'harvested') continue
-        const veg = getVegetableByIdCached(planting.plantId)
+        const veg = getVegetableById(planting.plantId)
         if (veg && isFrostTender(veg.hardiness)) {
           tenderNames.push(veg.name)
         }

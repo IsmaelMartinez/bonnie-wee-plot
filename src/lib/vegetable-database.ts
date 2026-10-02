@@ -47,9 +47,15 @@ export const vegetables: Vegetable[] = [
   ...other,
 ]
 
+const vegetablesById = new Map(vegetables.map(v => [v.id, v]))
+
 // Helper functions for working with vegetable data
 export function getVegetableById(id: string): Vegetable | undefined {
-  return vegetables.find(v => v.id === id)
+  return vegetablesById.get(id)
+}
+
+export function getVegetableName(id: string): string | undefined {
+  return vegetablesById.get(id)?.name
 }
 
 export function getVegetablesByCategory(category: VegetableCategory): Vegetable[] {

@@ -14,7 +14,7 @@ import {
   TreeDeciduous,
   Sprout
 } from 'lucide-react'
-import { getVegetableName } from '@/lib/vegetable-loader'
+import { getVegetableName } from '@/lib/vegetable-database'
 import { getNextRotationGroup, ROTATION_GROUP_DISPLAY, getVegetablesForRotationGroup } from '@/lib/rotation'
 import { RotationGroup } from '@/types/garden-planner'
 import { NewPlanting, AreaSeason, GridPosition } from '@/types/unified-allotment'
