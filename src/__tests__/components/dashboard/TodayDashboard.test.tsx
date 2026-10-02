@@ -78,6 +78,18 @@ describe('TodayDashboard frost banner', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it('does not list a statusless legacy planting with no sow or transplant date', () => {
+    withBedAPlantings([{ id: 'p1', plantId: 'courgette' }])
+    render(<TodayDashboard />)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('lists a statusless legacy planting that has a sow date', () => {
+    withBedAPlantings([{ id: 'p1', plantId: 'courgette', sowDate: '2026-05-01' }])
+    render(<TodayDashboard />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Courgettes (Zucchini)')
+  })
+
   it('does not list a tender planting that has already ended', () => {
     withBedAPlantings([
       { id: 'p1', plantId: 'courgette', status: 'active' },

@@ -5,6 +5,7 @@ import { useAllotment } from '@/hooks/useAllotment'
 import { getCurrentSeason, getSeasonalTheme, SEASON_NAMES } from '@/lib/seasonal-theme'
 import { isFrostTender } from '@/lib/hardiness'
 import { getVegetableById } from '@/lib/vegetable-database'
+import { inferStatusFromDates } from '@/lib/planting-utils'
 import SeasonCard from './SeasonCard'
 import TaskList from './TaskList'
 import QuickActions from './QuickActions'
@@ -88,7 +89,8 @@ export default function TodayDashboard() {
     for (const areaSeason of currentSeason.areas || []) {
       const tenderNames: string[] = []
       for (const planting of areaSeason.plantings || []) {
-        const status = planting.status || 'active'
+        // Legacy statusless plantings without dates are still unsown (v20 leaves them undefined).
+        const status = planting.status ?? inferStatusFromDates(planting)
         if (status === 'removed' || status === 'harvested' || status === 'planned') continue
         if (planting.endedOn && planting.endedOn.slice(0, 10) <= todayIso) continue
         const veg = getVegetableById(planting.plantId)
