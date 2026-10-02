@@ -11,7 +11,7 @@
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
 import { Vegetable, Month, WaterRequirement, FeedType, StorageMethod } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { getGerminationDays, parseDate, addDays, formatDate, differenceInDays, windowBounds } from '@/lib/date-calculator'
+import { getGerminationDays, parseDate, addDays, formatDate, differenceInDays, runEnd, nextRun } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
 import type { RainfallSummary } from '@/lib/weather/open-meteo'
 import { shouldSkipWatering } from '@/lib/weather/open-meteo'
@@ -352,18 +352,24 @@ export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'fe
  * fire months early on the crop's coarse `harvestMonths`; returns null when no
  * expected dates are present so the caller can fall back. The expected end is
  * only the latest first harvest, so the window runs to the later of it and the
- * end of the crop's harvest season in that year. Compares full dates, so last
+ * end of the contiguous run of `harvestMonths` containing the expected start
+ * (not across a gap such as spinach's September). Compares full dates, so last
  * year's window does not match this year.
  */
 function isInExpectedHarvestWindow(planting: Planting, harvestMonths: Month[], today: Date): boolean | null {
   if (!planting.expectedHarvestStart) return null
   let end = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
+  const start = parseDate(planting.expectedHarvestStart)
+  const startMonth = start.getMonth() + 1
   if (harvestMonths.length > 0) {
-    const season = windowBounds(harvestMonths)
-    const start = parseDate(planting.expectedHarvestStart)
-    // A season wrapping the year end (Nov–Feb) that began this year ends next year.
-    const wraps = season.end < season.start && start.getMonth() + 1 >= season.start
-    const seasonEnd = formatDate(new Date(start.getFullYear() + (wraps ? 1 : 0), season.end, 0))
+    // The run holding the expected start, or the next run when the first
+    // harvest lands just before the crop's listed months (courgette in June).
+    const lastMonth = harvestMonths.includes(startMonth as Month)
+      ? runEnd(harvestMonths, startMonth)
+      : nextRun(harvestMonths, startMonth).end
+    // A run wrapping the year end (Nov–Feb) ends the following year.
+    const endYear = start.getFullYear() + (lastMonth < startMonth ? 1 : 0)
+    const seasonEnd = formatDate(new Date(endYear, lastMonth, 0))
     if (seasonEnd > end) end = seasonEnd
   }
   const todayStr = formatDate(today)

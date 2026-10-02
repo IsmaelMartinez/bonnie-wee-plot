@@ -190,7 +190,7 @@ export function differenceInDays(to: Date, from: Date): number {
  * that wraps the year end ([11, 12, 1, 2, 3]) runs November to March. The
  * window starts after the longest run of missing months.
  */
-export function windowBounds(months: number[]): { start: number; end: number } {
+function windowBounds(months: number[]): { start: number; end: number } {
   const sorted = [...new Set(months)].sort((a, b) => a - b)
   let start = sorted[0]
   let end = sorted[sorted.length - 1]
@@ -219,13 +219,22 @@ const nextMonth = (m: number) => (m % 12) + 1
  * the suggestion never begins before the entered date. `month` must be outside
  * the window, which guarantees a run start is reached within twelve steps.
  */
-function nextRun(months: number[], month: number): { start: number; end: number } {
+export function nextRun(months: number[], month: number): { start: number; end: number } {
   const set = new Set(months)
   let start = nextMonth(month)
   while (!set.has(start)) start = nextMonth(start)
-  let end = start
-  while (set.has(nextMonth(end))) end = nextMonth(end)
-  return { start, end }
+  return { start, end: runEnd(months, start) }
+}
+
+/**
+ * Last month of the contiguous (cyclic) run of `months` containing `month`,
+ * which must be in `months`. Stops after eleven steps for a full-year window.
+ */
+export function runEnd(months: number[], month: number): number {
+  const set = new Set(months)
+  let end = month
+  for (let i = 0; i < 11 && set.has(nextMonth(end)); i++) end = nextMonth(end)
+  return end
 }
 
 /**

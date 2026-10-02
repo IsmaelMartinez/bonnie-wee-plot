@@ -1747,6 +1747,33 @@ describe('task-generator', () => {
       expect(march.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
     })
 
+    it('ends the window at the end of the harvest run, not across a gap', () => {
+      // Spinach harvests May–Aug and Oct–Nov; September is a gap.
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [5, 6, 7, 8, 10, 11] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2026-06-10',
+            expectedHarvestEnd: '2026-06-25',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const lateAugust = generateTasksForMonth(8 as Month, plantings, [], new Date(2026, 7, 28, 10))
+      expect(lateAugust.some(t => t.id === 'preserve-nudge-courgette-8')).toBe(true)
+
+      const september = generateTasksForMonth(9 as Month, plantings, [], new Date(2026, 8, 15, 10))
+      expect(september.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
     it('nudges inside an expected window that spans the year end', () => {
       mockGetVegetableById.mockReturnValue(courgetteVeg)
 
