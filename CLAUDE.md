@@ -45,7 +45,7 @@ npx playwright test tests/homepage.spec.ts
 
 ### Data Model
 
-The app uses a unified data model held in a Yjs document persisted to IndexedDB (`bwp-allotment-yjs`, see the Yjs Storage Engine section); the legacy localStorage key `allotment-unified-data` is only the first-run seed and the import/restore hand-off. The core types are defined in `src/types/unified-allotment.ts`:
+The app uses a unified data model held in a Yjs document persisted to IndexedDB (`bwp-allotment-yjs`, see the Yjs Storage Engine section); the legacy localStorage key `allotment-unified-data` is only the first-run seed and the hand-off for flows that write JSON there and then re-hydrate the doc (import, cloud-history restore and AI tool execution call `reload()`; receive clears the Yjs IndexedDB and redirects). The core types are defined in `src/types/unified-allotment.ts`:
 
 `AllotmentData` is the root structure containing:
 - `meta` - allotment name, location, timestamps
@@ -154,7 +154,7 @@ The share/receive flow (temporary Upstash Redis upload, 6-character code, QR) is
 
 Cross-device sync is now the Supabase cloud sync below. **Environment:** the share routes need `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. See `docs/adrs/024-p2p-sync-architecture.md` for decision history.
 
-**Settings Page:** `/settings` has up to three tabs. "AI & Location" (Aitor on/off toggle, free-quota display, optional BYO OpenAI key, geolocation) is rendered only when signed in and is the landing tab then. Data (export/import, cloud history when signed in, Danger Zone with account deletion when signed in) and Help (guided tours) are always shown.
+**Settings Page:** `/settings` has up to three tabs. "AI & Location" (Aitor on/off toggle, free-quota display, optional BYO OpenAI key, geolocation) is rendered only when signed in and is the landing tab then. Data (export/import, cloud history when signed in, Danger Zone with "Clear Local Data", plus account deletion when signed in) and Help (guided tours) are always shown.
 
 ### Authentication (Clerk)
 
