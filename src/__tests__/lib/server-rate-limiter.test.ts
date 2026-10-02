@@ -124,6 +124,18 @@ describe('server-rate-limiter', () => {
       expect(mockMulti).not.toHaveBeenCalled()
     })
 
+    it('self-heals a key left without a TTL by the old non-atomic code', async () => {
+      // The key is not time-bucketed, so a TTL-less key would count up forever
+      // and permanently rate-limit that caller unless the TTL is restored.
+      mockExec.mockResolvedValue([null, 50, -1])
+      mockExpire.mockResolvedValue(1)
+
+      const result = await checkRateLimit('1.2.3.4', config)
+
+      expect(mockExpire).toHaveBeenCalledWith('ratelimit:test:1.2.3.4', 60)
+      expect(result.resetInSeconds).toBe(60)
+    })
+
     it('uses windowSeconds as fallback when TTL returns non-positive', async () => {
       mockExec.mockResolvedValue([null, 4, -1]) // key has no TTL
 
