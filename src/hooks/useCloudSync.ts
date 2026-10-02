@@ -74,6 +74,11 @@ export interface UseCloudSyncOptions {
    * local edit. The push effect skips scheduling in that case.
    */
   isSyncedFromOtherTab?: boolean
+  /**
+   * Called after the doc adopts the cloud lineage. Returning `true` (it edited
+   * the adopted doc) queues one more sync pass so that edit is pushed.
+   */
+  onLineageAdopted?: () => boolean
 }
 
 export interface UseCloudSyncReturn {
@@ -141,6 +146,7 @@ export function useCloudSync({
   hasUpdatesBeyond,
   flushLocal,
   isSyncedFromOtherTab,
+  onLineageAdopted,
 }: UseCloudSyncOptions): UseCloudSyncReturn {
   const { getToken, userId, isSignedIn } = useOptionalAuth()
   const { isOnline, justReconnected } = useNetworkStatus()
@@ -227,6 +233,13 @@ export function useCloudSync({
     }
   }
 
+  // An edit made to the just-adopted doc (e.g. the year rollover) arrives
+  // with the remote origin still flagged, so the push effect skips it; queue a
+  // follow-up pass instead, which `runSync` starts once this one finishes.
+  const afterAdoption = (): void => {
+    if (onLineageAdopted?.()) pendingSyncRef.current = true
+  }
+
   // Full reconcile for one sync pass.
   const reconcile = async (
     token: string,
@@ -255,6 +268,7 @@ export function useCloudSync({
     if (firstDeviceSync) {
       if (remote.update) {
         await adoptRemoteUpdate(remote.update)
+        afterAdoption()
         return
       }
       // Migration: cloud has JSONB but no binary. Hydrate it and CAS-seed the
@@ -268,7 +282,10 @@ export function useCloudSync({
       if (res.casConflict) {
         const fresh = await fetchRemoteBinary(token, syncUserId)
         if (isStaleSyncUser(syncUserId)) return
-        if (fresh.update) await adoptRemoteUpdate(fresh.update)
+        if (fresh.update) {
+          await adoptRemoteUpdate(fresh.update)
+          afterAdoption()
+        }
       }
       return
     }

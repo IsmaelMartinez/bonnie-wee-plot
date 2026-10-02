@@ -75,21 +75,77 @@ async function resetIndexedDB(): Promise<void> {
 }
 
 /**
- * Persist a 2026 doc into IndexedDB under a 2026 clock, then clear the legacy
- * key so the next mount restores from IndexedDB (the post-cutover steady
- * state) instead of re-seeding through `initializeStorage()`.
+ * Persist `fixture` into IndexedDB under a clock in the fixture's year, then
+ * clear the legacy key so the next mount restores from IndexedDB (the
+ * post-cutover steady state) instead of re-seeding through
+ * `initializeStorage()`.
  */
-async function persist2026DocToIndexedDB(): Promise<void> {
-  vi.setSystemTime(new Date('2026-06-01T12:00:00'))
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeFixture()))
+async function persistDocToIndexedDB(fixture: AllotmentData = makeFixture()): Promise<void> {
+  vi.setSystemTime(new Date(`${fixture.currentYear}-06-01T12:00:00`))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(fixture))
   const first = renderHook(() => useAllotmentData())
   await waitFor(() => expect(first.result.current.data).not.toBeNull())
-  expect(first.result.current.data?.currentYear).toBe(2026)
+  expect(first.result.current.data?.currentYear).toBe(fixture.currentYear)
   await act(async () => {
     await first.result.current.flushSave()
   })
   first.unmount()
   localStorage.removeItem(STORAGE_KEY)
+}
+
+interface CloudMock {
+  fetchRemoteBinary: () => Promise<unknown>
+  pushBinary: ReturnType<typeof vi.fn>
+}
+
+/**
+ * Import `useAllotmentData` in a fresh module registry with a signed-in user
+ * and a mocked Supabase binary transport.
+ */
+async function importWithCloud(cloud: CloudMock): Promise<typeof useAllotmentData> {
+  vi.resetModules()
+  vi.doMock('@/hooks/useOptionalAuth', () => ({
+    clerkAvailable: true,
+    useOptionalAuth: () => ({
+      getToken: async () => 'token',
+      userId: 'user-rollover',
+      isSignedIn: true,
+    }),
+  }))
+  vi.doMock('@/lib/supabase/client', () => ({
+    isSupabaseConfigured: () => true,
+    createAnonClient: () => null,
+    createAuthClient: () => null,
+  }))
+  vi.doMock('@/lib/supabase/sync-binary', () => ({
+    fetchRemoteBinary: cloud.fetchRemoteBinary,
+    pushBinary: cloud.pushBinary,
+  }))
+  const mod = await import('@/hooks/allotment/useAllotmentData')
+  return mod.useAllotmentData
+}
+
+function unmockCloud(): void {
+  vi.doUnmock('@/hooks/useOptionalAuth')
+  vi.doUnmock('@/lib/supabase/client')
+  vi.doUnmock('@/lib/supabase/sync-binary')
+  vi.resetModules()
+}
+
+/** Encode `data` as a cloud Yjs binary from the current module registry. */
+async function encodeCloudDoc(data: AllotmentData): Promise<Uint8Array> {
+  const yjsMod = await import('@/lib/yjs/allotment-yjs')
+  const { store, doc } = yjsMod.createAllotmentDoc()
+  // Distinct clientID so the cloud lineage never collides with the app's
+  // local doc (lib0's RNG is deterministic in this environment).
+  doc.clientID = 4242424242
+  yjsMod.hydrateFromJson(store, data)
+  return yjsMod.encodeDocState(doc)
+}
+
+async function seasonYearsInState(state: Uint8Array): Promise<number[]> {
+  const yjsMod = await import('@/lib/yjs/allotment-yjs')
+  return yjsMod.serializeToJson(yjsMod.decodeDocState(state).store).seasons.map(s => s.year)
 }
 
 describe('useAllotmentData year rollover', () => {
@@ -105,7 +161,7 @@ describe('useAllotmentData year rollover', () => {
   })
 
   it('creates and selects the new season when a 2026 doc opens in 2027', async () => {
-    await persist2026DocToIndexedDB()
+    await persistDocToIndexedDB()
 
     vi.setSystemTime(new Date('2027-01-01T09:00:00'))
     const { result } = renderHook(() => useAllotmentData())
@@ -126,7 +182,7 @@ describe('useAllotmentData year rollover', () => {
   })
 
   it('creates exactly one 2027 season when several consumers mount together', async () => {
-    await persist2026DocToIndexedDB()
+    await persistDocToIndexedDB()
 
     vi.setSystemTime(new Date('2027-01-01T09:00:00'))
     // Navigation plus page: two hook instances sharing the singleton doc.
@@ -140,45 +196,26 @@ describe('useAllotmentData year rollover', () => {
     expect(result.current.a.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
   })
 
-  it('rolls forward again when the first cloud sync adopts a stale 2026 lineage', async () => {
+  it('rolls forward and pushes when the first cloud sync adopts a stale 2026 lineage', async () => {
     vi.setSystemTime(new Date('2027-01-02T09:00:00'))
     vi.resetModules()
-
-    // Build the cloud doc from the fresh module registry with a distinct
-    // clientID, so it never collides with the app's local doc.
-    const yjsMod = await import('@/lib/yjs/allotment-yjs')
-    const { store: cloudStore, doc: cloudDoc } = yjsMod.createAllotmentDoc()
-    cloudDoc.clientID = 4242424242
-    yjsMod.hydrateFromJson(cloudStore, makeFixture())
-    const remoteUpdate = yjsMod.encodeDocState(cloudDoc)
-
-    vi.doMock('@/hooks/useOptionalAuth', () => ({
-      clerkAvailable: true,
-      useOptionalAuth: () => ({
-        getToken: async () => 'token',
-        userId: 'user-rollover',
-        isSignedIn: true,
-      }),
-    }))
-    vi.doMock('@/lib/supabase/client', () => ({
-      isSupabaseConfigured: () => true,
-      createAnonClient: () => null,
-      createAuthClient: () => null,
-    }))
-    vi.doMock('@/lib/supabase/sync-binary', () => ({
-      fetchRemoteBinary: async () => ({
-        exists: true,
-        update: remoteUpdate,
-        yjsUpdatedAt: '2026-12-01T00:00:00.000Z',
-        jsonb: makeFixture(),
-      }),
-      pushBinary: async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
-    }))
+    const remoteUpdate = await encodeCloudDoc(makeFixture())
+    const pushBinary = vi.fn<(...args: unknown[]) => Promise<unknown>>(
+      async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
+    )
 
     try {
       // Brand-new device: no lineage flag, so the first sync adopts the cloud doc.
-      const mod = await import('@/hooks/allotment/useAllotmentData')
-      const { result } = renderHook(() => mod.useAllotmentData())
+      const useHook = await importWithCloud({
+        fetchRemoteBinary: async () => ({
+          exists: true,
+          update: remoteUpdate,
+          yjsUpdatedAt: '2026-12-01T00:00:00.000Z',
+          jsonb: makeFixture(),
+        }),
+        pushBinary,
+      })
+      const { result } = renderHook(() => useHook())
 
       await waitFor(() => {
         expect(result.current.data?.meta.name).toBe('Rollover Allotment')
@@ -190,16 +227,74 @@ describe('useAllotmentData year rollover', () => {
       expect(result.current.selectedYear).toBe(2027)
       expect(result.current.currentSeason?.year).toBe(2027)
       expect(result.current.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
+
+      // The rollover on the adopted doc reaches the cloud without a further edit.
+      await waitFor(() => expect(pushBinary).toHaveBeenCalled(), { timeout: 5000 })
+      const pushedState = pushBinary.mock.calls.at(-1)![2] as Uint8Array
+      expect(await seasonYearsInState(pushedState)).toContain(2027)
     } finally {
-      vi.doUnmock('@/hooks/useOptionalAuth')
-      vi.doUnmock('@/lib/supabase/client')
-      vi.doUnmock('@/lib/supabase/sync-binary')
-      vi.resetModules()
+      unmockCloud()
     }
   }, 30_000)
 
+  it('keeps a year the user picks before the first cloud sync completes', async () => {
+    await persistDocToIndexedDB()
+
+    vi.setSystemTime(new Date('2027-01-02T09:00:00'))
+    let releaseFetch: () => void = () => {}
+    const fetchGate = new Promise<void>(resolve => { releaseFetch = resolve })
+
+    try {
+      // Slow first sync against an empty cloud: no adoption happens.
+      const useHook = await importWithCloud({
+        fetchRemoteBinary: async () => {
+          await fetchGate
+          return { exists: false, update: null, yjsUpdatedAt: null, jsonb: null }
+        },
+        pushBinary: vi.fn(async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' })),
+      })
+      const { result } = renderHook(() => useHook())
+      await waitFor(() => {
+        expect(result.current.data?.seasons.map(s => s.year)).toContain(2027)
+      })
+      expect(result.current.selectedYear).toBe(2027)
+
+      act(() => result.current.selectYear(2026))
+      await waitFor(() => expect(result.current.syncStatus).toBe('syncing'))
+      await act(async () => {
+        releaseFetch()
+      })
+      await waitFor(() => expect(result.current.syncStatus).toBe('synced'))
+
+      expect(result.current.selectedYear).toBe(2026)
+      expect(result.current.data?.currentYear).toBe(2026)
+    } finally {
+      unmockCloud()
+    }
+  }, 30_000)
+
+  it('creates the missing current-year season without moving a skewed currentYear back', async () => {
+    // A device with a fast clock wrote currentYear=2028.
+    const skewed: AllotmentData = { ...makeFixture(), currentYear: 2028 }
+    skewed.seasons = [
+      ...skewed.seasons,
+      { ...skewed.seasons[0], year: 2028, status: 'planned' },
+    ]
+    await persistDocToIndexedDB(skewed)
+
+    vi.setSystemTime(new Date('2027-03-01T09:00:00'))
+    const { result } = renderHook(() => useAllotmentData())
+
+    await waitFor(() => {
+      expect(result.current.data?.seasons.map(s => s.year)).toContain(2027)
+    })
+    expect(result.current.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
+    expect(result.current.data?.currentYear).toBe(2028)
+    expect(result.current.selectedYear).toBe(2028)
+  })
+
   it('leaves a current-year doc alone', async () => {
-    await persist2026DocToIndexedDB()
+    await persistDocToIndexedDB()
 
     vi.setSystemTime(new Date('2026-12-31T23:00:00'))
     const { result } = renderHook(() => useAllotmentData())
