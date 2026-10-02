@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an opt-in AI gardening assistant for signed-in users (server-side Gemini free tier, or the user's own OpenAI key).
+Bonnie Wee Plot is a Next.js 16 application for garden planning and AI-powered gardening advice, built with React 19 and TypeScript. Users can plan their allotment plots, track plantings across seasons, and get advice from "Aitor" - an opt-in AI gardening assistant for signed-in users (server-side Gemini free tier, the user's own OpenAI key, or a server OpenAI key fallback).
 
 ## Commands
 
@@ -45,7 +45,7 @@ npx playwright test tests/homepage.spec.ts
 
 ### Data Model
 
-The app uses a unified data model held in a Yjs document persisted to IndexedDB (`bwp-allotment-yjs`, see the Yjs Storage Engine section); the legacy localStorage key `allotment-unified-data` is only the first-run seed and the hand-off for flows that write JSON there and then re-hydrate the doc (import, cloud-history restore and AI tool execution call `reload()`; receive clears the Yjs IndexedDB and redirects). The core types are defined in `src/types/unified-allotment.ts`:
+The app uses a unified data model held in a Yjs document persisted to IndexedDB (`bwp-allotment-yjs`, see the Yjs Storage Engine section); the legacy localStorage key `allotment-unified-data` is only the first-run seed and the hand-off for flows that write JSON there and then re-hydrate the doc (backup restore, Clear Local Data, cloud-history restore and AI tool execution call `reload()`; file import and receive clear the Yjs IndexedDB and then reload or redirect so the next mount re-seeds). The core types are defined in `src/types/unified-allotment.ts`:
 
 `AllotmentData` is the root structure containing:
 - `meta` - allotment name, location, timestamps
@@ -83,7 +83,7 @@ Query functions in `src/lib/variety-queries.ts`:
 ### Storage Service
 
 `src/services/allotment-storage.ts` is a barrel file re-exporting from focused modules:
-- `storage-core.ts` — read/write of the legacy `allotment-unified-data` localStorage blob and `initializeStorage()`, which `useYjsDoc` uses to seed the doc on first run and `reload()` uses to re-hydrate after an import or restore writes that key. It is not the live store
+- `storage-core.ts` — read/write of the legacy `allotment-unified-data` localStorage blob and `initializeStorage()`, which `useYjsDoc` uses to seed the doc on first run and `reload()` uses to re-hydrate after a restore or AI tool execution writes that key (file import and receive instead clear the Yjs IndexedDB so the next mount re-seeds from it). It is not the live store
 - `storage-validation.ts` — schema validation and data repair
 - `storage-migrations.ts` — schema migrations (current version: 23, minimum supported: 16), backup/restore, legacy migration
 - `season-operations.ts` — season CRUD and year management
@@ -108,7 +108,7 @@ All existing imports from `@/services/allotment-storage` continue to work unchan
 
 ### Task Generator
 
-`src/lib/task-generator.ts` generates automatic tasks for the Today dashboard based on plantings, areas, seed varieties, and the current month. Task types include harvest, sow-indoors, sow-outdoors, transplant, prune, feed, mulch, succession, and care-tip. Date-based tasks (from actual sow dates) take priority over month-based tasks (from the vegetable database calendar). Care tips (`careTips` on `Vegetable`) provide lifecycle-aware seasonal advice for perennials, filtered by month and the plant's `PerennialStatus` (establishing/productive/declining) via `calculatePerennialStatus()`. See ADR 025.
+`src/lib/task-generator.ts` generates automatic tasks for the Today dashboard based on plantings, areas, seed varieties, and the current month. Task types include harvest, sow-indoors, sow-outdoors, transplant, prune, feed, water, mulch, succession, and care-tip. Date-based tasks (from actual sow dates) take priority over month-based tasks (from the vegetable database calendar). Care tips (`careTips` on `Vegetable`) provide lifecycle-aware seasonal advice for perennials, filtered by month and the plant's `PerennialStatus` (establishing/productive/declining) via `calculatePerennialStatus()`. See ADR 025.
 
 ### Vegetable Database
 
@@ -184,7 +184,7 @@ Environment: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. A Cler
 
 ### GDPR Compliance
 
-`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. The Settings Data tab provides UI for export and account deletion in the Danger Zone section.
+`GET /api/account` exports user data as JSON download. `DELETE /api/account` deletes the Supabase row. Both require Clerk authentication. No UI calls the GET export; the Settings Data tab's Transfer section exports a local JSON backup file, and its Danger Zone calls `DELETE /api/account` for account deletion (signed in only).
 
 ### AI Advisor
 
@@ -222,6 +222,7 @@ Aitor is opt-in per user. `AitorAuthGate` (`src/components/ai-advisor/AitorAuthG
 - `src/components/settings/` - Settings Data tab, cloud history, AI quota
 - `src/components/onboarding/` - wizard and guided tours
 - `src/components/auth/`, `plants/`, `seeds/`, `season-review/` - feature-specific pieces
+- `src/components/testing/` - `E2ETestBridge` for Playwright
 - `src/components/share/` - unmounted `ShareDialog` (see Data Sharing)
 - `src/components/ui/` - shared UI components (Dialog, Tabs, Toast, OfflineIndicator, StorageWarningBanner)
 
@@ -231,7 +232,7 @@ Aitor is opt-in per user. `AitorAuthGate` (`src/components/ai-advisor/AitorAuthG
 
 ### Release Visibility Config
 
-`src/config/release-visibility.ts` exports boolean constants that gate advanced features hidden for the first release. Current values:
+`src/config/release-visibility.ts` exports boolean constants that gate advanced features (most are off for the first release). Current values:
 
 - `SHOW_ROTATION_SUGGESTIONS = false` — auto-rotate button/dialog and "X/Y to rotate" in season widget
 - `SHOW_ADVANCED_AREA_FIELDS = false` — Short ID and Built-in-year fields in Add Area form
