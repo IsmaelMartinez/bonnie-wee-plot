@@ -25,10 +25,11 @@ import {
   getSeasonByYear,
   getAvailableYears,
 } from '@/services/allotment-storage'
+import { ensureCurrentYearSeason } from '@/services/season-operations'
 import { useYjsDoc } from '../useYjsDoc'
 import { useCloudSync } from '../useCloudSync'
 import type { SaveStatus, SyncStatus } from '@/types/storage'
-import type { AllotmentStoreShape } from '@/lib/yjs/allotment-yjs'
+import { withoutUndefined, type AllotmentStoreShape } from '@/lib/yjs/allotment-yjs'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from '@/types/storage'
@@ -93,14 +94,38 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     isSyncedFromOtherTab: yjs.isSyncedFromOtherTab,
   })
 
-  // Initialise `selectedYear` from the first published snapshot.
+  // Initialise `selectedYear` from the first published snapshot, which only
+  // arrives after IndexedDB has synced (and any first-run seed has run), so
+  // the rollover below never writes into an empty doc. A doc restored from
+  // IndexedDB skips `initializeStorage()`, so roll a stale `currentYear`
+  // forward here, mirroring its legacy load-time rule. The season comes from
+  // `ensureCurrentYearSeason` and lands via `mutate` so it is a CRDT edit
+  // that syncs. The in-transaction year check keeps several consumers
+  // sharing the doc to one season; seasons are keyed by year, so a
+  // concurrent rollover on another device collapses in `dedupeStore`.
   const initializedRef = useRef(false)
+  const { mutate: mutateDoc } = yjs
   useEffect(() => {
-    if (yjs.data && !initializedRef.current) {
-      initializedRef.current = true
+    if (!yjs.data || initializedRef.current) return
+    initializedRef.current = true
+    const thisYear = new Date().getFullYear()
+    if (yjs.data.currentYear >= thisYear) {
       setSelectedYear(yjs.data.currentYear)
+      return
     }
-  }, [yjs.data])
+    const rolled = ensureCurrentYearSeason(yjs.data, thisYear)
+    const season = rolled.seasons.find(s => s.year === thisYear)!
+    mutateDoc(store => {
+      if (!store.seasons.some(s => s.year === thisYear)) {
+        store.seasons.push(withoutUndefined({
+          ...season,
+          areas: season.areas.map(area => withoutUndefined(area)),
+        }))
+      }
+      if (store.state.currentYear < thisYear) store.state.currentYear = thisYear
+    })
+    setSelectedYear(thisYear)
+  }, [yjs.data, mutateDoc])
 
   // Local-save indicator. `y-indexeddb` persists each doc update
   // near-immediately, so a mutation is effectively saved the moment the
