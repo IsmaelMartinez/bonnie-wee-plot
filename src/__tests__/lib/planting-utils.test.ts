@@ -250,6 +250,14 @@ describe('getPlantingPhase', () => {
     expect(result.phase).toBe('growing')
   })
 
+  it('counts indoor days on calendar days across a DST change', () => {
+    // Just after midnight on day 14, the day after the clocks went forward
+    // (New York 8 Mar 2026, London 29 Mar 2026). Each case bites in its own TZ.
+    const indoor = { ...basePlanting, status: 'active' as const, sowMethod: 'indoor' as const }
+    expect(getPlantingPhase({ ...indoor, sowDate: '2026-02-23' }, new Date(2026, 2, 9, 0, 30)).phase).toBe('growing-indoor')
+    expect(getPlantingPhase({ ...indoor, sowDate: '2026-03-16' }, new Date(2026, 2, 30, 0, 30)).phase).toBe('growing-indoor')
+  })
+
   it('is ready to harvest on the morning of the expected start', () => {
     const result = getPlantingPhase(
       { ...basePlanting, status: 'active', sowMethod: 'outdoor', sowDate: '2025-05-01', expectedHarvestStart: '2025-07-01' },

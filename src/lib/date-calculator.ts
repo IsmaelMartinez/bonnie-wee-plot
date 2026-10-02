@@ -177,11 +177,20 @@ function monthName(month: number): string {
 }
 
 /**
- * First and last month of a sowing window, reading it cyclically so a window
+ * Whole local calendar days from `from` to `to`, ignoring time of day.
+ * Rounds because a DST change makes a calendar day 23 or 25 hours long.
+ */
+export function differenceInDays(to: Date, from: Date): number {
+  const msPerDay = 24 * 60 * 60 * 1000
+  return Math.round((parseDate(formatDate(to)).getTime() - parseDate(formatDate(from)).getTime()) / msPerDay)
+}
+
+/**
+ * First and last month of a month window, reading it cyclically so a window
  * that wraps the year end ([11, 12, 1, 2, 3]) runs November to March. The
  * window starts after the longest run of missing months.
  */
-function windowBounds(months: number[]): { start: number; end: number } {
+export function windowBounds(months: number[]): { start: number; end: number } {
   const sorted = [...new Set(months)].sort((a, b) => a - b)
   let start = sorted[0]
   let end = sorted[sorted.length - 1]
@@ -194,6 +203,28 @@ function windowBounds(months: number[]): { start: number; end: number } {
       end = sorted[i - 1]
     }
   }
+  return { start, end }
+}
+
+/** Months of a window in cyclic order from its start, e.g. Oct, Nov, Feb, Mar. */
+function cyclicOrder(months: number[]): number[] {
+  const { start } = windowBounds(months)
+  return [...new Set(months)].sort((a, b) => ((a - start + 12) % 12) - ((b - start + 12) % 12))
+}
+
+const nextMonth = (m: number) => (m % 12) + 1
+
+/**
+ * The next contiguous run of window months after `month`, read cyclically, so
+ * the suggestion never begins before the entered date. `month` must be outside
+ * the window, which guarantees a run start is reached within twelve steps.
+ */
+function nextRun(months: number[], month: number): { start: number; end: number } {
+  const set = new Set(months)
+  let start = nextMonth(month)
+  while (!set.has(start)) start = nextMonth(start)
+  let end = start
+  while (set.has(nextMonth(end))) end = nextMonth(end)
   return { start, end }
 }
 
@@ -438,7 +469,7 @@ export function validateSowDate(
   if (sowMethod === 'transplant-purchased') {
     if (planting.transplantMonths.length > 0 && !planting.transplantMonths.includes(month as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)) {
       warnings.push(
-        `${vegetable.name} is typically transplanted in ${planting.transplantMonths.map(monthName).join(', ')}, not ${monthName(month)}`
+        `${vegetable.name} is typically transplanted in ${cyclicOrder(planting.transplantMonths).map(monthName).join(', ')}, not ${monthName(month)}`
       )
     }
     return { isValid: true, warnings, errors }
@@ -449,15 +480,15 @@ export function validateSowDate(
     isValid = false
     const methodText = sowMethod === 'indoor' ? 'sowing indoors' : 'direct sowing'
     errors.push(
-      `${vegetable.name} is typically best for ${methodText} in ${validMonths.map(monthName).join(', ')}, not ${monthName(month)}`
+      `${vegetable.name} is typically best for ${methodText} in ${cyclicOrder(validMonths).map(monthName).join(', ')}, not ${monthName(month)}`
     )
 
-    // Suggest the window; one that wraps the year end finishes the next year.
-    const { start, end } = windowBounds(validMonths)
-    const year = date.getFullYear()
-    const endYear = end < start ? year + 1 : year
+    // Suggest the next valid run; one that wraps the year end finishes the next year.
+    const { start, end } = nextRun(validMonths, month)
+    const startYear = start > month ? date.getFullYear() : date.getFullYear() + 1
+    const endYear = end < start ? startYear + 1 : startYear
     const suggestions: SowDateValidation['suggestions'] = {
-      earliestRecommended: formatDate(new Date(year, start - 1, 1)),
+      earliestRecommended: formatDate(new Date(startYear, start - 1, 1)),
       latestRecommended: formatDate(new Date(endYear, end - 1, 15)),
     }
 

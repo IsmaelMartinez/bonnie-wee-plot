@@ -8,7 +8,7 @@ import { Calendar, Home, Sprout, Leaf } from 'lucide-react'
 import { SowMethod, Planting, PlantingStatus } from '@/types/unified-allotment'
 import { Vegetable, Month } from '@/types/garden-planner'
 import { getVegetableById } from './vegetable-database'
-import { parseDate } from './date-calculator'
+import { parseDate, differenceInDays } from './date-calculator'
 
 // ============ SOW METHOD RECOMMENDATION ============
 
@@ -308,7 +308,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
     }
 
     // Check germination (roughly 1-3 weeks after sowing)
-    const daysSinceSow = Math.floor((now.getTime() - sowDateObj.getTime()) / (1000 * 60 * 60 * 24))
+    const daysSinceSow = differenceInDays(now, sowDateObj)
 
     if (daysSinceSow < 14) {
       return {

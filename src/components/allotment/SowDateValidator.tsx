@@ -8,6 +8,9 @@ import {
   calculatePlantingDates,
   validateSowDate,
   getGerminationDays,
+  parseDate,
+  addDays,
+  formatDate,
   type SowDateValidationContext,
 } from '@/lib/date-calculator'
 
@@ -51,7 +54,7 @@ export default function SowDateValidator({
 
   // Format date for display
   const formatDisplayDate = (dateStr: string): string => {
-    const date = new Date(dateStr)
+    const date = parseDate(dateStr)
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
@@ -62,9 +65,7 @@ export default function SowDateValidator({
   // Calculate germination end date for indoor sowings
   const germinationEndDate = useMemo(() => {
     if (sowMethod !== 'indoor') return null
-    const start = new Date(sowDate)
-    start.setDate(start.getDate() + germination.max)
-    return start.toISOString().split('T')[0]
+    return formatDate(addDays(parseDate(sowDate), germination.max))
   }, [sowDate, sowMethod, germination.max])
 
   return (

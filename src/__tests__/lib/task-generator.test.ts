@@ -1697,6 +1697,56 @@ describe('task-generator', () => {
       expect(tasks.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
     })
 
+    it('keeps nudging through the harvest season after the first-harvest window', () => {
+      mockGetVegetableById.mockReturnValue(courgetteVeg)
+
+      // populateExpectedHarvest gives the first-harvest window, not the season.
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2026-06-18',
+            expectedHarvestEnd: '2026-06-28',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const lateJuly = generateTasksForMonth(7 as Month, plantings, [], new Date(2026, 6, 25, 10))
+      expect(lateJuly.some(t => t.id === 'preserve-nudge-courgette-7')).toBe(true)
+
+      const nextJuly = generateTasksForMonth(7 as Month, plantings, [], new Date(2027, 6, 25, 10))
+      expect(nextJuly.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
+    it('extends to the end of a harvest season that wraps the year end', () => {
+      mockGetVegetableById.mockReturnValue({
+        ...courgetteVeg,
+        planting: { ...courgetteVeg.planting, harvestMonths: [11, 12, 1, 2] },
+      })
+
+      const plantings = [
+        {
+          planting: {
+            id: 'p1',
+            plantId: 'courgette',
+            expectedHarvestStart: '2025-11-20',
+            expectedHarvestEnd: '2025-12-05',
+          } as Planting,
+          areaId: 'bed-a',
+          areaName: 'Bed A',
+        },
+      ]
+
+      const feb = generateTasksForMonth(2 as Month, plantings, [], new Date(2026, 1, 20, 10))
+      expect(feb.some(t => t.id === 'preserve-nudge-courgette-2')).toBe(true)
+
+      const march = generateTasksForMonth(3 as Month, plantings, [], new Date(2026, 2, 2, 10))
+      expect(march.some(t => t.id.startsWith('preserve-nudge-'))).toBe(false)
+    })
+
     it('nudges inside an expected window that spans the year end', () => {
       mockGetVegetableById.mockReturnValue(courgetteVeg)
 

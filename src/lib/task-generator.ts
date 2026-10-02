@@ -11,7 +11,7 @@
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
 import { Vegetable, Month, WaterRequirement, FeedType, StorageMethod } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { getGerminationDays, parseDate, addDays, formatDate } from '@/lib/date-calculator'
+import { getGerminationDays, parseDate, addDays, formatDate, differenceInDays, windowBounds } from '@/lib/date-calculator'
 import { calculatePerennialStatus } from '@/lib/perennial-calculator'
 import type { RainfallSummary } from '@/lib/weather/open-meteo'
 import { shouldSkipWatering } from '@/lib/weather/open-meteo'
@@ -106,15 +106,6 @@ function filterPlantingsForTaskType(
 // Crops suitable for succession sowing
 const SUCCESSION_CROPS = ['lettuce', 'radish', 'spinach', 'rocket', 'beetroot', 'spring-onion']
 const SUCCESSION_INTERVAL_DAYS = 21
-
-/**
- * Whole local calendar days from date2 to date1, ignoring time of day.
- * Rounds because a DST change makes a calendar day 23 or 25 hours long.
- */
-function differenceInDays(date1: Date, date2: Date): number {
-  const msPerDay = 24 * 60 * 60 * 1000
-  return Math.round((parseDate(formatDate(date1)).getTime() - parseDate(formatDate(date2)).getTime()) / msPerDay)
-}
 
 /**
  * Determine task urgency based on days remaining
@@ -356,16 +347,26 @@ function generateCareTipTasks(
 export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
 
 /**
- * Whether today falls in a planting's harvest window. Prefers the planting's
- * calculated expected window (from sow/transplant dates) so the nudge doesn't
+ * Whether today falls in a planting's harvest window. Starts at the planting's
+ * calculated expected start (from sow/transplant dates) so the nudge doesn't
  * fire months early on the crop's coarse `harvestMonths`; returns null when no
- * expected dates are present so the caller can fall back. Compares full dates,
- * so last year's window does not match this year.
+ * expected dates are present so the caller can fall back. The expected end is
+ * only the latest first harvest, so the window runs to the later of it and the
+ * end of the crop's harvest season in that year. Compares full dates, so last
+ * year's window does not match this year.
  */
-function isInExpectedHarvestWindow(planting: Planting, today: Date): boolean | null {
+function isInExpectedHarvestWindow(planting: Planting, harvestMonths: Month[], today: Date): boolean | null {
   if (!planting.expectedHarvestStart) return null
+  let end = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
+  if (harvestMonths.length > 0) {
+    const season = windowBounds(harvestMonths)
+    const start = parseDate(planting.expectedHarvestStart)
+    // A season wrapping the year end (Nov–Feb) that began this year ends next year.
+    const wraps = season.end < season.start && start.getMonth() + 1 >= season.start
+    const seasonEnd = formatDate(new Date(start.getFullYear() + (wraps ? 1 : 0), season.end, 0))
+    if (seasonEnd > end) end = seasonEnd
+  }
   const todayStr = formatDate(today)
-  const end = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
   return todayStr >= planting.expectedHarvestStart && todayStr <= end
 }
 
@@ -391,7 +392,7 @@ function generatePreserveNudges(
     if (seen.has(vegetable.id)) continue
 
     // Prefer the planting's calculated window; fall back to coarse harvestMonths.
-    const expected = isInExpectedHarvestWindow(planting, today)
+    const expected = isInExpectedHarvestWindow(planting, vegetable.planting.harvestMonths, today)
     const inWindow = expected !== null ? expected : vegetable.planting.harvestMonths.includes(currentMonth)
     if (!inWindow) continue
 

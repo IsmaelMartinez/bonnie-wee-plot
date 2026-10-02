@@ -396,6 +396,34 @@ describe('validateSowDate (wrap-around windows and month names)', () => {
     expect(result.suggestions?.latestRecommended).toBe('2026-03-15')
   })
 
+  // Garlic-style window with a gap inside the wrap: Oct–Nov and Feb–Mar.
+  const gappedGarlic: Vegetable = {
+    ...testCarrot,
+    id: 'gapped-garlic',
+    name: 'Garlic',
+    planting: { ...testCarrot.planting, sowOutdoorsMonths: [2, 3, 10, 11] },
+  }
+
+  it('suggests the next valid run after a January sowing in a gapped window', () => {
+    const result = validateSowDate('2026-01-10', 'outdoor', gappedGarlic)
+
+    expect(result.suggestions?.earliestRecommended).toBe('2026-02-01')
+    expect(result.suggestions?.latestRecommended).toBe('2026-03-15')
+  })
+
+  it('never suggests a window that starts before the entered date', () => {
+    const result = validateSowDate('2026-12-10', 'outdoor', gappedGarlic)
+
+    expect(result.suggestions?.earliestRecommended).toBe('2027-02-01')
+    expect(result.suggestions?.latestRecommended).toBe('2027-03-15')
+  })
+
+  it('lists months in cyclic window order', () => {
+    const result = validateSowDate('2026-01-10', 'outdoor', gappedGarlic)
+
+    expect(result.errors[0]).toContain('October, November, February, March')
+  })
+
   it('names months in the out-of-window error', () => {
     const result = validateSowDate('2025-01-15', 'outdoor', testPeas)
 
