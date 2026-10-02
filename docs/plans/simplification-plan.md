@@ -63,12 +63,12 @@ These change scope. Each has a recommended default. A resuming session asks all 
 
 | # | Decision | Recommendation | Gates | Answer |
 |---|---|---|---|---|
-| D1 | Share/receive flow | Delete `components/share`, `app/receive/**`, `app/api/share/**`, `qrcode.react` and `html5-qrcode`. The sender UI has been unmounted for six months, and Yjs cloud sync now covers moving data between devices. This also makes the share-route hardening findings moot | WP-06 | |
-| D2 | AI tool calling | Delete the executor, schema, `ToolCallConfirmation` and the modal glue (about 1,500 lines) unless `AI_TOOLS_ENABLED=true` in production. Keep the chat and the Gemini free tier | WP-07 | |
-| D3 | Flagged-off features (`SHOW_ROTATION_SUGGESTIONS`, `SHOW_UNDERPLANTINGS`, `SHOW_ADVANCED_AREA_FIELDS`), off since #258 | Delete the gated code, inline `SHOW_CARE_LOGS=true`, and remove `release-visibility.ts` | WP-08 | |
-| D4 | Should account deletion also delete the Clerk user? Also, the CSP only allows `*.clerk.accounts.dev`, which suggests production may be on a Clerk dev instance | Delete the Clerk user too, and check the production publishable key | WP-13, WP-22 | |
-| D5 | `dependabot-auto-merge.yml` auto-merges non-major bumps, which conflicts with the "never merge autonomously" rule | User's call | WP-05 | |
-| D6 | Seeds page default year | The latest year once data loads | WP-16 | |
+| D1 | Share/receive flow | Delete `components/share`, `app/receive/**`, `app/api/share/**`, `qrcode.react` and `html5-qrcode`. The sender UI has been unmounted for six months, and Yjs cloud sync now covers moving data between devices. This also makes the share-route hardening findings moot | WP-06 | Delete (2026-10-02) |
+| D2 | AI tool calling | Delete the executor, schema, `ToolCallConfirmation` and the modal glue (about 1,500 lines) unless `AI_TOOLS_ENABLED=true` in production. Keep the chat and the Gemini free tier | WP-07 | Keep tool calling (2026-10-02). WP-07 keeps the executor, schema and confirmation UI and routes the executor through `mutate` instead |
+| D3 | Flagged-off features (`SHOW_ROTATION_SUGGESTIONS`, `SHOW_UNDERPLANTINGS`, `SHOW_ADVANCED_AREA_FIELDS`), off since #258 | Delete the gated code, inline `SHOW_CARE_LOGS=true`, and remove `release-visibility.ts` | WP-08 | Keep the flags and the gated code (2026-10-02). WP-08 deletes only dead UI that is not flag-gated, and WP-09 keeps whatever gated code still uses |
+| D4 | Should account deletion also delete the Clerk user? Also, the CSP only allows `*.clerk.accounts.dev`, which suggests production may be on a Clerk dev instance | Delete the Clerk user too, and check the production publishable key | WP-13, WP-22 | Supabase data only (2026-10-02). WP-13 does not delete the Clerk user; WP-22 still checks the production Clerk key against the CSP |
+| D5 | `dependabot-auto-merge.yml` auto-merges non-major bumps, which conflicts with the "never merge autonomously" rule | User's call | WP-05 | Keep auto-merge as an accepted exception (2026-10-02). WP-05 leaves the workflow alone |
+| D6 | Seeds page default year | The latest year once data loads | WP-16 | The latest year once data loads (2026-10-02) |
 
 ## Work packages
 
@@ -94,10 +94,10 @@ Deletions cascade, so each WP reruns knip at the end and deletes anything it new
 | WP | Goal | Files owned | After | Size |
 |---|---|---|---|---|
 | 06 | Delete share/receive (decision 1) | `components/share/**`, `app/receive/**`, `app/api/share/**`, their tests, share deps in `package.json`, ADR 024 status line | 05 | M |
-| 07 | Delete AI tool calling, the browser-direct/GitHub Pages path, the client rate limiter and the logger queue; extract a shared `runFreeTierGemini()`; dedupe the system prompt; return 400 on bad JSON (decision 2) | `services/ai-tool-executor.ts`, `lib/ai-tools-schema.ts`, `components/ai-advisor/**`, `lib/openai-client.ts`, `lib/rate-limiter.ts`, `lib/logger.ts`, `app/api/ai-advisor/**`, `app/api/season-narration/**`, `next.config.mjs` (Pages branches), `.github/workflows/deploy.yml`, `public/.nojekyll` | 01 | M |
-| 08 | Delete dead UI and flags (decision 3): `shadcn-dialog`, `AIInsight`, `ai-suggestions`, `UnderplantingsList`, the auto-rotate dialog and memos, AddAreaForm's advanced fields and `release-visibility.ts` | `app/allotment/page.tsx`, `components/allotment/**` except the WP-04 import lines, `components/dashboard/AIInsight.tsx`, `lib/ai-suggestions.ts`, `components/ui/shadcn-dialog.tsx`, `config/release-visibility.ts`, `SeasonStatusWidget.tsx` | 04 | M |
-| 09 | Delete the dead domain layer: most of `rotation.ts`, `historical-plans.ts`, `my-varieties.ts`, the empty arrays in `allotment-layout.ts`, dead `companion-validation` and `companion-utils` exports, grid-planner types and dead `vegetable-database`/`index` exports | those files plus `types/garden-planner.ts` and their test blocks | 08 | M |
-| 10 | Delete the immutable service write layer: every writer with no production caller, legacy query wrappers, `storage-ops`, `persistence-signal`, dead migration and backup helpers, `hooks/allotment/index.ts` | `services/**`, `lib/storage-ops.ts`, `lib/persistence-signal.ts`, `lib/storage-utils.ts` (dead exports only), `__tests__/services/**` | 07 (the executor was the last caller) | L |
+| 07 | Route the AI tool executor through `mutate` instead of saving to the legacy key and re-hydrating the doc (decision 2 keeps tool calling); delete the browser-direct/GitHub Pages path, the client rate limiter and the logger queue; extract a shared `runFreeTierGemini()`; dedupe the system prompt; return 400 on bad JSON | `services/ai-tool-executor.ts`, `lib/ai-tools-schema.ts`, `components/ai-advisor/**`, `lib/openai-client.ts`, `lib/rate-limiter.ts`, `lib/logger.ts`, `app/api/ai-advisor/**`, `app/api/season-narration/**`, `next.config.mjs` (Pages branches), `.github/workflows/deploy.yml`, `public/.nojekyll` | 01 | M |
+| 08 | Delete dead UI that is not flag-gated: `shadcn-dialog`, `AIInsight`, `ai-suggestions` (only if no flag-gated code uses it). Decision 3 keeps `UnderplantingsList`, the auto-rotate dialog and memos, AddAreaForm's advanced fields and `release-visibility.ts` | `app/allotment/page.tsx`, `components/allotment/**` except the WP-04 import lines, `components/dashboard/AIInsight.tsx`, `lib/ai-suggestions.ts`, `components/ui/shadcn-dialog.tsx`, `SeasonStatusWidget.tsx` | 04 | S |
+| 09 | Delete the dead domain layer, keeping whatever flag-gated code still uses (decision 3): most of `rotation.ts`, `historical-plans.ts`, `my-varieties.ts`, the empty arrays in `allotment-layout.ts`, dead `companion-validation` and `companion-utils` exports, grid-planner types and dead `vegetable-database`/`index` exports | those files plus `types/garden-planner.ts` and their test blocks | 08 | M |
+| 10 | Delete the immutable service write layer: every writer with no production caller, legacy query wrappers, `storage-ops`, `persistence-signal`, dead migration and backup helpers, `hooks/allotment/index.ts` | `services/**`, `lib/storage-ops.ts`, `lib/persistence-signal.ts`, `lib/storage-utils.ts` (dead exports only), `__tests__/services/**` | 07 (which moves the executor, the last caller, onto `mutate`) | L |
 
 ### Wave 2 — structural simplification and sync correctness
 
@@ -107,7 +107,7 @@ The sync lane is strictly sequential because every step touches `useYjsDoc` and 
 |---|---|---|---|---|
 | 11 | sync | A single `AllotmentProvider` in `layout.tsx` owning the doc, cloud sync, `selectedYear` and status; `useAllotment` becomes a thin selector and loses its 31 unused members; the push-skip is driven by a local-edit counter instead of `isSyncedFromOtherTab` | 02, 10 | M |
 | 12 | sync | Adoption preserves local edits: union by id after `adoptRemoteUpdate`, reusing the keying in `dedupe.ts`; the harness scenario "first sync fails, user edits" ends with the edit on the remote | 11 | M |
-| 13 | sync | Replace-data correctness: import, restore, cloud-history restore and receive (if kept) call `replaceFromJson(migrateSchemaForImport(json))` on the live lineage; the backup is taken from the live doc; account deletion clears history, `ai_usage`, IndexedDB and the lineage flag, then reloads; user switch clears local state; the `whenReady` schema-version hook is added; the non-existent y-indexeddb cross-tab broadcast is fixed or documented correctly | 12, 01 | M |
+| 13 | sync | Replace-data correctness: import, restore and cloud-history restore call `replaceFromJson(migrateSchemaForImport(json))` on the live lineage; the backup is taken from the live doc; account deletion clears history, `ai_usage`, IndexedDB and the lineage flag, then reloads; user switch clears local state; the `whenReady` schema-version hook is added; the non-existent y-indexeddb cross-tab broadcast is fixed or documented correctly | 12, 01 | M |
 | 14 | UI | One detail surface: delete `MobileAreaBottomSheet`, render `ItemDetailSwitcher` inside `<Dialog variant="bottom-sheet">` below `lg`, add a single `useIsMobile()`, and fix the tablet gap | 08 | M |
 | 15 | UI | Merge AddAreaForm and EditAreaForm into `AreaForm`, and inline or delete `useFormState` | 14 | M |
 | 16 | UI | Page extractions, one sub-agent per page: this-month (inline components into `components/this-month/`, memos into `lib/month-plan.ts`, and the almanac and tips folded into one disclosure); seeds (`VarietyRow`, `SuppliersSection`, the default-year fix and nested-interactive a11y); compost (`PileCard` and self-contained dialogs); allotment (`YearSelector`) | 14 for allotment only | M |
@@ -134,7 +134,7 @@ The loop's exit metric is measured, not estimated. After each wave, record the n
 
 | WP | State | PR |
 |---|---|---|
-| 00–05 | ready | |
-| 06–10 | waiting on decisions | |
+| 00–05 | in progress (agents launched 2026-10-02) | |
+| 06–10 | decisions settled; blocked by Wave 0 dependencies | |
 | 11–19 | blocked by dependencies | |
 | 20–23 | blocked by Wave 2 | |
