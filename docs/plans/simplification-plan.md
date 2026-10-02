@@ -111,7 +111,7 @@ The sync lane is strictly sequential because every step touches `useYjsDoc` and 
 | 14 | UI | One detail surface: delete `MobileAreaBottomSheet`, render `ItemDetailSwitcher` inside `<Dialog variant="bottom-sheet">` below `lg`, add a single `useIsMobile()`, and fix the tablet gap | 08 | M |
 | 15 | UI | Merge AddAreaForm and EditAreaForm into `AreaForm`, and inline or delete `useFormState` | 14 | M |
 | 16 | UI | Page extractions, one sub-agent per page: this-month (inline components into `components/this-month/`, memos into `lib/month-plan.ts`, and the almanac and tips folded into one disclosure); seeds (`VarietyRow`, `SuppliersSection`, the default-year fix and nested-interactive a11y); compost (`PileCard` and self-contained dialogs); allotment (`YearSelector`) | 14 for allotment only | M |
-| 17 | UI | Dialog Escape stack, AddPlantingForm variety refill, static Tailwind class maps, care-log delete button a11y | 14 | S |
+| 17 | UI | Dialog Escape stack, AddPlantingForm variety refill, static Tailwind class maps, care-log delete button a11y; replace the remaining UTC date parses and writes left by WP-03 (`PlantingCard`, `PlantingProgress`, `this-month/page.tsx`, `UnifiedCalendar`, `CareLogSection`, `HarvestTracker`, `area-mutations.ts:~419`, `useAllotmentCareLogs.ts:~164`) with `parseDate`/`formatDate` | 14, 03 | S |
 | 18 | domain | Split `task-generator.ts` into a directory; remove the no-op `deduplicateTasks`, dead exports, never-passed `areaId` args and the triple status filter; `TaskList` uses `getTaskLabel` | 03 | M |
 | 19 | domain | One `MONTH_NAMES` source (8 copies today); `season-review/dates.ts`; merge `seasons.ts` into `seasonal-theme.ts` with 1-indexed months; derive the rotation inverse map; collapse the `companion-utils` loops | 09 | S |
 
@@ -134,7 +134,12 @@ The loop's exit metric is measured, not estimated. After each wave, record the n
 
 | WP | State | PR |
 |---|---|---|
-| 00–05 | in progress (agents launched 2026-10-02) | |
+| 00 | reviewed, awaiting merge | #605 |
+| 01 | reviewed, awaiting merge; apply `sql/005` before deploy and `sql/006` after | #606 |
+| 02 | reviewed, awaiting merge (must ship before 2027-01-01) | #608 |
+| 03 | reviewed, awaiting merge | #609 |
+| 04 | reviewed, awaiting merge | #610 |
+| 05 | reviewed, awaiting merge | #607 |
 | 06–10 | decisions settled; blocked by Wave 0 dependencies | |
 | 11–19 | blocked by dependencies | |
 | 20–23 | blocked by Wave 2 | |
