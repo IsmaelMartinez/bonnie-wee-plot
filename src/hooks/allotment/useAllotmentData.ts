@@ -110,11 +110,17 @@ export function useAllotmentData(): UseAllotmentDataReturn {
 
   // A device's first cloud sync adopts the cloud lineage, replacing the doc
   // the load-time rollover wrote to, so roll the adopted doc forward too.
-  // Returning `true` makes `useCloudSync` push the change.
+  // Returning `true` makes `useCloudSync` push the change. A year the user
+  // picked during this mount is kept while the adopted doc still has it.
+  const pickedYearRef = useRef<number | null>(null)
   const handleLineageAdopted = useCallback((): boolean => {
     if (!rollForwardToThisYear()) return false
-    const year = getSnapshot()?.currentYear
-    if (year !== undefined) setSelectedYear(year)
+    const snapshot = getSnapshot()
+    if (!snapshot) return true
+    const picked = pickedYearRef.current
+    if (picked === null || !snapshot.seasons.some(s => s.year === picked)) {
+      setSelectedYear(snapshot.currentYear)
+    }
     return true
   }, [getSnapshot, rollForwardToThisYear])
 
@@ -197,6 +203,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
   // ============ YEAR NAVIGATION ============
 
   const selectYear = useCallback((year: number) => {
+    pickedYearRef.current = year
     setSelectedYear(year)
     yjs.mutate(store => {
       store.state.currentYear = year

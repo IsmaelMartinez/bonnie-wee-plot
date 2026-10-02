@@ -273,7 +273,12 @@ export function useCloudSync({
       }
       // Migration: cloud has JSONB but no binary. Hydrate it and CAS-seed the
       // binary. A lost CAS means another device migrated first — adopt theirs.
-      if (remote.jsonb) replaceFromJson(remote.jsonb)
+      // The callback edits the replaced doc before it is encoded, so this
+      // push carries the edit; no follow-up pass is needed.
+      if (remote.jsonb) {
+        replaceFromJson(remote.jsonb)
+        onLineageAdopted?.()
+      }
       const { state, json } = encodeLiveOrThrow()
       const res = await pushBinary(token, syncUserId, state, json, {
         rowExists: true,

@@ -237,6 +237,86 @@ describe('useAllotmentData year rollover', () => {
     }
   }, 30_000)
 
+  it('rolls forward and pushes when the first sync migrates a stale 2026 JSON-only cloud row', async () => {
+    vi.setSystemTime(new Date('2027-01-02T09:00:00'))
+    const pushBinary = vi.fn<(...args: unknown[]) => Promise<unknown>>(
+      async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
+    )
+
+    try {
+      // Pre-migration cloud row: legacy JSONB, no binary yet.
+      const useHook = await importWithCloud({
+        fetchRemoteBinary: async () => ({
+          exists: true,
+          update: null,
+          yjsUpdatedAt: null,
+          jsonb: makeFixture(),
+        }),
+        pushBinary,
+      })
+      const { result } = renderHook(() => useHook())
+
+      await waitFor(() => expect(pushBinary).toHaveBeenCalled(), { timeout: 5000 })
+      const [, , pushedState, pushedJson] = pushBinary.mock.calls[0] as [
+        string, string, Uint8Array, AllotmentData,
+      ]
+      expect(await seasonYearsInState(pushedState)).toContain(2027)
+      expect(pushedJson.currentYear).toBe(2027)
+      await waitFor(() => {
+        expect(result.current.data?.meta.name).toBe('Rollover Allotment')
+      })
+      expect(result.current.data!.seasons.filter(s => s.year === 2027)).toHaveLength(1)
+      expect(result.current.selectedYear).toBe(2027)
+    } finally {
+      unmockCloud()
+    }
+  }, 30_000)
+
+  it('keeps a year the user picks while the first sync adopts a stale lineage', async () => {
+    vi.setSystemTime(new Date('2027-01-02T09:00:00'))
+    vi.resetModules()
+    const remoteUpdate = await encodeCloudDoc(makeFixture())
+    let releaseFetch: () => void = () => {}
+    const fetchGate = new Promise<void>(resolve => { releaseFetch = resolve })
+    const pushBinary = vi.fn<(...args: unknown[]) => Promise<unknown>>(
+      async () => ({ ok: true, casConflict: false, yjsUpdatedAt: 'T' }),
+    )
+
+    try {
+      const useHook = await importWithCloud({
+        fetchRemoteBinary: async () => {
+          await fetchGate
+          return {
+            exists: true,
+            update: remoteUpdate,
+            yjsUpdatedAt: '2026-12-01T00:00:00.000Z',
+            jsonb: makeFixture(),
+          }
+        },
+        pushBinary,
+      })
+      const { result } = renderHook(() => useHook())
+      await waitFor(() => expect(result.current.data).not.toBeNull())
+      await waitFor(() => expect(result.current.syncStatus).toBe('syncing'))
+
+      act(() => result.current.selectYear(2026))
+      await act(async () => {
+        releaseFetch()
+      })
+
+      // The adopted doc is still rolled forward and pushed...
+      await waitFor(() => {
+        expect(result.current.data?.meta.name).toBe('Rollover Allotment')
+        expect(result.current.data?.seasons.map(s => s.year)).toContain(2027)
+      }, { timeout: 5000 })
+      await waitFor(() => expect(pushBinary).toHaveBeenCalled(), { timeout: 5000 })
+      // ...but the user's pick survives, since 2026 exists in the adopted doc.
+      expect(result.current.selectedYear).toBe(2026)
+    } finally {
+      unmockCloud()
+    }
+  }, 30_000)
+
   it('keeps a year the user picks before the first cloud sync completes', async () => {
     await persistDocToIndexedDB()
 
