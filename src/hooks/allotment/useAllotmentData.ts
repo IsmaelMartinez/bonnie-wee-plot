@@ -25,10 +25,11 @@ import {
   getSeasonByYear,
   getAvailableYears,
 } from '@/services/allotment-storage'
+import { ensureCurrentYearSeason } from '@/services/season-operations'
 import { useYjsDoc } from '../useYjsDoc'
 import { useCloudSync } from '../useCloudSync'
 import type { SaveStatus, SyncStatus } from '@/types/storage'
-import type { AllotmentStoreShape } from '@/lib/yjs/allotment-yjs'
+import { withoutUndefined, type AllotmentStoreShape } from '@/lib/yjs/allotment-yjs'
 
 // Re-export SaveStatus for backward compatibility
 export type { SaveStatus } from '@/types/storage'
@@ -76,6 +77,53 @@ export function useAllotmentData(): UseAllotmentDataReturn {
   // Canonical local engine: the Yjs doc backed by IndexedDB.
   const yjs = useYjsDoc()
 
+  // Year rollover. A doc restored from IndexedDB skips `initializeStorage()`,
+  // so its legacy load-time rollover never runs on the Yjs path. This adds
+  // this year's season if it is missing (built by `ensureCurrentYearSeason`,
+  // so a gap year falls back to the default rotation exactly as legacy did)
+  // and moves `currentYear` forward if it is behind, never backwards, so a
+  // device with a fast clock cannot stop the others creating their season.
+  // It writes through `mutate`, so the season is a CRDT edit that syncs. The
+  // in-transaction year check keeps the consumers within one tab (which share
+  // the singleton doc) to a single season; across devices, seasons are keyed
+  // by year and `dedupeStore` collapses concurrent copies on merge.
+  // Returns whether it changed the doc.
+  const { mutate: mutateDoc, getSnapshot } = yjs
+  const rollForwardToThisYear = useCallback((): boolean => {
+    const snapshot = getSnapshot()
+    if (!snapshot) return false
+    const thisYear = new Date().getFullYear()
+    const hasSeason = snapshot.seasons.some(s => s.year === thisYear)
+    if (hasSeason && snapshot.currentYear >= thisYear) return false
+    const season = ensureCurrentYearSeason(snapshot, thisYear).seasons.find(s => s.year === thisYear)!
+    mutateDoc(store => {
+      if (!store.seasons.some(s => s.year === thisYear)) {
+        store.seasons.push(withoutUndefined({
+          ...season,
+          areas: season.areas.map(area => withoutUndefined(area)),
+        }))
+      }
+      if (store.state.currentYear < thisYear) store.state.currentYear = thisYear
+    })
+    return true
+  }, [getSnapshot, mutateDoc])
+
+  // A device's first cloud sync adopts the cloud lineage, replacing the doc
+  // the load-time rollover wrote to, so roll the adopted doc forward too.
+  // Returning `true` makes `useCloudSync` push the change. A year the user
+  // picked during this mount is kept while the adopted doc still has it.
+  const pickedYearRef = useRef<number | null>(null)
+  const handleLineageAdopted = useCallback((): boolean => {
+    if (!rollForwardToThisYear()) return false
+    const snapshot = getSnapshot()
+    if (!snapshot) return true
+    const picked = pickedYearRef.current
+    if (picked === null || !snapshot.seasons.some(s => s.year === picked)) {
+      setSelectedYear(snapshot.currentYear)
+    }
+    return true
+  }, [getSnapshot, rollForwardToThisYear])
+
   // Cloud sync exchanges the Yjs doc as binary CRDT state (ADR 027 Step 4).
   // It merges remote updates into the doc (`mergeRemoteUpdate`), adopts the
   // canonical lineage on a device's first sync (`adoptRemoteUpdate`), and
@@ -91,16 +139,21 @@ export function useAllotmentData(): UseAllotmentDataReturn {
     hasUpdatesBeyond: yjs.hasUpdatesBeyond,
     flushLocal: yjs.flushSave,
     isSyncedFromOtherTab: yjs.isSyncedFromOtherTab,
+    onLineageAdopted: handleLineageAdopted,
   })
 
-  // Initialise `selectedYear` from the first published snapshot.
+  // Initialise `selectedYear` from the first published snapshot, rolling the
+  // year forward first. That snapshot only arrives after IndexedDB has synced
+  // (and any first-run seed has run), so the rollover never writes into an
+  // empty doc. Read the live doc afterwards: another consumer in this tab may
+  // already have rolled it forward.
   const initializedRef = useRef(false)
   useEffect(() => {
-    if (yjs.data && !initializedRef.current) {
-      initializedRef.current = true
-      setSelectedYear(yjs.data.currentYear)
-    }
-  }, [yjs.data])
+    if (!yjs.data || initializedRef.current) return
+    initializedRef.current = true
+    rollForwardToThisYear()
+    setSelectedYear(getSnapshot()?.currentYear ?? yjs.data.currentYear)
+  }, [yjs.data, getSnapshot, rollForwardToThisYear])
 
   // Local-save indicator. `y-indexeddb` persists each doc update
   // near-immediately, so a mutation is effectively saved the moment the
@@ -150,6 +203,7 @@ export function useAllotmentData(): UseAllotmentDataReturn {
   // ============ YEAR NAVIGATION ============
 
   const selectYear = useCallback((year: number) => {
+    pickedYearRef.current = year
     setSelectedYear(year)
     yjs.mutate(store => {
       store.state.currentYear = year
