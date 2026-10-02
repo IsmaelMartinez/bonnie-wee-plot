@@ -4,5 +4,6 @@
     "lib": ["ES2022", "webworker"],
     "types": ["@serwist/next/typings"]
   },
-  "include": ["src/app/sw.ts"]
+  "include": ["src/app/sw.ts"],
+  "exclude": ["node_modules"]
 }
