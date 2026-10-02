@@ -88,7 +88,9 @@ export default function TodayDashboard() {
     for (const areaSeason of currentSeason.areas || []) {
       const tenderNames: string[] = []
       for (const planting of areaSeason.plantings || []) {
-        if (planting.status === 'removed' || planting.status === 'harvested') continue
+        const status = planting.status || 'active'
+        if (status === 'removed' || status === 'harvested' || status === 'planned') continue
+        if (planting.endedOn && planting.endedOn.slice(0, 10) <= todayIso) continue
         const veg = getVegetableById(planting.plantId)
         if (veg && isFrostTender(veg.hardiness)) {
           tenderNames.push(veg.name)

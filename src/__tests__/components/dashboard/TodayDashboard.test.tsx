@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-const useTodayDataMock = vi.fn()
-const useAllotmentMock = vi.fn()
+const todayDataMock = vi.fn()
+const allotmentMock = vi.fn()
 
-vi.mock('@/hooks/useTodayData', () => ({ useTodayData: () => useTodayDataMock() }))
-vi.mock('@/hooks/useAllotment', () => ({ useAllotment: () => useAllotmentMock() }))
+vi.mock('@/hooks/useTodayData', () => ({ useTodayData: () => todayDataMock() }))
+vi.mock('@/hooks/useAllotment', () => ({ useAllotment: () => allotmentMock() }))
 vi.mock('@/hooks/useOptionalAuth', () => ({ useOptionalAuth: () => ({ isSignedIn: false }) }))
 vi.mock('@/contexts/AitorChatContext', () => ({ useAitorChat: () => ({ openChat: vi.fn() }) }))
 
@@ -26,7 +26,7 @@ import TodayDashboard from '@/components/dashboard/TodayDashboard'
 describe('TodayDashboard frost banner', () => {
   beforeEach(() => {
     localStorage.clear()
-    useTodayDataMock.mockReturnValue({
+    todayDataMock.mockReturnValue({
       currentMonth: 5,
       generatedTasks: [],
       hasCoordinates: true,
@@ -34,7 +34,7 @@ describe('TodayDashboard frost banner', () => {
       showOnboarding: false,
       rainfall: { past3DaysMm: 0, todayMm: 0, forecast: [{ tempMinC: -2 }] },
     })
-    useAllotmentMock.mockReturnValue({
+    allotmentMock.mockReturnValue({
       updateMeta: vi.fn(),
       data: {
         meta: {},
@@ -58,11 +58,34 @@ describe('TodayDashboard frost banner', () => {
     })
   })
 
+  function withBedAPlantings(plantings: Record<string, unknown>[]) {
+    const value = allotmentMock()
+    value.data.seasons[0].areas[0].plantings = plantings
+    allotmentMock.mockReturnValue(value)
+  }
+
   it('lists tender plantings in the affected area when frost is forecast', () => {
     render(<TodayDashboard />)
     const banner = screen.getByRole('alert')
     expect(banner).toHaveTextContent('Bed A:')
     expect(banner).toHaveTextContent('Courgettes (Zucchini)')
     expect(banner).not.toHaveTextContent(/garlic/i)
+  })
+
+  it('does not list a planned (unsown) tender planting', () => {
+    withBedAPlantings([{ id: 'p1', plantId: 'courgette', status: 'planned' }])
+    render(<TodayDashboard />)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('does not list a tender planting that has already ended', () => {
+    withBedAPlantings([
+      { id: 'p1', plantId: 'courgette', status: 'active' },
+      { id: 'p2', plantId: 'squash', status: 'active', endedOn: '2000-01-01' },
+    ])
+    render(<TodayDashboard />)
+    const banner = screen.getByRole('alert')
+    expect(banner).toHaveTextContent('Courgettes (Zucchini)')
+    expect(banner).not.toHaveTextContent(/squash/i)
   })
 })

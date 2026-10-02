@@ -117,7 +117,6 @@ Split into index, per-category data files, and lazy loader for performance:
 - `src/lib/vegetables/index.ts` - lightweight index for dropdowns/search
 - `src/lib/vegetables/data/*.ts` - 17 per-category files (leafy-greens, root-vegetables, brassicas, etc.)
 - `src/lib/vegetable-database.ts` - combines all category files into single array
-- `src/lib/vegetable-loader.ts` - per-category dynamic imports for code splitting
 
 ### Preserving Guides
 
