@@ -134,12 +134,20 @@ The loop's exit metric is measured, not estimated. After each wave, record the n
 
 | WP | State | PR |
 |---|---|---|
-| 00 | reviewed, awaiting merge | #605 |
-| 01 | reviewed, awaiting merge; apply `sql/005` before deploy and `sql/006` after | #606 |
-| 02 | reviewed, awaiting merge (must ship before 2027-01-01) | #608 |
-| 03 | reviewed, awaiting merge | #609 |
-| 04 | reviewed, awaiting merge | #610 |
-| 05 | reviewed, awaiting merge | #607 |
-| 06–10 | decisions settled; blocked by Wave 0 dependencies | |
+| 00 | merged 2026-10-02 | #605 |
+| 01 | open, reviewed and green; waiting for the user to apply `sql/005-ai-usage-increment-rpc.sql` in Supabase, then merge, deploy, then apply `sql/006-ai-usage-lockdown.sql` | #606 |
+| 02 | merged 2026-10-02 | #608 |
+| 03 | merged 2026-10-02 | #609 |
+| 04 | merged 2026-10-02 | #610 |
+| 05 | merged 2026-10-02 | #607 |
+| 06, 08 | ready to launch (dependencies merged) | |
+| 07 | blocked by WP-01 (#606) | |
+| 09, 10 | blocked by 08 and 07 respectively | |
 | 11–19 | blocked by dependencies | |
 | 20–23 | blocked by Wave 2 | |
+
+### Carry-over from the Wave 0 session (2026-10-02)
+
+A resuming session handles these before or alongside Wave 1. First ask the user whether `sql/005` has been applied; if so, update #606 with main, recheck CI and Copilot comments, and merge it once they confirm, then remind them to apply `sql/006` after the deploy. Record the Wave 0 metrics (see "The agent loop") once #606 is merged. Still awaiting the user: approval to delete the four unreferenced `tests/test-*.json` fixtures (the permission classifier blocked it in WP-05), and a decision on the open Dependabot alerts on main (two high and one medium for transitive `brace-expansion`, one medium for `fast-uri`). Small follow-ups found in review now belong to later packages: the frost banner still lists indoor-sown seedlings that have not been transplanted (WP-17), `docs/research/repo-analysis-and-improvements.md` still mentions the deleted vegetable loader (WP-21), and after a cloud adoption `selectedYear` can point at a season the adopted doc lacks (WP-12).
+
+Lessons for the loop. Implementer and reviewer agents must run long commands in the background or with short timeouts, because a watchdog kills any agent silent for ten minutes and all six stalled at once in Wave 0. Marking a PR ready triggers a Copilot review that found real bugs on three of six PRs, so mark ready early and treat its comments as part of the review. Branch protection is strict (up to date with main before merging) and Dependabot auto-merges keep moving main, so merge one PR at a time with `gh pr update-branch`, wait for CI, then merge, without `--auto`. The delegate-local hook blocks inline commit messages and review replies, so draft them with its recipes.
