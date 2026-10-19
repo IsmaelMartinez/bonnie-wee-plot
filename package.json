@@ -58,7 +58,7 @@
     "web-vitals": "^6.2.3",
     "y-indexeddb": "^9.0.12",
     "yjs": "^13.6.33",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
