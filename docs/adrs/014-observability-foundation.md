@@ -53,6 +53,8 @@ The endpoint returns JSON containing:
 
 Cache-Control headers are set to prevent caching of health check responses.
 
+**Update (2026-10-31):** `memoryUsage` has since been dropped. The endpoint now doubles as a free-tier keep-alive: it pings Upstash Redis (`redis`, evicted after 30 days idle) and runs a trivial anon-key PostgREST query against Supabase (`supabase`, paused after ~7 days idle, which took down cloud sync and the Aitor free-tier quota check in October 2026). Each reports `"ok"` or `"unavailable"`, runs in parallel with a 3s timeout, and never flips `status` to unhealthy. This only works while an uptime monitor actually polls `/api/health`.
+
 ### Core Web Vitals: web-vitals Library
 
 The `web-vitals` library was chosen for performance tracking because it is the official Google library for Web Vitals measurement, it has a tiny bundle size (~1KB), and it provides the standard metrics (LCP, FCP, CLS, INP, TTFB).
