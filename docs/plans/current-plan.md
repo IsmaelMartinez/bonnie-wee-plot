@@ -1,10 +1,18 @@
 # Current Plan
 
-Last updated: 2026-09-28 (simplification plan: resume procedure added)
+Last updated: 2026-10-31 (Supabase pause incident + health keep-alive)
 
 ## Up Next — simplification and bug-fix waves (2026-09-27)
 
 A five-slice parallel review found data-loss bugs in sync (duplicate sync engines, lineage adoption dropping edits, import merging instead of replacing, no year rollover on the Yjs path), an RLS hole letting users reset their AI quota, and about 7k lines of dead scaffolding left from the Yjs cutover. Work is split into parallel work packages in `docs/plans/simplification-plan.md` (merged in #592); Wave 0 (WP-00 to WP-05) is ready now, and Wave 1 waits on the six decisions D1–D6 listed there. To resume, follow that file's "Resume here" section. WP-02 (year rollover) must ship before 1 January 2027.
+
+## Cloud sync and Aitor down — Supabase free tier paused (2026-10-31)
+
+**Symptom.** Signed-in users got no cloud sync, and Aitor's free (Gemini) path failed with "Could not check your free-tier quota". Clerk sign-in itself worked.
+
+**Root cause.** The production Supabase project (`tjgxszrzhumzgmtizmqr`) was paused for inactivity, and its hostname returned NXDOMAIN. Cloud sync calls Supabase directly, and the Gemini path fails closed when the `ai_usage` quota read fails. Nothing kept the project awake: `/api/health` only pinged Redis.
+
+**Fix.** `/api/health` now also runs a trivial anon-key query against Supabase (reported as `supabase: ok|unavailable`, never fails the health check). **Operator follow-ups:** restore the project in the Supabase dashboard (or recreate it, re-run `sql/001`–`004`, and update the Vercel env vars and the Clerk "supabase" JWT signing secret); confirm an uptime monitor is actually polling `/api/health` (it also reported `redis: unavailable`, so check the Upstash instance and env vars too).
 
 ## Season Review showed no data — CSP `connect-src` omission (2026-07-22)
 
