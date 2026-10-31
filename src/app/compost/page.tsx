@@ -424,7 +424,6 @@ export default function CompostPage() {
             <button
               onClick={() => setShowAddPileDialog(true)}
               className="zen-btn-primary flex items-center gap-2 mx-auto"
-              aria-label="Create your first compost pile"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               Create your first pile

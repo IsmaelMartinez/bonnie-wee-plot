@@ -47,7 +47,7 @@ export default function PageTour({
       onClick={() => startTour(tourId)}
       className={`inline-flex items-center gap-1.5 text-xs text-zen-stone-500 hover:text-zen-moss-600 transition-colors ${buttonClassName}`}
       title={completed ? 'Replay tour' : 'Take a tour of this page'}
-      aria-label={completed ? `Replay ${definition.name} tour` : `Start ${definition.name} tour`}
+      aria-label={completed ? `Replay tour: ${definition.name}` : `Take a tour: ${definition.name}`}
     >
       <HelpCircle className="w-4 h-4" />
       <span className="hidden sm:inline">{completed ? 'Replay tour' : 'Take a tour'}</span>
