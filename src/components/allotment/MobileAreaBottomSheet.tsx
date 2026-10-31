@@ -304,7 +304,6 @@ export default function MobileAreaBottomSheet({
                       <PlantingCard
                         key={p.id}
                         planting={p}
-                        onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                         otherPlantings={plantings}
                         onClick={() => setSelectedPlantingId(p.id)}
                         onPlantInfo={setSummaryPlantId}

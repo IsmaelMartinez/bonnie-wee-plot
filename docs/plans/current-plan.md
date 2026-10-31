@@ -1,10 +1,17 @@
 # Current Plan
 
-Last updated: 2026-10-31 (Supabase pause incident + health keep-alive)
+Last updated: 2026-10-31 (Today task list + planting card simplification)
 
 ## Up Next — simplification and bug-fix waves (2026-09-27)
 
 A five-slice parallel review found data-loss bugs in sync (duplicate sync engines, lineage adoption dropping edits, import merging instead of replacing, no year rollover on the Yjs path), an RLS hole letting users reset their AI quota, and about 7k lines of dead scaffolding left from the Yjs cutover. Work is split into parallel work packages in `docs/plans/simplification-plan.md` (merged in #592); Wave 0 (WP-00 to WP-05) is ready now, and Wave 1 waits on the six decisions D1–D6 listed there. To resume, follow that file's "Resume here" section. WP-02 (year rollover) must ship before 1 January 2027.
+
+## Simplified Today tasks and planting cards (2026-10-31)
+
+User feedback: the Today task list was too complicated, and the planting-card start/finish flow wasn't useful. A realistic October plot showed 18 tasks, including a "Glut of X?" duplicate for every harvest task, perennial care tips mixed in with jobs, and "Direct sow" reminders for crops already sown.
+
+- **Task generator** (`src/lib/task-generator.ts`) now emits actionable jobs only. Care tips and preserve nudges are gone (care tips stay on plant pages; see the ADR 025 update), and the `'care-tip'` task type is removed. Month-based sow reminders skip plantings that already have a sow date. The same October plot now shows 7 tasks (your own task plus six harvests).
+- **Planting cards** (`src/components/allotment/PlantingCard.tsx`) no longer have the "Mark as Transplanted" / "Start Harvest" / "Complete Harvest" buttons. The phase badge stays, and dates are still edited in the planting's Dates tab, which also drives the inferred status. `canAdvanceTo` was removed from `getPlantingPhase`.
 
 ## Cloud sync and Aitor down — Supabase free tier paused (2026-10-31)
 

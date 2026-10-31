@@ -58,12 +58,10 @@ function makePlanting(overrides: Partial<Planting> = {}): Planting {
 describe('PlantingCard', () => {
   it('renders the plant name as a button when onPlantInfo is provided', () => {
     const onPlantInfo = vi.fn()
-    const onUpdate = vi.fn()
 
     render(
       <PlantingCard
         planting={makePlanting()}
-        onUpdate={onUpdate}
         onPlantInfo={onPlantInfo}
       />
     )
@@ -77,12 +75,10 @@ describe('PlantingCard', () => {
     const user = userEvent.setup()
     const onPlantInfo = vi.fn()
     const onClick = vi.fn()
-    const onUpdate = vi.fn()
 
     render(
       <PlantingCard
         planting={makePlanting()}
-        onUpdate={onUpdate}
         onPlantInfo={onPlantInfo}
         onClick={onClick}
       />
@@ -99,12 +95,10 @@ describe('PlantingCard', () => {
     const user = userEvent.setup()
     const onPlantInfo = vi.fn()
     const onClick = vi.fn()
-    const onUpdate = vi.fn()
 
     render(
       <PlantingCard
         planting={makePlanting()}
-        onUpdate={onUpdate}
         onPlantInfo={onPlantInfo}
         onClick={onClick}
       />
@@ -119,9 +113,8 @@ describe('PlantingCard', () => {
   })
 
   it('renders the plant name as plain text when onPlantInfo is not provided', () => {
-    const onUpdate = vi.fn()
 
-    render(<PlantingCard planting={makePlanting()} onUpdate={onUpdate} />)
+    render(<PlantingCard planting={makePlanting()} />)
 
     expect(
       screen.queryByRole('button', { name: /info about tomato/i })

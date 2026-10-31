@@ -1,7 +1,7 @@
 # ADR 025: Perennial Care Tips
 
 ## Status
-Accepted
+Accepted, partly superseded (2026-10-31): care tips no longer appear on the Today dashboard. See "Update (2026-10-31)" below.
 
 ## Date
 2026-03-04
@@ -118,3 +118,9 @@ Each `CareTip` maps to a database record: `plantId`, `months[]`, `stage`, `categ
 - ADR 017: Dynamic Date System (perennial lifecycle tracking foundation)
 - Design doc: `docs/plans/2026-03-04-perennial-care-tips-design.md` (to be removed after merge)
 - PR #215
+
+## Update (2026-10-31): care tips removed from the Today dashboard
+
+The Today task list had grown too busy: a realistic October plot showed 18 items, a third of them advice rather than jobs (care tips plus a "Glut of X?" preserve nudge duplicating every harvest task). Applying the Simplicity First principle, the task generator now emits actionable jobs only. The `'care-tip'` task type, `careTipHash`, the stage-aware care-tip generator, the preserve nudges and the advice-ranks-below-action sort tiebreak were removed; the sections above describing them are historical.
+
+The `careTips` data and its lifecycle-stage tags are unchanged and still render on each plant's `/plants/[id]` page (`CareTipsList`). Preserving advice lives on `/preserving`. `PRESERVE_METHODS` moved to `src/lib/preservation/index.ts`, where the preservation coverage tests use it.
