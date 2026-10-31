@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs'
+import { sentryDataCollection } from './sentry.data-collection'
 
 try {
   Sentry.init({
@@ -16,6 +17,12 @@ try {
 
   // Only send errors in production
   enabled: process.env.NODE_ENV === 'production',
+
+  // Keep the v10 (sendDefaultPii off) data-collection baseline; v11's default is more permissive
+  dataCollection: sentryDataCollection,
+
+  // v11 defaults this to true; keep v10 behaviour so existing issue grouping is unchanged
+  attachStacktrace: false,
 
   // PII scrubbing for edge runtime
   beforeSend(event) {

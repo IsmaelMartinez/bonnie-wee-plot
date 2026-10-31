@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 import withSerwistInit from "@serwist/next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const withAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -70,8 +70,7 @@ const nextConfig = {
 
 // Sentry configuration for source maps and error tracking
 const sentryConfig = {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
+  // For all available options, see the SentryBuildOptions type exported from "@sentry/nextjs/config"
 
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -82,14 +81,17 @@ const sentryConfig = {
   // Upload source maps to Sentry for production debugging
   widenClientFileUpload: true,
 
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
+  // Tree-shake Sentry SDK debug logger statements to reduce bundle size
+  // (replaces the `disableLogger` option removed in @sentry/nextjs v11; works for Turbopack and webpack)
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+  },
 
-  // Prevents source map comments in production
-  hideSourceMaps: true,
-
-  // Automatically instrument client-side routes
-  automaticVercelMonitors: false,
+  // Do not create Sentry cron monitors for Vercel Cron Jobs
+  // (moved under `webpack` in @sentry/nextjs v11; false is the default)
+  webpack: {
+    automaticVercelMonitors: false,
+  },
 };
 
 // Apply Serwist first, then Sentry
