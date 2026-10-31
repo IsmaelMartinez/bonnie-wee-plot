@@ -92,6 +92,9 @@
     "browserslist": "^4.28.7",
     "next": {
       "sharp": "^0.35.0"
+    },
+    "@serwist/next": {
+      "zod": "^4.6.7"
     }
   },
   "lint-staged": {
