@@ -563,7 +563,7 @@ export default function AitorChatModal() {
         <button
           onClick={restoreChat}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-zen-moss-600 hover:bg-zen-moss-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 min-h-[44px]"
-          aria-label={`Restore Aitor chat (${messages.length} message${messages.length === 1 ? '' : 's'})`}
+          aria-label={`Aitor • ${messages.length} msg${messages.length === 1 ? '' : 's'} — restore chat`}
           title="Restore Aitor chat"
         >
           <Leaf className="w-5 h-5" aria-hidden="true" />
