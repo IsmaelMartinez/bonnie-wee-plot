@@ -26,6 +26,13 @@ import { otherPreservation } from './data/other'
 import { mushroomsPreservation } from './data/mushrooms'
 import { edibleExtrasPreservation } from './data/edible-extras'
 
+/**
+ * Storage methods that count as preserving a glut (rather than just keeping
+ * fresh). Every crop whose `storage.methods` include one of these must have a
+ * preservation guide — asserted by the preservation coverage tests.
+ */
+export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
+
 export const preservationGuides: PreservationGuide[] = [
   ...leafyGreensPreservation,
   ...rootVegetablesPreservation,

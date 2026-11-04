@@ -55,12 +55,6 @@ const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; 
   'water': { icon: Droplets, label: 'Water', color: 'text-zen-water-600' },
   'mulch': { icon: TreeDeciduous, label: 'Mulch', color: 'text-amber-700' },
   'succession': { icon: RotateCcw, label: 'Succession Sow', color: 'text-teal-600' },
-  'care-tip': { icon: Sparkles, label: 'Care Tip', color: 'text-zen-bamboo-600' },
-}
-
-/** Heading for a grouped row, where it differs from the single-task label. */
-const GROUP_LABEL: Partial<Record<GeneratedTaskType, string>> = {
-  'care-tip': 'Care tips',
 }
 
 const BADGE_STYLES: Record<TaskUrgency | 'ready', string> = {
@@ -334,7 +328,7 @@ function TaskGroupItem({
 
   const config = GENERATED_TASK_CONFIG[group.type] || GENERATED_TASK_CONFIG['harvest']
   const Icon = config.icon
-  const label = GROUP_LABEL[group.type] ?? config.label
+  const label = config.label
   const listId = `task-group-${group.type}`
   const showButton = !!onComplete || !!onDismiss
 

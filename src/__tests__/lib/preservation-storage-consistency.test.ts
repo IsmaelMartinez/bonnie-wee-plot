@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { vegetables } from '@/lib/vegetable-database'
-import { preservationGuides } from '@/lib/preservation'
-import { PRESERVE_METHODS } from '@/lib/task-generator'
+import { preservationGuides, PRESERVE_METHODS } from '@/lib/preservation'
 
 /**
  * Guards against drift between PreservationGuide.methods and

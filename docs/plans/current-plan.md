@@ -8,7 +8,14 @@ A five-slice parallel review found data-loss bugs in sync (duplicate sync engine
 
 ## Today task list grouped by task type (2026-11-04)
 
-The Today dashboard listed every generated task on its own row ("Harvest Kale", "Harvest Leeks", "Water Bed A", ...), which got busy fast and pushed work behind "+N more". Generated tasks now collapse into one summary row per type, in the style of the This Month page but based on the user's own plantings: "Harvest · Brussels Sprouts, Kale, Leek and Parsnip", "Care tips · Apple Tree, Rhubarb and 5 more". Each row shows the most urgent badge in the group, a ✓ that completes every task in it (feed/water still log a care entry per area), and an expander for the individual tasks with their notes and feed hints. The 8-row fold now counts rows, not tasks. Grouping lives in `src/lib/task-grouping.ts`; the generator itself is unchanged, so dismissal IDs are stable.
+The Today dashboard listed every generated task on its own row ("Harvest Kale", "Harvest Leeks", "Water Bed A", ...), which got busy fast and pushed work behind "+N more". Generated tasks now collapse into one summary row per type, building on the slimmer list from #651, in the style of the This Month page but based on the user's own plantings: "Harvest · Brussels Sprouts, Kale, Leek and Parsnip", "Water · Bed A, Bed B and Bed C". Each row shows the most urgent badge in the group, a ✓ that completes every task in it (feed/water still log a care entry per area), and an expander for the individual tasks with their notes and feed hints. The 8-row fold now counts rows, not tasks. Grouping lives in `src/lib/task-grouping.ts`; the generator itself is unchanged, so dismissal IDs are stable.
+
+## Simplified Today tasks and planting cards (2026-10-31)
+
+User feedback: the Today task list was too complicated, and the planting-card start/finish flow wasn't useful. A realistic October plot showed 18 tasks, including a "Glut of X?" duplicate for every harvest task, perennial care tips mixed in with jobs, and "Direct sow" reminders for crops already sown.
+
+- **Task generator** (`src/lib/task-generator.ts`) now emits actionable jobs only. Care tips and preserve nudges are gone (care tips stay on plant pages; see the ADR 025 update), and the `'care-tip'` task type is removed. Month-based sow reminders skip plantings that already have a sow date. The same October plot now shows 7 tasks (your own task plus six harvests).
+- **Planting cards** (`src/components/allotment/PlantingCard.tsx`) no longer have the "Mark as Transplanted" / "Start Harvest" / "Complete Harvest" buttons. The phase badge stays, and dates are still edited in the planting's Dates tab, which also drives the inferred status. The Dates tab gained a "Harvest Finished" date (`actualHarvestEnd`) so a harvesting planting can still be marked harvested without the button. `canAdvanceTo` was removed from `getPlantingPhase`.
 
 ## Cloud sync and Aitor down — Supabase free tier paused (2026-10-31)
 

@@ -9,15 +9,14 @@
  */
 
 import { MaintenanceTask, MaintenanceTaskType, Planting, Area, StoredVariety } from '@/types/unified-allotment'
-import { Vegetable, Month, WaterRequirement, FeedType, StorageMethod } from '@/types/garden-planner'
+import { Vegetable, Month, WaterRequirement, FeedType } from '@/types/garden-planner'
 import { getVegetableById } from '@/lib/vegetable-database'
-import { getGerminationDays, parseDate, addDays, formatDate, differenceInDays, runEnd, nextRun } from '@/lib/date-calculator'
-import { calculatePerennialStatus } from '@/lib/perennial-calculator'
+import { getGerminationDays, parseDate, addDays, formatDate, differenceInDays } from '@/lib/date-calculator'
 import type { RainfallSummary } from '@/lib/weather/open-meteo'
 import { shouldSkipWatering } from '@/lib/weather/open-meteo'
 import { shouldSuppressOutdoorSow } from '@/lib/sowing-thresholds'
 
-export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'water' | 'mulch' | 'succession' | 'care-tip'
+export type GeneratedTaskType = 'harvest' | 'sow-indoors' | 'sow-outdoors' | 'transplant' | 'prune' | 'feed' | 'water' | 'mulch' | 'succession'
 
 /**
  * Days-since-last-action map used by the task generator to decide whether
@@ -264,176 +263,12 @@ export function generateSuccessionReminders(
 }
 
 /**
- * Short, stable identity for a care tip: FNV-1a 32-bit hash of
- * plantId + tip text, rendered in base36. Task IDs built from this survive
- * inserting or reordering tips in the vegetable database — an array index
- * would silently invalidate month-scoped dismissals in localStorage on deploy.
- */
-export function careTipHash(plantId: string, tipText: string): string {
-  const input = `${plantId}:${tipText}`
-  let hash = 0x811c9dc5
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i)
-    hash = Math.imul(hash, 0x01000193)
-  }
-  return (hash >>> 0).toString(36)
-}
-
-/**
- * Generate care tip tasks for perennial areas
- * Filters by current month and the plant's lifecycle stage
- */
-function generateCareTipTasks(
-  currentMonth: Month,
-  areas: Area[],
-  currentYear: number
-): GeneratedTask[] {
-  const tasks: GeneratedTask[] = []
-
-  for (const area of areas) {
-    if (!area.primaryPlant?.plantId) continue
-
-    const vegetable = getVegetableById(area.primaryPlant.plantId)
-    if (!vegetable?.careTips) continue
-
-    // Calculate lifecycle stage if we have plantedYear and perennialInfo
-    let lifecycleStatus: string | undefined
-    if (area.primaryPlant.plantedYear && vegetable.perennialInfo) {
-      const result = calculatePerennialStatus(
-        area.primaryPlant.plantedYear,
-        vegetable.perennialInfo,
-        currentYear
-      )
-      lifecycleStatus = result.status
-    }
-
-    for (const tip of vegetable.careTips) {
-      if (!tip.months.includes(currentMonth)) continue
-
-      // Stage filtering: if tip has a stage, only show when lifecycle matches
-      if (tip.stage) {
-        if (!lifecycleStatus) continue  // Can't determine stage without plantedYear
-        if (tip.stage !== lifecycleStatus) continue
-      }
-
-      // The ID is content-derived and has no area component, so the same
-      // tip for a plant grown in several areas dedupes to one task and
-      // dismissals survive database edits. The task itself still carries
-      // areaId/areaName for display context.
-      tasks.push({
-        id: `care-tip-${vegetable.id}-${careTipHash(vegetable.id, tip.tip)}-${currentMonth}`,
-        type: 'other',
-        generatedType: 'care-tip',
-        description: tip.tip,
-        plantId: vegetable.id,
-        plantName: vegetable.name,
-        areaId: area.id,
-        areaName: area.name,
-        month: currentMonth,
-        priority: 'medium',
-        calculatedFrom: 'calendar-month',
-      })
-    }
-  }
-
-  return tasks
-}
-
-/**
- * Storage methods that signal a glut is worth preserving (rather than just
- * keeping fresh). When a crop with one of these is in its harvest window we
- * nudge the user to preserve some — reusing the care-tip plumbing (C3).
- */
-export const PRESERVE_METHODS: StorageMethod[] = ['freeze', 'jam', 'pickle', 'ferment', 'dry']
-
-/**
- * Whether today falls in a planting's harvest window. Starts at the planting's
- * calculated expected start (from sow/transplant dates) so the nudge doesn't
- * fire months early on the crop's coarse `harvestMonths`; returns null when no
- * expected dates are present so the caller can fall back. The expected end is
- * only the latest first harvest, so the window runs to the later of it and the
- * end of the contiguous run of `harvestMonths` containing the expected start
- * (not across a gap such as spinach's September), and past the expected end it
- * only matches in a listed harvest month. Compares full dates, so last year's
- * window does not match this year.
- */
-function isInExpectedHarvestWindow(planting: Planting, harvestMonths: Month[], today: Date): boolean | null {
-  if (!planting.expectedHarvestStart) return null
-  const expectedEnd = planting.expectedHarvestEnd ?? planting.expectedHarvestStart
-  let end = expectedEnd
-  const start = parseDate(planting.expectedHarvestStart)
-  const startMonth = start.getMonth() + 1
-  if (harvestMonths.length > 0) {
-    // The run holding the expected start, or the next run when the first
-    // harvest lands just before the crop's listed months (courgette in June).
-    const lastMonth = harvestMonths.includes(startMonth as Month)
-      ? runEnd(harvestMonths, startMonth)
-      : nextRun(harvestMonths, startMonth).end
-    // A run wrapping the year end (Nov–Feb) ends the following year.
-    const endYear = start.getFullYear() + (lastMonth < startMonth ? 1 : 0)
-    const seasonEnd = formatDate(new Date(endYear, lastMonth, 0))
-    if (seasonEnd > end) end = seasonEnd
-  }
-  const todayStr = formatDate(today)
-  if (todayStr < planting.expectedHarvestStart || todayStr > end) return false
-  // Past the expected end, only nudge in a listed harvest month, so an
-  // out-of-season planting does not nudge across a long non-harvest gap.
-  return todayStr <= expectedEnd || harvestMonths.length === 0 || harvestMonths.includes((today.getMonth() + 1) as Month)
-}
-
-/**
- * Generate "glut?" preserve nudges for crops in their harvest window whose
- * storage data offers a preserving method (freeze/jam/pickle/…). Emitted as a
- * care-tip task (no new task type), one per crop so a crop in several beds
- * only nudges once.
- */
-function generatePreserveNudges(
-  currentMonth: Month,
-  plantings: PlantingWithContext[],
-  today: Date
-): GeneratedTask[] {
-  const tasks: GeneratedTask[] = []
-  const seen = new Set<string>()
-
-  // Only active (harvestable) plantings can be in glut.
-  for (const { planting } of filterPlantingsForTaskType(plantings, 'harvest')) {
-    const vegetable = getVegetableById(planting.plantId)
-    if (!vegetable?.storage) continue
-    if (!vegetable.storage.methods.some((m) => PRESERVE_METHODS.includes(m))) continue
-    if (seen.has(vegetable.id)) continue
-
-    // Prefer the planting's calculated window; fall back to coarse harvestMonths.
-    const expected = isInExpectedHarvestWindow(planting, vegetable.planting.harvestMonths, today)
-    const inWindow = expected !== null ? expected : vegetable.planting.harvestMonths.includes(currentMonth)
-    if (!inWindow) continue
-
-    seen.add(vegetable.id)
-
-    tasks.push({
-      id: `preserve-nudge-${vegetable.id}-${currentMonth}`,
-      type: 'other',
-      generatedType: 'care-tip',
-      description: `Glut of ${vegetable.name}?`,
-      plantId: vegetable.id,
-      plantName: vegetable.name,
-      month: currentMonth,
-      priority: 'low',
-      calculatedFrom: 'calendar-month',
-      notes: vegetable.storage.tip ?? 'In its harvest window — preserve some of the glut.',
-    })
-  }
-
-  return tasks
-}
-
-/**
  * Generate month-based tasks (fallback when no dates available)
  */
 function generateMonthBasedTasks(
   currentMonth: Month,
   plantings: PlantingWithContext[],
   areas: Area[],
-  currentYear: number,
   soilTempC: number | undefined = undefined
 ): GeneratedTask[] {
   const tasks: GeneratedTask[] = []
@@ -462,6 +297,11 @@ function generateMonthBasedTasks(
     const vegetable = getVegetableById(planting.plantId)
     if (!vegetable) continue
 
+    // A planting with a sow date is already sown: don't remind the user to
+    // sow it again (e.g. garlic planted in October still listed as "Direct
+    // sow Garlic"). Its follow-ups come from the date-based tasks instead.
+    if (planting.sowDate) continue
+
     // Sow indoors tasks — one per plant
     if (vegetable.planting.sowIndoorsMonths.includes(currentMonth)) {
       const key = `sow-indoors-${vegetable.id}`
@@ -484,8 +324,8 @@ function generateMonthBasedTasks(
       }
     }
 
-    // Transplant tasks (only if no sow date tracking) — one per plant
-    if (!planting.sowDate && vegetable.planting.transplantMonths.includes(currentMonth)) {
+    // Transplant tasks (sown plantings get a date-based one instead) — one per plant
+    if (vegetable.planting.transplantMonths.includes(currentMonth)) {
       const key = `transplant-${vegetable.id}`
       if (!seenSowTasks.has(key)) {
         seenSowTasks.add(key)
@@ -515,9 +355,6 @@ function generateMonthBasedTasks(
     }
   }
 
-  // Generate care tip tasks for perennial areas
-  tasks.push(...generateCareTipTasks(currentMonth, areas, currentYear))
-
   return tasks
 }
 
@@ -527,12 +364,6 @@ function generateMonthBasedTasks(
  * derived tasks for the same crop.
  */
 function taskDedupeKey(task: GeneratedTask): string {
-  // Care tips: distinct tips are distinct tasks, so the key is the task ID,
-  // which already encodes plant + tip content + month (no area). The same
-  // tip for a plant grown in several areas collapses to one task, while
-  // several same-month tips for one plant all survive. Preserve nudges share
-  // the care-tip type but have their own stable preserve-nudge-* IDs.
-  if (task.generatedType === 'care-tip') return task.id
   const source = task.id.startsWith('variety-') ? 'variety' : 'planting'
   return `${source}-${task.generatedType}-${task.plantId}-${task.areaId || 'general'}`
 }
@@ -671,17 +502,14 @@ export function generateTasksForMonth(
   // Pass today's soil temp through so cold-sensitive sow-outdoors tasks can
   // be suppressed for crops with a threshold (peas, beans, sweetcorn, …).
   const soilTempC = rainfall?.soilTempC
-  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, currentYear, soilTempC)
+  const monthBasedTasks = generateMonthBasedTasks(currentMonth, plantings, areas, soilTempC)
 
   // Get variety-based tasks (seeds user has but hasn't planted)
   const varietyTasks = generateVarietyTasks(currentMonth, varieties, plantings, currentYear, soilTempC)
 
-  // Get "glut?" preserve nudges for harvest-window crops with preserving options
-  const preserveNudges = generatePreserveNudges(currentMonth, plantings, today)
-
   // Merge all tasks, preferring date-based
   const allDateBased = [...dateBasedTasks, ...successionTasks, ...wateringTasks]
-  const allMonthBased = [...monthBasedTasks, ...varietyTasks, ...feedingTasks, ...preserveNudges]
+  const allMonthBased = [...monthBasedTasks, ...varietyTasks, ...feedingTasks]
   const mergedTasks = mergeAndDeduplicateTasks(allDateBased, allMonthBased)
 
   // Deduplicate any remaining duplicates
@@ -704,15 +532,6 @@ export function generateTasksForMonth(
     const priorityOrder = { high: 0, medium: 1, low: 2 }
     const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority]
     if (priorityDiff !== 0) return priorityDiff
-
-    // Advice ranks below action at equal priority: since #447 every matching
-    // care tip emits as its own task, so a few perennials can produce a run
-    // of medium tips that would otherwise interleave alphabetically with
-    // sow/transplant tasks and push them below the dashboard's visible fold.
-    // Preserve nudges share the care-tip type, so within the low band they
-    // rank after routine reminders (water/feed/mulch) too — also advice.
-    const adviceDiff = Number(a.generatedType === 'care-tip') - Number(b.generatedType === 'care-tip')
-    if (adviceDiff !== 0) return adviceDiff
 
     return a.description.localeCompare(b.description)
   })
@@ -1167,7 +986,6 @@ export function getTaskLabel(type: GeneratedTaskType): string {
     'water': 'Water',
     'mulch': 'Mulch',
     'succession': 'Succession Sow',
-    'care-tip': 'Care Tip'
   }
   return labels[type] || 'Task'
 }

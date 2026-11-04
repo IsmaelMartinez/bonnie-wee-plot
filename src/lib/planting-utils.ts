@@ -229,7 +229,6 @@ export interface PlantingPhaseInfo {
   label: string
   description: string
   color: 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red'
-  canAdvanceTo?: PlantingPhase[]
 }
 
 /**
@@ -263,8 +262,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
       phase: 'harvesting',
       label: 'Harvesting',
       description: 'Currently harvesting',
-      color: 'orange',
-      canAdvanceTo: ['complete']
+      color: 'orange'
     }
   }
 
@@ -274,8 +272,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
       phase: 'planned',
       label: 'Planned',
       description: 'Not yet sown',
-      color: 'gray',
-      canAdvanceTo: ['germinating', 'growing']
+      color: 'gray'
     }
   }
 
@@ -289,8 +286,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
       phase: 'ready-to-harvest',
       label: 'Ready to Harvest',
       description: 'In harvest window',
-      color: 'yellow',
-      canAdvanceTo: ['harvesting']
+      color: 'yellow'
     }
   }
 
@@ -302,8 +298,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
         phase: 'growing',
         label: 'Growing',
         description: 'Transplanted and growing',
-        color: 'green',
-        canAdvanceTo: ['ready-to-harvest']
+        color: 'green'
       }
     }
 
@@ -315,8 +310,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
         phase: 'germinating',
         label: 'Germinating',
         description: 'Seeds germinating indoors',
-        color: 'blue',
-        canAdvanceTo: ['growing-indoor']
+        color: 'blue'
       }
     }
 
@@ -325,8 +319,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
         phase: 'growing-indoor',
         label: 'Growing Indoors',
         description: 'Seedlings growing indoors',
-        color: 'blue',
-        canAdvanceTo: ['ready-to-transplant']
+        color: 'blue'
       }
     }
 
@@ -334,8 +327,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
       phase: 'ready-to-transplant',
       label: 'Ready to Transplant',
       description: 'Seedlings ready for transplanting',
-      color: 'yellow',
-      canAdvanceTo: ['growing']
+      color: 'yellow'
     }
   }
 
@@ -346,8 +338,7 @@ export function getPlantingPhase(planting: Planting, currentDate?: Date): Planti
     description: sowMethod === 'transplant-purchased'
       ? 'Purchased seedling growing'
       : 'Direct-sown and growing',
-    color: 'green',
-    canAdvanceTo: ['ready-to-harvest']
+    color: 'green'
   }
 }
 

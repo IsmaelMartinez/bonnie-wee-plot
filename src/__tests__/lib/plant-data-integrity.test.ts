@@ -134,8 +134,8 @@ describe('Plant Data Integrity', () => {
   describe('Care tips (perennial advice)', () => {
     // Enum members of CareTipCategory (src/types/garden-planner.ts).
     const VALID_CATEGORIES = new Set(['care', 'harvest', 'propagate', 'protect', 'plant'])
-    // Lifecycle stages that calculatePerennialStatus() can actually return and
-    // that generateCareTipTasks() can match against. 'removed' is a stored
+    // Lifecycle stages that calculatePerennialStatus() can actually return (the
+    // stage badge on a plant page's care tips). 'removed' is a stored
     // PrimaryPlant status, never a computed lifecycle stage, so a care tip
     // tagged with it would be dead data — exclude it from the valid set.
     const VALID_STAGES = new Set(['establishing', 'productive', 'declining'])
@@ -186,9 +186,9 @@ describe('Plant Data Integrity', () => {
     })
 
     it('stage-tagged tips only appear on plants with perennialInfo', () => {
-      // generateCareTipTasks() can only resolve a lifecycle stage when the
-      // plant has perennialInfo; a stage on any other plant never fires and is
-      // therefore dead data.
+      // A lifecycle stage only means something when the plant has
+      // perennialInfo (calculatePerennialStatus needs it); a stage on any
+      // other plant is therefore dead data.
       const offenders: string[] = []
       for (const veg of vegetables) {
         if (!veg.careTips) continue
@@ -393,10 +393,8 @@ describe('Plant Data Integrity', () => {
       // and placement matter (rhubarb crowns rot under mulch; tree mulch must
       // stay off the trunk). The guidance must live on the task itself via
       // maintenance.mulchNote — structured like feedType — because the
-      // alternative, a mulch-mentioning care tip in the same month, is
-      // unreliable: care-tip tasks are deduplicated per plant per month
-      // (taskDedupeKey in task-generator.ts), so any earlier same-month tip
-      // silently swallows the mulch advice.
+      // alternative, a mulch-mentioning care tip, only shows on the plant
+      // page and never next to the mulch task on the Today dashboard.
       const offenders: string[] = []
       for (const veg of vegetables) {
         const m = veg.maintenance
