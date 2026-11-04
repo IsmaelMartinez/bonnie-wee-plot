@@ -110,6 +110,8 @@ All existing imports from `@/services/allotment-storage` continue to work unchan
 
 `src/lib/task-generator.ts` generates automatic tasks for the Today dashboard based on plantings, areas, seed varieties, and the current month. Task types include harvest, sow-indoors, sow-outdoors, transplant, prune, feed, water, mulch, succession, and care-tip. Date-based tasks (from actual sow dates) take priority over month-based tasks (from the vegetable database calendar). Care tips (`careTips` on `Vegetable`) provide lifecycle-aware seasonal advice for perennials, filtered by month and the plant's `PerennialStatus` (establishing/productive/declining) via `calculatePerennialStatus()`. See ADR 025.
 
+The Today `TaskList` does not list generated tasks one by one: `groupGeneratedTasks()` (`src/lib/task-grouping.ts`) collapses them into one summary row per task type ("Harvest · Kale, Leeks and Parsnips"), with the most urgent badge, a ✓ that completes every task in the group, and an expander for the individual tasks. A type with a single task renders as the plain task row.
+
 ### Vegetable Database
 
 Split into index, per-category data files, and lazy loader for performance:

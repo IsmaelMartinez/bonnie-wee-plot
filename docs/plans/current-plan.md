@@ -1,10 +1,14 @@
 # Current Plan
 
-Last updated: 2026-10-31 (Supabase pause incident + health keep-alive)
+Last updated: 2026-11-04 (Today task list grouped by task type)
 
 ## Up Next — simplification and bug-fix waves (2026-09-27)
 
 A five-slice parallel review found data-loss bugs in sync (duplicate sync engines, lineage adoption dropping edits, import merging instead of replacing, no year rollover on the Yjs path), an RLS hole letting users reset their AI quota, and about 7k lines of dead scaffolding left from the Yjs cutover. Work is split into parallel work packages in `docs/plans/simplification-plan.md` (merged in #592); Wave 0 (WP-00 to WP-05) is ready now, and Wave 1 waits on the six decisions D1–D6 listed there. To resume, follow that file's "Resume here" section. WP-02 (year rollover) must ship before 1 January 2027.
+
+## Today task list grouped by task type (2026-11-04)
+
+The Today dashboard listed every generated task on its own row ("Harvest Kale", "Harvest Leeks", "Water Bed A", ...), which got busy fast and pushed work behind "+N more". Generated tasks now collapse into one summary row per type, in the style of the This Month page but based on the user's own plantings: "Harvest · Brussels Sprouts, Kale, Leek and Parsnip", "Care tips · Apple Tree, Rhubarb and 5 more". Each row shows the most urgent badge in the group, a ✓ that completes every task in it (feed/water still log a care entry per area), and an expander for the individual tasks with their notes and feed hints. The 8-row fold now counts rows, not tasks. Grouping lives in `src/lib/task-grouping.ts`; the generator itself is unchanged, so dismissal IDs are stable.
 
 ## Cloud sync and Aitor down — Supabase free tier paused (2026-10-31)
 
