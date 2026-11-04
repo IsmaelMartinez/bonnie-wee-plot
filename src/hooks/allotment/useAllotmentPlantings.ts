@@ -220,9 +220,10 @@ export function useAllotmentPlantings({
       // Dates tab sends that when a date input is emptied). assignDefined
       // skips undefined values, so delete those keys explicitly first —
       // otherwise clearing "Harvest Finished" would leave the planting
-      // harvested.
+      // harvested. Only delete keys that exist: SyncedStore's deleteProperty
+      // trap returns false for a missing key, which throws in strict mode.
       for (const [key, value] of Object.entries(updates)) {
-        if (value === undefined) delete p[key as keyof typeof p]
+        if (value === undefined && key in p) delete p[key as keyof typeof p]
       }
       assignDefined(p, updates)
       if (datesChanged && !statusExplicitlySet && p.status !== 'removed') {

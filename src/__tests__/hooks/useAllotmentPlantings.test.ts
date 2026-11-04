@@ -79,4 +79,22 @@ describe('useAllotmentPlantings.updatePlanting', () => {
     expect(read().notes).toBe('keep me')
     expect(read().status).toBe('planned')
   })
+
+  it('ignores undefined for fields the planting does not have', () => {
+    // The Dates tab sends expectedHarvestStart/End: undefined when the sow
+    // method changes on an unsown planting; deleting a missing key on the
+    // SyncedStore proxy throws, which used to abort the whole update.
+    const { result, read } = setup({ id: 'p1', plantId: 'carrot', status: 'planned' })
+
+    act(() =>
+      result.current.updatePlanting('bed-a', 'p1', {
+        sowMethod: 'outdoor',
+        expectedHarvestStart: undefined,
+        expectedHarvestEnd: undefined,
+      })
+    )
+
+    expect(read().sowMethod).toBe('outdoor')
+    expect(read()).not.toHaveProperty('expectedHarvestStart')
+  })
 })
