@@ -2,6 +2,7 @@ import { useState, useRef, KeyboardEvent } from 'react'
 import { Scissors, Droplets, TreeDeciduous, Sparkles, CheckCircle2, Sprout, ArrowUpFromLine, Leaf, RotateCcw, Check, Undo2, ChevronDown, ChevronUp, Plus, X, Square, CheckSquare } from 'lucide-react'
 import { CustomTask, NewCustomTask, MaintenanceTask, MaintenanceTaskType } from '@/types/unified-allotment'
 import { GeneratedTask, GeneratedTaskType, TaskUrgency } from '@/lib/task-generator'
+import { TaskBadge, TaskGroup, formatSubjects, getGroupBadge, getTaskBadge, groupGeneratedTasks } from '@/lib/task-grouping'
 import { SeasonalTheme } from '@/lib/seasonal-theme'
 import { FeedType } from '@/types/garden-planner'
 import { getHomemadeFeedsForType, getOwnFeedResourcesForType, OwnFeedContext } from '@/lib/feeds/homemade-feeds'
@@ -56,12 +57,22 @@ const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; 
   'succession': { icon: RotateCcw, label: 'Succession Sow', color: 'text-teal-600' },
 }
 
-const URGENCY_STYLES: Record<TaskUrgency, string> = {
+const BADGE_STYLES: Record<TaskUrgency | 'ready', string> = {
   'overdue': 'bg-zen-ume-100 text-zen-ume-700',
   'today': 'bg-zen-kitsune-100 text-zen-kitsune-700',
   'this-week': 'bg-zen-water-100 text-zen-water-700',
   'upcoming': 'bg-zen-moss-100 text-zen-moss-700',
   'later': 'bg-zen-stone-100 text-zen-stone-600',
+  'ready': 'bg-zen-moss-100 text-zen-moss-700',
+}
+
+function Badge({ badge }: { badge: TaskBadge | null }) {
+  if (!badge) return null
+  return (
+    <span className={`text-xs px-1.5 py-0.5 rounded ${BADGE_STYLES[badge.urgency]}`}>
+      {badge.text}
+    </span>
+  )
 }
 
 /**
@@ -254,31 +265,6 @@ function GeneratedTaskItem({
   }
   const showButton = !!onComplete || !!onDismiss
 
-  // Determine badge text and style
-  const getBadge = () => {
-    // Show urgency-based badge for date-based tasks
-    if (task.urgency && task.calculatedFrom === 'actual-date') {
-      if (task.urgency === 'today') {
-        return { text: 'Today', style: URGENCY_STYLES['today'] }
-      }
-      if (task.urgency === 'overdue') {
-        return { text: 'Overdue', style: URGENCY_STYLES['overdue'] }
-      }
-      if (task.urgency === 'this-week' && task.daysRemaining !== undefined) {
-        return { text: `${task.daysRemaining}d`, style: URGENCY_STYLES['this-week'] }
-      }
-      if (task.urgency === 'upcoming' && task.daysRemaining !== undefined) {
-        return { text: `${task.daysRemaining}d`, style: URGENCY_STYLES['upcoming'] }
-      }
-    }
-    // Fallback for high priority tasks without urgency
-    if (task.priority === 'high') {
-      return { text: 'Ready', style: 'bg-zen-moss-100 text-zen-moss-700' }
-    }
-    return null
-  }
-
-  const badge = getBadge()
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0 group">
@@ -295,11 +281,7 @@ function GeneratedTaskItem({
         )}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        {badge && (
-          <span className={`text-xs px-1.5 py-0.5 rounded ${badge.style}`}>
-            {badge.text}
-          </span>
-        )}
+        <Badge badge={getTaskBadge(task)} />
         {showButton && (
           <button
             onClick={handleComplete}
@@ -311,6 +293,104 @@ function GeneratedTaskItem({
           </button>
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * One summary row per task kind ("Harvest: Kale, Leeks and Parsnips"),
+ * expandable to the individual tasks. A single-task group renders as the
+ * plain task row, since there is nothing to summarise.
+ */
+function TaskGroupItem({
+  group,
+  onDismiss,
+  onComplete,
+  ownFeedContext,
+}: {
+  group: TaskGroup
+  onDismiss?: (taskId: string) => void
+  onComplete?: (task: GeneratedTask) => void
+  ownFeedContext: OwnFeedContext
+}) {
+  const [open, setOpen] = useState(false)
+
+  if (group.tasks.length === 1) {
+    return (
+      <GeneratedTaskItem
+        task={group.tasks[0]}
+        onDismiss={onDismiss}
+        onComplete={onComplete}
+        ownFeedContext={ownFeedContext}
+      />
+    )
+  }
+
+  const config = GENERATED_TASK_CONFIG[group.type] || GENERATED_TASK_CONFIG['harvest']
+  const Icon = config.icon
+  const label = config.label
+  const listId = `task-group-${group.type}`
+  const showButton = !!onComplete || !!onDismiss
+
+  // Completing the group completes every task in it, so feed/water still
+  // record a care log per area via onComplete.
+  const handleCompleteAll = () => {
+    for (const task of group.tasks) {
+      if (onComplete) onComplete(task)
+      else onDismiss?.(task.id)
+    }
+  }
+
+  return (
+    <div className="border-b border-zen-stone-100 last:border-0">
+      <div className="flex items-start gap-3 py-3 group">
+        <div className="flex-shrink-0 mt-0.5">
+          <Icon className={`w-4 h-4 ${config.color}`} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex-1 min-w-0 text-left"
+          aria-expanded={open}
+          aria-controls={listId}
+        >
+          <p className="text-sm text-zen-ink-700 leading-relaxed">
+            <span className="font-medium">{label}</span>
+            <span className="text-zen-stone-400"> &middot; </span>
+            {formatSubjects(group.subjects)}
+          </p>
+          <span className="inline-flex items-center gap-1 text-xs text-zen-stone-400 mt-0.5">
+            {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {open ? 'Hide details' : `${group.tasks.length} tasks`}
+          </span>
+        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <Badge badge={getGroupBadge(group.tasks)} />
+          {showButton && (
+            <button
+              onClick={handleCompleteAll}
+              className="p-1 rounded-full text-zen-stone-300 hover:text-zen-moss-600 hover:bg-zen-moss-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+              title="Mark all as done"
+              aria-label={`Mark all ${label} tasks as done`}
+            >
+              <Check className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      {open && (
+        <div id={listId} className="ml-7 mb-2 border-l border-zen-stone-100 pl-3">
+          {group.tasks.map((task) => (
+            <GeneratedTaskItem
+              key={task.id}
+              task={task}
+              onDismiss={onDismiss}
+              onComplete={onComplete}
+              ownFeedContext={ownFeedContext}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -397,12 +477,15 @@ export default function TaskList({
     )
   }
 
-  // Combine and limit generated + maintenance tasks for display
+  // Generated tasks collapse into one row per kind; the fold limits rows,
+  // not individual tasks.
   const MAX_DISPLAY = 8
-  const displayGeneratedTasks = showAll ? generatedTasks : generatedTasks.slice(0, MAX_DISPLAY)
-  const remainingSlots = showAll ? tasks.length : Math.max(0, MAX_DISPLAY - displayGeneratedTasks.length)
+  const taskGroups = groupGeneratedTasks(generatedTasks)
+  const displayGroups = showAll ? taskGroups : taskGroups.slice(0, MAX_DISPLAY)
+  const remainingSlots = showAll ? tasks.length : Math.max(0, MAX_DISPLAY - displayGroups.length)
   const displayManualTasks = tasks.slice(0, remainingSlots)
-  const hiddenCount = showAll ? 0 : (tasks.length + generatedTasks.length) - displayGeneratedTasks.length - displayManualTasks.length
+  const totalRows = tasks.length + taskGroups.length
+  const hiddenCount = showAll ? 0 : totalRows - displayGroups.length - displayManualTasks.length
 
   return (
     <div className="zen-card p-6" data-tour="task-list">
@@ -425,11 +508,11 @@ export default function TaskList({
           </div>
         )}
 
-        {/* Generated tasks (auto-generated from plantings) */}
-        {displayGeneratedTasks.map((task) => (
-          <GeneratedTaskItem
-            key={task.id}
-            task={task}
+        {/* Generated tasks (auto-generated from plantings), one row per kind */}
+        {displayGroups.map((group) => (
+          <TaskGroupItem
+            key={group.type}
+            group={group}
             onDismiss={onDismissTask}
             onComplete={onCompleteTask}
             ownFeedContext={ownFeedContext}
@@ -454,7 +537,7 @@ export default function TaskList({
             +{hiddenCount} more
           </button>
         )}
-        {showAll && (tasks.length + generatedTasks.length) > MAX_DISPLAY && (
+        {showAll && totalRows > MAX_DISPLAY && (
           <button
             onClick={() => setShowAll(false)}
             className="text-xs text-zen-stone-400 hover:text-zen-stone-600 transition-colors text-center pt-3 w-full"
