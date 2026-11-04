@@ -11,7 +11,7 @@ A five-slice parallel review found data-loss bugs in sync (duplicate sync engine
 User feedback: the Today task list was too complicated, and the planting-card start/finish flow wasn't useful. A realistic October plot showed 18 tasks, including a "Glut of X?" duplicate for every harvest task, perennial care tips mixed in with jobs, and "Direct sow" reminders for crops already sown.
 
 - **Task generator** (`src/lib/task-generator.ts`) now emits actionable jobs only. Care tips and preserve nudges are gone (care tips stay on plant pages; see the ADR 025 update), and the `'care-tip'` task type is removed. Month-based sow reminders skip plantings that already have a sow date. The same October plot now shows 7 tasks (your own task plus six harvests).
-- **Planting cards** (`src/components/allotment/PlantingCard.tsx`) no longer have the "Mark as Transplanted" / "Start Harvest" / "Complete Harvest" buttons. The phase badge stays, and dates are still edited in the planting's Dates tab, which also drives the inferred status. `canAdvanceTo` was removed from `getPlantingPhase`.
+- **Planting cards** (`src/components/allotment/PlantingCard.tsx`) no longer have the "Mark as Transplanted" / "Start Harvest" / "Complete Harvest" buttons. The phase badge stays, and dates are still edited in the planting's Dates tab, which also drives the inferred status. The Dates tab gained a "Harvest Finished" date (`actualHarvestEnd`) so a harvesting planting can still be marked harvested without the button. `canAdvanceTo` was removed from `getPlantingPhase`.
 
 ## Cloud sync and Aitor down — Supabase free tier paused (2026-10-31)
 

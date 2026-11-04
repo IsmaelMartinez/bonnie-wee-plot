@@ -46,6 +46,7 @@ export default function PlantingDetailDialog({
   const [localSowDate, setLocalSowDate] = useState(formatDateForInput(planting?.sowDate))
   const [localTransplantDate, setLocalTransplantDate] = useState(formatDateForInput(planting?.transplantDate))
   const [localHarvestDate, setLocalHarvestDate] = useState(formatDateForInput(planting?.actualHarvestStart))
+  const [localHarvestEndDate, setLocalHarvestEndDate] = useState(formatDateForInput(planting?.actualHarvestEnd))
   const [savedFlash, setSavedFlash] = useState(false)
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -54,7 +55,8 @@ export default function PlantingDetailDialog({
     setLocalSowDate(formatDateForInput(planting?.sowDate))
     setLocalTransplantDate(formatDateForInput(planting?.transplantDate))
     setLocalHarvestDate(formatDateForInput(planting?.actualHarvestStart))
-  }, [planting?.id, planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart])
+    setLocalHarvestEndDate(formatDateForInput(planting?.actualHarvestEnd))
+  }, [planting?.id, planting?.notes, planting?.sowDate, planting?.transplantDate, planting?.actualHarvestStart, planting?.actualHarvestEnd])
 
   useEffect(() => {
     return () => {
@@ -126,6 +128,7 @@ export default function PlantingDetailDialog({
       if (field === 'sowDate') setLocalSowDate(value)
       else if (field === 'transplantDate') setLocalTransplantDate(value)
       else if (field === 'actualHarvestStart') setLocalHarvestDate(value)
+      else if (field === 'actualHarvestEnd') setLocalHarvestEndDate(value)
 
       handleUpdateAndRecalculate({ [field]: value || undefined })
     },
@@ -304,6 +307,21 @@ export default function PlantingDetailDialog({
               type="date"
               value={localHarvestDate}
               onChange={(e) => handleDateChange('actualHarvestStart', e.target.value)}
+              className="zen-input text-sm w-full"
+            />
+          </div>
+
+          {/* Setting this marks the planting as harvested (status is inferred
+              from dates), which replaces the old "Complete Harvest" button. */}
+          <div>
+            <label htmlFor="harvest-end-date" className="block text-xs font-medium text-zen-stone-500 mb-1">
+              Harvest Finished
+            </label>
+            <input
+              id="harvest-end-date"
+              type="date"
+              value={localHarvestEndDate}
+              onChange={(e) => handleDateChange('actualHarvestEnd', e.target.value)}
               className="zen-input text-sm w-full"
             />
           </div>
