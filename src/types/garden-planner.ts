@@ -157,8 +157,7 @@ export interface MaintenanceInfo {
    * Plant-specific mulching guidance (material and placement, e.g. "keep the
    * mulch clear of the crown"). Surfaced in the mulch task note; absent = a
    * generic "apply organic mulch around base" reminder. Kept on the task
-   * itself (like feedType) rather than as a care tip because care-tip tasks
-   * are deduplicated per plant per month and a same-month tip can swallow it.
+   * itself (like feedType) so the advice shows where the job is listed.
    */
   mulchNote?: string
   /**

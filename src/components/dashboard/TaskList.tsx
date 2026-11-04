@@ -54,7 +54,6 @@ const GENERATED_TASK_CONFIG: Record<GeneratedTaskType, { icon: typeof Scissors; 
   'water': { icon: Droplets, label: 'Water', color: 'text-zen-water-600' },
   'mulch': { icon: TreeDeciduous, label: 'Mulch', color: 'text-amber-700' },
   'succession': { icon: RotateCcw, label: 'Succession Sow', color: 'text-teal-600' },
-  'care-tip': { icon: Sparkles, label: 'Care Tip', color: 'text-zen-bamboo-600' },
 }
 
 const URGENCY_STYLES: Record<TaskUrgency, string> = {

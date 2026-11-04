@@ -245,7 +245,6 @@ export default function BedDetailPanel({
               <PlantingCard
                 key={p.id}
                 planting={p}
-                onUpdate={(updates) => onUpdatePlanting(p.id, updates)}
                 otherPlantings={plantings}
                 onClick={() => setSelectedPlantingId(p.id)}
                 onPlantInfo={setSummaryPlantId}

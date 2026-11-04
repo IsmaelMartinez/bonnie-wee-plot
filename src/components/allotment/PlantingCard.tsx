@@ -6,11 +6,10 @@ import { getVegetableById } from '@/lib/vegetable-database'
 import { getCompanionStatusForPlanting } from '@/lib/companion-utils'
 import { getCrossYearDisplayInfo } from '@/lib/date-calculator'
 import { getPlantingPhase, getSowMethodShortLabel, getPhaseIcon, getPhaseColors } from '@/lib/planting-utils'
-import { Planting, PlantingUpdate } from '@/types/unified-allotment'
+import { Planting } from '@/types/unified-allotment'
 
 interface PlantingCardProps {
   planting: Planting
-  onUpdate: (updates: PlantingUpdate) => void
   otherPlantings?: Planting[]
   onClick?: () => void
   onPlantInfo?: (plantId: string) => void
@@ -18,7 +17,6 @@ interface PlantingCardProps {
 
 export default function PlantingCard({
   planting,
-  onUpdate,
   otherPlantings = [],
   onClick,
   onPlantInfo,
@@ -176,56 +174,6 @@ export default function PlantingCard({
 
           {planting.notes && (
             <div className="text-xs text-zen-stone-400 mt-1 line-clamp-2">{planting.notes}</div>
-          )}
-
-          {phaseInfo.canAdvanceTo && phaseInfo.canAdvanceTo.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {phaseInfo.phase === 'ready-to-transplant' && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdate({
-                      transplantDate: new Date().toISOString().split('T')[0]
-                    })
-                  }}
-                  className="text-xs px-2 py-1 bg-zen-moss-100 text-zen-moss-700 rounded-zen hover:bg-zen-moss-200 transition"
-                >
-                  Mark as Transplanted
-                </button>
-              )}
-
-              {phaseInfo.phase === 'ready-to-harvest' && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdate({
-                      actualHarvestStart: new Date().toISOString().split('T')[0]
-                    })
-                  }}
-                  className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
-                >
-                  Start Harvest
-                </button>
-              )}
-
-              {phaseInfo.phase === 'harvesting' && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onUpdate({
-                      actualHarvestEnd: new Date().toISOString().split('T')[0],
-                      status: 'harvested'
-                    })
-                  }}
-                  className="text-xs px-2 py-1 bg-zen-kitsune-100 text-zen-kitsune-700 rounded-zen hover:bg-zen-kitsune-200 transition"
-                >
-                  Complete Harvest
-                </button>
-              )}
-            </div>
           )}
         </div>
       </div>
