@@ -334,8 +334,13 @@ Important rules:
         })
         // Increment after a successful response so failed requests don't
         // burn the user's quota. Race window with the pre-call check is
-        // small and the consequence (one extra request) is acceptable.
-        await incrementUsage(supabaseToken, userId)
+        // small and the consequence (one extra request) is acceptable. A
+        // failed increment is logged but must not discard a paid-for answer.
+        try {
+          await incrementUsage(supabaseToken)
+        } catch (incErr) {
+          logger.error('AI usage increment failed', { error: String(incErr) })
+        }
         return NextResponse.json({
           type: 'text',
           response: result.text,

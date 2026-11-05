@@ -53,14 +53,23 @@ export async function checkRateLimit(
   const key = `ratelimit:${prefix}:${ip}`
 
   try {
-    const current = await redis.incr(key)
+    // One MULTI/EXEC transaction: SET NX EX creates the window with its TTL
+    // only when the key is missing (never extending an existing window), and
+    // INCR preserves that TTL, so no key can be left without one.
+    const [, current, observedTtl] = await redis
+      .multi()
+      .set(key, 0, { ex: windowSeconds, nx: true })
+      .incr(key)
+      .ttl(key)
+      .exec<['OK' | null, number, number]>()
 
-    // Set TTL on first request in window
-    if (current === 1) {
+    // The key is not time-bucketed, so a key left without a TTL (by the old
+    // non-atomic INCR-then-EXPIRE code) would count up forever. Restore one.
+    let ttl = observedTtl
+    if (ttl === -1) {
       await redis.expire(key, windowSeconds)
+      ttl = windowSeconds
     }
-
-    const ttl = await redis.ttl(key)
 
     if (current > maxRequests) {
       return {

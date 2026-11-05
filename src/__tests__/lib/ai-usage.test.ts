@@ -3,6 +3,7 @@ import { currentYearMonth, FREE_TIER_MONTHLY_QUOTA, getCurrentUsage, incrementUs
 
 const mockMaybeSingle = vi.fn()
 const mockUpsert = vi.fn()
+const mockRpc = vi.fn()
 
 vi.mock('@/lib/supabase/client', () => ({
   createAuthClient: () => ({
@@ -16,6 +17,7 @@ vi.mock('@/lib/supabase/client', () => ({
       }),
       upsert: mockUpsert,
     }),
+    rpc: mockRpc,
   }),
 }))
 
@@ -75,30 +77,28 @@ describe('getCurrentUsage', () => {
 describe('incrementUsage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUpsert.mockResolvedValue({ error: null })
   })
 
-  it('starts at 1 when no prior row', async () => {
-    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
-    const newCount = await incrementUsage('token', 'user-123', new Date('2026-05-09T00:00:00Z'))
-    expect(newCount).toBe(1)
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'user-123',
-        year_month: '2026-05',
-        request_count: 1,
-      }),
-      { onConflict: 'user_id,year_month' },
-    )
-  })
-
-  it('increments the existing count', async () => {
-    mockMaybeSingle.mockResolvedValueOnce({ data: { request_count: 7 }, error: null })
-    const newCount = await incrementUsage('token', 'user-123', new Date('2026-05-09T00:00:00Z'))
+  // End users have no INSERT/UPDATE policy on ai_usage (sql/006), so the
+  // increment must go through the SECURITY DEFINER RPC, which does a single
+  // atomic INSERT ... ON CONFLICT DO UPDATE SET request_count + 1.
+  it('increments atomically through the increment_ai_usage RPC', async () => {
+    mockRpc.mockResolvedValueOnce({ data: 8, error: null })
+    const newCount = await incrementUsage('token')
     expect(newCount).toBe(8)
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ request_count: 8 }),
-      expect.anything(),
-    )
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc).toHaveBeenCalledWith('increment_ai_usage')
+  })
+
+  it('never reads-then-writes the row directly', async () => {
+    mockRpc.mockResolvedValueOnce({ data: 1, error: null })
+    await incrementUsage('token')
+    expect(mockMaybeSingle).not.toHaveBeenCalled()
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it('throws when the RPC fails', async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'denied' } })
+    await expect(incrementUsage('token')).rejects.toThrow('denied')
   })
 })
