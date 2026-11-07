@@ -25,7 +25,7 @@ We welcome contributions!
 
 - Run `npm run lint` to check code style
 - Run `npm run type-check` to verify TypeScript
-- Read `CLAUDE.md` for architecture context
+- Read `AGENTS.md` for architecture context
 
 ### Making Changes
 
