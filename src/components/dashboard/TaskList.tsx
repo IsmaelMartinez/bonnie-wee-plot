@@ -265,7 +265,6 @@ function GeneratedTaskItem({
   }
   const showButton = !!onComplete || !!onDismiss
 
-
   return (
     <div className="flex items-start gap-3 py-3 border-b border-zen-stone-100 last:border-0 group">
       <div className="flex-shrink-0 mt-0.5">
