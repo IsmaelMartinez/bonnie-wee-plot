@@ -1,0 +1,38 @@
+name: Keep Supabase awake
+
+# The Supabase free tier pauses a project after 7 days without activity, which
+# breaks cloud sync and the Aitor free-tier quota check. /api/health runs a
+# trivial anon-key query against Supabase, so calling it counts as activity.
+#
+# Every second day rather than every 5: GitHub can delay or drop scheduled runs,
+# and this way even two missed runs in a row stay inside the 7-day window.
+# A run fails (and GitHub emails the repo owner) when Supabase does not answer.
+
+on:
+  schedule:
+    - cron: '23 9 */2 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /api/health
+        env:
+          HEALTH_URL: https://bonnie-wee-plot.vercel.app/api/health
+        run: |
+          body=$(curl --fail --silent --show-error --retry 3 --retry-delay 15 --retry-all-errors --max-time 30 "$HEALTH_URL")
+          echo "$body"
+          supabase=$(echo "$body" | jq -r '.supabase')
+          redis=$(echo "$body" | jq -r '.redis')
+          if [ "$redis" != "ok" ]; then
+            echo "::warning::Upstash Redis reported '$redis'. Non-blocking, but rate limiting on Aitor, season narration and share is off until it is back."
+          fi
+          if [ "$supabase" != "ok" ]; then
+            echo "::error::Supabase reported '$supabase'. The project may be paused: restore it in the Supabase dashboard."
+            exit 1
+          fi
+          echo "Supabase is awake."

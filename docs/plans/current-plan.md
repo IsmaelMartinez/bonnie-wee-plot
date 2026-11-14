@@ -1,10 +1,14 @@
 # Current Plan
 
-Last updated: 2026-11-04 (Today task list grouped by task type)
+Last updated: 2026-11-14 (Supabase keep-alive workflow)
 
 ## Up Next — simplification and bug-fix waves (2026-09-27)
 
 A five-slice parallel review found data-loss bugs in sync (duplicate sync engines, lineage adoption dropping edits, import merging instead of replacing, no year rollover on the Yjs path), an RLS hole letting users reset their AI quota, and about 7k lines of dead scaffolding left from the Yjs cutover. Work is split into parallel work packages in `docs/plans/simplification-plan.md` (merged in #592); Wave 0 (WP-00 to WP-05) is ready now, and Wave 1 waits on the six decisions D1–D6 listed there. To resume, follow that file's "Resume here" section. WP-02 (year rollover) must ship before 1 January 2027.
+
+## Supabase keep-alive workflow (2026-11-14)
+
+Supabase kept emailing a 7-day inactivity warning: `/api/health` pings Supabase, but nothing was calling it. `.github/workflows/keep-alive.yml` now calls the production `/api/health` every second day (cron `23 9 */2 * *`, plus manual `workflow_dispatch`). The run fails, so GitHub emails the owner, when the response says `supabase` is not `ok`; a non-`ok` `redis` is only a warning. Every second day rather than every 5 so that two dropped scheduled runs still stay inside the 7-day window. The 2026-10-31 health check also showed `redis: unavailable`, and it still did on 2026-11-14: check the Upstash instance and the Vercel env vars.
 
 ## Today task list grouped by task type (2026-11-04)
 
