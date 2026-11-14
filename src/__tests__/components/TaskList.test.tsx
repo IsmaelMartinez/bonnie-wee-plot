@@ -230,9 +230,54 @@ describe('TaskList Component', () => {
       expect(screen.getByText('Check for ripeness first')).toBeInTheDocument()
     })
 
-    it('limits displayed tasks to 8', () => {
+    it('limits displayed rows to 8', () => {
+      // Distinct areas + maintenance so each renders as its own row.
       const tasks = Array.from({ length: 10 }, (_, i) =>
-        makeGeneratedTask({ id: `g${i}`, description: `Task ${i}` })
+        makeMaintenanceTask({ id: `m${i}`, description: `Task ${i}` })
+      )
+
+      render(
+        <TaskList
+          tasks={tasks}
+          generatedTasks={[]}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      // Should show 8 rows plus a "+2 more" message
+      expect(screen.getByText('+2 more')).toBeInTheDocument()
+    })
+  })
+
+  describe('Grouped generated tasks', () => {
+    const harvestTasks = [
+      makeGeneratedTask({ id: 'h1', description: 'Harvest Kale', plantName: 'Kale', notes: 'Ready in Bed A' }),
+      makeGeneratedTask({ id: 'h2', description: 'Harvest Leeks', plantName: 'Leeks', areaName: 'Bed B' }),
+      makeGeneratedTask({ id: 'h3', description: 'Harvest Parsnips', plantName: 'Parsnips', areaName: 'Bed C' }),
+    ]
+
+    it('collapses several tasks of one kind into a single summary row', () => {
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={harvestTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Kale, Leeks and Parsnips')).toBeInTheDocument()
+      expect(screen.getByText('3 tasks')).toBeInTheDocument()
+      // Individual rows are hidden until expanded
+      expect(screen.queryByText('Harvest Kale')).not.toBeInTheDocument()
+      // Header still counts every task
+      expect(screen.getByText('3 items')).toBeInTheDocument()
+    })
+
+    it('does not fold away rows when many tasks share a kind', () => {
+      const tasks = Array.from({ length: 10 }, (_, i) =>
+        makeGeneratedTask({ id: `g${i}`, description: `Harvest ${i}`, plantName: `Crop ${i}` })
       )
 
       render(
@@ -244,8 +289,107 @@ describe('TaskList Component', () => {
         />
       )
 
-      // Should show 8 tasks plus a "+2 more" message
-      expect(screen.getByText('+2 more')).toBeInTheDocument()
+      expect(screen.getByText('Crop 0, Crop 1, Crop 2 and 7 more')).toBeInTheDocument()
+      expect(screen.queryByText(/more$/, { selector: 'button' })).not.toBeInTheDocument()
+    })
+
+    it('expands a group to show the individual tasks', async () => {
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={harvestTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /kale, leeks and parsnips/i }))
+
+      expect(screen.getByText('Harvest Kale')).toBeInTheDocument()
+      expect(screen.getByText('Ready in Bed A')).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: 'Mark "Harvest Leeks" as done' }))
+      expect(defaultCallbacks.onDismissTask).toHaveBeenCalledWith('h2')
+    })
+
+    it('marks every task in a group done at once', async () => {
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={harvestTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      await userEvent.click(screen.getByRole('button', { name: /mark all harvest tasks as done/i }))
+
+      expect(defaultCallbacks.onDismissTask).toHaveBeenCalledTimes(3)
+      expect(defaultCallbacks.onDismissTask).toHaveBeenCalledWith('h1')
+      expect(defaultCallbacks.onDismissTask).toHaveBeenCalledWith('h3')
+    })
+
+    it('routes group completion through onCompleteTask when provided', async () => {
+      const onCompleteTask = vi.fn()
+      const waterTasks = [
+        makeGeneratedTask({ id: 'w1', generatedType: 'water', description: 'Water Bed A', areaName: 'Bed A' }),
+        makeGeneratedTask({ id: 'w2', generatedType: 'water', description: 'Water Bed B', areaName: 'Bed B' }),
+      ]
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={waterTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+          onCompleteTask={onCompleteTask}
+        />
+      )
+
+      expect(screen.getByText('Bed A and Bed B')).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: /mark all water tasks as done/i }))
+
+      expect(onCompleteTask).toHaveBeenCalledTimes(2)
+      expect(onCompleteTask).toHaveBeenCalledWith(waterTasks[0])
+      expect(defaultCallbacks.onDismissTask).not.toHaveBeenCalled()
+    })
+
+    it('keeps an overdue feed visible on a collapsed feed row', () => {
+      const feedTasks = [
+        makeGeneratedTask({ id: 'f1', generatedType: 'feed', description: 'Feed Bed A', areaName: 'Bed A', priority: 'low', calculatedFrom: 'calendar-month' }),
+        makeGeneratedTask({ id: 'f2', generatedType: 'feed', description: 'Feed Bed B', areaName: 'Bed B', priority: 'medium', calculatedFrom: 'calendar-month', urgency: 'overdue', notes: 'Overdue — last fed 30 days ago' }),
+      ]
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={feedTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Bed A and Bed B')).toBeInTheDocument()
+      expect(screen.queryByText('Overdue — last fed 30 days ago')).not.toBeInTheDocument()
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+    })
+
+    it('shows the most urgent badge on a grouped row', () => {
+      const tasks = [
+        makeGeneratedTask({ id: 'h1', plantName: 'Kale', priority: 'medium', urgency: 'this-week', calculatedFrom: 'actual-date', daysRemaining: 4 }),
+        makeGeneratedTask({ id: 'h2', plantName: 'Leeks', urgency: 'overdue', calculatedFrom: 'actual-date' }),
+      ]
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={tasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+      expect(screen.queryByText('4d')).not.toBeInTheDocument()
     })
   })
 
