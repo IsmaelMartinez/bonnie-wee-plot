@@ -18,21 +18,35 @@ permissions: {}
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Ping /api/health
         env:
           HEALTH_URL: https://bonnie-wee-plot.vercel.app/api/health
         run: |
-          body=$(curl --fail --silent --show-error --retry 3 --retry-delay 15 --retry-all-errors --max-time 30 "$HEALTH_URL")
-          echo "$body"
-          supabase=$(echo "$body" | jq -r '.supabase')
-          redis=$(echo "$body" | jq -r '.redis')
+          # /api/health answers 200 even when its 3s Supabase query times out
+          # (e.g. a cold start), so retry on the reported status, not just on
+          # curl errors, and fail only once every attempt has said not ok.
+          attempts=4
+          for i in $(seq 1 "$attempts"); do
+            body=$(curl --fail --silent --show-error --retry 2 --retry-delay 10 --retry-all-errors --max-time 30 "$HEALTH_URL" || true)
+            echo "Attempt $i: ${body:-<no response>}"
+            supabase=$(echo "$body" | jq -r '.supabase // "no response"' 2>/dev/null || echo "invalid response")
+            redis=$(echo "$body" | jq -r '.redis // "no response"' 2>/dev/null || echo "invalid response")
+            supabase=${supabase:-no response}
+            redis=${redis:-no response}
+            if [ "$supabase" = "ok" ]; then
+              break
+            fi
+            if [ "$i" -lt "$attempts" ]; then
+              sleep 20
+            fi
+          done
           if [ "$redis" != "ok" ]; then
             echo "::warning::Upstash Redis reported '$redis'. Non-blocking, but rate limiting on Aitor, season narration and share is off until it is back."
           fi
           if [ "$supabase" != "ok" ]; then
-            echo "::error::Supabase reported '$supabase'. The project may be paused: restore it in the Supabase dashboard."
+            echo "::error::Supabase reported '$supabase' after $attempts attempts. The project may be paused: restore it in the Supabase dashboard."
             exit 1
           fi
           echo "Supabase is awake."
