@@ -74,6 +74,13 @@ describe('getGroupBadge', () => {
     ])?.text).toBe('Today')
   })
 
+  it('flags an overdue month-based task, such as a long-unfed feed reminder', () => {
+    expect(getGroupBadge([
+      task({ generatedType: 'feed', priority: 'low', calculatedFrom: 'calendar-month' }),
+      task({ generatedType: 'feed', priority: 'medium', calculatedFrom: 'calendar-month', urgency: 'overdue' }),
+    ])?.text).toBe('Overdue')
+  })
+
   it('returns null when no task has a badge', () => {
     expect(getGroupBadge([task({ priority: 'low' })])).toBeNull()
   })

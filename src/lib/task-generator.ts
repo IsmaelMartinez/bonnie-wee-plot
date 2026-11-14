@@ -695,6 +695,9 @@ function createFeedTask(
     priority: isOverdue ? 'medium' : 'low',
     notes,
     feedType,
+    // Structured flag so the UI can badge it: the note alone is hidden when
+    // the Today list collapses several feed tasks into one summary row.
+    ...(isOverdue ? { urgency: 'overdue' as const } : {}),
   }
 }
 

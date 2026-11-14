@@ -70,8 +70,10 @@ export interface TaskBadge {
 
 /** The badge a single task shows, or null when it has none. */
 export function getTaskBadge(task: GeneratedTask): TaskBadge | null {
+  // Overdue is flagged whatever the task was calculated from: a feed reminder
+  // is month-based but still overdue when the last feed was long ago.
+  if (task.urgency === 'overdue') return { text: 'Overdue', rank: 0, urgency: 'overdue' }
   if (task.urgency && task.calculatedFrom === 'actual-date') {
-    if (task.urgency === 'overdue') return { text: 'Overdue', rank: 0, urgency: 'overdue' }
     if (task.urgency === 'today') return { text: 'Today', rank: 1, urgency: 'today' }
     if ((task.urgency === 'this-week' || task.urgency === 'upcoming') && task.daysRemaining !== undefined) {
       return {

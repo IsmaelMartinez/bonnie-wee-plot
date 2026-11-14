@@ -353,6 +353,26 @@ describe('TaskList Component', () => {
       expect(defaultCallbacks.onDismissTask).not.toHaveBeenCalled()
     })
 
+    it('keeps an overdue feed visible on a collapsed feed row', () => {
+      const feedTasks = [
+        makeGeneratedTask({ id: 'f1', generatedType: 'feed', description: 'Feed Bed A', areaName: 'Bed A', priority: 'low', calculatedFrom: 'calendar-month' }),
+        makeGeneratedTask({ id: 'f2', generatedType: 'feed', description: 'Feed Bed B', areaName: 'Bed B', priority: 'medium', calculatedFrom: 'calendar-month', urgency: 'overdue', notes: 'Overdue — last fed 30 days ago' }),
+      ]
+
+      render(
+        <TaskList
+          tasks={[]}
+          generatedTasks={feedTasks}
+          theme={mockTheme}
+          {...defaultCallbacks}
+        />
+      )
+
+      expect(screen.getByText('Bed A and Bed B')).toBeInTheDocument()
+      expect(screen.queryByText('Overdue — last fed 30 days ago')).not.toBeInTheDocument()
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+    })
+
     it('shows the most urgent badge on a grouped row', () => {
       const tasks = [
         makeGeneratedTask({ id: 'h1', plantName: 'Kale', priority: 'medium', urgency: 'this-week', calculatedFrom: 'actual-date', daysRemaining: 4 }),

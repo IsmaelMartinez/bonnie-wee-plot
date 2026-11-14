@@ -1182,6 +1182,7 @@ describe('task-generator', () => {
       expect(feedTasks).toHaveLength(1)
       expect(feedTasks[0].priority).toBe('medium')
       expect(feedTasks[0].notes).toContain('Overdue')
+      expect(feedTasks[0].urgency).toBe('overdue')
     })
 
     it('keeps a feed within the overdue margin at low priority', () => {
@@ -1206,6 +1207,7 @@ describe('task-generator', () => {
       expect(feedTasks).toHaveLength(1)
       expect(feedTasks[0].priority).toBe('low')
       expect(feedTasks[0].notes).not.toContain('Overdue')
+      expect(feedTasks[0].urgency).toBeUndefined()
     })
 
     it('emits a feed task for a hungry annual planted in a bed (no primary plant)', () => {
